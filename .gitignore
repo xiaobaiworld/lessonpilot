@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Local config and secrets
+.env
+.env.*
+config.local.*
+*.key
+*.pem
+
+# Logs
+logs/
+*.log
+
+# macOS
+.DS_Store
