@@ -27,22 +27,18 @@
     ctx.save();
     ctx.translate(0, bounce);
 
-    // Shadow
     ctx.fillStyle = 'rgba(0,0,0,0.15)';
     ctx.beginPath();
     ctx.ellipse(36, 90, 18, 5, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Legs
     ctx.fillStyle = COLORS.pants;
     ctx.fillRect(26, 62, 8, 18);
     ctx.fillRect(38, 62, 8, 18);
 
-    // Body
     ctx.fillStyle = COLORS.shirt;
     ctx.fillRect(24, 42, 24, 22);
 
-    // Arms
     ctx.save();
     ctx.translate(24, 48);
     ctx.rotate(((-10 + armSwing) * Math.PI) / 180);
@@ -61,17 +57,14 @@
     ctx.fillRect(-1, 14, 8, 8);
     ctx.restore();
 
-    // Head
     ctx.fillStyle = COLORS.skin;
     ctx.fillRect(22, 16, 28, 26);
 
-    // Hair
     ctx.fillStyle = COLORS.hair;
     ctx.fillRect(20, 12, 32, 10);
     ctx.fillRect(20, 12, 6, 18);
     ctx.fillRect(46, 12, 6, 18);
 
-    // Face
     ctx.fillStyle = COLORS.blush;
     ctx.fillRect(24, 30, 4, 3);
     ctx.fillRect(44, 30, 4, 3);
@@ -85,7 +78,6 @@
       ctx.fillRect(40, 24, 4, 4);
     }
 
-    // Mouth / state indicator
     ctx.strokeStyle = COLORS.eye;
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -99,7 +91,6 @@
     }
     ctx.stroke();
 
-    // Pause/play badge
     ctx.fillStyle = state === 'paused' ? '#fb7299' : '#00a1d6';
     ctx.beginPath();
     ctx.arc(58, 20, 8, 0, Math.PI * 2);
@@ -131,6 +122,17 @@
       this.movedDuringDrag = false;
       this.animationId = 0;
 
+      this.shell = document.createElement('div');
+      this.shell.id = 'lessonpilot-mascot-shell';
+
+      this.controls = document.createElement('div');
+      this.controls.id = 'lessonpilot-mascot-controls';
+
+      this.pauseButton = this.createControlButton('暂停', 'lessonpilot:pause');
+      this.seek30Button = this.createControlButton('30秒', 'lessonpilot:seek-30');
+      this.seek35Button = this.createControlButton('35秒', 'lessonpilot:seek-35');
+      this.controls.append(this.pauseButton, this.seek30Button, this.seek35Button);
+
       this.root = document.createElement('div');
       this.root.id = 'lessonpilot-mascot-root';
       this.root.dataset.state = 'idle';
@@ -147,14 +149,42 @@
       this.hint.id = 'lessonpilot-mascot-hint';
       this.hint.textContent = '点击暂停 / 继续';
 
+      this.dialog = document.createElement('div');
+      this.dialog.id = 'lessonpilot-mascot-dialog';
+      this.dialog.hidden = true;
+      this.dialog.innerHTML = `
+        <div id="lessonpilot-mascot-dialog-card" role="dialog" aria-modal="true" aria-labelledby="lessonpilot-mascot-dialog-title">
+          <p id="lessonpilot-mascot-dialog-title">到达 35 秒</p>
+          <p id="lessonpilot-mascot-dialog-body">这里是 LessonPilot 的示例互动点，后续可替换为提问或练习。</p>
+          <button type="button" id="lessonpilot-mascot-dialog-close">知道了</button>
+        </div>
+      `;
+
       this.root.append(this.canvas, this.hint);
+      this.shell.append(this.controls, this.root, this.dialog);
       this.bindEvents();
       this.renderLoop();
     }
 
+    /**
+     * @param {string} label
+     * @param {string} eventName
+     */
+    createControlButton(label, eventName) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'lessonpilot-mascot-control-btn';
+      button.textContent = label;
+      button.addEventListener('click', (event) => {
+        event.stopPropagation();
+        this.shell.dispatchEvent(new CustomEvent(eventName, { bubbles: true }));
+      });
+      return button;
+    }
+
     mount() {
-      if (!document.getElementById('lessonpilot-mascot-root')) {
-        document.documentElement.appendChild(this.root);
+      if (!document.getElementById('lessonpilot-mascot-shell')) {
+        document.documentElement.appendChild(this.shell);
       }
     }
 
@@ -168,12 +198,30 @@
         state === 'playing' ? '点击暂停' : state === 'paused' ? '点击继续' : '等待视频…';
     }
 
+    showDialog() {
+      this.dialog.hidden = false;
+    }
+
+    hideDialog() {
+      this.dialog.hidden = true;
+    }
+
     bindEvents() {
+      this.dialog.querySelector('#lessonpilot-mascot-dialog-close')?.addEventListener('click', () => {
+        this.hideDialog();
+      });
+
+      this.dialog.addEventListener('click', (event) => {
+        if (event.target === this.dialog) {
+          this.hideDialog();
+        }
+      });
+
       this.root.addEventListener('pointerdown', (event) => {
         this.dragging = true;
         this.movedDuringDrag = false;
-        this.dragOffsetX = event.clientX - this.root.getBoundingClientRect().left;
-        this.dragOffsetY = event.clientY - this.root.getBoundingClientRect().top;
+        this.dragOffsetX = event.clientX - this.shell.getBoundingClientRect().left;
+        this.dragOffsetY = event.clientY - this.shell.getBoundingClientRect().top;
         this.root.setPointerCapture(event.pointerId);
       });
 
@@ -182,14 +230,14 @@
           return;
         }
         this.movedDuringDrag = true;
-        const maxX = window.innerWidth - this.root.offsetWidth;
-        const maxY = window.innerHeight - this.root.offsetHeight;
+        const maxX = window.innerWidth - this.shell.offsetWidth;
+        const maxY = window.innerHeight - this.shell.offsetHeight;
         const nextLeft = Math.min(Math.max(event.clientX - this.dragOffsetX, 0), maxX);
         const nextTop = Math.min(Math.max(event.clientY - this.dragOffsetY, 0), maxY);
-        this.root.style.left = `${nextLeft}px`;
-        this.root.style.top = `${nextTop}px`;
-        this.root.style.right = 'auto';
-        this.root.style.bottom = 'auto';
+        this.shell.style.left = `${nextLeft}px`;
+        this.shell.style.top = `${nextTop}px`;
+        this.shell.style.right = 'auto';
+        this.shell.style.bottom = 'auto';
       });
 
       const finishDrag = () => {
@@ -203,21 +251,21 @@
           return;
         }
         event.preventDefault();
-        this.root.dispatchEvent(new CustomEvent('lessonpilot:mascot-toggle', { bubbles: true }));
+        this.shell.dispatchEvent(new CustomEvent('lessonpilot:mascot-toggle', { bubbles: true }));
       });
 
       this.root.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault();
-          this.root.dispatchEvent(new CustomEvent('lessonpilot:mascot-toggle', { bubbles: true }));
+          this.shell.dispatchEvent(new CustomEvent('lessonpilot:mascot-toggle', { bubbles: true }));
         }
       });
 
       this.root.addEventListener('dblclick', () => {
-        this.root.style.left = '';
-        this.root.style.top = '';
-        this.root.style.right = '24px';
-        this.root.style.bottom = '96px';
+        this.shell.style.left = '';
+        this.shell.style.top = '';
+        this.shell.style.right = '24px';
+        this.shell.style.bottom = '96px';
       });
     }
 
@@ -229,7 +277,7 @@
 
     destroy() {
       window.cancelAnimationFrame(this.animationId);
-      this.root.remove();
+      this.shell.remove();
     }
   }
 

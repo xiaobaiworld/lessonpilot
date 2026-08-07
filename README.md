@@ -26,6 +26,8 @@ The first implementation should support one fixed Bilibili video before expandin
 2. Click **Load unpacked** and select the `src/` directory.
 3. Open the demo video: `https://www.bilibili.com/video/BV1WW4y1e7GL/`
 4. Click the mascot in the bottom-right corner to pause or resume playback.
+5. Use the three buttons above the mascot: **暂停**, **30秒**, **35秒**.
+6. When playback reaches 35 seconds, a dialog appears automatically.
 
 See [Bilibili mascot spike notes](doc/bili-mascot-spike.md) for open-source research and technical decisions.
 

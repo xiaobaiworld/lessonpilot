@@ -69,6 +69,33 @@
   }
 
   /**
+   * @returns {'playing' | 'paused' | 'missing'}
+   */
+  function pause() {
+    const video = getMainVideo();
+    if (!video) {
+      return 'missing';
+    }
+    video.pause();
+    return 'paused';
+  }
+
+  /**
+   * @param {number} seconds
+   * @returns {'playing' | 'paused' | 'missing'}
+   */
+  function seekTo(seconds) {
+    const video = getMainVideo();
+    if (!video) {
+      return 'missing';
+    }
+
+    const safeSeconds = Math.max(0, Math.min(seconds, Number.isFinite(video.duration) ? video.duration : seconds));
+    video.currentTime = safeSeconds;
+    return video.paused || video.ended ? 'paused' : 'playing';
+  }
+
+  /**
    * @param {(state: 'playing' | 'paused') => void} listener
    * @returns {() => void}
    */
@@ -119,10 +146,62 @@
     };
   }
 
+  /**
+   * @param {(currentTime: number, video: HTMLVideoElement) => void} listener
+   * @returns {() => void}
+   */
+  function watchTime(listener) {
+    let boundVideo = null;
+
+    function onTimeUpdate() {
+      if (!boundVideo) {
+        return;
+      }
+      listener(boundVideo.currentTime, boundVideo);
+    }
+
+    function bind(video) {
+      if (!(video instanceof HTMLVideoElement) || video === boundVideo) {
+        return;
+      }
+
+      unbind();
+      boundVideo = video;
+      boundVideo.addEventListener('timeupdate', onTimeUpdate);
+      onTimeUpdate();
+    }
+
+    function unbind() {
+      if (!boundVideo) {
+        return;
+      }
+      boundVideo.removeEventListener('timeupdate', onTimeUpdate);
+      boundVideo = null;
+    }
+
+    function scan() {
+      bind(getMainVideo());
+    }
+
+    scan();
+    const observer = new MutationObserver(scan);
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+    const intervalId = window.setInterval(scan, 2000);
+
+    return () => {
+      observer.disconnect();
+      window.clearInterval(intervalId);
+      unbind();
+    };
+  }
+
   global.LessonPilotBiliPlayer = {
     getMainVideo,
     getPlaybackState,
     togglePlayback,
-    watchPlayback
+    pause,
+    seekTo,
+    watchPlayback,
+    watchTime
   };
 })(window);

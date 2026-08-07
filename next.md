@@ -13,7 +13,8 @@ Validate the Bilibili video control spike on the primary demo video, then contin
 5. [x] Research open-source Bilibili playback and 2D mascot projects.
 6. [x] Scaffold MV3 extension spike with mascot play/pause control.
 7. [ ] Manually verify mascot control on `BV1WW4y1e7GL`.
-8. [ ] Confirm AI backend and extension UI approach before Phase 1 side panel work.
+8. [x] Add demo-only URL gate, pause/seek buttons, and 35s dialog trigger.
+9. [ ] Confirm AI backend and extension UI approach before Phase 1 side panel work.
 
 ## Candidate Decisions To Confirm
 
