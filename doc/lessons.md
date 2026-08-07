@@ -30,3 +30,24 @@ The durable asset should be:
 - Teacher delivery workflow
 - Student practice data
 - Case studies from real course upgrades
+
+## 2026-08-07 — Course Sellers Buy Commercial Outcomes, Not Video Quality
+
+A teacher who already sells a course does not primarily buy "better video quality." The buying reasons are stronger product differentiation, higher perceived course value, learning evidence, and lower repetitive delivery work.
+
+The product promise should therefore be "upgrade an existing recorded course without re-recording it," not "improve an English video."
+
+Traffic-only creators and batch-generated accounts are weak first buyers because they may have no paid delivery problem or budget to solve.
+
+## 2026-08-07 — Interaction Must Produce a Closed Delivery Loop
+
+Avatar, pause control, and question cards are visible demo elements, but none is sufficient alone.
+
+The minimum defensible loop is:
+
+- Teacher authors a timed node.
+- Learner answers when the video pauses.
+- The system gives specific feedback and resumes playback.
+- The same session data produces learner guidance and teacher evidence.
+
+Teacher preview is required because it proves that course conversion is repeatable rather than a one-off custom animation.

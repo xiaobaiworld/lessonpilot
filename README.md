@@ -1,22 +1,24 @@
 # LessonPilot
 
-LessonPilot is an early-stage Chrome extension project for upgrading an existing English video lesson into an interactive AI-assisted lesson.
+LessonPilot is an early-stage Chrome extension project for upgrading an English teacher's existing recorded course into an interactive course product.
 
-The first demo targets a real teacher-style Bilibili English interview lesson. The goal is not to build a general AI language learning app. The goal is to prove that an English teacher can turn an existing video course into a lesson with questions, practice, feedback, and a learning report.
+The first demo targets a real teacher-style Bilibili English interview lesson. Its job is to show that a teacher can add timed practice, feedback, and learning evidence without re-recording the video.
 
 ## Product Positioning
 
 For English teachers and course creators:
 
-> Turn an already-recorded English lesson into an AI interactive lesson.
+> Upgrade an already-recorded course into an interactive course product without re-recording it.
 
 For learners:
 
-> Watch the lesson, ask about the current segment, rewrite examples for your own situation, practice answers, and get feedback.
+> Watch the lesson, pause for active practice, apply the teacher's examples, and receive concrete feedback.
+
+The first buyer is a teacher or small training operator who already sells recorded courses. The project is not positioned as a video quality tool or a general student chatbot.
 
 ## Current Phase
 
-Phase 0 → Phase 1 transition: requirements are defined; a technical spike validates Bilibili playback control with a 2D mascot overlay.
+Phase 1: validate the existing playback-control spike and turn it into a reusable timed interaction engine.
 
 The first implementation should support one fixed Bilibili video before expanding to other videos or platforms.
 

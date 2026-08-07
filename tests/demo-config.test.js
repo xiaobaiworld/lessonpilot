@@ -5,8 +5,13 @@
 
 const DEMO_BVID = 'BV1WW4y1e7GL';
 
+function getBvidFromPathname(pathname) {
+  const match = pathname.match(/\/video\/(BV[a-zA-Z0-9]+)/i);
+  return match ? match[1] : null;
+}
+
 function isDemoVideoPage(pathname) {
-  return pathname.includes(`/video/${DEMO_BVID}`);
+  return getBvidFromPathname(pathname) === DEMO_BVID;
 }
 
 const cases = [
@@ -26,18 +31,21 @@ const cases = [
     label: 'other bilibili video'
   },
   {
+    pathname: '/video/BV1WW4y1e7GLX/',
+    expected: false,
+    label: 'similar but different bvid'
+  },
+  {
     pathname: '/video/BV1WW4y1e7GL/',
-    search: '?vd_source=e7c7f9591fda9ac995d213b1cf10137c',
     expected: true,
-    label: 'demo video with vd_source query'
+    label: 'demo video with vd_source query assumed on same pathname'
   }
 ];
 
 let failed = 0;
 
 for (const testCase of cases) {
-  const pathname = testCase.pathname;
-  const pass = isDemoVideoPage(pathname) === testCase.expected;
+  const pass = isDemoVideoPage(testCase.pathname) === testCase.expected;
   if (!pass) {
     failed += 1;
     console.error(`FAIL: ${testCase.label}`);

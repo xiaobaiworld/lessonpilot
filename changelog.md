@@ -4,6 +4,16 @@ Only record verified changes.
 
 ## [Unreleased]
 
+- Fix demo-only scope so mascot disappears when navigating away on Bilibili SPA pages.
+- Match demo video by exact BV id instead of pathname substring.
+
+### Product Requirements v0.2 — 2026-08-07
+
+- Reposition the demo around upgrading an existing paid recorded course rather than improving video quality.
+- Define a three-node student flow: comprehension choice, recall fill-in, and applied free answer.
+- Add minimum teacher-side requirements for node editing, preview, and an evidence-based individual report.
+- Replace the general side-panel-first design with a timed interaction engine and shared local session data.
+
 ### Bilibili Mascot Controls — 2026-08-07
 
 - Restrict mascot and playback control to demo video `BV1WW4y1e7GL` only.

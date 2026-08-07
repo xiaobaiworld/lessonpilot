@@ -1,41 +1,50 @@
 # Requirements — LessonPilot
 
-Version: 0.1  
+Version: 0.2
 Last updated: 2026-08-07
 
 ## 1. Product Goal
 
-Build a Chrome extension demo that upgrades one English teacher's Bilibili video lesson into an interactive AI-assisted lesson.
+Build a Chrome extension demo that turns one existing English teacher's Bilibili recording into an interactive lesson without requiring the teacher to re-record it.
 
 The demo must prove one business hypothesis:
 
-> An English teacher can see, within 3 minutes, that LessonPilot can make an existing video lesson feel more valuable by adding AI questions, personalized practice, feedback, and a learning report.
+> Within 3 minutes, a teacher who already sells recorded courses understands that LessonPilot can make an old lesson easier to package, differentiate, and deliver by adding timed practice, feedback, and learning evidence.
 
-This is not a general AI learning app, not a general Bilibili assistant, and not a Duolingo/Speak competitor.
+The demo does not claim that interaction automatically increases sales. Its job is to earn the next commercial commitment: the teacher provides a real course video for a custom trial or agrees to discuss a paid course upgrade.
+
+This is not a general AI learning app, a general Bilibili assistant, a video quality tool, or a Duolingo/Speak competitor.
 
 ## 2. Target Users
 
-### Buyer
+### 2.1 Buyer
 
-The first buyer is an English teacher, course creator, or small English training operator who already has paid or semi-paid video lessons.
+The first buyer is an English teacher, course creator, or small training operator who:
 
-Buyer pain:
+- Already sells a paid or semi-paid recorded course.
+- Uses homework, community support, or manual feedback as part of delivery.
+- Wants stronger course differentiation, higher perceived value, or lower service cost.
+- Has enough course revenue to pay for course conversion or software.
 
-- Students watch videos passively.
-- Students ask repetitive questions.
-- Students struggle to adapt sample sentences to their own situations.
-- Teachers want their recorded lessons to feel more interactive and more premium.
+Buyer problems:
 
-### End User
+- Recorded lessons are passive and difficult to distinguish from free videos.
+- Teachers cannot see whether a learner understood or practiced the lesson.
+- Repetitive answering and homework correction consume delivery time.
+- Re-recording an entire course is expensive and slow.
 
-The first end user is an adult English learner preparing for interviews, especially interviews that require English self-introduction, strengths/weaknesses, experience explanation, or skill explanation.
+Traffic-only creators, advertising-led accounts, and batch-generated video accounts are not the first customers.
 
-Learner pain:
+### 2.2 Learner
 
-- They understand the sample sentence but cannot adapt it to themselves.
-- They do not know whether their answer is natural.
-- They need concrete correction, not generic encouragement.
-- They forget expressions after watching the video.
+The first learner is an adult preparing for an English interview.
+
+Learner problems:
+
+- They recognize an example while watching but cannot recall it later.
+- They understand a model answer but cannot adapt it to their background.
+- They do not know whether their own answer is natural or specific.
+- Passive watching produces no concrete record of what they learned.
 
 ## 3. First Demo Video
 
@@ -46,230 +55,200 @@ Primary demo video:
 - Creator: `每日英语Xixi学以致用`
 - Duration: about 8 minutes 33 seconds
 
-Why this video:
+The first demo only supports this video. Interaction timestamps and teaching content must be authored after manually checking the matching video segment. The existing 35-second trigger is a playback-control spike, not yet an approved teaching node.
 
-- It looks closer to a real teacher lesson than a batch-generated content account.
-- It covers several interview subtopics, not only one sentence.
-- It is short enough for a demo.
-- It has strong public engagement signals.
-- It naturally supports practice, rewriting, and feedback.
+## 4. Demo Promise
 
-## 4. First Demo Scope
+The demo must show one complete loop:
 
-The first demo only needs to work on the fixed primary Bilibili video above.
+```text
+Teacher edits one interaction node
+  -> teacher previews the existing video
+  -> video pauses at authored timestamps
+  -> learner completes three types of practice
+  -> learner receives feedback and resumes playback
+  -> learner and teacher receive reports from the same session data
+```
 
-Required behavior:
+The value proposition is:
 
-1. User opens the primary Bilibili video in Chrome.
-2. LessonPilot detects the video URL.
-3. A right-side learning assistant panel appears.
-4. The panel shows lesson segments and current segment content.
-5. The learner can ask about the lesson.
-6. The learner can adapt a sample answer to their own background.
-7. The learner can submit their own answer for AI feedback.
-8. The learner can generate a short learning report.
+> Upgrade an existing recorded course into an interactive course product without re-recording it.
 
-The first demo may use pre-authored lesson metadata for this one video. It does not need to automatically parse every Bilibili video.
+## 5. Student Experience
 
-## 5. Core Features
+### 5.1 Supported Video Detection
 
-### 5.1 Video Detection
+- Detect the exact primary Bilibili video id.
+- Show the learning experience only on the supported video.
+- Remove the experience when Bilibili SPA navigation leaves the supported video.
 
-The extension must detect the primary Bilibili video URL.
+### 5.2 Avatar Facilitator
 
-Acceptance:
+- Show a lightweight avatar as the interaction host.
+- Use clear states: watching, asking, waiting, feedback, and complete.
+- Let the avatar introduce an activity and return focus to the video.
 
-- On the primary video page, the assistant panel is shown.
-- On unrelated pages, the assistant panel is hidden or shows a clear unsupported state.
+The demo does not require Live2D, voice synthesis, clothing, or character customization.
 
-### 5.2 Assistant Side Panel
+### 5.3 Timed Pause Engine
 
-The extension must render a fixed right-side panel on the video page.
+- Watch the current video time.
+- Pause once when playback crosses an unfinished interaction node.
+- Open the matching activity card.
+- Resume playback after the learner completes or explicitly skips the activity.
+- Avoid repeatedly reopening a completed node unless the learner seeks back and chooses to retry it.
 
-Panel sections:
+### 5.4 Three Authored Activities
 
-- Lesson title
-- Current segment
-- Key sentences
-- Ask AI
-- Personalize answer
-- Practice feedback
-- Learning report
+The primary lesson must contain exactly three representative nodes for the sales demo:
 
-Acceptance:
+1. **Multiple choice — comprehension**
+   - Check whether the learner understood a point the teacher just explained.
+   - Evaluate locally with a pre-authored answer and explanation.
 
-- The panel does not block the video controls.
-- The user can open and collapse the panel.
-- Text remains readable on a typical laptop viewport.
+2. **Fill in the blank — recall**
+   - Remove a key phrase from a sentence used in the lesson.
+   - Evaluate locally with normalized answer matching and an authored explanation.
 
-### 5.3 Lesson Segments
+3. **Free answer — application**
+   - Ask the learner to use the lesson pattern in a personal interview answer.
+   - Use AI to evaluate naturalness, specificity, lesson-pattern use, and language risk.
+   - Return concrete feedback and a revised answer.
 
-The extension must provide a simple segment list for the primary video.
+### 5.5 Feedback, Retry, and Resume
 
-Example segments:
+Every activity must produce a closed interaction loop:
 
-- Self-introduction
-- Handling conflict questions
-- Strengths and weaknesses
-- Skills and experience
+- Preserve the learner's submitted answer.
+- Show specific feedback rather than only correct/incorrect.
+- Allow one-click retry or revision.
+- Make the continue action explicit.
+- Update lesson progress without shifting the video layout.
 
-Acceptance:
+### 5.6 Student Summary
 
-- Clicking a segment seeks the video to the segment start time if feasible.
-- The panel displays the selected segment's key sentences and practice task.
-- If video seek integration is not stable in the first demo, segment selection must still update the panel content.
+At the end of the three-node demo, show:
 
-### 5.4 Sentence Explanation
+- Activities completed.
+- Multiple-choice and fill-in results.
+- Original and revised free answer.
+- Key expression practiced.
+- Main correction point.
+- One next review task.
 
-The learner can click or select a key sentence and ask for an explanation.
+The summary must be generated from the learner's actual session data, not from a fixed template pretending to be personalized.
 
-Explanation must include:
+## 6. Teacher Experience
 
-- Chinese meaning
-- Natural usage context
-- Why the expression works in an interview
-- One common Chinese-English mistake to avoid
+### 6.1 Minimal Node Editor
 
-Acceptance:
+The demo needs a functional editor for the fixed video, not a full teacher dashboard.
 
-- Output is specific to the selected sentence.
-- Output is not just a translation.
+For each node, the teacher can edit:
 
-### 5.5 Personalized Rewrite
+- Timestamp.
+- Activity type.
+- Prompt.
+- Options and correct answer when applicable.
+- Explanation or evaluation rubric.
+- Continue behavior.
 
-The learner can enter profile fields:
+The teacher can edit and enable or disable the three seeded demo nodes. Adding, reordering, and deleting arbitrary nodes are deferred until a teacher validates the authoring workflow.
 
-- Target role
-- Years of experience
-- Current background
-- Interview goal
+### 6.2 Preview
 
-The assistant generates a personalized English answer based on the lesson example.
+- Save node configuration locally.
+- Open or return to the supported video in preview mode.
+- Demonstrate that at least one changed prompt or timestamp appears in the student experience.
 
-Acceptance:
+Preview is required because it connects teacher configuration to learner delivery.
 
-- The generated answer reflects the learner's role and background.
-- The answer remains interview-appropriate.
-- The answer includes at least one reusable sentence pattern from the lesson.
+### 6.3 Teacher Learning Report
 
-### 5.6 Practice Feedback
+Show an individual report generated from the same session data as the student summary:
 
-The learner can submit a written answer to an interview prompt.
+- Completion status and node results.
+- Number of attempts.
+- Learner's original free answer.
+- AI feedback and revised version.
+- Main weak point and suggested follow-up.
 
-The assistant gives feedback on:
+The first demo does not need cohort analytics, fabricated pass rates, or a class dashboard.
 
-- Naturalness
-- Specificity
-- Grammar or phrasing
-- Chinese-English expression risk
-- A revised version
+## 7. AI Boundaries
 
-Acceptance:
+AI is used only where open-ended judgment creates visible value:
 
-- Feedback points to concrete phrases or sentences.
-- Feedback gives an improved version.
-- Feedback avoids vague comments such as "make it more natural" without examples.
+- Review the free answer.
+- Produce the student summary and teacher-facing interpretation.
 
-### 5.7 Learning Report
+Multiple-choice and fill-in evaluation must remain deterministic for speed and reliability.
 
-The learner can generate a short report after practicing.
+AI must:
 
-Report content:
+- Stay inside the current lesson context and teacher rubric.
+- Point to concrete words or sentences.
+- Separate the learner's original answer from the proposed revision.
+- Avoid guaranteed score, hiring, or sales claims.
 
-- Lesson segment practiced
-- Key expressions learned
-- User's submitted answer summary
-- Main correction points
-- Next review task
-
-Acceptance:
-
-- The report can be copied as text.
-- The report is useful to both the learner and the teacher.
-
-## 6. AI Behavior Requirements
-
-The AI assistant must behave like a lesson assistant, not a general chatbot.
-
-It should:
-
-- Stay within the current lesson context.
-- Explain the teacher's content before adding outside material.
-- Ask for missing learner background when needed.
-- Give concrete corrections.
-- Avoid overclaiming test scores, hiring outcomes, or guaranteed results.
-
-It must not:
+AI must not:
 
 - Pretend to be the original teacher.
-- Claim access to private course data.
-- Generate unrelated English learning plans.
-- Give generic motivational coaching.
+- Invent learner activity or course data.
+- Turn into a general chatbot.
+- Send full Bilibili page content to the backend.
 
-## 7. Data and Content Requirements
+## 8. Data Requirements
 
-For the first demo, the project may maintain a local lesson data file for the primary video.
+The demo may use pre-authored local lesson data and local session storage.
 
-Lesson data should include:
+Lesson data includes:
 
-- Video URL and title
-- Segment start times
-- Segment titles
-- Key sentences
-- Practice prompts
-- Prompt templates for AI tasks
+- Video id, URL, title, and creator.
+- Ordered interaction nodes.
+- Timestamp and activity type.
+- Prompt, options, answer, explanation, and rubric.
 
-The demo should not store real learner private data unless explicitly added in a later phase.
+Session data includes:
 
-## 8. Non-Goals
+- Lesson id and session timestamps.
+- Node completion state.
+- Submitted answers and attempts.
+- Deterministic result or AI feedback.
+- Revised free answer.
+
+Do not commit API keys or real learner personal data.
+
+## 9. Non-Goals
 
 The first demo will not include:
 
-- General support for all Bilibili videos
-- YouTube support
-- User accounts
-- Payment
-- Teacher dashboard
-- Student history across lessons
-- Speech recognition
-- Pronunciation scoring
-- Automatic subtitle extraction
-- Chrome Web Store publishing
-- Public marketing website
-- Full course hosting
+- General support for all Bilibili or YouTube videos.
+- Automatic subtitle extraction or automatic node generation.
+- A general lesson chatbot or side-panel knowledge assistant.
+- User accounts, payments, classes, or organization management.
+- Aggregate cohort analytics.
+- Speech recognition or pronunciation scoring.
+- Full teacher course management.
+- Chrome Web Store publishing or a marketing website.
+- Live2D or advanced avatar production.
 
-## 9. Success Metrics
+## 10. Success Criteria
 
-The first demo is successful if:
+### Product Demonstration
 
-1. A viewer can open the primary Bilibili video and use the assistant panel.
-2. The viewer can complete one full flow: segment -> explanation -> personalized rewrite -> practice feedback -> learning report.
-3. An English teacher can understand the product value in 3 minutes.
-4. At least one teacher is willing to provide a real lesson video for a custom demo, or expresses willingness to pay for a trial course upgrade.
+1. The exact Bilibili video loads the extension without breaking video controls.
+2. Three authored nodes pause, collect answers, show feedback, and resume playback.
+3. The teacher can change at least one node and see the change in preview.
+4. Student and teacher reports contain the learner's actual submitted answers.
+5. The complete sales demonstration can be understood within 3 minutes.
 
-## 10. Demo Review Checklist
+### Commercial Validation
 
-A demo pass requires:
+The strongest first success signal is one qualified teacher doing at least one of the following:
 
-- The extension loads on the primary Bilibili video.
-- The side panel renders without breaking the page layout.
-- Lesson segment selection works.
-- AI explanation is sentence-specific.
-- Personalized rewrite uses user profile fields.
-- Practice feedback is concrete and actionable.
-- Learning report is copyable.
-- No private keys or real learner data are committed.
+- Provides a real paid-course video for conversion.
+- Agrees to a custom trial with a defined next meeting.
+- Expresses willingness to pay for converting a lesson or course.
 
-## 11. Later Candidate Features
-
-Only after the first teacher demo validates demand:
-
-- Teacher course import workflow
-- Teacher-facing lesson editor
-- Multi-video lesson pack
-- Student practice history
-- Voice input
-- Pronunciation feedback
-- YouTube support
-- VOA/BBC-style standard material mode
-- LMS or course platform embedding
+Compliments, feature suggestions, and generic statements such as "this is interesting" do not count as validation.
