@@ -13,6 +13,7 @@ Only record verified changes.
 - Add detailed definitions for 13 P0 student, teacher, and data functions.
 - Define triggers, inputs, flows, stored data, exceptions, and acceptance criteria for each function.
 - Add one end-to-end acceptance script and separate product-completion and commercial-validation standards.
+- Clarify that AI failures must not fabricate personalized feedback and keep teacher previews separate from student sessions.
 
 ### Product Requirements v0.2 — 2026-08-07
 
