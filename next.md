@@ -8,11 +8,12 @@ Complete the first verified Phase 1 slice: turn the existing 35-second playback 
 
 1. [x] Confirm the buyer pays for course differentiation, learning evidence, and lower delivery work rather than abstract video quality.
 2. [x] Replace the side-panel-first requirements with the teacher-edit -> student-interaction -> teacher-report loop.
-3. [ ] Manually verify mascot mount, pause, seek, automatic trigger, and SPA teardown on `BV1WW4y1e7GL`.
-4. [ ] Inspect the source video around the candidate trigger and author one content-matched multiple-choice node.
-5. [ ] Define the node-trigger state transitions and focused automated tests.
-6. [ ] Implement one reusable pause -> answer -> feedback -> continue loop.
-7. [ ] Re-run automated and manual acceptance, then synchronize docs and changelog.
+3. [x] Write the Chinese requirements with detailed P0 flows, errors, data, and acceptance criteria.
+4. [ ] Manually verify mascot mount, pause, seek, automatic trigger, and SPA teardown on `BV1WW4y1e7GL`.
+5. [ ] Inspect the source video around the candidate trigger and author one content-matched multiple-choice node.
+6. [ ] Define the node-trigger state transitions and focused automated tests.
+7. [ ] Implement one reusable pause -> answer -> feedback -> continue loop.
+8. [ ] Re-run automated and manual acceptance, then synchronize docs and changelog.
 
 ## Decisions Locked
 

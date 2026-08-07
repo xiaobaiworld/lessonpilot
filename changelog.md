@@ -7,6 +7,13 @@ Only record verified changes.
 - Fix demo-only scope so mascot disappears when navigating away on Bilibili SPA pages.
 - Match demo video by exact BV id instead of pathname substring.
 
+### Chinese Requirements v0.3 — 2026-08-07
+
+- Rewrite the complete sales-demo requirements in Chinese.
+- Add detailed definitions for 13 P0 student, teacher, and data functions.
+- Define triggers, inputs, flows, stored data, exceptions, and acceptance criteria for each function.
+- Add one end-to-end acceptance script and separate product-completion and commercial-validation standards.
+
 ### Product Requirements v0.2 — 2026-08-07
 
 - Reposition the demo around upgrading an existing paid recorded course rather than improving video quality.

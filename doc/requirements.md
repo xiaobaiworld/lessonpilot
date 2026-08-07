@@ -1,254 +1,827 @@
-# Requirements — LessonPilot
+# LessonPilot 需求文档
 
-Version: 0.2
-Last updated: 2026-08-07
+版本：0.3
+更新时间：2026-08-07
+状态：销售验证版需求已定义，等待实现与人工验收
 
-## 1. Product Goal
+## 1. 项目定义
 
-Build a Chrome extension demo that turns one existing English teacher's Bilibili recording into an interactive lesson without requiring the teacher to re-record it.
+LessonPilot 是一个 Chrome 浏览器插件，用来把英语老师已经录制完成的视频课程升级为可暂停、可练习、可反馈、可生成学习报告的互动课程。
 
-The demo must prove one business hypothesis:
+第一版只支持一个指定的 B 站英语教学视频。它不是通用视频助手，也不是面向学生的通用 AI 聊天工具。
 
-> Within 3 minutes, a teacher who already sells recorded courses understands that LessonPilot can make an old lesson easier to package, differentiate, and deliver by adding timed practice, feedback, and learning evidence.
+产品价值主张：
 
-The demo does not claim that interaction automatically increases sales. Its job is to earn the next commercial commitment: the teacher provides a real course video for a custom trial or agrees to discuss a paid course upgrade.
+> 老师不需要重新录课，就能把已有录播课升级为互动课程产品。
 
-This is not a general AI learning app, a general Bilibili assistant, a video quality tool, or a Duolingo/Speak competitor.
+## 2. Demo 要验证的商业假设
 
-## 2. Target Users
+Demo 需要验证：
 
-### 2.1 Buyer
+> 一个已经在卖录播课的英语老师，能在 3 分钟内理解 LessonPilot 如何为旧课程增加互动练习、反馈和学习证据，并愿意拿出自己的真实课程继续试用或讨论付费升级。
 
-The first buyer is an English teacher, course creator, or small training operator who:
+Demo 不能证明“加入互动后一定多卖课”，也不得作出这种承诺。第一阶段只验证老师是否愿意做出下一步商业行动。
 
-- Already sells a paid or semi-paid recorded course.
-- Uses homework, community support, or manual feedback as part of delivery.
-- Wants stronger course differentiation, higher perceived value, or lower service cost.
-- Has enough course revenue to pay for course conversion or software.
+有效的商业信号包括：
 
-Buyer problems:
+- 老师愿意提供一节真实付费课程进行改造。
+- 老师同意开展一次有明确时间和范围的定制试用。
+- 老师愿意讨论单节课或整套课程的付费升级。
 
-- Recorded lessons are passive and difficult to distinguish from free videos.
-- Teachers cannot see whether a learner understood or practiced the lesson.
-- Repetitive answering and homework correction consume delivery time.
-- Re-recording an entire course is expensive and slow.
+以下反馈不算需求验证成功：
 
-Traffic-only creators, advertising-led accounts, and batch-generated video accounts are not the first customers.
+- “这个挺有意思。”
+- “以后应该有市场。”
+- 只提出功能建议，但不愿提供课程或继续试用。
 
-### 2.2 Learner
+## 3. 目标用户
 
-The first learner is an adult preparing for an English interview.
+### 3.1 购买者：英语老师或小型培训机构
 
-Learner problems:
+第一批购买者应同时具备以下特征：
 
-- They recognize an example while watching but cannot recall it later.
-- They understand a model answer but cannot adapt it to their background.
-- They do not know whether their own answer is natural or specific.
-- Passive watching produces no concrete record of what they learned.
+- 已经有付费或半付费的录播课程。
+- 课程交付中包含作业、社群答疑或人工批改。
+- 希望增加课程差异化、提高课程感知价值或减少重复服务工作。
+- 有能力为课程改造服务或软件付费。
 
-## 3. First Demo Video
+他们真正关心的是：
 
-Primary demo video:
+- 旧课程能否产生新的销售卖点。
+- 学生是否真正观看、理解并练习了课程。
+- 是否能减少重复答疑和人工批改。
+- 配置一节互动课需要投入多少时间。
+- 是否需要重新录制整套课程。
 
-- Title: `英文面试问答流程（超全！）｜自我介绍 矛盾处理 优缺点 技能`
-- URL: `https://www.bilibili.com/video/BV1WW4y1e7GL/`
-- Creator: `每日英语Xixi学以致用`
-- Duration: about 8 minutes 33 seconds
+以下人群不作为第一阶段目标客户：
 
-The first demo only supports this video. Interaction timestamps and teaching content must be authored after manually checking the matching video segment. The existing 35-second trigger is a playback-control spike, not yet an approved teaching node.
+- 主要依靠平台流量、广告或激励收入的 UP 主。
+- 没有付费课程的免费内容创作者。
+- 批量生成视频、没有课程交付服务的账号。
+- 客单价过低、没有课程升级预算的卖家。
 
-## 4. Demo Promise
+### 3.2 使用者：准备英语面试的成年人
 
-The demo must show one complete loop:
+学生在观看面试英语课程时存在以下问题：
+
+- 看视频时觉得听懂了，离开视频后无法回忆。
+- 能理解老师的示例，但不会改成自己的经历。
+- 不知道自己的英文回答是否自然、具体。
+- 看完视频后，没有可检查的学习结果。
+
+## 4. 第一条 Demo 视频
+
+- 标题：`英文面试问答流程（超全！）｜自我介绍 矛盾处理 优缺点 技能`
+- 链接：`https://www.bilibili.com/video/BV1WW4y1e7GL/`
+- UP 主：`每日英语Xixi学以致用`
+- 时长：约 8 分 33 秒
+
+第一版只支持该视频。
+
+互动节点的正式时间和题目内容，必须在人工检查对应视频片段后确定。当前代码中的 35 秒触发点只是视频控制技术验证，不代表正式教学节点。
+
+## 5. Demo 完整闭环
+
+Demo 必须完整展示以下过程：
 
 ```text
-Teacher edits one interaction node
-  -> teacher previews the existing video
-  -> video pauses at authored timestamps
-  -> learner completes three types of practice
-  -> learner receives feedback and resumes playback
-  -> learner and teacher receive reports from the same session data
+老师打开三个预置互动节点
+  -> 修改其中一个节点的时间或题目
+  -> 保存并预览原有 B 站视频
+  -> 视频在三个教学节点自动暂停
+  -> 学生完成选择题、填空题和自由回答
+  -> 系统给出反馈并继续播放
+  -> 学生获得学习总结
+  -> 老师查看由同一份学习数据生成的学习报告
 ```
 
-The value proposition is:
+学生侧不是独立演示，老师侧也不是独立演示。只有以上闭环全部跑通，Demo 才算成立。
 
-> Upgrade an existing recorded course into an interactive course product without re-recording it.
+## 6. 第一版功能范围
 
-## 5. Student Experience
+### 6.1 P0：Demo 必须完成
 
-### 5.1 Supported Video Detection
+| 编号 | 角色 | 功能 |
+|---|---|---|
+| S01 | 学生 | 识别指定视频并启动学习会话 |
+| S02 | 学生 | 显示 Avatar 及互动状态 |
+| S03 | 学生 | 到达互动时间点后自动暂停 |
+| S04 | 学生 | 完成选择题并获得反馈 |
+| S05 | 学生 | 完成填空题并获得反馈 |
+| S06 | 学生 | 完成自由回答并获得 AI 反馈 |
+| S07 | 学生 | 重试、跳过和继续播放 |
+| S08 | 学生 | 查看进度和最终学习总结 |
+| T01 | 老师 | 查看并编辑三个预置节点 |
+| T02 | 老师 | 校验和保存节点配置 |
+| T03 | 老师 | 预览修改后的学生体验 |
+| T04 | 老师 | 查看单个学生学习报告 |
+| D01 | 系统 | 保存课程配置和学习会话数据 |
 
-- Detect the exact primary Bilibili video id.
-- Show the learning experience only on the supported video.
-- Remove the experience when Bilibili SPA navigation leaves the supported video.
+### 6.2 P1：验证需求后再做
 
-### 5.2 Avatar Facilitator
+- 任意新增、删除和拖动排序互动节点。
+- 自动读取字幕并推荐互动节点。
+- 多视频和整套课程管理。
+- 多名学生的汇总分析。
+- 语音输入和发音评价。
 
-- Show a lightweight avatar as the interaction host.
-- Use clear states: watching, asking, waiting, feedback, and complete.
-- Let the avatar introduce an activity and return focus to the video.
+### 6.3 P2：产品化阶段再做
 
-The demo does not require Live2D, voice synthesis, clothing, or character customization.
+- 老师和学生账号。
+- 班级和机构管理。
+- 支付、订阅和计费。
+- Chrome 应用商店发布。
+- B 站之外的视频平台支持。
 
-### 5.3 Timed Pause Engine
+## 7. 学生侧详细功能定义
 
-- Watch the current video time.
-- Pause once when playback crosses an unfinished interaction node.
-- Open the matching activity card.
-- Resume playback after the learner completes or explicitly skips the activity.
-- Avoid repeatedly reopening a completed node unless the learner seeks back and chooses to retry it.
+### S01：识别指定视频并启动学习会话
 
-### 5.4 Three Authored Activities
+**用户与目的**
 
-The primary lesson must contain exactly three representative nodes for the sales demo:
+学生打开指定 B 站视频后，插件自动识别课程，并为本次观看创建一条独立学习会话。
 
-1. **Multiple choice — comprehension**
-   - Check whether the learner understood a point the teacher just explained.
-   - Evaluate locally with a pre-authored answer and explanation.
+**前置条件**
 
-2. **Fill in the blank — recall**
-   - Remove a key phrase from a sentence used in the lesson.
-   - Evaluate locally with normalized answer matching and an authored explanation.
+- 插件已经在 Chrome 中启用。
+- 当前页面属于 `www.bilibili.com`。
 
-3. **Free answer — application**
-   - Ask the learner to use the lesson pattern in a personal interview answer.
-   - Use AI to evaluate naturalness, specificity, lesson-pattern use, and language risk.
-   - Return concrete feedback and a revised answer.
+**触发方式**
 
-### 5.5 Feedback, Retry, and Resume
+- 首次打开指定视频。
+- 通过 B 站站内跳转进入指定视频。
 
-Every activity must produce a closed interaction loop:
+**输入**
 
-- Preserve the learner's submitted answer.
-- Show specific feedback rather than only correct/incorrect.
-- Allow one-click retry or revision.
-- Make the continue action explicit.
-- Update lesson progress without shifting the video layout.
+- 当前页面 URL。
+- 从 URL 中提取的 BV 号。
 
-### 5.6 Student Summary
+**正常流程**
 
-At the end of the three-node demo, show:
+1. 提取当前页面 BV 号。
+2. 与 Demo 视频 `BV1WW4y1e7GL` 精确匹配。
+3. 加载本地课程配置。
+4. 创建或恢复本次学习会话。
+5. 显示 LessonPilot 学生侧入口。
 
-- Activities completed.
-- Multiple-choice and fill-in results.
-- Original and revised free answer.
-- Key expression practiced.
-- Main correction point.
-- One next review task.
+**输出与数据**
 
-The summary must be generated from the learner's actual session data, not from a fixed template pretending to be personalized.
+- 当前课程配置。
+- 学习会话编号、开始时间和节点完成状态。
 
-## 6. Teacher Experience
+**异常与边界**
 
-### 6.1 Minimal Node Editor
+- 其他视频不得显示 Demo 互动界面。
+- B 站单页应用跳转离开指定视频后，必须移除界面和监听器。
+- 未加载到视频元素时，显示“课程暂时无法启动”，不得反复报错。
 
-The demo needs a functional editor for the fixed video, not a full teacher dashboard.
+**验收标准**
 
-For each node, the teacher can edit:
+- 指定视频能够启动插件。
+- 相似但不同的 BV 号不能误触发。
+- 离开指定视频后，Avatar、题卡和时间监听全部停止。
 
-- Timestamp.
-- Activity type.
-- Prompt.
-- Options and correct answer when applicable.
-- Explanation or evaluation rubric.
-- Continue behavior.
+### S02：显示 Avatar 及互动状态
 
-The teacher can edit and enable or disable the three seeded demo nodes. Adding, reordering, and deleting arbitrary nodes are deferred until a teacher validates the authoring workflow.
+**用户与目的**
 
-### 6.2 Preview
+Avatar 用来主持互动、提示当前状态和引导学生返回视频，不承担完整虚拟人功能。
 
-- Save node configuration locally.
-- Open or return to the supported video in preview mode.
-- Demonstrate that at least one changed prompt or timestamp appears in the student experience.
+**前置条件**
 
-Preview is required because it connects teacher configuration to learner delivery.
+- S01 已成功启动课程。
 
-### 6.3 Teacher Learning Report
+**触发方式**
 
-Show an individual report generated from the same session data as the student summary:
+- 课程启动。
+- 互动节点状态发生变化。
 
-- Completion status and node results.
-- Number of attempts.
-- Learner's original free answer.
-- AI feedback and revised version.
-- Main weak point and suggested follow-up.
+**输入**
 
-The first demo does not need cohort analytics, fabricated pass rates, or a class dashboard.
+- 当前状态：观看中、正在提问、等待作答、反馈中、课程完成或异常。
 
-## 7. AI Boundaries
+**正常流程**
 
-AI is used only where open-ended judgment creates visible value:
+1. 视频正常播放时显示观看状态。
+2. 节点触发时切换为提问状态并打开题卡。
+3. 学生提交后切换为反馈状态。
+4. 学生继续播放后恢复观看状态。
+5. 三个节点完成后显示完成状态。
 
-- Review the free answer.
-- Produce the student summary and teacher-facing interpretation.
+**输出与数据**
 
-Multiple-choice and fill-in evaluation must remain deterministic for speed and reliability.
+- Avatar 当前可见状态。
+- 不单独保存 Avatar 动画数据。
 
-AI must:
+**异常与边界**
 
-- Stay inside the current lesson context and teacher rubric.
-- Point to concrete words or sentences.
-- Separate the learner's original answer from the proposed revision.
-- Avoid guaranteed score, hiring, or sales claims.
+- Avatar 不得遮挡 B 站原生播放、进度、音量和全屏控制。
+- Avatar 绘制失败时，题卡和视频互动仍应可用。
 
-AI must not:
+**验收标准**
 
-- Pretend to be the original teacher.
-- Invent learner activity or course data.
-- Turn into a general chatbot.
-- Send full Bilibili page content to the backend.
+- 五种核心状态能被学生区分。
+- Avatar 失败不会阻断答题流程。
+- 第一版不要求 Live2D、语音、换装和角色定制。
 
-## 8. Data Requirements
+### S03：到达互动时间点后自动暂停
 
-The demo may use pre-authored local lesson data and local session storage.
+**用户与目的**
 
-Lesson data includes:
+学生观看到老师刚讲完一个关键知识点时，系统暂停视频并要求学生进行主动练习。
 
-- Video id, URL, title, and creator.
-- Ordered interaction nodes.
-- Timestamp and activity type.
-- Prompt, options, answer, explanation, and rubric.
+**前置条件**
 
-Session data includes:
+- 视频元素已经可用。
+- 当前节点已启用且尚未完成或跳过。
+- 节点时间已经通过人工检查，与教学内容匹配。
 
-- Lesson id and session timestamps.
-- Node completion state.
-- Submitted answers and attempts.
-- Deterministic result or AI feedback.
-- Revised free answer.
+**触发方式**
 
-Do not commit API keys or real learner personal data.
+- 播放时间首次越过当前节点时间。
 
-## 9. Non-Goals
+**输入**
 
-The first demo will not include:
+- 当前播放时间。
+- 已启用节点列表。
+- 当前会话节点状态。
 
-- General support for all Bilibili or YouTube videos.
-- Automatic subtitle extraction or automatic node generation.
-- A general lesson chatbot or side-panel knowledge assistant.
-- User accounts, payments, classes, or organization management.
-- Aggregate cohort analytics.
-- Speech recognition or pronunciation scoring.
-- Full teacher course management.
-- Chrome Web Store publishing or a marketing website.
-- Live2D or advanced avatar production.
+**正常流程**
 
-## 10. Success Criteria
+1. 持续读取当前播放时间。
+2. 找到下一个尚未处理的节点。
+3. 播放时间越过节点后立即暂停视频。
+4. 标记该节点已经触发。
+5. Avatar 切换为提问状态。
+6. 打开对应类型题卡。
 
-### Product Demonstration
+**输出与数据**
 
-1. The exact Bilibili video loads the extension without breaking video controls.
-2. Three authored nodes pause, collect answers, show feedback, and resume playback.
-3. The teacher can change at least one node and see the change in preview.
-4. Student and teacher reports contain the learner's actual submitted answers.
-5. The complete sales demonstration can be understood within 3 minutes.
+- 节点触发状态和触发时间。
+- 当前活动题卡。
 
-### Commercial Validation
+**异常与边界**
 
-The strongest first success signal is one qualified teacher doing at least one of the following:
+- 已完成或跳过的节点不得自动重复触发。
+- 学生拖动进度条跨过多个节点时，只显示时间最早的未完成节点。
+- 学生主动回看时，不自动重做已完成节点；可通过“重新练习”主动进入。
+- 暂停失败时显示明确错误，不得同时播放视频和显示强制作答题卡。
 
-- Provides a real paid-course video for conversion.
-- Agrees to a custom trial with a defined next meeting.
-- Expresses willingness to pay for converting a lesson or course.
+**验收标准**
 
-Compliments, feature suggestions, and generic statements such as "this is interesting" do not count as validation.
+- 三个节点都能在对应时间触发。
+- 每个节点在一次学习会话中最多自动触发一次。
+- 题卡打开期间视频保持暂停。
+- 学生明确点击继续后，视频才恢复播放。
+
+### S04：选择题作答与反馈
+
+**用户与目的**
+
+检查学生是否理解老师刚讲过的内容。
+
+**前置条件**
+
+- S03 触发的节点类型为选择题。
+- 节点包含题目、至少两个选项、正确选项和解释。
+
+**触发方式**
+
+- 选择题节点被打开。
+
+**输入**
+
+- 学生选择的选项编号。
+
+**正常流程**
+
+1. 显示题目和固定选项。
+2. 学生选择一个选项并提交。
+3. 本地比较选项编号和标准答案。
+4. 显示正确或错误状态。
+5. 显示针对该知识点的解释。
+6. 提供重试或继续操作。
+
+**输出与数据**
+
+- 学生选择、是否正确、尝试次数和提交时间。
+
+**异常与边界**
+
+- 未选择选项时不能提交。
+- 配置中缺少正确答案时，该节点不得在老师侧保存。
+
+**验收标准**
+
+- 判断结果完全由预置答案决定，不调用 AI。
+- 正确和错误答案都显示具体解释。
+- 报告中能够还原学生选择和尝试次数。
+
+### S05：填空题作答与反馈
+
+**用户与目的**
+
+检查学生能否主动回忆老师刚讲过的关键词或句型。
+
+**前置条件**
+
+- S03 触发的节点类型为填空题。
+- 节点包含题目、标准答案和解释。
+
+**触发方式**
+
+- 填空题节点被打开。
+
+**输入**
+
+- 学生输入的文本。
+
+**正常流程**
+
+1. 显示带空缺的句子或问题。
+2. 学生输入答案并提交。
+3. 系统去除首尾空格，并按不区分英文大小写的方式比较。
+4. 显示匹配结果、标准答案和解释。
+5. 提供重试或继续操作。
+
+**输出与数据**
+
+- 学生原始输入、标准化结果、是否匹配、尝试次数和提交时间。
+
+**异常与边界**
+
+- 空答案不能提交。
+- 第一版不进行复杂语义等价判断。
+- 老师可以在解释中说明其他可接受表达，但第一版只按配置的接受答案判断。
+
+**验收标准**
+
+- 前后空格和英文大小写不导致误判。
+- 系统保留学生原始输入用于报告。
+- 填空判断不调用 AI。
+
+### S06：自由回答与 AI 反馈
+
+**用户与目的**
+
+让学生把老师的视频示例迁移到自己的英语面试回答中，并获得具体修改建议。
+
+**前置条件**
+
+- S03 触发的节点类型为自由回答。
+- 节点包含问题、课程相关表达和老师评价标准。
+- AI 服务已配置；未配置时必须提供 Demo 降级方案。
+
+**触发方式**
+
+- 自由回答节点被打开。
+
+**输入**
+
+- 学生英文回答。
+- 当前节点的课程表达和评价标准。
+
+**正常流程**
+
+1. 显示自由回答问题和必要的作答提示。
+2. 学生输入英文回答并提交。
+3. 系统保存原始回答。
+4. AI 按自然度、具体性、课程句型使用和中式英语风险进行评价。
+5. 显示具体问题、修改理由和修改后版本。
+6. 学生可以修改原回答并再次提交，或接受建议继续。
+
+**输出与数据**
+
+- 学生原始回答。
+- AI 分维度反馈。
+- 修改后版本。
+- 尝试次数和提交时间。
+
+**异常与边界**
+
+- 空回答不能提交。
+- AI 请求期间必须显示加载状态并防止重复提交。
+- AI 超时或失败时保留学生原始回答，并允许重试或使用预置 Demo 反馈。
+- AI 不得承诺面试结果、考试分数或招聘结果。
+- AI 不得脱离当前课程生成通用学习计划。
+
+**验收标准**
+
+- 反馈必须引用学生实际输入中的具体内容。
+- 原始回答和修改后版本必须分开显示和保存。
+- AI 失败不会导致学习会话数据丢失或无法继续播放。
+
+### S07：重试、跳过和继续播放
+
+**用户与目的**
+
+学生能够控制练习节奏，同时系统保持明确的完成状态。
+
+**前置条件**
+
+- 当前存在已打开的互动节点。
+
+**触发方式**
+
+- 学生点击重试、重新练习、跳过或继续。
+
+**输入**
+
+- 操作类型。
+- 当前节点和已有答案。
+
+**正常流程**
+
+- 重试：保留历史尝试，重新进入作答状态。
+- 跳过：记录跳过状态，关闭题卡并继续播放。
+- 继续：确认当前结果，关闭题卡并继续播放。
+- 重新练习：学生主动回看时，可重新打开已完成节点。
+
+**输出与数据**
+
+- 节点状态：未开始、已触发、已回答、已跳过或已完成。
+- 每次尝试和最终采用答案。
+
+**异常与边界**
+
+- 关闭题卡不能悄悄丢失已经提交的答案。
+- 跳过节点必须在最终总结中明确标记，不得伪装成已完成。
+
+**验收标准**
+
+- 重试不会覆盖历史尝试。
+- 跳过和完成可以被报告区分。
+- 点击继续后视频能够恢复，并继续监听后续节点。
+
+### S08：学习进度和最终学习总结
+
+**用户与目的**
+
+学生能够知道当前完成到哪里，并在 Demo 结束后得到一份基于真实作答的学习结果。
+
+**前置条件**
+
+- 学习会话已经创建。
+
+**触发方式**
+
+- 任一节点状态变化。
+- 三个节点全部完成或跳过。
+
+**输入**
+
+- 当前会话中的节点状态、答案和反馈。
+
+**正常流程**
+
+1. 在学生界面显示紧凑进度，例如 `1 / 3`。
+2. 三个节点全部处理后生成总结。
+3. 总结选择题和填空题结果。
+4. 展示自由回答原文和修改后版本。
+5. 提炼一个已练习表达、一个主要问题和一个复习任务。
+
+**输出与数据**
+
+- 学生学习总结。
+- 会话完成时间。
+
+**异常与边界**
+
+- 跳过节点必须明确显示为跳过。
+- 没有发生过的数据不得由 AI 编造。
+- AI 总结失败时，使用本地规则生成事实型总结。
+
+**验收标准**
+
+- 总结中的答案、正确状态和尝试次数与会话记录一致。
+- 至少包含学生真实自由回答，而不是固定模板。
+- 学生可以复制总结文本。
+
+## 8. 老师侧详细功能定义
+
+### T01：查看并编辑三个预置节点
+
+**用户与目的**
+
+老师通过实际修改节点，理解旧视频不是一次性定制，而是可以配置的互动课程。
+
+**前置条件**
+
+- 插件已安装。
+- Demo 课程包含三个有效的预置节点。
+
+**触发方式**
+
+- 老师打开插件中的课程配置页。
+
+**输入**
+
+- 节点启用状态。
+- 时间点。
+- 题型。
+- 题目。
+- 选择题选项和正确答案。
+- 填空题接受答案。
+- 解释或自由回答评价标准。
+
+**正常流程**
+
+1. 显示固定 Demo 视频信息。
+2. 按时间顺序显示三个预置节点。
+3. 老师选择一个节点进入编辑状态。
+4. 老师修改字段并查看未保存提示。
+5. 老师可以启用或停用节点。
+
+**输出与数据**
+
+- 待保存的课程配置草稿。
+
+**异常与边界**
+
+- 第一版不支持任意新增、删除和拖动排序节点。
+- 第一版不支持多视频和课程目录。
+- 切换节点前存在未保存内容时必须提示。
+
+**验收标准**
+
+- 三个预置节点都能被查看和修改。
+- 不同题型只显示对应字段。
+- 老师能在一分钟内找到时间点、题目和答案配置。
+
+### T02：校验和保存节点配置
+
+**用户与目的**
+
+确保老师保存的节点可以被学生端可靠执行。
+
+**前置条件**
+
+- 老师已修改至少一个字段。
+
+**触发方式**
+
+- 老师点击保存。
+
+**输入**
+
+- 当前三个节点的完整配置。
+
+**正常流程**
+
+1. 校验时间点属于视频时长范围。
+2. 校验三个启用节点之间的时间顺序。
+3. 校验题目必填。
+4. 按题型校验选项、正确答案、接受答案或评价标准。
+5. 校验通过后写入本地存储。
+6. 显示保存成功状态。
+
+**输出与数据**
+
+- 已保存课程配置和更新时间。
+
+**异常与边界**
+
+- 校验失败时不得覆盖上一份有效配置。
+- 错误提示必须指向具体节点和字段。
+- 本地写入失败时保留编辑草稿。
+
+**验收标准**
+
+- 缺少关键字段的配置不能保存。
+- 保存失败不会破坏上一份可用配置。
+- 保存成功后刷新页面仍能读取修改结果。
+
+### T03：预览修改后的学生体验
+
+**用户与目的**
+
+老师保存后立即看到自己的配置如何出现在真实视频中。
+
+**前置条件**
+
+- 至少存在一份有效的已保存配置。
+
+**触发方式**
+
+- 老师点击预览。
+
+**输入**
+
+- 当前课程配置。
+- 指定 B 站视频链接。
+
+**正常流程**
+
+1. 打开或切换到指定视频。
+2. 学生运行时优先读取老师保存的本地配置。
+3. 预览模式从一个明确状态开始。
+4. 视频到达修改后的时间点时显示修改后的题目。
+
+**输出与数据**
+
+- 一次独立预览会话。
+
+**异常与边界**
+
+- 没有有效配置时不能进入预览。
+- 预览会话不得覆盖老师要查看的正式 Demo 学习报告，除非老师明确重置。
+
+**验收标准**
+
+- 修改题目后，预览中显示新题目。
+- 修改时间点后，预览在新时间点触发。
+- 预览失败时能够返回配置页继续修改。
+
+### T04：查看单个学生学习报告
+
+**用户与目的**
+
+老师看到互动课程产生了可用于教学交付的真实学习证据。
+
+**前置条件**
+
+- 至少存在一条学生学习会话。
+
+**触发方式**
+
+- 老师打开最新学习报告。
+
+**输入**
+
+- 最新学习会话及其答案、尝试和反馈。
+
+**正常流程**
+
+1. 显示会话开始、完成和整体状态。
+2. 按节点显示完成、跳过和尝试次数。
+3. 显示选择题与填空题的原始回答和判断结果。
+4. 显示自由回答原文、AI 反馈和修改后版本。
+5. 给出一个主要薄弱点和一个后续建议。
+
+**输出与数据**
+
+- 老师视角的单人学习报告。
+
+**异常与边界**
+
+- 第一版不展示虚构的班级平均分、正确率和趋势图。
+- AI 报告生成失败时，仍应显示结构化原始学习数据。
+- 学生跳过的节点不能标记为掌握。
+
+**验收标准**
+
+- 报告内容能够追溯到同一条学习会话。
+- 学生总结与老师报告中的事实一致。
+- 老师可以复制报告文本。
+
+## 9. 系统与数据功能定义
+
+### D01：保存课程配置和学习会话
+
+**目的**
+
+让老师配置、学生作答和两类报告使用同一份可追溯数据。
+
+**存储方式**
+
+第一版使用 `chrome.storage.local`，不要求账号、远程数据库或跨设备同步。
+
+**课程配置最小字段**
+
+- 课程编号。
+- 视频 BV 号、链接、标题和作者。
+- 三个节点及其启用状态。
+- 节点时间、题型、题目、答案、解释或评价标准。
+- 配置更新时间。
+
+**学习会话最小字段**
+
+- 会话编号和课程编号。
+- 开始时间和完成时间。
+- 节点触发、完成或跳过状态。
+- 每次作答、尝试次数和提交时间。
+- 判断结果、AI 反馈和修改后版本。
+
+**异常与边界**
+
+- 不保存真实姓名、手机号、公司名称等个人信息。
+- 不把 API 密钥写入课程配置、会话数据或 Git 仓库。
+- 数据损坏时允许恢复预置课程配置，但不得伪造学生会话。
+
+**验收标准**
+
+- 刷新配置页后仍能读取老师保存的节点。
+- 刷新报告页后仍能读取最新学习会话。
+- 学生总结和老师报告来自同一个会话编号。
+
+## 10. AI 功能边界
+
+第一版只在开放式判断确实产生价值的环节使用 AI：
+
+- 自由回答反馈。
+- 学生总结中的语言建议。
+- 老师报告中的薄弱点和后续建议。
+
+第一版不使用 AI 的环节：
+
+- 视频识别。
+- 时间节点触发。
+- 选择题判断。
+- 填空题基础匹配。
+- 进度和尝试次数计算。
+
+发送给 AI 的数据只能包括：
+
+- 当前课程和节点编号。
+- 与当前练习有关的课程表达。
+- 老师评价标准。
+- 学生当前回答。
+- 生成报告时所需的结构化会话结果。
+
+不得把完整 B 站页面、无关浏览记录或隐私数据发送给 AI。
+
+## 11. 非功能要求
+
+### 11.1 稳定性
+
+- 插件不能破坏 B 站原生播放控制。
+- 单个节点或 Avatar 失败时，学生仍能恢复视频播放。
+- 页面跳转后不得留下重复监听器或重复界面。
+
+### 11.2 性能
+
+- 本地选择题和填空题提交后应立即显示结果。
+- 时间监听不得造成视频明显卡顿。
+- AI 请求需要明确显示等待状态，不能让用户误以为页面失效。
+
+### 11.3 隐私与安全
+
+- Git 仓库不能包含 API 密钥。
+- Demo 不收集真实学生个人资料。
+- AI 请求只发送完成当前任务所需的最少数据。
+
+### 11.4 界面可用性
+
+- 题卡不得遮挡 B 站主要播放控制。
+- 三种题型使用稳定尺寸，切换状态时不造成明显布局跳动。
+- 学生必须始终知道当前进度、视频为何暂停以及如何继续。
+
+## 12. 明确不做
+
+第一版不包含：
+
+- 支持所有 B 站视频或 YouTube。
+- 自动读取字幕和自动生成整节课。
+- 通用 AI 聊天侧边栏。
+- 账号、支付、班级和机构管理。
+- 多学生汇总分析和虚构统计图。
+- 语音识别和发音评分。
+- 完整教师课程后台。
+- Chrome 应用商店发布。
+- 营销官网。
+- Live2D、语音合成、换装和 Avatar 定制。
+
+## 13. 端到端验收剧本
+
+最终验收必须执行以下完整流程：
+
+1. 老师打开 Demo 配置页。
+2. 老师修改第一个预置节点的时间或题目。
+3. 系统校验并保存配置。
+4. 老师点击预览并打开指定 B 站视频。
+5. 视频在修改后的节点自动暂停，并显示修改后的题目。
+6. 学生完成选择题，看到具体解释并继续播放。
+7. 学生完成填空题，看到标准答案并继续播放。
+8. 学生完成自由回答，获得针对原文的 AI 反馈和修改稿。
+9. 学生完成三个节点后查看学习总结。
+10. 老师打开最新报告，看到同一名学生的原始答案、尝试次数和反馈。
+11. 学生总结和老师报告中的事实完全一致。
+
+只完成学生题卡、只完成老师编辑器或只生成固定报告，都不能算 Demo 完成。
+
+## 14. Demo 完成标准
+
+### 14.1 产品完成标准
+
+- 指定视频可以稳定启动和退出插件。
+- 三个内容匹配的节点可以暂停、作答、反馈和继续。
+- 老师修改一个节点后能立即预览修改结果。
+- 学生总结和老师报告包含真实作答数据。
+- 整条销售演示在 3 分钟内可以讲清楚。
+
+### 14.2 商业验证标准
+
+至少找到一名已经销售录播课的英语老师，并获得以下任一结果：
+
+- 提供一节真实付费课程用于下一轮改造。
+- 同意一次有明确时间和交付范围的试用。
+- 愿意讨论具体付费金额和课程数量。
+
+## 15. 开发前仍需确认
+
+以下问题不阻塞选择题和填空题开发，但必须在对应阶段前确认：
+
+- 三个正式互动节点对应的视频时间和教学内容。
+- 自由回答使用的 AI 服务和密钥配置方式。
+- AI 不可用时采用预置反馈还是规则型反馈。
+- 老师进入预览时，是创建新会话还是重置上一次预览会话。
