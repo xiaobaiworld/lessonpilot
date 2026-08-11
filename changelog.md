@@ -4,6 +4,14 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### Teacher Web Prototype — 2026-08-11
+
+- Add a zero-dependency `teacher-web/` high-fidelity prototype for the D0 teacher home and restricted node editor.
+- Show the two intended teacher scenes: experience the finished lesson, then edit a fixed node template and preview it.
+- Add prototype interactions for node switching, type-specific fields, enabled state, dirty state, reset, save, and save-and-preview feedback.
+- Keep the extension bridge, local storage, and real Bilibili preview explicitly marked as the next implementation slice.
+- Verify desktop and 375px mobile layouts in the in-app browser with no console errors; existing demo and subtitle regression tests pass.
+
 ### Doc Sync for Cross-Machine D0 Continuity — 2026-08-11
 
 - Raise requirements to v0.5 with a locked-decision summary covering B2B2C positioning, student-scope freeze, teacher demo shape, D0/D1 milestones, promo video, platform expansion, and AI billing consistency.
