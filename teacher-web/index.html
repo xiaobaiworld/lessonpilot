@@ -3,221 +3,106 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="LessonPilot 教师端互动课程编辑原型">
-    <title>LessonPilot 教师工作台</title>
+    <meta name="description" content="LessonPilot 教师端字幕时间线编排原型">
+    <title>LessonPilot · 课程时间线</title>
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
-    <!--
-      Design assumptions:
-      - The first buyer is an English teacher with an existing recorded course.
-      - The D0 story is experience -> edit one fixed node -> save and preview.
-      - Bridge and persistence states are honest prototype simulations in this slice.
-    -->
     <div class="app-shell">
       <header class="topbar">
-        <button class="brand" type="button" data-route="home" aria-label="返回教师端首页">
-          <span class="brand-mark" aria-hidden="true">LP</span>
-          <span>
-            <strong>LessonPilot</strong>
-            <small>教师工作台</small>
-          </span>
+        <button class="brand" type="button" data-route="home" aria-label="返回 LessonPilot 首页">
+          <span class="brand-mark">LP</span>
+          <span><strong>LessonPilot</strong><small>老师的互动课程工作台</small></span>
         </button>
-
-        <div class="connection-status" aria-live="polite">
-          <span class="status-dot"></span>
-          <span>演示模式</span>
-          <span class="status-divider"></span>
-          <span>扩展桥待接入</span>
-        </div>
+        <nav class="topnav" aria-label="主导航">
+          <button class="nav-link is-active" type="button" data-route="home">我的课程</button>
+          <button class="nav-link" type="button" data-route="timeline">时间线编排</button>
+        </nav>
+        <div class="connection-status"><span class="status-dot"></span><span>本地演示</span><span class="status-divider"></span><span>扩展待连接</span></div>
       </header>
 
       <main>
-        <section id="home-view" class="view home-view" aria-labelledby="home-title">
-          <div class="home-intro">
-            <p class="eyebrow">一节已经录好的课程</p>
-            <h1 id="home-title">不重录，也能让学生<br>在关键处真正练一次。</h1>
-            <p class="lead">把暂停、练习与反馈嵌进原视频。先体验完整课堂，再动手修改一个教学节点。</p>
+        <section id="home-view" class="view workspace-home" aria-labelledby="home-title">
+          <div class="workspace-head">
+            <div>
+              <p class="eyebrow">老师工作台 / 我的课程</p>
+              <h1 id="home-title">把一段录播课，<br><em>编排成一堂会回应的课。</em></h1>
+              <p class="lead">选中视频，导入字幕。LessonPilot 会把每一句话放到时间线上，老师只需要在关键处加上提醒、语音、练习或受控的 AI 模板。</p>
+            </div>
+            <div class="head-note"><span class="note-line"></span><p>不分析画面<br>只从字幕开始</p></div>
           </div>
 
-          <div class="home-actions" aria-label="教师端入口">
-            <article class="entry-panel entry-panel-primary">
-              <div class="entry-index">01</div>
-              <div class="entry-copy">
-                <p class="entry-kicker">先看学生体验</p>
-                <h2>体验完整成品</h2>
-                <p>打开固定 B 站课程，看看视频如何暂停、练习、反馈并继续。</p>
+          <div class="import-stage">
+            <div class="import-stage-top"><span class="section-number">01</span><span class="section-label">从已有课程开始</span><span class="stage-status">本地草稿</span></div>
+            <div class="import-grid">
+              <div class="video-dropzone" id="video-dropzone" tabindex="0" role="button" aria-label="选择视频">
+                <div class="drop-icon">▶</div>
+                <h2>选一条你已经录好的视频</h2>
+                <p>不需要重新录制，也不需要上传到云端。先选视频，再导入它的字幕。</p>
+                <button class="dark-button" id="choose-video" type="button">选择视频文件 <span>↗</span></button>
+                <small>MP4 / MOV · 视频只作为本地预览载体</small>
               </div>
-              <button id="open-finished-lesson" class="action-button action-button-dark" type="button">
-                打开互动课程 <span aria-hidden="true">↗</span>
-              </button>
-            </article>
-
-            <article class="entry-panel entry-panel-secondary">
-              <div class="entry-index">02</div>
-              <div class="entry-copy">
-                <p class="entry-kicker">再改一处内容</p>
-                <h2>修改课程模板</h2>
-                <p>调整预置节点的时间、题目和答案，保存后立即进入预览。</p>
+              <div class="subtitle-dropzone" id="subtitle-dropzone" tabindex="0" role="button" aria-label="导入字幕">
+                <div class="caption-icon">Aa</div>
+                <h2>导入带时间戳的字幕</h2>
+                <p>支持 SRT、VTT。也可以稍后用本地 Whisper 生成，再回来校对。</p>
+                <button class="light-button" id="import-subtitle" type="button">导入字幕文件 <span>↑</span></button>
+                <small>SRT / VTT / JSON · 只读取文字和时间</small>
               </div>
-              <button class="action-button action-button-light" type="button" data-route="editor">
-                进入模板编辑 <span aria-hidden="true">→</span>
-              </button>
-            </article>
+            </div>
+            <div class="import-foot"><span class="ready-mark">●</span><span id="import-state">已准备一份示例字幕，方便先看效果</span><button id="open-timeline" class="text-button" type="button">打开示例时间线 →</button></div>
           </div>
 
-          <section class="lesson-strip" aria-labelledby="lesson-title">
-            <div class="lesson-meta">
-              <span class="source-label">BILIBILI DEMO</span>
-              <h2 id="lesson-title">英语面试表达：把答案说得具体</h2>
-              <p>每日英语Xixi学以致用 · 固定演示视频</p>
-            </div>
-            <div class="lesson-flow" aria-label="课程互动节点">
-              <div class="flow-track" aria-hidden="true"></div>
-              <div class="flow-node">
-                <span>00:35</span>
-                <strong>选择题</strong>
-                <small>理解检查</small>
-              </div>
-              <div class="flow-node">
-                <span>01:18</span>
-                <strong>填空题</strong>
-                <small>关键表达</small>
-              </div>
-              <div class="flow-node flow-node-muted">
-                <span>02:06</span>
-                <strong>自由回答</strong>
-                <small>D1 开放</small>
-              </div>
-            </div>
+          <div class="feature-row" aria-label="教师可以编排的事件">
+            <div class="feature-intro"><span class="section-number">02</span><strong>关键处，老师可以加什么</strong><p>所有动作都落在字幕时间线上，不再对着整段视频猜时间。</p></div>
+            <div class="feature-item feature-attention"><span class="feature-symbol">✦</span><strong>注意力爆发</strong><small>星星、重点词、短促提醒</small></div>
+            <div class="feature-item feature-voice"><span class="feature-symbol">◉</span><strong>老师语音</strong><small>在关键处直接喊名字、补一句</small></div>
+            <div class="feature-item feature-ai"><span class="feature-symbol">⌁</span><strong>AI 教学模板</strong><small>只按老师设定的方向反馈</small></div>
+          </div>
+
+          <section class="recent-course" aria-labelledby="recent-title">
+            <div class="recent-heading"><div><span class="section-number">03</span><h2 id="recent-title">最近的课程草稿</h2></div><span>1 条本地草稿</span></div>
+            <button class="course-card" type="button" data-route="timeline">
+              <span class="course-thumb"><span>▶</span><b>03:42</b></span>
+              <span class="course-card-copy"><small>BILIBILI DEMO · 已导入字幕</small><strong>英语面试表达：把答案说得具体</strong><span>12 段字幕 · 3 个课堂事件 · 最后编辑刚刚</span></span>
+              <span class="course-arrow">→</span>
+            </button>
           </section>
         </section>
 
-        <section id="editor-view" class="view editor-view" aria-labelledby="editor-title" hidden>
-          <div class="editor-heading">
-            <div>
-              <button class="back-link" type="button" data-route="home">← 返回首页</button>
-              <p class="eyebrow">固定课程模板</p>
-              <h1 id="editor-title">编辑互动节点</h1>
-              <p>题型与顺序已固定。选择一个节点，修改后保存并进入学生预览。</p>
-            </div>
-            <div class="draft-status" id="draft-status" aria-live="polite">
-              <span class="draft-dot"></span>
-              <span>所有更改已保存</span>
-            </div>
+        <section id="timeline-view" class="view timeline-view" aria-labelledby="timeline-title" hidden>
+          <div class="timeline-head">
+            <div><button class="back-link" type="button" data-route="home">← 我的课程</button><p class="eyebrow">课程编排 / 英语面试表达</p><h1 id="timeline-title">在字幕时间线上，安排每一次回应。</h1><p>选中一段字幕，在它旁边添加老师的动作。学生播放到这里时，课堂会自然地停一下、亮一下、问一句。</p></div>
+            <div class="timeline-actions"><span class="save-label" id="save-label">草稿已保存</span><button class="light-button" id="preview-timeline" type="button">预览学生视角 ↗</button><button class="dark-button" id="save-timeline" type="button">保存课程</button></div>
           </div>
 
-          <div class="editor-layout">
-            <aside class="node-rail" aria-label="互动节点列表">
-              <div class="video-summary">
-                <div class="video-thumb" aria-label="视频封面占位">
-                  <span class="play-mark" aria-hidden="true">▶</span>
-                  <span class="video-duration">03:42</span>
-                </div>
-                <div>
-                  <span class="source-label">当前课程</span>
-                  <h2>英语面试表达：把答案说得具体</h2>
-                  <p>BV1WW4y1e7GL</p>
-                </div>
-              </div>
-
-              <div class="node-list" role="tablist" aria-label="课程节点">
-                <button class="node-item is-active" type="button" role="tab" aria-selected="true" data-node="0">
-                  <span class="node-time">00:35</span>
-                  <span class="node-copy"><strong>理解检查</strong><small>选择题</small></span>
-                  <span class="node-state">启用</span>
-                </button>
-                <button class="node-item" type="button" role="tab" aria-selected="false" data-node="1">
-                  <span class="node-time">01:18</span>
-                  <span class="node-copy"><strong>关键表达</strong><small>填空题</small></span>
-                  <span class="node-state">启用</span>
-                </button>
-                <button class="node-item" type="button" role="tab" aria-selected="false" data-node="2">
-                  <span class="node-time">02:06</span>
-                  <span class="node-copy"><strong>迁移练习</strong><small>自由回答</small></span>
-                  <span class="node-state node-state-muted">D1</span>
-                </button>
-              </div>
-
-              <p class="rail-note">第一版不支持新增、删除、排序或切换题型。</p>
+          <div class="timeline-layout">
+            <aside class="timeline-sidebar" aria-label="课程信息">
+              <div class="mini-video"><span class="mini-play">▶</span><span class="mini-progress"></span><b>03:42</b></div>
+              <div class="sidebar-course"><small>BILIBILI DEMO</small><h2>英语面试表达：把答案说得具体</h2><p>BV1WW4y1e7GL</p></div>
+              <div class="sidebar-stats"><div><strong>12</strong><span>字幕段落</span></div><div><strong>03</strong><span>课堂事件</span></div></div>
+              <div class="legend"><strong>事件图例</strong><span><i class="dot dot-attention"></i>注意力爆发</span><span><i class="dot dot-voice"></i>老师语音</span><span><i class="dot dot-activity"></i>互动练习</span><span><i class="dot dot-ai"></i>AI 模板</span></div>
             </aside>
-
-            <form id="node-form" class="node-form">
-              <div class="form-header">
-                <div>
-                  <span id="node-sequence" class="source-label">节点 1 / 3</span>
-                  <h2 id="node-title">理解检查</h2>
-                </div>
-                <label class="switch-control">
-                  <input id="node-enabled" type="checkbox" checked>
-                  <span class="switch-track" aria-hidden="true"><span></span></span>
-                  <span>启用节点</span>
-                </label>
-              </div>
-
-              <div class="form-grid form-grid-meta">
-                <label class="field-group">
-                  <span>触发时间</span>
-                  <div class="time-input">
-                    <input id="node-minute" type="number" min="0" max="59" value="0" aria-label="分钟">
-                    <span>:</span>
-                    <input id="node-second" type="number" min="0" max="59" value="35" aria-label="秒">
-                  </div>
-                  <small>视频播放到此处时自动暂停</small>
-                </label>
-
-                <label class="field-group">
-                  <span>题型</span>
-                  <input id="node-type" type="text" value="选择题" readonly>
-                  <small>当前模板中题型固定</small>
-                </label>
-              </div>
-
-              <label class="field-group field-group-wide">
-                <span>题目</span>
-                <textarea id="node-prompt" rows="3">视频中的回答为什么比 “I am hardworking” 更有说服力？</textarea>
-                <small><span id="prompt-count">36</span> / 120</small>
-              </label>
-
-              <fieldset id="choice-fields" class="answer-section">
-                <legend>选项与正确答案</legend>
-                <div id="choice-list" class="choice-list"></div>
-              </fieldset>
-
-              <label id="accepted-field" class="field-group field-group-wide" hidden>
-                <span>接受答案</span>
-                <input id="node-accepted" type="text" value="specific example">
-                <small>多个答案请使用逗号分隔</small>
-              </label>
-
-              <label id="rubric-field" class="field-group field-group-wide" hidden>
-                <span>评价标准</span>
-                <textarea id="node-rubric" rows="4">回答包含一个具体经历，并使用课程中的结果表达。</textarea>
-                <small>D1 接入真实 AI 反馈后使用</small>
-              </label>
-
-              <label class="field-group field-group-wide">
-                <span id="explanation-label">答题解释</span>
-                <textarea id="node-explanation" rows="3">具体例子能够证明能力，也让面试官更容易记住你的回答。</textarea>
-              </label>
-            </form>
-          </div>
-
-          <div class="action-dock">
-            <div class="dock-context">
-              <strong id="dock-title">理解检查</strong>
-              <span id="dock-detail">00:35 · 选择题</span>
+            <div class="timeline-canvas">
+              <div class="timeline-toolbar"><div><strong>字幕时间线</strong><span>English · 已校对 12 / 12</span></div><div><button class="toolbar-button" id="zoom-out" type="button">−</button><span>100%</span><button class="toolbar-button" id="zoom-in" type="button">＋</button></div></div>
+              <div class="timeline-ruler"><span>00:00</span><span>00:30</span><span>01:00</span><span>01:30</span><span>02:00</span><span>02:30</span><span>03:00</span><span>03:42</span></div>
+              <div class="caption-list" id="caption-list" role="listbox" aria-label="字幕段落列表"></div>
             </div>
-            <div class="dock-actions">
-              <button id="reset-button" class="text-button" type="button">恢复默认模板</button>
-              <button id="save-button" class="secondary-button" type="button">保存</button>
-              <button id="preview-button" class="primary-button" type="button">保存并预览 <span aria-hidden="true">↗</span></button>
-            </div>
+            <aside class="event-panel" aria-labelledby="event-title">
+              <div class="event-panel-head"><span class="eyebrow">当前字幕 · 00:35</span><h2 id="event-title">在这里加一个动作</h2><p id="selected-caption">“A strong answer needs a specific example.”</p></div>
+              <div class="event-options">
+                <button class="event-option event-option-attention" type="button" data-event="attention"><span class="option-icon">✦</span><span><strong>注意力爆发</strong><small>让重点词闪出来，帮学生重新集中。</small></span><b>→</b></button>
+                <button class="event-option event-option-voice" type="button" data-event="voice"><span class="option-icon">◉</span><span><strong>老师语音</strong><small>在这里补一句，或者直接喊学生名字。</small></span><b>→</b></button>
+                <button class="event-option event-option-activity" type="button" data-event="activity"><span class="option-icon">□</span><span><strong>互动练习</strong><small>选择题、填空题或自由回答。</small></span><b>→</b></button>
+                <button class="event-option event-option-ai" type="button" data-event="ai"><span class="option-icon">⌁</span><span><strong>AI 教学模板</strong><small>只按照老师选定的评价方向反馈。</small></span><b>→</b></button>
+              </div>
+              <div class="event-detail" id="event-detail" hidden><span class="eyebrow" id="event-detail-label">注意力爆发</span><h3 id="event-detail-title">让这一句被记住</h3><p id="event-detail-copy">播放到这里时，关键词会短暂放大并出现星星效果。</p><label>事件标题<input id="event-label-input" type="text" value="这里很重要"></label><button class="dark-button" id="add-event" type="button">添加到时间线</button></div>
+              <p class="event-note">提示：事件只读取字幕和时间，不分析视频画面。</p>
+            </aside>
           </div>
         </section>
       </main>
     </div>
-
     <div id="toast" class="toast" role="status" aria-live="polite" aria-hidden="true"></div>
     <script src="app.js"></script>
   </body>

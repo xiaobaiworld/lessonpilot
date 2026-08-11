@@ -4,6 +4,14 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### Subtitle Timeline Teacher Workspace — 2026-08-11
+
+- Redesign the teacher surface around the actual workflow: choose a recorded video, import timestamped subtitles, and turn them into a course timeline.
+- Replace the generic fixed-node editor as the primary story with subtitle paragraphs and four configurable event families: attention burst, teacher voice, interaction activity, and constrained AI template.
+- Add a clickable timeline prototype with caption selection, event detail editing, teacher-voice insertion, and honest local-demo states.
+- Record the subtitle pipeline decision and open-source evaluation in `doc/subtitle-pipeline.md`.
+- Keep video understanding, remote upload, speech recording, extension bridge, and AI generation out of this slice.
+
 ### Teacher Web Prototype — 2026-08-11
 
 - Add a zero-dependency `teacher-web/` high-fidelity prototype for the D0 teacher home and restricted node editor.

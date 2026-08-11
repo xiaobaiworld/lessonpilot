@@ -1,278 +1,67 @@
-(function initTeacherPrototype() {
+(function initTeacherWorkspace() {
   const lessonUrl = 'https://www.bilibili.com/video/BV1WW4y1e7GL/';
-  const defaults = [
-    {
-      title: '理解检查',
-      type: '选择题',
-      minute: 0,
-      second: 35,
-      enabled: true,
-      prompt: '视频中的回答为什么比 “I am hardworking” 更有说服力？',
-      options: [
-        '它使用了更复杂的单词',
-        '它给出了能证明能力的具体例子',
-        '它的回答时间更长'
-      ],
-      correct: 1,
-      accepted: '',
-      rubric: '',
-      explanation: '具体例子能够证明能力，也让面试官更容易记住你的回答。'
-    },
-    {
-      title: '关键表达',
-      type: '填空题',
-      minute: 1,
-      second: 18,
-      enabled: true,
-      prompt: '补全句子：A strong interview answer should include a ______.',
-      options: [],
-      correct: 0,
-      accepted: 'specific example, concrete example',
-      rubric: '',
-      explanation: '用具体经历支持观点，比只给出抽象形容词更可信。'
-    },
-    {
-      title: '迁移练习',
-      type: '自由回答',
-      minute: 2,
-      second: 6,
-      enabled: false,
-      prompt: '请用课程中的结构，回答一次你解决困难的真实经历。',
-      options: [],
-      correct: 0,
-      accepted: '',
-      rubric: '回答包含一个具体经历，并使用课程中的结果表达。',
-      explanation: 'D1 将根据学生的真实回答给出个性化修改建议。'
-    }
+  const captions = [
+    { time: '00:00', end: '00:18', text: 'Today we are going to talk about strong interview answers.', event: null },
+    { time: '00:18', end: '00:35', text: 'Many candidates say: I am hardworking and I am a team player.', event: null },
+    { time: '00:35', end: '00:51', text: 'A strong answer needs a specific example.', event: { type: 'attention', label: '这里很重要' } },
+    { time: '00:51', end: '01:08', text: 'The example should show what you did and what changed.', event: null },
+    { time: '01:08', end: '01:18', text: 'Listen to the structure one more time.', event: { type: 'voice', label: '老师补充' } },
+    { time: '01:18', end: '01:34', text: 'I noticed a problem, so I suggested a different approach.', event: { type: 'activity', label: '填空练习' } },
+    { time: '01:34', end: '01:49', text: 'This is much more memorable than a general adjective.', event: null },
+    { time: '01:49', end: '02:06', text: 'Now try to connect the structure to your own experience.', event: { type: 'ai', label: '迁移追问' } },
+    { time: '02:06', end: '02:25', text: 'Think of one difficult situation you have solved.', event: null },
+    { time: '02:25', end: '02:48', text: 'Start with the situation, then explain your action.', event: null },
+    { time: '02:48', end: '03:12', text: 'Finally, tell us the result and what you learned.', event: null },
+    { time: '03:12', end: '03:42', text: 'That is how a recorded lesson becomes practice.', event: null }
   ];
-
-  let nodes = clone(defaults);
-  let activeIndex = 0;
-  let dirty = false;
-  let toastTimer = null;
-
-  const homeView = document.querySelector('#home-view');
-  const editorView = document.querySelector('#editor-view');
-  const form = document.querySelector('#node-form');
-  const draftStatus = document.querySelector('#draft-status');
-  const toast = document.querySelector('#toast');
-  const nodeButtons = [...document.querySelectorAll('.node-item')];
-
-  const fields = {
-    enabled: document.querySelector('#node-enabled'),
-    minute: document.querySelector('#node-minute'),
-    second: document.querySelector('#node-second'),
-    type: document.querySelector('#node-type'),
-    prompt: document.querySelector('#node-prompt'),
-    accepted: document.querySelector('#node-accepted'),
-    rubric: document.querySelector('#node-rubric'),
-    explanation: document.querySelector('#node-explanation')
+  const eventCopy = {
+    attention: ['注意力爆发', '让这一句被记住', '播放到这里时，关键词会短暂放大并出现星星效果。', '这里很重要'],
+    voice: ['老师语音', '在这里补一句', '播放到这里时，视频原声会降低，学生听到老师提前录好的提醒。', '老师补充'],
+    activity: ['互动练习', '让学生马上动手', '在这里暂停视频，出现一个老师预先配置好的练习题。', '填空练习'],
+    ai: ['AI 教学模板', '只沿着一个方向追问', 'AI 只检查老师选定的维度，不会变成没有边界的聊天框。', '迁移追问']
   };
+  let selectedCaption = 2;
+  let selectedEvent = 'attention';
+  let toastTimer = null;
+  const homeView = document.querySelector('#home-view');
+  const timelineView = document.querySelector('#timeline-view');
+  const toast = document.querySelector('#toast');
 
-  function clone(value) {
-    return JSON.parse(JSON.stringify(value));
-  }
-
-  function formatTime(node) {
-    return `${String(node.minute).padStart(2, '0')}:${String(node.second).padStart(2, '0')}`;
-  }
-
-  function showToast(message) {
-    window.clearTimeout(toastTimer);
-    toast.textContent = message;
-    toast.setAttribute('aria-hidden', 'false');
-    toast.classList.add('is-visible');
-    toastTimer = window.setTimeout(() => {
-      toast.classList.remove('is-visible');
-      toast.setAttribute('aria-hidden', 'true');
-    }, 2600);
-  }
-
-  function setDirty(value) {
-    dirty = value;
-    draftStatus.classList.toggle('is-dirty', dirty);
-    draftStatus.querySelector('span:last-child').textContent = dirty ? '有未保存更改' : '所有更改已保存';
-  }
-
-  function persistCurrentForm() {
-    const node = nodes[activeIndex];
-    node.enabled = fields.enabled.checked;
-    node.minute = Number(fields.minute.value) || 0;
-    node.second = Number(fields.second.value) || 0;
-    node.prompt = fields.prompt.value;
-    node.accepted = fields.accepted.value;
-    node.rubric = fields.rubric.value;
-    node.explanation = fields.explanation.value;
-
-    if (node.type === '选择题') {
-      node.options = [...document.querySelectorAll('[data-choice-text]')].map((input) => input.value);
-      const checked = document.querySelector('[name="correct-choice"]:checked');
-      node.correct = checked ? Number(checked.value) : 0;
-    }
-  }
-
-  function renderChoices(node) {
-    const choiceList = document.querySelector('#choice-list');
-    choiceList.replaceChildren();
-
-    node.options.forEach((option, index) => {
-      const row = document.createElement('div');
-      row.className = 'choice-row';
-      row.innerHTML = `
-        <span class="choice-letter">${String.fromCharCode(65 + index)}</span>
-        <input type="text" value="" data-choice-text aria-label="选项 ${index + 1}">
-        <label class="choice-correct">
-          <input type="radio" name="correct-choice" value="${index}">
-          <span>正确答案</span>
-        </label>
-      `;
-      row.querySelector('[data-choice-text]').value = option;
-      row.querySelector('[name="correct-choice"]').checked = node.correct === index;
-      choiceList.appendChild(row);
+  const clone = (value) => JSON.parse(JSON.stringify(value));
+  const showToast = (message) => {
+    window.clearTimeout(toastTimer); toast.textContent = message; toast.classList.add('is-visible'); toast.setAttribute('aria-hidden', 'false');
+    toastTimer = window.setTimeout(() => { toast.classList.remove('is-visible'); toast.setAttribute('aria-hidden', 'true'); }, 2600);
+  };
+  const setRoute = (route) => {
+    const timeline = route === 'timeline'; homeView.hidden = timeline; timelineView.hidden = !timeline;
+    document.querySelectorAll('[data-route]').forEach((button) => button.classList.toggle('is-active', button.dataset.route === route));
+    window.history.replaceState(null, '', timeline ? '#timeline' : '#home');
+    document.title = timeline ? '课程时间线 · LessonPilot' : 'LessonPilot · 我的课程'; window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  const renderCaptions = () => {
+    const list = document.querySelector('#caption-list'); list.replaceChildren();
+    captions.forEach((caption, index) => {
+      const item = document.createElement('button'); item.type = 'button'; item.className = `caption-row${index === selectedCaption ? ' is-selected' : ''}`; item.setAttribute('role', 'option'); item.setAttribute('aria-selected', String(index === selectedCaption));
+      item.innerHTML = `<span class="caption-time">${caption.time}</span><span class="caption-text">${caption.text}</span>${caption.event ? `<span class="caption-event event-${caption.event.type}">${caption.event.label}</span>` : '<span class="caption-add">＋</span>'}`;
+      item.addEventListener('click', () => { selectedCaption = index; document.querySelector('#selected-caption').textContent = `“${captions[index].text}”`; document.querySelector('.event-panel-head .eyebrow').textContent = `当前字幕 · ${captions[index].time}`; renderCaptions(); }); list.appendChild(item);
     });
-  }
-
-  function renderNode() {
-    const node = nodes[activeIndex];
-    document.querySelector('#node-sequence').textContent = `节点 ${activeIndex + 1} / ${nodes.length}`;
-    document.querySelector('#node-title').textContent = node.title;
-    document.querySelector('#dock-title').textContent = node.title;
-    document.querySelector('#dock-detail').textContent = `${formatTime(node)} · ${node.type}`;
-
-    fields.enabled.checked = node.enabled;
-    fields.minute.value = node.minute;
-    fields.second.value = node.second;
-    fields.type.value = node.type;
-    fields.prompt.value = node.prompt;
-    fields.accepted.value = node.accepted;
-    fields.rubric.value = node.rubric;
-    fields.explanation.value = node.explanation;
-    document.querySelector('#prompt-count').textContent = node.prompt.length;
-
-    const isChoice = node.type === '选择题';
-    const isFill = node.type === '填空题';
-    document.querySelector('#choice-fields').hidden = !isChoice;
-    document.querySelector('#accepted-field').hidden = !isFill;
-    document.querySelector('#rubric-field').hidden = node.type !== '自由回答';
-    document.querySelector('#explanation-label').textContent = node.type === '自由回答' ? '练习说明' : '答题解释';
-    renderChoices(node);
-
-    nodeButtons.forEach((button, index) => {
-      const selected = index === activeIndex;
-      button.classList.toggle('is-active', selected);
-      button.setAttribute('aria-selected', String(selected));
-      button.querySelector('.node-time').textContent = formatTime(nodes[index]);
-      const state = button.querySelector('.node-state');
-      state.textContent = nodes[index].enabled ? '启用' : (index === 2 ? 'D1' : '停用');
-      state.classList.toggle('node-state-muted', !nodes[index].enabled);
-    });
-  }
-
-  function setRoute(route) {
-    const showEditor = route === 'editor';
-    homeView.hidden = showEditor;
-    editorView.hidden = !showEditor;
-    window.history.replaceState(null, '', showEditor ? '#editor' : '#home');
-    document.title = showEditor ? '编辑互动节点 · LessonPilot' : 'LessonPilot 教师工作台';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  function validate() {
-    persistCurrentForm();
-    const errors = [];
-
-    nodes.forEach((node, index) => {
-      if (!node.prompt.trim()) errors.push(`节点 ${index + 1} 缺少题目`);
-      if (node.second < 0 || node.second > 59) errors.push(`节点 ${index + 1} 的秒数应为 0–59`);
-      if (node.type === '选择题' && node.options.some((option) => !option.trim())) errors.push(`节点 ${index + 1} 存在空选项`);
-      if (node.type === '填空题' && !node.accepted.trim()) errors.push(`节点 ${index + 1} 缺少接受答案`);
-      if (node.type === '自由回答' && !node.rubric.trim()) errors.push(`节点 ${index + 1} 缺少评价标准`);
-    });
-
-    const enabledTimes = nodes
-      .filter((node) => node.enabled)
-      .map((node) => node.minute * 60 + node.second);
-    if (enabledTimes.some((time, index) => index > 0 && time <= enabledTimes[index - 1])) {
-      errors.push('启用节点的时间必须按顺序递增');
-    }
-
-    return errors;
-  }
-
-  function saveLesson(preview) {
-    const errors = validate();
-    if (errors.length > 0) {
-      showToast(errors[0]);
-      return;
-    }
-
-    setDirty(false);
-    if (preview) {
-      showToast('原型已保存。真实扩展桥接将在下一步打开视频预览。');
-    } else {
-      showToast('原型配置已保存到当前页面状态。');
-    }
-  }
-
-  document.querySelectorAll('[data-route]').forEach((button) => {
-    button.addEventListener('click', () => setRoute(button.dataset.route));
-  });
-
-  document.querySelector('#open-finished-lesson').addEventListener('click', () => {
-    showToast('即将打开固定 B 站演示视频。');
-    window.setTimeout(() => window.open(lessonUrl, '_blank', 'noopener,noreferrer'), 220);
-  });
-
-  nodeButtons.forEach((button, index) => {
-    button.addEventListener('click', () => {
-      persistCurrentForm();
-      activeIndex = index;
-      renderNode();
-    });
-  });
-
-  form.addEventListener('input', (event) => {
-    if (event.target === fields.prompt) {
-      document.querySelector('#prompt-count').textContent = fields.prompt.value.length;
-    }
-    persistCurrentForm();
-    renderNodeListOnly();
-    setDirty(true);
-  });
-
-  form.addEventListener('change', () => {
-    persistCurrentForm();
-    renderNodeListOnly();
-    setDirty(true);
-  });
-
-  function renderNodeListOnly() {
-    nodes.forEach((node, index) => {
-      const button = nodeButtons[index];
-      button.querySelector('.node-time').textContent = formatTime(node);
-      const state = button.querySelector('.node-state');
-      state.textContent = node.enabled ? '启用' : (index === 2 ? 'D1' : '停用');
-      state.classList.toggle('node-state-muted', !node.enabled);
-    });
-    document.querySelector('#dock-detail').textContent = `${formatTime(nodes[activeIndex])} · ${nodes[activeIndex].type}`;
-  }
-
-  document.querySelector('#save-button').addEventListener('click', () => saveLesson(false));
-  document.querySelector('#preview-button').addEventListener('click', () => saveLesson(true));
-  document.querySelector('#reset-button').addEventListener('click', () => {
-    nodes = clone(defaults);
-    activeIndex = 0;
-    renderNode();
-    setDirty(true);
-    showToast('已恢复默认模板，保存后才会生效。');
-  });
-
-  window.addEventListener('beforeunload', (event) => {
-    if (!dirty) return;
-    event.preventDefault();
-    event.returnValue = '';
-  });
-
-  renderNode();
-  setRoute(window.location.hash === '#editor' ? 'editor' : 'home');
+  };
+  const selectEvent = (type) => {
+    selectedEvent = type; const [label, title, copy, input] = eventCopy[type];
+    document.querySelector('#event-detail').hidden = false; document.querySelector('#event-detail-label').textContent = label; document.querySelector('#event-detail-title').textContent = title; document.querySelector('#event-detail-copy').textContent = copy; document.querySelector('#event-label-input').value = input;
+    document.querySelectorAll('.event-option').forEach((button) => button.classList.toggle('is-active', button.dataset.event === type));
+  };
+  document.querySelectorAll('[data-route]').forEach((button) => button.addEventListener('click', () => setRoute(button.dataset.route)));
+  document.querySelector('#open-timeline').addEventListener('click', () => setRoute('timeline'));
+  document.querySelectorAll('.course-card').forEach((button) => button.addEventListener('click', () => setRoute('timeline')));
+  document.querySelector('#choose-video').addEventListener('click', () => showToast('原型演示：下一步接入本地视频选择器。'));
+  document.querySelector('#import-subtitle').addEventListener('click', () => showToast('原型演示：下一步接入 SRT / VTT 导入与本地 Whisper 生成。'));
+  document.querySelector('#preview-timeline').addEventListener('click', () => { showToast('预览会打开学生视角，真实扩展桥将在下一步接入。'); window.open(lessonUrl, '_blank', 'noopener,noreferrer'); });
+  document.querySelector('#save-timeline').addEventListener('click', () => { document.querySelector('#save-label').textContent = '刚刚保存'; showToast('课程时间线已保存到当前页面状态。'); });
+  document.querySelectorAll('.event-option').forEach((button) => button.addEventListener('click', () => selectEvent(button.dataset.event)));
+  document.querySelector('#add-event').addEventListener('click', () => { captions[selectedCaption].event = { type: selectedEvent, label: document.querySelector('#event-label-input').value || eventCopy[selectedEvent][3] }; renderCaptions(); showToast(`${eventCopy[selectedEvent][0]} 已添加到 ${captions[selectedCaption].time}。`); });
+  document.querySelector('#zoom-in').addEventListener('click', () => showToast('时间线缩放到 125%（原型状态）。'));
+  document.querySelector('#zoom-out').addEventListener('click', () => showToast('时间线缩放到 80%（原型状态）。'));
+  document.querySelector('#video-dropzone').addEventListener('keydown', (event) => { if (event.key === 'Enter') showToast('原型演示：下一步接入本地视频选择器。'); });
+  renderCaptions(); selectEvent('attention'); setRoute(window.location.hash === '#timeline' ? 'timeline' : 'home');
 })();
