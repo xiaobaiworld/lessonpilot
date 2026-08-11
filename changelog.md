@@ -4,6 +4,14 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### Teacher UI Color System — 2026-08-11
+
+- Consolidate the teacher prototype around warm paper surfaces and a forest-green brand hierarchy.
+- Add semantic tokens for attention, teacher voice, interaction activity, constrained AI, and connection status.
+- Replace the isolated purple AI treatment with muted blue-green so AI remains a secondary teacher-controlled tool.
+- Separate focus, status, and attention colors and verify main text/event contrast ratios against a 4.5:1 target.
+- Record the shared teacher/student color rules in `doc/ui-design.md`.
+
 ### Teacher Timeline Visual Refinement — 2026-08-11
 
 - Refine the teacher timeline against the supplied visual references.
