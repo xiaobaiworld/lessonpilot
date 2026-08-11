@@ -4,6 +4,13 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### Student Utility and B2B2C Boundary — 2026-08-11
+
+- Record a productized student-tool direction: manual phrase-range replay, keyboard shortcuts, bookmarks, review notebooks, personal study plans, and optional badges.
+- Separate student-owned learning history from teacher-facing evidence; teacher reports only receive explicitly submitted or course-generated evidence.
+- Confirm the commercial boundary: student utility remains free, while teachers pay for course authoring, publishing, classroom events, reports, and constrained AI templates.
+- Reject dark-pattern lock-in as a product strategy; retention should come from accumulated learning value and a shared cross-course tool.
+
 ### Subtitle Timeline Teacher Workspace — 2026-08-11
 
 - Redesign the teacher surface around the actual workflow: choose a recorded video, import timestamped subtitles, and turn them into a course timeline.
