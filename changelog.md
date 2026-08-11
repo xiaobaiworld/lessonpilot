@@ -4,6 +4,13 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### Teacher Timeline Visual Refinement — 2026-08-11
+
+- Refine the teacher timeline against the supplied visual references.
+- Add a single course overview block with video preview, course metadata, subtitle count, event count, and event legend.
+- Remove duplicated course metadata from the timeline sidebar so the working area focuses on caption selection and event editing.
+- Preserve the three-layer information hierarchy: course context → subtitle list → event action panel.
+
 ### Student Utility and B2B2C Boundary — 2026-08-11
 
 - Record a productized student-tool direction: manual phrase-range replay, keyboard shortcuts, bookmarks, review notebooks, personal study plans, and optional badges.
