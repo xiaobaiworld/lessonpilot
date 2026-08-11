@@ -12,11 +12,11 @@
       <header class="topbar">
         <button class="brand" type="button" data-route="home" aria-label="返回 LessonPilot 首页">
           <span class="brand-mark">LP</span>
-          <span><strong>LessonPilot</strong><small>老师的互动课程工作台</small></span>
+          <span><strong>LessonPilot Studio</strong><small>AI 互动课程创作工作台</small></span>
         </button>
         <nav class="topnav" aria-label="主导航">
           <button class="nav-link is-active" type="button" data-route="home">我的课程</button>
-          <button class="nav-link" type="button" data-route="timeline">时间线编排</button>
+          <button class="nav-link" type="button" data-route="timeline">设计课堂</button>
         </nav>
         <div class="connection-status"><span class="status-dot"></span><span>本地演示</span><span class="status-divider"></span><span>扩展待连接</span></div>
       </header>
@@ -25,15 +25,15 @@
         <section id="home-view" class="view workspace-home" aria-labelledby="home-title">
           <div class="workspace-head">
             <div>
-              <p class="eyebrow">老师工作台 / 我的课程</p>
-              <h1 id="home-title">把一段录播课，<br><em>编排成一堂会回应的课。</em></h1>
-              <p class="lead">选中视频，导入字幕。LessonPilot 会把每一句话放到时间线上，老师只需要在关键处加上提醒、语音、练习或受控的 AI 模板。</p>
+              <p class="eyebrow">LessonPilot Studio / 我的课程</p>
+              <h1 id="home-title">AI 已经帮你备好课，<br><em>你来决定怎么教。</em></h1>
+              <p class="lead">上传已有课程和字幕，LessonPilot 会先识别知识点、易错点与互动机会。老师只需要审核、调整，然后模拟并发布。</p>
             </div>
-            <div class="head-note"><span class="note-line"></span><p>不分析画面<br>只从字幕开始</p></div>
+            <div class="head-note"><span class="note-line"></span><p>不是视频编辑<br>而是课堂设计</p></div>
           </div>
 
           <div class="import-stage">
-            <div class="import-stage-top"><span class="section-number">01</span><span class="section-label">从已有课程开始</span><span class="stage-status">本地草稿</span></div>
+            <div class="import-stage-top"><span class="section-number">01</span><span class="section-label">上传课程，交给 AI 先备课</span><span class="stage-status">本地草稿</span></div>
             <div class="import-grid">
               <div class="video-dropzone" id="video-dropzone" tabindex="0" role="button" aria-label="选择视频">
                 <div class="drop-icon">▶</div>
@@ -52,6 +52,8 @@
             </div>
             <div class="import-foot"><span class="ready-mark">●</span><span id="import-state">已准备一份示例字幕，方便先看效果</span><button id="open-timeline" class="text-button" type="button">打开示例时间线 →</button></div>
           </div>
+
+          <div class="studio-flow" aria-label="课程创作流程"><span class="flow-active"><b>01</b>上传课程</span><i>→</i><span><b>02</b>AI 分析</span><i>→</i><span><b>03</b>设计课堂</span><i>→</i><span><b>04</b>模拟学生</span><i>→</i><span><b>05</b>发布课程</span></div>
 
           <div class="feature-row" aria-label="教师可以编排的事件">
             <div class="feature-intro"><span class="section-number">02</span><strong>关键处，老师可以加什么</strong><p>所有动作都落在字幕时间线上，不再对着整段视频猜时间。</p></div>
@@ -72,32 +74,34 @@
 
         <section id="timeline-view" class="view timeline-view" aria-labelledby="timeline-title" hidden>
           <div class="timeline-head">
-            <div><button class="back-link" type="button" data-route="home">← 我的课程</button><p class="eyebrow">课程编排 / 英语面试表达</p><h1 id="timeline-title">在字幕时间线上，安排每一次回应。</h1><p>选中一段字幕，在它旁边添加老师的动作。学生播放到这里时，课堂会自然地停一下、亮一下、问一句。</p></div>
-            <div class="timeline-actions"><span class="save-label" id="save-label">草稿已保存</span><button class="light-button" id="preview-timeline" type="button">预览学生视角 ↗</button><button class="dark-button" id="save-timeline" type="button">保存课程</button></div>
+            <div><button class="back-link" type="button" data-route="home">← 我的课程</button><p class="eyebrow">课堂设计 / 英语面试表达</p><h1 id="timeline-title">审核 AI 的建议，设计这堂课。</h1><p>沿着课程时间线查看字幕、知识点和学生易错点。AI 先提出互动建议，老师负责采纳、修改或忽略。</p></div>
+            <div class="timeline-actions"><span class="save-label" id="save-label">草稿已保存</span><button class="light-button" id="preview-timeline" type="button">模拟学生课堂 ↗</button><button class="dark-button" id="save-timeline" type="button">保存课程</button></div>
           </div>
 
           <section class="course-overview" aria-label="课程概览">
             <div class="overview-video"><span class="overview-play">▶</span><span class="overview-progress"></span><b>03:42</b></div>
-            <div class="overview-info"><small>BILIBILI DEMO · 已导入字幕</small><h2>英语面试表达：把答案说得具体</h2><p>BV1WW4y1e7GL · 每日英语Xixi学以致用</p></div>
+            <div class="overview-info"><small>BILIBILI DEMO · AI 已完成初步分析</small><h2>英语面试表达：把答案说得具体</h2><p>BV1WW4y1e7GL · 12 段字幕已整理成可设计的课堂时间线</p><div class="analysis-status"><span class="status-check">✓</span><span>已识别 4 个可互动片段</span><button class="text-button" id="refresh-analysis" type="button">重新分析</button></div></div>
             <div class="overview-stats"><div><strong>12</strong><span>字幕段落</span></div><div><strong>03</strong><span>课堂事件</span></div></div>
             <div class="overview-legend"><strong>事件图例</strong><span><i class="dot dot-attention"></i>注意力爆发</span><span><i class="dot dot-voice"></i>老师语音</span><span><i class="dot dot-activity"></i>互动练习</span><span><i class="dot dot-ai"></i>AI 模板</span></div>
           </section>
 
           <div class="timeline-layout">
             <div class="timeline-canvas">
-              <div class="timeline-toolbar"><div><strong>字幕时间线</strong><span>English · 已校对 12 / 12</span></div><div><button class="toolbar-button" id="zoom-out" type="button">−</button><span>100%</span><button class="toolbar-button" id="zoom-in" type="button">＋</button></div></div>
+              <div class="timeline-toolbar"><div><strong>课堂时间线</strong><span>字幕 · 知识点 · AI 建议 · 课堂设计</span></div><div><button class="toolbar-button" id="zoom-out" type="button">−</button><span>100%</span><button class="toolbar-button" id="zoom-in" type="button">＋</button></div></div>
               <div class="timeline-ruler"><span>00:00</span><span>00:30</span><span>01:00</span><span>01:30</span><span>02:00</span><span>02:30</span><span>03:00</span><span>03:42</span></div>
               <div class="caption-list" id="caption-list" role="listbox" aria-label="字幕段落列表"></div>
             </div>
             <aside class="event-panel" aria-labelledby="event-title">
-              <div class="event-panel-head"><span class="eyebrow">当前字幕 · 00:35</span><h2 id="event-title">在这里加一个动作</h2><p id="selected-caption">“A strong answer needs a specific example.”</p></div>
+              <div class="copilot-card"><div class="copilot-heading"><span class="copilot-spark">✦</span><div><strong>LessonPilot AI</strong><small>课堂设计副驾驶</small></div><span class="copilot-live">分析中</span></div><p>我发现这一句适合先暂停，再让学生把结构迁移到自己的经历。</p><div class="copilot-reason"><span>建议原因</span><strong>这是本段的知识点转折</strong></div><div class="copilot-actions"><button class="text-button" id="ignore-suggestion" type="button">忽略</button><button class="dark-button" id="accept-suggestion" type="button">采纳建议</button></div></div>
+              <div class="event-panel-head"><span class="eyebrow">当前字幕 · 00:35</span><h2 id="event-title">课堂设计</h2><p id="selected-caption">“A strong answer needs a specific example.”</p><small class="design-hint">告诉 AI 你希望学生在这里获得什么，剩下的交给它生成。</small></div>
               <div class="event-options">
                 <button class="event-option event-option-attention" type="button" data-event="attention"><span class="option-icon">✦</span><span><strong>注意力爆发</strong><small>让重点词闪出来，帮学生重新集中。</small></span><b>→</b></button>
                 <button class="event-option event-option-voice" type="button" data-event="voice"><span class="option-icon">◉</span><span><strong>老师语音</strong><small>在这里补一句，或者直接喊学生名字。</small></span><b>→</b></button>
                 <button class="event-option event-option-activity" type="button" data-event="activity"><span class="option-icon">□</span><span><strong>互动练习</strong><small>选择题、填空题或自由回答。</small></span><b>→</b></button>
                 <button class="event-option event-option-ai" type="button" data-event="ai"><span class="option-icon">⌁</span><span><strong>AI 教学模板</strong><small>只按照老师选定的评价方向反馈。</small></span><b>→</b></button>
               </div>
-              <div class="event-detail" id="event-detail" hidden><span class="eyebrow" id="event-detail-label">注意力爆发</span><h3 id="event-detail-title">让这一句被记住</h3><p id="event-detail-copy">播放到这里时，关键词会短暂放大并出现星星效果。</p><label>事件标题<input id="event-label-input" type="text" value="这里很重要"></label><button class="dark-button" id="add-event" type="button">添加到时间线</button></div>
+              <div class="event-detail" id="event-detail" hidden><span class="eyebrow" id="event-detail-label">注意力爆发</span><h3 id="event-detail-title">让这一句被记住</h3><p id="event-detail-copy">播放到这里时，关键词会短暂放大并出现星星效果。</p><label>告诉 AI<input id="event-label-input" type="text" value="这里很重要" placeholder="例如：这里提醒学生注意语气"></label><button class="dark-button" id="add-event" type="button">生成并加入课堂设计</button></div>
+              <button class="simulation-button" id="simulate-class" type="button"><span>▶</span><span><strong>模拟学生课堂</strong><small>看看这堂课实际会如何回应</small></span><b>↗</b></button>
               <p class="event-note">提示：事件只读取字幕和时间，不分析视频画面。</p>
             </aside>
           </div>

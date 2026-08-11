@@ -36,13 +36,14 @@
     const timeline = route === 'timeline'; homeView.hidden = timeline; timelineView.hidden = !timeline;
     document.querySelectorAll('[data-route]').forEach((button) => button.classList.toggle('is-active', button.dataset.route === route));
     window.history.replaceState(null, '', timeline ? '#timeline' : '#home');
-    document.title = timeline ? '课程时间线 · LessonPilot' : 'LessonPilot · 我的课程'; window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.title = timeline ? '课堂设计 · LessonPilot Studio' : 'LessonPilot Studio · 我的课程'; window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   const renderCaptions = () => {
     const list = document.querySelector('#caption-list'); list.replaceChildren();
     captions.forEach((caption, index) => {
       const item = document.createElement('button'); item.type = 'button'; item.className = `caption-row${index === selectedCaption ? ' is-selected' : ''}`; item.setAttribute('role', 'option'); item.setAttribute('aria-selected', String(index === selectedCaption));
-      item.innerHTML = `<span class="caption-time">${caption.time}</span><span class="caption-text">${caption.text}</span>${caption.event ? `<span class="caption-event event-${caption.event.type}">${caption.event.label}</span>` : '<span class="caption-add">＋</span>'}`;
+      const suggestion = !caption.event && [0, 6, 8, 9].includes(index) ? '<span class="ai-suggestion">AI 建议</span>' : '';
+      item.innerHTML = `<span class="caption-time">${caption.time}</span><span class="caption-body"><span class="caption-text">${caption.text}</span>${index === 2 ? '<small>知识点：用具体经历替代抽象形容词 · 易错点：只描述品质，没有证据</small>' : ''}</span>${caption.event ? `<span class="caption-event event-${caption.event.type}">${caption.event.label}</span>` : suggestion || '<span class="caption-add">＋</span>'}`;
       item.addEventListener('click', () => { selectedCaption = index; document.querySelector('#selected-caption').textContent = `“${captions[index].text}”`; document.querySelector('.event-panel-head .eyebrow').textContent = `当前字幕 · ${captions[index].time}`; renderCaptions(); }); list.appendChild(item);
     });
   };
@@ -56,10 +57,14 @@
   document.querySelectorAll('.course-card').forEach((button) => button.addEventListener('click', () => setRoute('timeline')));
   document.querySelector('#choose-video').addEventListener('click', () => showToast('原型演示：下一步接入本地视频选择器。'));
   document.querySelector('#import-subtitle').addEventListener('click', () => showToast('原型演示：下一步接入 SRT / VTT 导入与本地 Whisper 生成。'));
-  document.querySelector('#preview-timeline').addEventListener('click', () => { showToast('预览会打开学生视角，真实扩展桥将在下一步接入。'); window.open(lessonUrl, '_blank', 'noopener,noreferrer'); });
+  document.querySelector('#preview-timeline').addEventListener('click', () => { showToast('课堂模拟会展示学生视角，真实扩展桥将在下一步接入。'); window.open(lessonUrl, '_blank', 'noopener,noreferrer'); });
+  document.querySelector('#refresh-analysis').addEventListener('click', () => showToast('原型演示：重新分析会基于字幕刷新知识点和课堂建议。'));
+  document.querySelector('#accept-suggestion').addEventListener('click', () => { selectEvent('activity'); document.querySelector('#event-label-input').value = '先暂停，再让学生联系自己的经历'; showToast('AI 建议已转成可修改的课堂设计。'); });
+  document.querySelector('#ignore-suggestion').addEventListener('click', () => showToast('已忽略这条建议，其他课堂设计不会受影响。'));
+  document.querySelector('#simulate-class').addEventListener('click', () => showToast('课堂模拟将展示不同学生回答后的课程反馈，当前为界面原型。'));
   document.querySelector('#save-timeline').addEventListener('click', () => { document.querySelector('#save-label').textContent = '刚刚保存'; showToast('课程时间线已保存到当前页面状态。'); });
   document.querySelectorAll('.event-option').forEach((button) => button.addEventListener('click', () => selectEvent(button.dataset.event)));
-  document.querySelector('#add-event').addEventListener('click', () => { captions[selectedCaption].event = { type: selectedEvent, label: document.querySelector('#event-label-input').value || eventCopy[selectedEvent][3] }; renderCaptions(); showToast(`${eventCopy[selectedEvent][0]} 已添加到 ${captions[selectedCaption].time}。`); });
+  document.querySelector('#add-event').addEventListener('click', () => { captions[selectedCaption].event = { type: selectedEvent, label: document.querySelector('#event-label-input').value || eventCopy[selectedEvent][3] }; renderCaptions(); showToast(`AI 已生成${eventCopy[selectedEvent][0]}，并加入 ${captions[selectedCaption].time} 的课堂设计。`); });
   document.querySelector('#zoom-in').addEventListener('click', () => showToast('时间线缩放到 125%（原型状态）。'));
   document.querySelector('#zoom-out').addEventListener('click', () => showToast('时间线缩放到 80%（原型状态）。'));
   document.querySelector('#video-dropzone').addEventListener('keydown', (event) => { if (event.key === 'Enter') showToast('原型演示：下一步接入本地视频选择器。'); });

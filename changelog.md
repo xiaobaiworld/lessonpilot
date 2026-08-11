@@ -4,6 +4,15 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### Creator Studio Direction — 2026-08-11
+
+- Reframe the teacher prototype from a subtitle/video editor into LessonPilot Studio, an AI-assisted interactive-course workspace.
+- Add the five-step course flow: upload, AI analysis, teaching design, student simulation, and publish.
+- Promote AI from one event option to a persistent Copilot that explains suggestions and lets teachers accept or ignore them.
+- Extend timeline rows with knowledge points, likely mistakes, and visible AI suggestions while keeping teacher approval final.
+- Replace event-title entry with natural-language teaching intent and rename preview as classroom simulation.
+- Keep real course analysis and simulated student behavior explicitly outside this prototype slice.
+
 ### Teacher UI Color System — 2026-08-11
 
 - Consolidate the teacher prototype around warm paper surfaces and a forest-green brand hierarchy.
