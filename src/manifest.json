@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "LessonPilot",
-  "version": "0.2.1",
+  "version": "0.2.3",
   "description": "Turn Bilibili English lessons into interactive AI-assisted lessons.",
   "host_permissions": [
     "https://www.bilibili.com/*"
@@ -15,13 +15,17 @@
         "https://www.bilibili.com/video/*"
       ],
       "js": [
+        "content/config/demo-lesson.js",
         "content/demo-config.js",
         "content/video/bili-player.js",
+        "content/subtitle/blocker-layout.js",
+        "content/subtitle/subtitle-blocker.js",
         "content/mascot/mascot.js",
         "content/index.js"
       ],
       "css": [
-        "content/mascot/mascot.css"
+        "content/mascot/mascot.css",
+        "content/subtitle/subtitle-blocker.css"
       ],
       "run_at": "document_idle"
     }

@@ -10,9 +10,12 @@
   const demo = window.LessonPilotDemoConfig;
   const player = window.LessonPilotBiliPlayer;
   const { MascotWidget } = window.LessonPilotMascot;
+  const { SubtitleBlocker } = window.LessonPilotSubtitleBlocker;
 
   /** @type {InstanceType<typeof MascotWidget> | null} */
   let mascot = null;
+  /** @type {InstanceType<typeof SubtitleBlocker> | null} */
+  let subtitleBlocker = null;
   /** @type {(() => void) | null} */
   let stopWatchingPlayback = null;
   /** @type {(() => void) | null} */
@@ -36,14 +39,33 @@
     }
   }
 
+  /**
+   * @param {number} currentTime
+   */
+  function handleTimeUpdate(currentTime) {
+    subtitleBlocker?.update(currentTime);
+
+    if (currentTime < demo.DIALOG_AT_SECONDS - 0.5) {
+      dialogShownAt35 = false;
+      return;
+    }
+
+    if (currentTime >= demo.DIALOG_AT_SECONDS && !dialogShownAt35 && mascot) {
+      dialogShownAt35 = true;
+      mascot.showDialog();
+    }
+  }
+
   function teardownDemoControls() {
     stopWatchingPlayback?.();
     stopWatchingTime?.();
     mascot?.destroy();
+    subtitleBlocker?.destroy();
 
     stopWatchingPlayback = null;
     stopWatchingTime = null;
     mascot = null;
+    subtitleBlocker = null;
     dialogShownAt35 = false;
   }
 
@@ -54,6 +76,12 @@
 
     mascot = new MascotWidget();
     mascot.mount();
+
+    subtitleBlocker = new SubtitleBlocker({
+      getVideo: () => player.getMainVideo(),
+      blockers: demo.SUBTITLE_BLOCKERS
+    });
+    subtitleBlocker.mount();
 
     mascot.shell.addEventListener('lessonpilot:mascot-toggle', async () => {
       syncState(await player.togglePlayback());
@@ -78,28 +106,15 @@
     });
 
     stopWatchingTime = player.watchTime((currentTime) => {
-      if (currentTime < demo.DIALOG_AT_SECONDS - 0.5) {
-        dialogShownAt35 = false;
-        return;
-      }
-
-      if (currentTime >= demo.DIALOG_AT_SECONDS && !dialogShownAt35) {
-        dialogShownAt35 = true;
-        mascot.showDialog();
-      }
+      handleTimeUpdate(currentTime);
     });
   }
 
-  function handlePageScope() {
-    if (demo.isDemoVideoPage()) {
-      setupDemoControls();
-    } else {
-      teardownDemoControls();
-    }
-  }
-
   const stopWatchingUrl = demo.watchDemoPage(setupDemoControls, teardownDemoControls);
-  handlePageScope();
+
+  if (demo.isDemoVideoPage()) {
+    setupDemoControls();
+  }
 
   window.addEventListener('pagehide', () => {
     stopWatchingUrl();

@@ -3,9 +3,11 @@
  * Only the primary interview lesson is supported in this build.
  */
 (function initDemoConfig(global) {
-  const DEMO_BVID = 'BV1WW4y1e7GL';
+  const lesson = global.LessonPilotDemoLesson ?? {};
+  const DEMO_BVID = lesson.videoBvid ?? 'BV1WW4y1e7GL';
   const DIALOG_AT_SECONDS = 35;
   const SEEK_30_SECONDS = 30;
+  const SUBTITLE_BLOCKERS = Array.isArray(lesson.subtitleBlockers) ? lesson.subtitleBlockers : [];
 
   /**
    * @param {Location | { pathname: string }} loc
@@ -21,6 +23,14 @@
    */
   function isDemoVideoPage(loc = window.location) {
     return getBvidFromLocation(loc) === DEMO_BVID;
+  }
+
+  /**
+   * @param {number} currentTime
+   * @param {typeof SUBTITLE_BLOCKERS} blockers
+   */
+  function isInSubtitleBlockerRange(currentTime, blockers = SUBTITLE_BLOCKERS) {
+    return blockers.some((blocker) => currentTime >= blocker.start && currentTime < blocker.end);
   }
 
   /**
@@ -70,8 +80,10 @@
     DEMO_BVID,
     DIALOG_AT_SECONDS,
     SEEK_30_SECONDS,
+    SUBTITLE_BLOCKERS,
     getBvidFromLocation,
     isDemoVideoPage,
+    isInSubtitleBlockerRange,
     watchDemoPage
   };
 })(window);

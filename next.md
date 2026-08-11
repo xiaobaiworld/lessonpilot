@@ -1,31 +1,119 @@
 # next.md — LessonPilot
 
+更新时间：2026-08-11
+
 ## Current Goal
 
-Complete the first verified Phase 1 slice: turn the existing 35-second playback spike into one reusable deterministic interaction node after confirming the matching video content.
+技术 spike 已基本完成：指定 B 站视频可挂载、暂停/跳转、35 秒弹窗、SPA 卸载、字幕遮挡（S09）均已落地。当前焦点从「能不能做」转为 **按 D0 → D1 交付可演示产品**。
 
-## Current Step
+目标里程碑：
 
-1. [x] Confirm the buyer pays for course differentiation, learning evidence, and lower delivery work rather than abstract video quality.
-2. [x] Replace the side-panel-first requirements with the teacher-edit -> student-interaction -> teacher-report loop.
-3. [x] Write the Chinese requirements with detailed P0 flows, errors, data, and acceptance criteria.
-4. [ ] Manually verify mascot mount, pause, seek, automatic trigger, and SPA teardown on `BV1WW4y1e7GL`.
-5. [ ] Inspect the source video around the candidate trigger and author one content-matched multiple-choice node.
-6. [ ] Define the node-trigger state transitions and focused automated tests.
-7. [ ] Implement one reusable pause -> answer -> feedback -> continue loop.
-8. [ ] Re-run automated and manual acceptance, then synchronize docs and changelog.
+1. **D0：可配置互动 Demo**（当前目标）
+2. **D1：完整销售 Demo**（D0 之后）
+3. **D1 后：YouTube 第二平台适配器**（不做进 D0/D1）
+
+## Start Here On Another Machine
+
+```text
+1. git pull
+2. 读本文件 → doc/requirements.md → doc/teacher-demo.md → doc/design.md
+3. Chrome 加载 src/，打开 https://www.bilibili.com/video/BV1WW4y1e7GL/
+4. 手动确认 mascot / 暂停 / 30秒 / 35秒弹窗 / 15–20s 字幕遮挡 / SPA 离开后卸载
+5. 从下方 Current Step 第 1 项未勾选项开始
+```
+
+权威文档入口：
+
+| 需求 | 入口 |
+|---|---|
+| 正式功能与验收 | `doc/requirements.md` |
+| 老师端 Demo / D0 D1 | `doc/teacher-demo.md` |
+| 运行时与 PlayerAdapter | `doc/design.md` |
+| 实施顺序 | `doc/dev-plan.md` |
+| 学生端范围冻结 | `doc/student-runtime.md` |
+| 推广视频 | `doc/promo-video.md` |
+| 多创作者 / AI 计费预案 | `doc/multi-creator-platform.md` |
+
+## Current Step — Toward D0
+
+按顺序做；完成一项勾选一项，再提交小提交。
+
+### A. 收口现有 spike（本机先做）
+
+1. [ ] 在 `BV1WW4y1e7GL` 上手动验收：挂载、暂停、seek、35s 自动弹窗、SPA 离开后 Avatar/监听/遮挡全部移除。
+2. [ ] 确认字幕遮挡 15–20s 区间与窗口缩放后对齐仍正常；回归 `tests/subtitle-blocker.test.js`。
+
+### B. 内容与确定性节点（Phase 1–2）
+
+3. [ ] 人工看源视频，选定第一个内容匹配的选择题或填空题时间点与题目（35s 弹窗只是技术验证，不是正式教学节点）。
+4. [ ] 定义节点触发状态机：未开始 → 已触发 → 已回答 / 已跳过 / 已完成；跨节点 seek 只触发最早未完成节点。
+5. [ ] 为 URL 精确匹配与节点触发状态机补自动化测试。
+6. [ ] 实现可复用闭环：`pause → 打开题卡 → 作答 → 本地反馈 → continue`；先做选择题或填空题一种即可。
+7. [ ] 本地会话记录尝试次数与答案；预览会话与学生会话字段先预留 `sessionType`。
+
+### C. 老师网站与预览桥（Phase 3 = D0 完成条件）
+
+8. [ ] 在仓库内增加 localhost 老师静态站：首页两个入口「体验完整成品」「修改课程模板」。
+9. [ ] 实现白名单消息桥：仅精确 origin（含端口）、五种操作、协议版本、`requestId`、双端 schema 校验。
+10. [ ] 受限编辑三个固定节点字段；禁止新增/删除/排序/切题型。
+11. [ ] 「保存并预览」写入 `chrome.storage.local`，打开固定视频，创建新 preview 会话；**不得要求重装扩展**。
+12. [ ] 学生运行时通过单一 `lessonRepository` 读取：已保存配置优先，否则回退预置模板。
+13. [ ] 跑通 D0 验收清单（见 `doc/teacher-demo.md` §8 D0），同步 changelog。
+
+### D. 之后才做（不要提前塞进当前切片）
+
+- D1：三种题型 + 真实 AI 自由回答 + 学生总结 + 老师报告 + 三分钟话术。
+- D1 人工验收后：按 `doc/promo-video.md` 录 60–90s 中文推广片；CTA = 提交真实录播课。
+- D1 后：新增 `YouTubePlayerAdapter`，验证 `VideoRef` / `PlayerAdapter` 抽象。
+- 不做：账号/支付/远程后端、多语言 locale schema、多地区、任意 B 站视频、To C Pro 产品线。
 
 ## Decisions Locked
 
-- Use a DOM-injected interaction card as the primary student experience.
-- Keep the lightweight avatar as facilitator, not the product core.
-- Use static lesson metadata before subtitle extraction or automatic authoring.
-- Evaluate multiple choice and fill-in deterministically.
-- Reserve AI for free-answer review and session reports.
-- Build a minimal local teacher editor and preview before a full dashboard.
+### 产品与商业
+
+- 小 B 优先的 B2B2C：老师是购买者与交付者；学生是使用者；To C 只预留不另开产品线。
+- 买的是课程差异化、学习证据、降低交付成本，不是「视频质量」或通用 AI 聊天。
+- 行为数据分阶段：Demo 本地结构化事件 + 主动导出；产品化后经同意匿名上传；账号级分析延后。
+- 平台遥测与老师学习证据隔离；无课程视频不记录；原始回答不进通用埋点。
+
+### Demo 形态
+
+- 学生主体验是 DOM 注入题卡；Avatar 只是主持者。
+- 老师端 = localhost 网站 + 扩展白名单桥；D0 无账号、无数据库、无远程后端、无支付。
+- 三个节点类型固定，只允许有限字段编辑；保存并预览永不要求重装插件。
+- 先交付 D0，再补 AI 与报告到 D1；D0 不得冒充 AI 完整销售 Demo。
+- 推广片 60–90s 录屏 + 中文旁白；公开剪辑等 D1；CTA = 提交一节真实课申请改造演示。
+
+### 学生端范围
+
+- 内容组件族（老师配置）≠ 学生个人工具（平台统一）≠ 需新权限的外部依赖。
+- 第一期冻结 S01–S09 + D01；不新增学生工具、语音、词典、TTS。
+- 课程包只提供数据；组件类型封闭；禁止自定义 HTML/CSS/JS。
+
+### 平台扩展
+
+- **D0/D1 只做 B 站单视频。**
+- **YouTube 是 D1 之后的第二个 PlayerAdapter。**
+- **多语言、多地区完全延后**：现在不加 locale/region schema，不做翻译系统、国际支付、数据驻留。
+- 当前只保留结构边界：`VideoRef = { platform, videoId, partId? }` + `PlayerAdapter` 接口；B 站选择器不得散落到题卡组件。
+
+### AI 与计费（预案，D1/P2 保持一致，勿回退）
+
+- 确定性题不调 AI；自由回答与报告才调 AI。
+- 老师付订阅；AI 额度归学生、跨老师通用；老师可选购定向额度。
+- 扣减顺序：试用 → 定向 → 通用；密钥与 prompt 只在服务端；额度用尽诚实降级。
 
 ## Decisions Still Open
 
-- AI backend and credential flow for Phase 4.
-- Final three content-matched timestamps and activity prompts.
-- Preview-session reset behavior.
+- 三个正式节点的最终时间戳与题目文案（人工看片后定）。
+- Phase 4 AI 后端与本地密钥配置方式。
+- AI 不可用时：规则型事实反馈 vs 明确「暂不可用」（不得伪造个性化反馈）。
+- 产品化是否接受 L2 自动回传带来的隐私责任。
+
+## Do Not Reopen Without Evidence
+
+- 把 YouTube、多语言、多地区拉进 D0/D1。
+- 为「想周全」提前建账号、支付、遥测平台、多租户后端。
+- 开放课程包自定义样式/脚本。
+- 把 To C free/Pro 当作当前业务线。
+- 把 35s spike 弹窗当成正式教学内容对外演示。
