@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="LessonPilot 教师端字幕时间线编排原型">
-    <title>LessonPilot · 课程时间线</title>
+    <meta name="description" content="LessonPilot Studio · AI 互动课程创作工作台">
+    <title>LessonPilot Studio · AI 互动课程创作工作台</title>
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
@@ -55,18 +55,18 @@
 
           <div class="studio-flow" aria-label="课程创作流程"><span class="flow-active"><b>01</b>上传课程</span><i>→</i><span><b>02</b>AI 分析</span><i>→</i><span><b>03</b>设计课堂</span><i>→</i><span><b>04</b>模拟学生</span><i>→</i><span><b>05</b>发布课程</span></div>
 
-          <div class="feature-row" aria-label="教师可以编排的事件">
-            <div class="feature-intro"><span class="section-number">02</span><strong>关键处，老师可以加什么</strong><p>所有动作都落在字幕时间线上，不再对着整段视频猜时间。</p></div>
-            <div class="feature-item feature-attention"><span class="feature-symbol">✦</span><strong>注意力爆发</strong><small>星星、重点词、短促提醒</small></div>
-            <div class="feature-item feature-voice"><span class="feature-symbol">◉</span><strong>老师语音</strong><small>在关键处直接喊名字、补一句</small></div>
-            <div class="feature-item feature-ai"><span class="feature-symbol">⌁</span><strong>AI 教学模板</strong><small>只按老师设定的方向反馈</small></div>
+          <div class="feature-row" aria-label="AI 备课与老师审核流程">
+            <div class="feature-intro"><span class="section-number">02</span><strong>AI 先给出一份备课草案</strong><p>老师不必从空白时间线开始，只需判断建议是否符合自己的教学意图。</p></div>
+            <div class="feature-item feature-attention"><span class="feature-symbol">01</span><strong>识别教学重点</strong><small>梳理知识点、目标和学生易错处</small></div>
+            <div class="feature-item feature-voice"><span class="feature-symbol">02</span><strong>建议课堂互动</strong><small>说明为什么该暂停、提问或补充</small></div>
+            <div class="feature-item feature-ai"><span class="feature-symbol">03</span><strong>老师最终决定</strong><small>采纳、修改或忽略，然后再发布</small></div>
           </div>
 
           <section class="recent-course" aria-labelledby="recent-title">
             <div class="recent-heading"><div><span class="section-number">03</span><h2 id="recent-title">最近的课程草稿</h2></div><span>1 条本地草稿</span></div>
             <button class="course-card" type="button" data-route="timeline">
               <span class="course-thumb"><span>▶</span><b>03:42</b></span>
-              <span class="course-card-copy"><small>BILIBILI DEMO · 已导入字幕</small><strong>英语面试表达：把答案说得具体</strong><span>12 段字幕 · 3 个课堂事件 · 最后编辑刚刚</span></span>
+              <span class="course-card-copy"><small>BILIBILI DEMO · AI 备课草案已生成</small><strong>英语面试表达：把答案说得具体</strong><span>4 条 AI 建议 · 3 项课堂设计 · 最后编辑刚刚</span></span>
               <span class="course-arrow">→</span>
             </button>
           </section>
@@ -81,8 +81,8 @@
           <section class="course-overview" aria-label="课程概览">
             <div class="overview-video"><span class="overview-play">▶</span><span class="overview-progress"></span><b>03:42</b></div>
             <div class="overview-info"><small>BILIBILI DEMO · AI 已完成初步分析</small><h2>英语面试表达：把答案说得具体</h2><p>BV1WW4y1e7GL · 12 段字幕已整理成可设计的课堂时间线</p><div class="analysis-status"><span class="status-check">✓</span><span>已识别 4 个可互动片段</span><button class="text-button" id="refresh-analysis" type="button">重新分析</button></div></div>
-            <div class="overview-stats"><div><strong>12</strong><span>字幕段落</span></div><div><strong>03</strong><span>课堂事件</span></div></div>
-            <div class="overview-legend"><strong>事件图例</strong><span><i class="dot dot-attention"></i>注意力爆发</span><span><i class="dot dot-voice"></i>老师语音</span><span><i class="dot dot-activity"></i>互动练习</span><span><i class="dot dot-ai"></i>AI 模板</span></div>
+            <div class="overview-stats"><div><strong>04</strong><span>AI 教学建议</span></div><div><strong>03</strong><span>已确认设计</span></div></div>
+            <div class="overview-legend"><strong>课堂设计图例</strong><span><i class="dot dot-attention"></i>重点提醒</span><span><i class="dot dot-voice"></i>老师补充</span><span><i class="dot dot-activity"></i>学生练习</span><span><i class="dot dot-ai"></i>点评追问</span></div>
           </section>
 
           <div class="timeline-layout">
@@ -98,11 +98,11 @@
                 <button class="event-option event-option-attention" type="button" data-event="attention"><span class="option-icon">✦</span><span><strong>注意力爆发</strong><small>让重点词闪出来，帮学生重新集中。</small></span><b>→</b></button>
                 <button class="event-option event-option-voice" type="button" data-event="voice"><span class="option-icon">◉</span><span><strong>老师语音</strong><small>在这里补一句，或者直接喊学生名字。</small></span><b>→</b></button>
                 <button class="event-option event-option-activity" type="button" data-event="activity"><span class="option-icon">□</span><span><strong>互动练习</strong><small>选择题、填空题或自由回答。</small></span><b>→</b></button>
-                <button class="event-option event-option-ai" type="button" data-event="ai"><span class="option-icon">⌁</span><span><strong>AI 教学模板</strong><small>只按照老师选定的评价方向反馈。</small></span><b>→</b></button>
+                <button class="event-option event-option-ai" type="button" data-event="ai"><span class="option-icon">⌁</span><span><strong>点评与追问</strong><small>按老师选定的评价方向反馈。</small></span><b>→</b></button>
               </div>
               <div class="event-detail" id="event-detail" hidden><span class="eyebrow" id="event-detail-label">注意力爆发</span><h3 id="event-detail-title">让这一句被记住</h3><p id="event-detail-copy">播放到这里时，关键词会短暂放大并出现星星效果。</p><label>告诉 AI<input id="event-label-input" type="text" value="这里很重要" placeholder="例如：这里提醒学生注意语气"></label><button class="dark-button" id="add-event" type="button">生成并加入课堂设计</button></div>
               <button class="simulation-button" id="simulate-class" type="button"><span>▶</span><span><strong>模拟学生课堂</strong><small>看看这堂课实际会如何回应</small></span><b>↗</b></button>
-              <p class="event-note">提示：事件只读取字幕和时间，不分析视频画面。</p>
+              <p class="event-note">当前原型只根据字幕与时间生成备课建议，不分析视频画面。</p>
             </aside>
           </div>
         </section>

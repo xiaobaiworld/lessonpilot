@@ -12,6 +12,8 @@ Only record verified changes.
 - Extend timeline rows with knowledge points, likely mistakes, and visible AI suggestions while keeping teacher approval final.
 - Replace event-title entry with natural-language teaching intent and rename preview as classroom simulation.
 - Keep real course analysis and simulated student behavior explicitly outside this prototype slice.
+- Replace remaining editor-first copy with teacher-first language: AI备课草案、课堂设计、教学重点、互动建议与老师最终决定。
+- Keep runtime event types as implementation details while presenting their teaching meaning in the interface.
 
 ### Teacher UI Color System — 2026-08-11
 
