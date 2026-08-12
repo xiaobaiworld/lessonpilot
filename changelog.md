@@ -4,6 +4,20 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### Web Runtime First — 2026-08-12
+
+- Shift the next validation slice from plugin-required preview to a student web runtime.
+- Keep the Chrome extension as a Bilibili/YouTube overlay adapter and PC enhancement path, not the required first-use path for students.
+- Update the D0 plan so save-and-preview first opens a web course link that works across iPad, iPhone, Android, tablets, and desktop browsers.
+- Preserve the existing plugin spike for Bilibili demonstration while avoiding plugin installation as a blocker for first teacher tests.
+
+### Bilibili Source Sample and Local Control Proof — 2026-08-12
+
+- Add `student-web/course.json` and a shared runtime contract so the student page validates and loads the single configured Bilibili sample instead of hardcoding course nodes in the UI.
+- Render the specified Bilibili lesson as a source iframe with a direct original-page fallback; explicitly limit it to source presentation rather than cross-origin playback control.
+- Add a browser-only local HTML5 video path: students can select MP4, WebM, or MOV files without upload or hosting, then complete two timed deterministic interactions and a locally stored summary.
+- Add course-config contract tests and browser verification for the full local interaction flow plus desktop and 375px mobile layouts. The Bilibili iframe emits one third-party fingerprint-report console message, but the LessonPilot page has no own console errors.
+
 ### Creator Studio Direction — 2026-08-11
 
 - Reframe the teacher prototype from a subtitle/video editor into LessonPilot Studio, an AI-assisted interactive-course workspace.

@@ -1,6 +1,6 @@
 # LessonPilot
 
-LessonPilot is an early-stage Chrome extension project for upgrading an English teacher's existing recorded course into an interactive course product.
+LessonPilot is an early-stage course-runtime project for upgrading an English teacher's existing recorded course into an interactive course product. The Chrome extension remains a Bilibili overlay spike; the first student validation entry is now a web page so students do not need to install a plugin.
 
 The first demo targets a real teacher-style Bilibili English interview lesson. Its job is to show that a teacher can add timed practice, feedback, and learning evidence without re-recording the video.
 
@@ -33,7 +33,17 @@ Scope locks:
 - No multilingual UI or multi-region commercial/compliance work now
 - Keep only the `VideoRef` / `PlayerAdapter` seam needed for Bilibili stability and a future YouTube adapter
 
-The first implementation supports one fixed Bilibili video before expanding to other videos or platforms.
+The first implementation supports one fixed Bilibili video before expanding to other videos or platforms. The web sample embeds it for source verification, while locally selected HTML5 video is used to validate reliable timed interaction without uploading or hosting video.
+
+## Student Web Sample
+
+Start a static server from the repository root, then open [student-web](http://localhost:4173/student-web/):
+
+```bash
+python3 -m http.server 4173
+```
+
+Use **B 站原课样例** to inspect the fixed source lesson. Use **本地可控课堂** to choose a local MP4, WebM, or MOV file and run the timed interaction demo. The selected file stays in the browser and is never uploaded.
 
 ## Load Extension (Spike)
 

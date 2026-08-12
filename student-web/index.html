@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="LessonPilot 学生网页课堂演示">
+    <title>LessonPilot · 学生互动课堂</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark">LP</span>
+          <span><strong>LessonPilot</strong><small>学生网页课堂</small></span>
+        </div>
+        <div class="session-pill" id="session-state">正在加载课程</div>
+      </header>
+
+      <main class="lesson-layout">
+        <section class="lesson-hero" aria-labelledby="lesson-title">
+          <div>
+            <p class="eyebrow">Bilibili Sample / Web Runtime</p>
+            <h1 id="lesson-title">加载课程中</h1>
+            <p class="lead" id="lesson-summary">读取本地课程配置。</p>
+          </div>
+          <a class="source-link" id="bilibili-page-link" href="https://www.bilibili.com/video/BV1WW4y1e7GL/" target="_blank" rel="noreferrer">在 B 站打开原课</a>
+        </section>
+
+        <section class="source-switcher" aria-label="播放来源">
+          <div>
+            <p class="card-kicker">课程来源</p>
+            <h2>先看 B 站样例，再验证可控互动。</h2>
+            <p>网页可以嵌入 B 站作为课程来源，但跨站播放器的播放时间和暂停控制不应作为正式承诺。本地视频由浏览器原生播放器控制，可完整验证到点暂停和作答闭环。</p>
+          </div>
+          <div class="source-actions" role="group" aria-label="选择播放来源">
+            <button class="source-button is-active" id="show-bilibili-button" type="button" aria-pressed="true">B 站原课样例</button>
+            <button class="source-button" id="show-local-button" type="button" aria-pressed="false">本地可控课堂</button>
+          </div>
+        </section>
+
+        <section class="classroom" aria-label="互动课堂">
+          <div class="video-panel">
+            <div id="bilibili-stage" class="bilibili-stage">
+              <iframe id="bilibili-player" title="B 站课程样例" allowfullscreen></iframe>
+              <div class="source-note"><strong>B 站来源样例</strong><span>此嵌入播放器只用于查看原课。请在本地可控课堂中验证互动暂停。</span></div>
+            </div>
+
+            <div id="local-stage" class="local-stage" hidden>
+              <video id="lesson-video" class="lesson-video" preload="metadata" playsinline controls>
+                当前浏览器无法播放这个视频。
+              </video>
+              <div class="local-empty" id="local-empty-state">
+                <p class="card-kicker">本地视频</p>
+                <h2>选择一段自己的 MP4、WebM 或 MOV 录像。</h2>
+                <p>文件只在当前浏览器中播放，不上传、不托管。它用来验证学生端的互动流程。</p>
+                <label class="primary-button file-picker" for="video-file-input">选择本地视频</label>
+                <input id="video-file-input" type="file" accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov" hidden>
+                <p class="input-error" id="local-file-error" hidden></p>
+              </div>
+              <div class="local-ready" id="local-ready-state" hidden>
+                <span id="local-file-name"></span>
+                <button class="text-button" id="replace-video-button" type="button">更换视频</button>
+              </div>
+            </div>
+
+            <div class="video-meta">
+              <span id="time-label">00:00</span>
+              <span id="progress-label">0 / 0 已完成</span>
+            </div>
+          </div>
+
+          <aside class="activity-panel" aria-live="polite">
+            <div id="bilibili-card" class="card">
+              <span class="card-kicker">当前模式</span>
+              <h2>这是 B 站课程来源样例。</h2>
+              <p>先确认原课内容和课程呈现。网页端不能可靠读取或控制跨站嵌入播放器，因此不会在这里强行弹题。</p>
+              <button class="primary-button" id="switch-to-local-button" type="button">切到本地可控课堂</button>
+            </div>
+
+            <div id="intro-card" class="card intro-card" hidden>
+              <span class="card-kicker">开始前</span>
+              <h2>选好视频后，开始一次互动学习。</h2>
+              <p>移动端浏览器要求学生主动开始播放。之后 LessonPilot 会在演示时间点暂停，显示题卡并记录作答。</p>
+              <button class="primary-button" id="start-button" type="button" disabled>开始学习</button>
+            </div>
+
+            <form id="question-card" class="card question-card" hidden>
+              <span class="card-kicker" id="question-kicker">互动节点</span>
+              <h2 id="question-title"></h2>
+              <p id="question-prompt"></p>
+              <div id="answer-area" class="answer-area"></div>
+              <div class="card-actions">
+                <button class="secondary-button" id="skip-button" type="button">跳过</button>
+                <button class="primary-button" type="submit">提交答案</button>
+              </div>
+            </form>
+
+            <div id="feedback-card" class="card feedback-card" hidden>
+              <span class="card-kicker" id="feedback-kicker">反馈</span>
+              <h2 id="feedback-title"></h2>
+              <p id="feedback-copy"></p>
+              <button class="primary-button" id="continue-button" type="button">继续播放</button>
+            </div>
+
+            <div id="summary-card" class="card summary-card" hidden>
+              <span class="card-kicker">学习总结</span>
+              <h2>本次网页学习已完成。</h2>
+              <div id="summary-list" class="summary-list"></div>
+              <button class="secondary-button" id="restart-button" type="button">重新开始</button>
+            </div>
+
+            <div id="load-error-card" class="card error-card" hidden>
+              <span class="card-kicker">课程未启动</span>
+              <h2>本地课程配置无法使用。</h2>
+              <p id="load-error-copy"></p>
+            </div>
+          </aside>
+        </section>
+      </main>
+    </div>
+    <script src="runtime.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

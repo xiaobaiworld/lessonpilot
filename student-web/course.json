@@ -1,0 +1,38 @@
+{
+  "id": "bilibili-interview-demo",
+  "title": "英语面试表达：把答案说得具体",
+  "summary": "以指定 B 站英语面试课程作为来源样例。互动节点仍是网页运行时的演示节点，不代表已完成对源视频教学内容的人工校验。",
+  "source": {
+    "platform": "bilibili",
+    "videoId": "BV1WW4y1e7GL",
+    "pageUrl": "https://www.bilibili.com/video/BV1WW4y1e7GL/",
+    "embedUrl": "https://player.bilibili.com/player.html?bvid=BV1WW4y1e7GL&autoplay=0"
+  },
+  "nodes": [
+    {
+      "id": "specific-example",
+      "timeSeconds": 1,
+      "type": "multiple_choice",
+      "title": "先检查一个关键理解",
+      "prompt": "这段课里，老师最想让学生记住什么？",
+      "options": [
+        { "id": "a", "label": "回答要更长，尽量多说。" },
+        { "id": "b", "label": "回答要有具体例子，而不是只说抽象品质。" },
+        { "id": "c", "label": "回答时最好直接背模板。" }
+      ],
+      "answer": "b",
+      "success": "对。互动课要把“听懂了”变成一次可检查的判断。",
+      "failure": "还差一点。这里的重点不是长度，而是用具体例子支撑答案。"
+    },
+    {
+      "id": "fill-structure",
+      "timeSeconds": 3,
+      "type": "fill_blank",
+      "title": "把结构补完整",
+      "prompt": "一个具体回答通常包含：Situation、Action 和 ______。",
+      "answer": "result",
+      "success": "对。Situation、Action、Result 能让回答从空话变成证据。",
+      "failure": "标准答案是 Result。第一版先用确定性判断，后续自由回答再接 AI。"
+    }
+  ]
+}

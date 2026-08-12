@@ -22,6 +22,10 @@ Status: complete
 
 Technical spike status: roughly complete for mount, pause/seek, timed dialog, SPA teardown, and timed subtitle overlay. Remaining work is product delivery toward D0, then D1. Follow `next.md`.
 
+2026-08-12 update: the first commercial validation path is now web-runtime first. The Chrome extension remains useful for Bilibili/YouTube overlay demos and PC learning enhancement, but student first-use must not require plugin installation. D0 therefore gets an interim student web page before the extension bridge is completed.
+
+The first web runtime keeps the fixed Bilibili lesson as its source sample. It can embed the original course and link back to Bilibili, but it must not promise reliable time observation, pause, or timed interaction through a cross-origin iframe. The control proof uses a student-selected local HTML5 video: no upload, no server, and no video-hosting cost. This is a validation bridge, not a claim that existing teacher videos are already hosted by LessonPilot.
+
 ## Demo Milestones
 
 ### D0 — Configurable Interaction Demo
@@ -29,9 +33,9 @@ Technical spike status: roughly complete for mount, pause/seek, timed dialog, SP
 Reached after Phase 3:
 
 - One content-matched deterministic activity runs end to end.
-- The teacher changes a fixed node in the localhost teacher website.
-- The website saves through an allowlisted, schema-validated extension bridge.
-- Save-and-preview shows the changed result without reinstalling the extension.
+- The teacher changes or creates one fixed node in the localhost teacher website.
+- Save-and-preview opens a student web runtime link first; the extension bridge can follow after the web loop is proven.
+- The student web runtime shows the changed result without plugin installation.
 - Preview attempts persist in a separate local session.
 
 D0 is suitable for internal validation and early conversations, but it is not the complete sales demo.
@@ -50,15 +54,15 @@ Reached after Phase 5:
 Goal:
 
 - Validate the existing mascot and playback-control spike manually.
-- Replace the spike dialog with a reusable timed-node state machine.
+- Add a student web runtime with a reusable timed-node state machine.
 - Mount and unmount safely across Bilibili SPA navigation.
 
 Validation:
 
-- Supported-video detection is exact.
+- Student opens a web course link and starts playback with an explicit user action.
 - One authored test node pauses once, opens an activity shell, and resumes explicitly.
-- Leaving the supported page removes all LessonPilot UI and watchers.
-- Automated tests cover URL matching and node-trigger state transitions.
+- Mobile and desktop layouts keep the video, question, feedback, and continue action usable.
+- The existing Bilibili plugin spike remains gated to the supported video and passes current regression tests.
 
 ## Phase 2 — Deterministic Student Activities
 
@@ -79,14 +83,14 @@ Validation:
 Goal:
 
 - Add a localhost teacher website for the fixed video's nodes.
-- Add a minimal allowlisted website-to-extension configuration bridge.
-- Persist edits and preview them in the student runtime.
+- Persist edits and preview them in the student web runtime.
+- Add a minimal allowlisted website-to-extension configuration bridge only after the web runtime loop is proven.
 
 Validation:
 
 - Teacher can change at least one timestamp or prompt.
-- The changed node appears in preview.
-- Preview works without reinstalling the extension.
+- The changed node appears in the student web preview.
+- Preview works without installing or reinstalling an extension.
 - Invalid timestamps and incomplete activity definitions are rejected clearly.
 
 ## Phase 4 — Free Answer and Reports
@@ -113,7 +117,7 @@ Goal:
 
 Validation:
 
-- The full teacher-edit -> preview -> student-practice -> report loop works.
+- The full teacher-edit -> web preview -> student-practice -> report loop works.
 - The promotion video shows only verified behavior and ends with one real-course submission action.
 - At least three qualified teacher conversations are recorded.
 - Success is measured by a concrete next commitment, not compliments.

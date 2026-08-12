@@ -1,9 +1,11 @@
 # Design — LessonPilot
 
-Version: 0.3
-Last updated: 2026-08-11
+Version: 0.4
+Last updated: 2026-08-12
 
 ## 1. Architecture Decision
+
+2026-08-12 delivery update: student first use is web-first. The extension remains the Bilibili page-overlay and PC enhancement adapter, while `student-web/` provides a no-install validation entry point across desktop and mobile browsers. In the web runtime, the fixed Bilibili course is a source sample rendered in a cross-origin iframe; it is deliberately not treated as a controllable `PlayerAdapter`. The same page accepts a local HTML5 video for the fully controlled `pause -> question -> feedback -> continue` proof. No video is uploaded or hosted in this slice.
 
 The first demo uses a DOM-injected video interaction layer rather than making a Chrome side panel the primary experience.
 

@@ -85,3 +85,9 @@ Keep platform telemetry separate from learner evidence. Record only authorized l
 Start with local structured events and voluntary export. Anonymous remote telemetry requires explicit notice and consent; identity-linked analytics should wait until automatic teacher reporting or cross-device learner records make identity necessary.
 
 The defensible asset is not a large event warehouse. It is the accumulated link between course structure, learner behavior, teacher delivery, and verified outcomes.
+
+## 2026-08-12 — Treat Cross-Origin Video Embeds as Source Presentation, Not Playback Control
+
+A Bilibili iframe can present the fixed sample course and give the learner a clear route to the original page, but the webpage cannot responsibly promise stable access to its time, pause, or timed-node behavior. Keep that source/presentation path separate from the HTML5 video control path.
+
+The local HTML5 proof needs no upload, backend, or hosting cost: the browser can play a user-selected file through an Object URL and reliably drive the timed interaction loop. Test fixtures must be long enough to reach configured node timestamps; the first web sample uses 1-second and 3-second nodes because they can be verified against a very short public video. These are runtime checks, not final teaching timestamps.
