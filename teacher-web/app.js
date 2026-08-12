@@ -58,8 +58,7 @@
   document.querySelector('#open-suggestion').addEventListener('click', () => { setRoute('timeline'); window.setTimeout(() => selectEvent('activity'), 0); });
   document.querySelector('#create-course').addEventListener('click', () => showToast('新课程会从视频与字幕开始，当前为界面原型。'));
   document.querySelector('#preview-home').addEventListener('click', () => { showToast('学生预览会打开课程体验页，当前为界面原型。'); window.open('../student-web/', '_blank', 'noopener,noreferrer'); });
-  document.querySelector('#choose-video').addEventListener('click', () => showToast('原型演示：下一步接入本地视频选择器。'));
-  document.querySelector('#import-subtitle').addEventListener('click', () => showToast('原型演示：下一步接入 SRT / VTT 导入与本地 Whisper 生成。'));
+  document.querySelector('#open-suggestion-workspace').addEventListener('click', () => { setRoute('timeline'); window.setTimeout(() => selectEvent('activity'), 0); });
   document.querySelector('#preview-timeline').addEventListener('click', () => { showToast('课堂模拟会展示学生视角，真实扩展桥将在下一步接入。'); window.open(lessonUrl, '_blank', 'noopener,noreferrer'); });
   document.querySelector('#refresh-analysis').addEventListener('click', () => showToast('原型演示：重新分析会基于字幕刷新知识点和课堂建议。'));
   document.querySelector('#accept-suggestion').addEventListener('click', () => { selectEvent('activity'); document.querySelector('#event-label-input').value = '先暂停，再让学生联系自己的经历'; showToast('AI 建议已转成可修改的课堂设计。'); });
@@ -70,6 +69,5 @@
   document.querySelector('#add-event').addEventListener('click', () => { captions[selectedCaption].event = { type: selectedEvent, label: document.querySelector('#event-label-input').value || eventCopy[selectedEvent][3] }; renderCaptions(); showToast(`AI 已生成${eventCopy[selectedEvent][0]}，并加入 ${captions[selectedCaption].time} 的课堂设计。`); });
   document.querySelector('#zoom-in').addEventListener('click', () => showToast('时间线缩放到 125%（原型状态）。'));
   document.querySelector('#zoom-out').addEventListener('click', () => showToast('时间线缩放到 80%（原型状态）。'));
-  document.querySelector('#video-dropzone').addEventListener('keydown', (event) => { if (event.key === 'Enter') showToast('原型演示：下一步接入本地视频选择器。'); });
   renderCaptions(); selectEvent('attention'); setRoute(window.location.hash === '#timeline' ? 'timeline' : 'home');
 })();

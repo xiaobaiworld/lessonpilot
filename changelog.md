@@ -4,11 +4,18 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### W0 Bilibili Course Shell — 2026-08-12
+
+- Re-scope the first web slice to a fixed Bilibili course presentation and teacher/student page validation.
+- Remove local-video selection, browser-controlled timed activities, local-session flow, tester playback controls, and their W0 configuration/runtime artifacts from the student webpage.
+- Keep timed interaction validation on the Bilibili original-page extension spike until a web-controllable player path is separately specified and proven.
+- Verify teacher-to-student preview, direct original-course fallback, and desktop/375px layout behavior without horizontal overflow.
+
 ### Role-Specific Course Pages — 2026-08-12
 
 - Rework the teacher home into a task-first workspace with the current course, pending teaching decision, course health, and direct design/preview actions.
 - Reframe the student page as a single-course learning shell with lesson context, progress, video, interaction, feedback, and summary.
-- Move Bilibili source inspection and local HTML5 video replacement behind collapsed tester-only controls so provider and compatibility details do not interrupt a learner.
+- Keep Bilibili source and compatibility details outside the ordinary student flow.
 - Add page information-architecture checks and verify the teacher design route plus student-preview route in a headless browser.
 
 ### Web Runtime First — 2026-08-12

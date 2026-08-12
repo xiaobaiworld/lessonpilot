@@ -22,9 +22,26 @@ Status: complete
 
 Technical spike status: roughly complete for mount, pause/seek, timed dialog, SPA teardown, and timed subtitle overlay. Remaining work is product delivery toward D0, then D1. Follow `next.md`.
 
-2026-08-12 update: the first commercial validation path is now web-runtime first. The Chrome extension remains useful for Bilibili/YouTube overlay demos and PC learning enhancement, but student first-use must not require plugin installation. D0 therefore gets an interim student web page before the extension bridge is completed.
+2026-08-12 update: the first commercial validation path is now web-first. The Chrome extension remains useful for Bilibili overlay demos and PC learning enhancement, but student first-use must not require plugin installation. Before D0, run a W0 student web course shell that proves the teacher/student page relationship using the fixed Bilibili course.
 
-The first web runtime keeps the fixed Bilibili lesson as its source sample. It can embed the original course and link back to Bilibili, but it must not promise reliable time observation, pause, or timed interaction through a cross-origin iframe. The control proof uses a student-selected local HTML5 video: no upload, no server, and no video-hosting cost. This is a validation bridge, not a claim that existing teacher videos are already hosted by LessonPilot.
+W0 keeps the fixed Bilibili lesson as its source sample. It can embed the original course and link back to Bilibili, but it must not promise reliable time observation, pause, seek, or timed interaction through a cross-origin iframe. W0 explicitly excludes local HTML5 video selection, uploading, hosting, and any substitute-player path. The next technical question is whether the Bilibili original-page adapter can support the first real teaching node, not how to bypass it.
+
+### W0 — Web Course Shell and Two-Page Validation
+
+Goal:
+
+- Make the teacher workspace and student course page describe one coherent course.
+- Validate that a teacher can enter student preview and a student can reach the fixed Bilibili lesson from desktop and mobile browsers.
+- Keep the Bilibili source/control boundary visible in engineering documents but invisible to ordinary learners.
+
+Validation:
+
+- Teacher preview opens `student-web/` for the fixed course.
+- Student page renders course title, goal, source video area, learning arrangement, and original-page fallback without local-video controls.
+- Desktop and 375px widths have no horizontal overflow or critical action overlap.
+- No claim or UI implies that the webpage controls a cross-origin Bilibili player.
+
+Status: in progress
 
 ## Demo Milestones
 
@@ -59,17 +76,17 @@ Goal:
 
 Validation:
 
-- Student opens a web course link and starts playback with an explicit user action.
-- One authored test node pauses once, opens an activity shell, and resumes explicitly.
-- Mobile and desktop layouts keep the video, question, feedback, and continue action usable.
+- Student opens a web course link and reaches the fixed Bilibili source through the student shell.
+- The student shell does not claim cross-origin playback control; interaction behavior is verified on the supported Bilibili original-page plugin path.
+- Mobile and desktop layouts keep the course context, source area, and original-page action usable.
 - The existing Bilibili plugin spike remains gated to the supported video and passes current regression tests.
 
 ## Phase 2 — Deterministic Student Activities
 
 Goal:
 
-- Add the multiple-choice and fill-in renderers.
-- Add feedback, retry, continue, progress, and local session recording.
+- Add the multiple-choice and fill-in renderers on the supported controllable player path.
+- Add feedback, retry, continue, progress, and local session recording there.
 - Author node content only after checking the matching source-video segments.
 
 Validation:

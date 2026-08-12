@@ -97,3 +97,9 @@ The local HTML5 proof needs no upload, backend, or hosting cost: the browser can
 Edpuzzle and Nearpod clarify that video can become a lesson, but their K-12 procurement and classroom-demo aesthetics do not match LessonPilot's first buyer. The teacher needs a compact operational workspace that says what course needs attention next; the learner needs a quiet one-course delivery surface that says what to watch and answer next.
 
 Provider and compatibility evidence is useful during validation, but it becomes cognitive noise when shown to a learner. Keep that evidence in an explicit tester-only area rather than turning the student page into a platform-choice screen.
+
+## 2026-08-12 — Do Not Let a Convenient Test Substitute Redefine the First Product Slice
+
+A local HTML5 file makes timed interaction easy to prove, but it changes the learner's starting condition and avoids the actual Bilibili integration question. When the task is to validate whether the teacher/student web surfaces make sense around an existing Bilibili course, local files, uploads, and hosted-video design are scope expansion rather than a prerequisite.
+
+For W0, show the fixed source course honestly and link to its original page. Keep controllable playback and timed interaction on the separately proven Bilibili original-page extension path until a web player strategy is explicitly selected.

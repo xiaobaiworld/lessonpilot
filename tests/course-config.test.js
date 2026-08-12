@@ -1,78 +1,25 @@
 /**
- * Contract checks for the static student-web course configuration.
+ * Contract checks for the W0 static Bilibili course reference.
  * Run: node tests/course-config.test.js
  */
 
-const { validateCourse, getNextTrigger } = require('../student-web/runtime.js');
 const configuredCourse = require('../student-web/course.json');
-
-const validCourse = {
-  id: 'bilibili-interview-demo',
-  title: '英语面试表达：把答案说得具体',
-  source: {
-    platform: 'bilibili',
-    videoId: 'BV1WW4y1e7GL',
-    pageUrl: 'https://www.bilibili.com/video/BV1WW4y1e7GL/',
-    embedUrl: 'https://player.bilibili.com/player.html?bvid=BV1WW4y1e7GL&autoplay=0'
-  },
-  nodes: [
-    {
-      id: 'first',
-      timeSeconds: 4,
-      type: 'multiple_choice',
-      title: '选择题',
-      prompt: '选择正确答案。',
-      answer: 'b',
-      success: '正确。',
-      failure: '再试一次。',
-      options: [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }]
-    },
-    {
-      id: 'second',
-      timeSeconds: 8,
-      type: 'fill_blank',
-      title: '填空题',
-      prompt: '填写答案。',
-      answer: 'result',
-      success: '正确。',
-      failure: '再试一次。'
-    }
-  ]
-};
 
 const checks = [
   {
-    label: 'accepts the fixed Bilibili sample with ordered deterministic nodes',
-    run: () => validateCourse(validCourse).ok === true
+    label: 'contains the fixed Bilibili course identity and learner-facing copy',
+    run: () => configuredCourse.id === 'bilibili-interview-demo' && Boolean(configuredCourse.title) && Boolean(configuredCourse.summary)
   },
   {
-    label: 'accepts the shipped Bilibili sample course configuration',
-    run: () => validateCourse(configuredCourse).ok === true
+    label: 'keeps the configured original-page and embed URLs on the fixed BV id',
+    run: () => configuredCourse.source?.platform === 'bilibili'
+      && configuredCourse.source?.videoId === 'BV1WW4y1e7GL'
+      && configuredCourse.source?.pageUrl === 'https://www.bilibili.com/video/BV1WW4y1e7GL/'
+      && configuredCourse.source?.embedUrl.includes('bvid=BV1WW4y1e7GL')
   },
   {
-    label: 'rejects a Bilibili page URL that does not match the configured BV id',
-    run: () => validateCourse({
-      ...validCourse,
-      source: { ...validCourse.source, pageUrl: 'https://www.bilibili.com/video/BV1abc123xyz/' }
-    }).ok === false
-  },
-  {
-    label: 'rejects duplicate node identifiers',
-    run: () => validateCourse({
-      ...validCourse,
-      nodes: [validCourse.nodes[0], { ...validCourse.nodes[1], id: 'first' }]
-    }).ok === false
-  },
-  {
-    label: 'rejects nodes that are not ordered by time',
-    run: () => validateCourse({
-      ...validCourse,
-      nodes: [validCourse.nodes[1], validCourse.nodes[0]]
-    }).ok === false
-  },
-  {
-    label: 'chooses the earliest unfinished node after a seek',
-    run: () => getNextTrigger(validCourse.nodes, { answers: [] }, 9)?.id === 'first'
+    label: 'does not carry W0 local-player interaction nodes',
+    run: () => !Object.hasOwn(configuredCourse, 'nodes')
   }
 ];
 
@@ -90,4 +37,4 @@ if (failed > 0) {
   process.exit(1);
 }
 
-console.log('All course configuration checks passed.');
+console.log('All W0 course configuration checks passed.');

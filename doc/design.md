@@ -5,7 +5,7 @@ Last updated: 2026-08-12
 
 ## 1. Architecture Decision
 
-2026-08-12 delivery update: student first use is web-first. The extension remains the Bilibili page-overlay and PC enhancement adapter, while `student-web/` provides a no-install validation entry point across desktop and mobile browsers. In the web runtime, the fixed Bilibili course is a source sample rendered in a cross-origin iframe; it is deliberately not treated as a controllable `PlayerAdapter`. The same page accepts a local HTML5 video for the fully controlled `pause -> question -> feedback -> continue` proof. No video is uploaded or hosted in this slice. The normal learner shell exposes only the lesson, progress, video, activity, feedback, and summary; source inspection and local-video replacement remain tester-only controls.
+2026-08-12 delivery update: student first use is web-first. The extension remains the Bilibili page-overlay and PC enhancement adapter, while `student-web/` provides a no-install W0 entry point across desktop and mobile browsers. In W0, the fixed Bilibili course is rendered as a source iframe with a direct original-page fallback; it is deliberately not treated as a controllable `PlayerAdapter`. W0 has no local video, upload, hosting, or replacement-player path. The normal learner shell presents the lesson, learning goal, source video, learning arrangement, and the next learning action; timed interaction remains a Bilibili original-page/extension concern until separately proven for the web.
 
 The first demo uses a DOM-injected video interaction layer rather than making a Chrome side panel the primary experience.
 
@@ -46,6 +46,15 @@ PlayerAdapter
 ```
 
 ## 2. Student Runtime Components
+
+### 2.0 W0 Web Course Shell
+
+`student-web/` is not yet a second video runtime. It is a course-delivery shell that reads the fixed course reference, renders its title and learning context, embeds the source video where the host permits it, and always exposes a direct Bilibili fallback.
+
+- Do not call iframe playback APIs or infer playback state from the cross-origin player.
+- Do not offer a local-file, Object URL, upload, or hosting fallback in W0.
+- Show a learning arrangement rather than fabricated completion data until a controllable player path is formally specified.
+- Keep technical source inspection out of the ordinary learner flow; the direct original-page link is the only necessary fallback.
 
 ### 2.1 Demo Scope Controller
 
@@ -259,7 +268,7 @@ The response must use a validated structured shape before rendering. API credent
 - Display one activity card at a time when playback pauses.
 - Show compact progress such as `1 / 3`.
 - Use the teacher surface as a quiet operational workspace: the course in progress, pending teaching decisions, course health, then the timeline editor, preview command, and latest report.
-- Do not expose provider, iframe, adapter, local-file, or compatibility choices in the normal student flow; isolate them under explicit tester-only controls.
+- Do not expose provider, iframe, adapter, local-file, or compatibility choices in the normal student flow. W0 uses one concise “在 B 站打开原课” fallback instead of a technical testing panel.
 - Do not build a general AI chat panel in the first demo.
 
 ## 7. Platform Expansion Boundary

@@ -14,7 +14,7 @@
           <span class="brand-mark">LP</span>
           <span><strong>LessonPilot</strong><small>互动课程</small></span>
         </a>
-        <div class="session-pill" id="session-state">正在加载课程</div>
+        <span class="session-pill">课程预览</span>
       </header>
 
       <main class="lesson-layout">
@@ -24,78 +24,39 @@
             <h1 id="lesson-title">加载课程中</h1>
             <p class="lead" id="lesson-summary">准备学习内容。</p>
           </div>
-          <div class="course-progress" aria-label="学习进度"><span>学习进度</span><strong id="progress-label">0 / 0 已完成</strong><i><b id="progress-bar"></b></i></div>
+          <div class="course-status" aria-label="课程状态">
+            <span>学习安排</span>
+            <strong id="course-status">准备开始</strong>
+            <p>在关键知识点停下来，完成老师设计的练习。</p>
+          </div>
         </section>
 
-        <section class="classroom" aria-label="互动课堂">
+        <section class="classroom" aria-label="课程视频与学习安排">
           <div class="video-panel">
-            <div id="local-stage" class="local-stage">
-              <video id="lesson-video" class="lesson-video" preload="metadata" playsinline controls>
-                当前浏览器无法播放这个视频。
-              </video>
-              <div class="local-empty" id="local-empty-state">
-                <p class="card-kicker">开始学习</p>
-                <h2>准备好后，开始这节课。</h2>
-                <p>视频会在关键时间点暂停，请用自己的答案完成练习。</p>
-                <label class="primary-button file-picker" for="video-file-input">开始课程</label>
-                <input id="video-file-input" type="file" accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov" hidden>
-                <p class="input-error" id="local-file-error" hidden></p>
-              </div>
-              <div class="local-ready" id="local-ready-state" hidden><span id="local-file-name">课程已准备好</span><button class="text-button" id="replace-video-button" type="button">更换课程视频</button></div>
-            </div>
-            <div class="video-meta"><span id="time-label">00:00</span><span>互动学习进行中</span></div>
+            <iframe id="bilibili-player" class="lesson-video" title="课程视频" allowfullscreen></iframe>
+            <div class="video-meta"><span>课程视频</span><a id="bilibili-page-link" href="https://www.bilibili.com/video/BV1WW4y1e7GL/" target="_blank" rel="noreferrer">在 B 站打开原课 ↗</a></div>
           </div>
 
-          <aside class="activity-panel" aria-live="polite">
-            <div id="intro-card" class="card intro-card">
-              <span class="card-kicker">准备开始</span>
-              <h2>先观看，再用自己的话回答。</h2>
-              <p>课程会在关键点暂停。完成练习后，你会马上得到反馈，然后继续学习。</p>
-              <button class="primary-button" id="start-button" type="button" disabled>开始学习</button>
+          <aside class="learning-panel">
+            <p class="card-kicker">开始学习</p>
+            <h2>先观看，再用自己的话回答。</h2>
+            <p>这节课会围绕具体案例，帮助你把面试回答从抽象形容词变成有证据的表达。</p>
+            <div class="learning-steps" aria-label="本节学习安排">
+              <div><b>01</b><span>观看老师的案例讲解</span></div>
+              <div><b>02</b><span>在关键知识点完成练习</span></div>
+              <div><b>03</b><span>用自己的经历组织回答</span></div>
             </div>
-
-            <form id="question-card" class="card question-card" hidden>
-              <span class="card-kicker" id="question-kicker">互动练习</span>
-              <h2 id="question-title"></h2>
-              <p id="question-prompt"></p>
-              <div id="answer-area" class="answer-area"></div>
-              <div class="card-actions"><button class="secondary-button" id="skip-button" type="button">跳过</button><button class="primary-button" type="submit">提交答案</button></div>
-            </form>
-
-            <div id="feedback-card" class="card feedback-card" hidden>
-              <span class="card-kicker" id="feedback-kicker">反馈</span>
-              <h2 id="feedback-title"></h2>
-              <p id="feedback-copy"></p>
-              <button class="primary-button" id="continue-button" type="button">继续学习</button>
-            </div>
-
-            <div id="summary-card" class="card summary-card" hidden>
-              <span class="card-kicker">学习完成</span>
-              <h2>你完成了本节练习。</h2>
-              <div id="summary-list" class="summary-list"></div>
-              <button class="secondary-button" id="restart-button" type="button">重新学习</button>
-            </div>
-
-            <div id="load-error-card" class="card error-card" hidden>
-              <span class="card-kicker">课程未启动</span>
-              <h2>暂时无法打开这节课。</h2>
-              <p id="load-error-copy"></p>
-            </div>
+            <a id="start-course-link" class="primary-button" href="https://www.bilibili.com/video/BV1WW4y1e7GL/" target="_blank" rel="noreferrer">开始观看原课 ↗</a>
           </aside>
         </section>
 
-        <details class="tester-tools">
-          <summary>测试者工具</summary>
-          <div><p>课程来源验证与播放器兼容性检查仅供测试，不属于学生学习流程。</p><button class="text-button" id="show-source-button" type="button">查看课程来源</button><button class="text-button" id="show-local-button" type="button">选择本地测试视频</button></div>
-        </details>
-
-        <section id="source-inspection" class="source-inspection" hidden aria-label="课程来源验证">
-          <div><p class="eyebrow">来源验证</p><h2>课程原视频</h2><a id="bilibili-page-link" href="https://www.bilibili.com/video/BV1WW4y1e7GL/" target="_blank" rel="noreferrer">在 B 站打开原课</a></div>
-          <iframe id="bilibili-player" title="课程来源视频" allowfullscreen></iframe>
+        <section id="load-error" class="load-error" hidden aria-live="polite">
+          <p class="eyebrow">课程未启动</p>
+          <h2>暂时无法读取这节课。</h2>
+          <p id="load-error-copy"></p>
         </section>
       </main>
     </div>
-    <script src="runtime.js"></script>
     <script src="app.js"></script>
   </body>
 </html>
