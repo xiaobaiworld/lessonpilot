@@ -3,6 +3,22 @@
 Version: 0.3
 Last updated: 2026-08-12
 
+## 2026-08-12 — Page Directories Are Not Separate Local Services
+
+`teacher-web/` and `student-web/` look like two standalone static sites, but the verified W0 topology is one repository-root HTTP server with two paths on the same origin.
+
+Starting each directory independently created misleading URLs, including a stale student-only `4174` entry. The page could appear blank or outdated because the teacher's relative preview link and the student's `course.json` lookup were being evaluated under a different server root.
+
+The canonical local contract is:
+
+- Start `python3 -m http.server 4173` from the repository root.
+- Teacher: `/teacher-web/`.
+- Student: `/student-web/`.
+- Student course configuration: `/student-web/course.json`.
+- Bilibili source presentation: the `embedUrl` in that course configuration, with the original-page link as fallback.
+
+When a page seems stale after cross-machine Git synchronization, verify the commit and service root before changing code. A correct file tree served from the wrong root is an environment error, not a product regression.
+
 ## 2026-08-07 — Chrome Extension Is Delivery Shape, Not Product Positioning
 
 Chrome extension is only the fastest first demo format. The product is a course upgrade layer for English teachers.

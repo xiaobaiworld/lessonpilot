@@ -35,15 +35,21 @@ Scope locks:
 
 The first implementation supports one fixed Bilibili video before expanding to other videos or platforms. The web sample embeds it for source verification, while locally selected HTML5 video is used to validate reliable timed interaction without uploading or hosting video.
 
-## Student Web Sample
+## Local Web Service
 
-Start a static server from the repository root, then open [student-web](http://localhost:4173/student-web/):
+The teacher and student pages are two paths served by **one static server started from the repository root**. The directories are page boundaries, not separate services.
 
 ```bash
+cd /Users/bai/code/lessonpilot
 python3 -m http.server 4173
 ```
 
-Use **B 站原课样例** to inspect the fixed source lesson. Use **本地可控课堂** to choose a local MP4, WebM, or MOV file and run the timed interaction demo. The selected file stays in the browser and is never uploaded.
+Open:
+
+- Teacher Creator Studio: [http://localhost:4173/teacher-web/](http://localhost:4173/teacher-web/)
+- Student course: [http://localhost:4173/student-web/](http://localhost:4173/student-web/)
+
+Do not start `teacher-web/` or `student-web/` as separate server roots, and do not use a second port such as `4174`. The teacher preview link is relative (`../student-web/`), and the student page must fetch `student-web/course.json` from the same repository-root service. The configured student sample embeds Bilibili video `BV1WW4y1e7GL` and keeps a direct original-page fallback.
 
 ## Load Extension (Spike)
 

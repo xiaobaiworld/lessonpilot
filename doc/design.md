@@ -29,6 +29,20 @@ Bundled or locally saved lesson configuration
 
 The teacher editor is a localhost website that writes local lesson configuration through an allowlisted bridge and launches the same student runtime in preview mode.
 
+### 1.1 Local Service Boundary
+
+W0 has one local static service, started from the repository root:
+
+```text
+http://127.0.0.1:4173/
+  -> /teacher-web/   Creator Studio
+  -> /student-web/   student course shell
+```
+
+Start it with `python3 -m http.server 4173` while the working directory is the repository root. `teacher-web/` and `student-web/` are route/resource boundaries inside the same origin, not independently hosted applications. This is required because the teacher preview opens `../student-web/` and the student shell fetches `./course.json` relative to its route.
+
+Do not run a second student-only service on port `4174`. A directory-root server can make a page appear to load while changing navigation and configuration resolution, which no longer matches the verified W0 topology.
+
 Minimum adapter surface for D0/D1 (Bilibili implementation only):
 
 ```text

@@ -4,6 +4,13 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### Local Web Service Contract — 2026-08-12
+
+- Document one repository-root local server for both teacher and student web pages.
+- Establish `/teacher-web/` and `/student-web/` on port `4173` as the canonical local URLs.
+- Record that `4174` and per-directory server roots are unsupported because they break the verified relative preview and course-configuration topology.
+- Add troubleshooting guidance to distinguish a wrong server root from stale or missing synchronized code.
+
 ### W0 Subtitle-Driven Course Authoring — 2026-08-12
 
 - Define W0 as a fixed Bilibili URL plus teacher-provided SRT/VTT subtitle intake, a locally parsed caption timeline, and caption-anchored classroom actions.
