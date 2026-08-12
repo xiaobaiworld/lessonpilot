@@ -411,6 +411,40 @@ textarea:focus-visible {
   line-height: 1.65;
 }
 
+.workspace-action .field-label {
+  display: grid;
+  gap: 7px;
+  margin: 0 0 14px;
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.workspace-action .field-label input {
+  width: 100%;
+  height: 38px;
+  padding: 0 9px;
+  border: 1px solid var(--line-dark);
+  border-radius: 4px;
+  background: var(--paper-bright);
+  color: var(--ink);
+}
+
+.workspace-action .file-button {
+  display: inline-block;
+  cursor: pointer;
+}
+
+.workspace-action .file-name,
+.workspace-action .field-error {
+  margin: 10px 0 0;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.workspace-action .file-name { color: var(--ink-soft); }
+.workspace-action .field-error { color: var(--danger); }
+
 .workspace-action .drop-icon,
 .workspace-action .caption-icon,
 .example-number {

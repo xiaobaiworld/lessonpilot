@@ -18,36 +18,24 @@
       </header>
 
       <main class="lesson-layout">
-        <section class="course-header" aria-labelledby="lesson-title">
-          <div>
-            <p class="eyebrow">本节学习</p>
-            <h1 id="lesson-title">加载课程中</h1>
-            <p class="lead" id="lesson-summary">准备学习内容。</p>
-          </div>
-          <div class="course-status" aria-label="课程状态">
-            <span>学习安排</span>
-            <strong id="course-status">准备开始</strong>
-            <p>在关键知识点停下来，完成老师设计的练习。</p>
+        <section class="course-intro" aria-labelledby="lesson-title">
+          <p class="eyebrow">本节学习</p>
+          <h1 id="lesson-title">加载课程中</h1>
+          <p class="lead" id="lesson-summary">准备学习内容。</p>
+          <div class="learning-goals" aria-labelledby="learning-goals-title">
+            <span id="learning-goals-title">学习目标</span>
+            <div id="learning-goals-list" class="goal-list"></div>
           </div>
         </section>
 
-        <section class="classroom" aria-label="课程视频与学习安排">
-          <div class="video-panel">
-            <iframe id="bilibili-player" class="lesson-video" title="课程视频" allowfullscreen></iframe>
-            <div class="video-meta"><span>课程视频</span><a id="bilibili-page-link" href="https://www.bilibili.com/video/BV1WW4y1e7GL/" target="_blank" rel="noreferrer">在 B 站打开原课 ↗</a></div>
-          </div>
+        <section class="video-panel" aria-label="课程视频">
+          <iframe id="bilibili-player" class="lesson-video" title="课程视频" allowfullscreen></iframe>
+          <div class="video-meta"><span>课程视频</span><a id="bilibili-page-link" href="https://www.bilibili.com/video/BV1WW4y1e7GL/" target="_blank" rel="noreferrer">在 B 站打开原课 ↗</a></div>
+        </section>
 
-          <aside class="learning-panel">
-            <p class="card-kicker">开始学习</p>
-            <h2>先观看，再用自己的话回答。</h2>
-            <p>这节课会围绕具体案例，帮助你把面试回答从抽象形容词变成有证据的表达。</p>
-            <div class="learning-steps" aria-label="本节学习安排">
-              <div><b>01</b><span>观看老师的案例讲解</span></div>
-              <div><b>02</b><span>在关键知识点完成练习</span></div>
-              <div><b>03</b><span>用自己的经历组织回答</span></div>
-            </div>
-            <a id="start-course-link" class="primary-button" href="https://www.bilibili.com/video/BV1WW4y1e7GL/" target="_blank" rel="noreferrer">开始观看原课 ↗</a>
-          </aside>
+        <section class="learning-results" aria-labelledby="learning-results-title">
+          <div class="results-heading"><p class="eyebrow">完成本节后</p><h2 id="learning-results-title">学习结果展示</h2><p>以下是本节课设计的学习产出。完成记录会在互动学习路径接入后显示。</p></div>
+          <div id="expected-results-list" class="result-list"></div>
         </section>
 
         <section id="load-error" class="load-error" hidden aria-live="polite">

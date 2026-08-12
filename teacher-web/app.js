@@ -1,6 +1,7 @@
 (function initTeacherWorkspace() {
   const lessonUrl = 'https://www.bilibili.com/video/BV1WW4y1e7GL/';
-  const captions = [
+  const fixedBvid = 'BV1WW4y1e7GL';
+  let captions = [
     { time: '00:00', end: '00:18', text: 'Today we are going to talk about strong interview answers.', event: null },
     { time: '00:18', end: '00:35', text: 'Many candidates say: I am hardworking and I am a team player.', event: null },
     { time: '00:35', end: '00:51', text: 'A strong answer needs a specific example.', event: { type: 'attention', label: '这里很重要' } },
@@ -26,6 +27,13 @@
   const homeView = document.querySelector('#home-view');
   const timelineView = document.querySelector('#timeline-view');
   const toast = document.querySelector('#toast');
+  const courseUrlInput = document.querySelector('#course-url-input');
+  const courseUrlError = document.querySelector('#course-url-error');
+  const subtitleFileInput = document.querySelector('#subtitle-file-input');
+  const subtitleFileName = document.querySelector('#subtitle-file-name');
+  const subtitleFileError = document.querySelector('#subtitle-file-error');
+  const timelineSourceSummary = document.querySelector('#timeline-source-summary');
+  const captionImportStatus = document.querySelector('#caption-import-status');
 
   const clone = (value) => JSON.parse(JSON.stringify(value));
   const showToast = (message) => {
@@ -44,7 +52,7 @@
       const item = document.createElement('button'); item.type = 'button'; item.className = `caption-row${index === selectedCaption ? ' is-selected' : ''}`; item.setAttribute('role', 'option'); item.setAttribute('aria-selected', String(index === selectedCaption));
       const suggestion = !caption.event && [0, 6, 8, 9].includes(index) ? '<span class="ai-suggestion">AI 建议</span>' : '';
       item.innerHTML = `<span class="caption-time">${caption.time}</span><span class="caption-body"><span class="caption-text">${caption.text}</span>${index === 2 ? '<small>知识点：用具体经历替代抽象形容词 · 易错点：只描述品质，没有证据</small>' : ''}</span>${caption.event ? `<span class="caption-event event-${caption.event.type}">${caption.event.label}</span>` : suggestion || '<span class="caption-add">＋</span>'}`;
-      item.addEventListener('click', () => { selectedCaption = index; document.querySelector('#selected-caption').textContent = `“${captions[index].text}”`; document.querySelector('.event-panel-head .eyebrow').textContent = `当前字幕 · ${captions[index].time}`; renderCaptions(); }); list.appendChild(item);
+      item.addEventListener('click', () => { setCaptionContext(index); renderCaptions(); }); list.appendChild(item);
     });
   };
   const selectEvent = (type) => {
@@ -52,15 +60,51 @@
     document.querySelector('#event-detail').hidden = false; document.querySelector('#event-detail-label').textContent = label; document.querySelector('#event-detail-title').textContent = title; document.querySelector('#event-detail-copy').textContent = copy; document.querySelector('#event-label-input').value = input;
     document.querySelectorAll('.event-option').forEach((button) => button.classList.toggle('is-active', button.dataset.event === type));
   };
+  const setCaptionContext = (index) => {
+    selectedCaption = index;
+    document.querySelector('#selected-caption').textContent = `“${captions[index].text}”`;
+    document.querySelector('.event-panel-head .eyebrow').textContent = `当前字幕 · ${captions[index].time}`;
+  };
+  const confirmCourseUrl = () => {
+    let candidate;
+    try { candidate = new URL(courseUrlInput.value.trim()); } catch (error) { candidate = null; }
+    const isExpectedCourse = candidate?.hostname === 'www.bilibili.com' && candidate.pathname.replace(/\/$/, '') === `/video/${fixedBvid}`;
+    courseUrlError.hidden = isExpectedCourse;
+    if (!isExpectedCourse) {
+      courseUrlError.textContent = '当前 W0 只接受固定 B 站样例链接。';
+      return;
+    }
+    courseUrlInput.value = lessonUrl;
+    showToast('课程链接已确认。下一步导入这节课的字幕文件。');
+  };
+  const importSubtitleFile = async () => {
+    const file = subtitleFileInput.files[0];
+    if (!file) return;
+    const result = window.LessonPilotSubtitleParser.parseSubtitle(await file.text(), file.name);
+    subtitleFileError.hidden = result.ok;
+    if (!result.ok) {
+      subtitleFileError.textContent = result.message;
+      return;
+    }
+    captions = result.captions;
+    subtitleFileName.textContent = `${file.name} · ${captions.length} 段已导入`;
+    timelineSourceSummary.textContent = `BV1WW4y1e7GL · ${captions.length} 段导入字幕已整理成可设计的课堂时间线`;
+    captionImportStatus.textContent = `已导入 ${captions.length} 段字幕`;
+    setCaptionContext(0);
+    renderCaptions();
+    setRoute('timeline');
+    showToast(`已导入 ${captions.length} 段字幕。选择一段开始设计课堂动作。`);
+  };
   document.querySelectorAll('[data-route]').forEach((button) => button.addEventListener('click', () => setRoute(button.dataset.route)));
   document.querySelector('#open-timeline').addEventListener('click', () => setRoute('timeline'));
   document.querySelector('#continue-course').addEventListener('click', () => setRoute('timeline'));
   document.querySelector('#open-suggestion').addEventListener('click', () => { setRoute('timeline'); window.setTimeout(() => selectEvent('activity'), 0); });
   document.querySelector('#create-course').addEventListener('click', () => showToast('新课程会从视频与字幕开始，当前为界面原型。'));
   document.querySelector('#preview-home').addEventListener('click', () => { showToast('学生预览会打开课程体验页，当前为界面原型。'); window.open('../student-web/', '_blank', 'noopener,noreferrer'); });
-  document.querySelector('#open-suggestion-workspace').addEventListener('click', () => { setRoute('timeline'); window.setTimeout(() => selectEvent('activity'), 0); });
+  document.querySelector('#confirm-course-url').addEventListener('click', confirmCourseUrl);
+  subtitleFileInput.addEventListener('change', importSubtitleFile);
   document.querySelector('#preview-timeline').addEventListener('click', () => { showToast('课堂模拟会展示学生视角，真实扩展桥将在下一步接入。'); window.open(lessonUrl, '_blank', 'noopener,noreferrer'); });
-  document.querySelector('#refresh-analysis').addEventListener('click', () => showToast('原型演示：重新分析会基于字幕刷新知识点和课堂建议。'));
+  document.querySelector('#refresh-analysis').addEventListener('click', () => showToast('原型演示：会根据已导入字幕重新整理课堂建议。'));
   document.querySelector('#accept-suggestion').addEventListener('click', () => { selectEvent('activity'); document.querySelector('#event-label-input').value = '先暂停，再让学生联系自己的经历'; showToast('AI 建议已转成可修改的课堂设计。'); });
   document.querySelector('#ignore-suggestion').addEventListener('click', () => showToast('已忽略这条建议，其他课堂设计不会受影响。'));
   document.querySelector('#simulate-class').addEventListener('click', () => showToast('课堂模拟将展示不同学生回答后的课程反馈，当前为界面原型。'));

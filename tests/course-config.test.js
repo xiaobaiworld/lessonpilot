@@ -20,6 +20,12 @@ const checks = [
   {
     label: 'does not carry W0 local-player interaction nodes',
     run: () => !Object.hasOwn(configuredCourse, 'nodes')
+  },
+  {
+    label: 'contains learning goals and expected results without completed-session data',
+    run: () => Array.isArray(configuredCourse.learningGoals) && configuredCourse.learningGoals.length > 0
+      && Array.isArray(configuredCourse.expectedResults) && configuredCourse.expectedResults.length > 0
+      && !Object.hasOwn(configuredCourse, 'completedResults')
   }
 ];
 

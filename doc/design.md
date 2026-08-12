@@ -5,7 +5,7 @@ Last updated: 2026-08-12
 
 ## 1. Architecture Decision
 
-2026-08-12 delivery update: student first use is web-first. The extension remains the Bilibili page-overlay and PC enhancement adapter, while `student-web/` provides a no-install W0 entry point across desktop and mobile browsers. In W0, the fixed Bilibili course is rendered as a source iframe with a direct original-page fallback; it is deliberately not treated as a controllable `PlayerAdapter`. W0 has no local video, upload, hosting, or replacement-player path. The normal learner shell presents the lesson, learning goal, source video, learning arrangement, and the next learning action; timed interaction remains a Bilibili original-page/extension concern until separately proven for the web.
+2026-08-12 delivery update: student first use is web-first. The extension remains the Bilibili page-overlay and PC enhancement adapter, while `student-web/` provides a no-install W0 entry point across desktop and mobile browsers. W0 begins with a fixed Bilibili course link plus a teacher-provided SRT/VTT subtitle file. The browser parses the subtitle file locally into the teacher timeline; it does not scrape Bilibili subtitles or treat the cross-origin iframe as a controllable `PlayerAdapter`. W0 has no local video, upload, hosting, or replacement-player path. The learner shell presents the lesson, learning goals, an intentionally dominant source video, and honest learning-result expectations; timed interaction remains a Bilibili original-page/extension concern until separately proven for the web.
 
 The first demo uses a DOM-injected video interaction layer rather than making a Chrome side panel the primary experience.
 
@@ -53,8 +53,25 @@ PlayerAdapter
 
 - Do not call iframe playback APIs or infer playback state from the cross-origin player.
 - Do not offer a local-file, Object URL, upload, or hosting fallback in W0.
-- Show a learning arrangement rather than fabricated completion data until a controllable player path is formally specified.
+- Show learning goals above the video. Below it, show the learning results the course is designed to produce and label them as pending until a controllable interaction/session path exists; never fabricate completion.
 - Keep technical source inspection out of the ordinary learner flow; the direct original-page link is the only necessary fallback.
+
+### 2.0.1 W0 Link and Subtitle Intake
+
+The W0 teacher workspace has one source path:
+
+```text
+fixed Bilibili page URL
+  -> teacher obtains subtitle file through an authorized/manual route
+  -> teacher imports .srt or .vtt
+  -> browser parses timestamps and text locally
+  -> caption timeline anchors teacher-authored classroom actions
+```
+
+- Accept only the fixed Bilibili BV id in this slice.
+- Accept UTF-8 SRT/VTT files, ignore VTT metadata blocks, normalize comma/dot timestamps, and preserve multi-line caption text.
+- Reject empty or unparsable files with a field-level error; do not replace the current working timeline on failure.
+- Imported captions and action edits are page-local prototype state in W0. Persistence, source scraping, and AI analysis are later work.
 
 ### 2.1 Demo Scope Controller
 

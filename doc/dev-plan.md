@@ -24,20 +24,22 @@ Technical spike status: roughly complete for mount, pause/seek, timed dialog, SP
 
 2026-08-12 update: the first commercial validation path is now web-first. The Chrome extension remains useful for Bilibili overlay demos and PC learning enhancement, but student first-use must not require plugin installation. Before D0, run a W0 student web course shell that proves the teacher/student page relationship using the fixed Bilibili course.
 
-W0 keeps the fixed Bilibili lesson as its source sample. It can embed the original course and link back to Bilibili, but it must not promise reliable time observation, pause, seek, or timed interaction through a cross-origin iframe. W0 explicitly excludes local HTML5 video selection, uploading, hosting, and any substitute-player path. The next technical question is whether the Bilibili original-page adapter can support the first real teaching node, not how to bypass it.
+W0 keeps the fixed Bilibili lesson as its source sample. A teacher first confirms the fixed page URL, then imports an already obtained SRT/VTT file; local parsing converts captions into the editable timeline. W0 does not scrape platform subtitles. It can embed the original course and link back to Bilibili, but it must not promise reliable time observation, pause, seek, or timed interaction through a cross-origin iframe. W0 explicitly excludes local HTML5 video selection, uploading, hosting, and any substitute-player path. The next technical question is whether the Bilibili original-page adapter can support the first real teaching node, not how to bypass it.
 
 ### W0 — Web Course Shell and Two-Page Validation
 
 Goal:
 
 - Make the teacher workspace and student course page describe one coherent course.
+- Prove the path from fixed Bilibili URL to manually obtained subtitle file to caption-anchored classroom action.
 - Validate that a teacher can enter student preview and a student can reach the fixed Bilibili lesson from desktop and mobile browsers.
 - Keep the Bilibili source/control boundary visible in engineering documents but invisible to ordinary learners.
 
 Validation:
 
 - Teacher preview opens `student-web/` for the fixed course.
-- Student page renders course title, goal, source video area, learning arrangement, and original-page fallback without local-video controls.
+- Teacher page accepts a valid fixed Bilibili URL and a valid SRT/VTT file; the resulting captions replace the example timeline and can receive a classroom action.
+- Student page renders course title, learning goals, a dominant source video, intended learning results, and original-page fallback without local-video controls.
 - Desktop and 375px widths have no horizontal overflow or critical action overlap.
 - No claim or UI implies that the webpage controls a cross-origin Bilibili player.
 

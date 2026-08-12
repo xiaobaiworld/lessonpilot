@@ -55,10 +55,10 @@
             <div class="section-heading"><div><p class="eyebrow">当前验证范围</p><h2 id="workspace-actions-title">先把一节真实课程设计清楚。</h2></div><p>W0 只围绕固定 B 站样例验证课程呈现与教学设计，不导入或托管视频。</p></div>
             <div class="action-grid">
               <div class="workspace-action video-dropzone">
-                <div class="drop-icon">▶</div><h3>查看固定课程来源</h3><p>先回到原课确认内容，标记值得停下来练习的教学片段。</p><a class="text-button" href="https://www.bilibili.com/video/BV1WW4y1e7GL/" target="_blank" rel="noreferrer">在 B 站打开原课 →</a>
+                <div class="drop-icon">↗</div><h3>确认 B 站课程链接</h3><p>固定样例已预填。确认后，字幕将作为课堂动作的时间锚点。</p><label class="field-label">课程链接<input id="course-url-input" type="url" value="https://www.bilibili.com/video/BV1WW4y1e7GL/" inputmode="url"></label><button class="text-button" id="confirm-course-url" type="button">确认课程链接 →</button><p class="field-error" id="course-url-error" hidden></p>
               </div>
               <div class="workspace-action subtitle-dropzone">
-                <div class="caption-icon">Aa</div><h3>确定第一个教学节点</h3><p>记录内容匹配的时间点、题目与标准答案，再进入原页面互动验证。</p><button class="text-button" id="open-suggestion-workspace" type="button">查看待确认建议 →</button>
+                <div class="caption-icon">Aa</div><h3>导入已取得的字幕</h3><p>选择 SRT 或 VTT。字幕只在当前浏览器解析，不上传到服务器。</p><label class="text-button file-button" for="subtitle-file-input">选择字幕文件 →</label><input id="subtitle-file-input" type="file" accept=".srt,.vtt,text/plain,text/vtt" hidden><p class="file-name" id="subtitle-file-name">尚未导入文件</p><p class="field-error" id="subtitle-file-error" hidden></p>
               </div>
               <div class="workspace-action example-action">
                 <div class="example-number">01</div><h3>先看一份示例</h3><p>用当前课程快速了解从字幕到互动的设计过程。</p><button id="open-timeline" class="text-button" type="button">打开课堂设计 →</button>
@@ -71,13 +71,13 @@
 
         <section id="timeline-view" class="view timeline-view" aria-labelledby="timeline-title" hidden>
           <div class="timeline-head">
-            <div><button class="back-link" type="button" data-route="home">← 我的课程</button><p class="eyebrow">课堂设计 / 英语面试表达</p><h1 id="timeline-title">审核 AI 的建议，设计这堂课。</h1><p>沿着课程时间线查看字幕、知识点和学生易错点。AI 先提出互动建议，老师负责采纳、修改或忽略。</p></div>
+            <div><button class="back-link" type="button" data-route="home">← 我的课程</button><p class="eyebrow">课堂设计 / 英语面试表达</p><h1 id="timeline-title">沿着字幕，设计这堂课的动作。</h1><p>选择一个字幕段落，在它的时间点加入提醒、老师补充、学生练习或点评追问。老师决定每个动作是否出现。</p></div>
             <div class="timeline-actions"><span class="save-label" id="save-label">草稿已保存</span><button class="light-button" id="preview-timeline" type="button">模拟学生课堂 ↗</button><button class="dark-button" id="save-timeline" type="button">保存课程</button></div>
           </div>
 
           <section class="course-overview" aria-label="课程概览">
             <div class="overview-video"><span class="overview-play">▶</span><span class="overview-progress"></span><b>03:42</b></div>
-            <div class="overview-info"><small>BILIBILI DEMO · AI 已完成初步分析</small><h2>英语面试表达：把答案说得具体</h2><p>BV1WW4y1e7GL · 12 段字幕已整理成可设计的课堂时间线</p><div class="analysis-status"><span class="status-check">✓</span><span>已识别 4 个可互动片段</span><button class="text-button" id="refresh-analysis" type="button">重新分析</button></div></div>
+            <div class="overview-info"><small>BILIBILI DEMO · 字幕驱动时间线</small><h2>英语面试表达：把答案说得具体</h2><p id="timeline-source-summary">BV1WW4y1e7GL · 当前示例字幕已整理成可设计的课堂时间线</p><div class="analysis-status"><span class="status-check">✓</span><span id="caption-import-status">等待导入已取得的字幕文件</span><button class="text-button" id="refresh-analysis" type="button">重新分析</button></div></div>
             <div class="overview-stats"><div><strong>04</strong><span>AI 教学建议</span></div><div><strong>03</strong><span>已确认设计</span></div></div>
             <div class="overview-legend"><strong>课堂设计图例</strong><span><i class="dot dot-attention"></i>重点提醒</span><span><i class="dot dot-voice"></i>老师补充</span><span><i class="dot dot-activity"></i>学生练习</span><span><i class="dot dot-ai"></i>点评追问</span></div>
           </section>
@@ -106,6 +106,7 @@
       </main>
     </div>
     <div id="toast" class="toast" role="status" aria-live="polite" aria-hidden="true"></div>
+    <script src="subtitle-parser.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

@@ -20,11 +20,15 @@ const checks = [
   },
   {
     label: 'teacher W0 workspace does not offer local video import',
-    run: () => teacherPage.includes('查看固定课程来源') && !teacherPage.includes('选择视频文件')
+    run: () => teacherPage.includes('确认 B 站课程链接') && !teacherPage.includes('选择视频文件')
   },
   {
-    label: 'student entry presents one course and a direct original-course fallback',
-    run: () => studentPage.includes('本节学习') && studentPage.includes('在 B 站打开原课') && studentPage.includes('id="bilibili-player"')
+    label: 'teacher W0 workspace accepts a Bilibili link and a subtitle file',
+    run: () => teacherPage.includes('id="course-url-input"') && teacherPage.includes('id="subtitle-file-input"')
+  },
+  {
+    label: 'student entry presents learning goals, a dominant source video, and learning results',
+    run: () => studentPage.includes('学习目标') && studentPage.includes('学习结果展示') && studentPage.includes('id="bilibili-player"')
   },
   {
     label: 'W0 student page has no local-video or timed-interaction runtime controls',

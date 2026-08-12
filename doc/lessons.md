@@ -103,3 +103,9 @@ Provider and compatibility evidence is useful during validation, but it becomes 
 A local HTML5 file makes timed interaction easy to prove, but it changes the learner's starting condition and avoids the actual Bilibili integration question. When the task is to validate whether the teacher/student web surfaces make sense around an existing Bilibili course, local files, uploads, and hosted-video design are scope expansion rather than a prerequisite.
 
 For W0, show the fixed source course honestly and link to its original page. Keep controllable playback and timed interaction on the separately proven Bilibili original-page extension path until a web player strategy is explicitly selected.
+
+## 2026-08-12 — Separate Subtitle Intake From Platform Subtitle Scraping
+
+The teacher workflow needs timestamped text before it can support meaningful action editing. A manual SRT/VTT import gives the workflow a real, inspectable input without requiring the product to claim that it can scrape Bilibili subtitles across login, copyright, or platform changes.
+
+The safe first contract is: fixed supported Bilibili link, teacher-provided UTF-8 SRT/VTT file, local parsing, then caption-anchored actions. Reject invalid files without replacing the existing timeline; obtain and manually check the real course subtitle file before treating any imported timestamps as teaching facts.

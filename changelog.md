@@ -4,6 +4,13 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### W0 Subtitle-Driven Course Authoring — 2026-08-12
+
+- Define W0 as a fixed Bilibili URL plus teacher-provided SRT/VTT subtitle intake, a locally parsed caption timeline, and caption-anchored classroom actions.
+- Explicitly exclude Bilibili subtitle scraping, local video, upload, hosting, and fabricated learning-completion data.
+- Refocus the learner shell around learning goals, the source video, and expected learning results.
+- Add local SRT/VTT parser coverage and browser verification that imported captions replace the teacher timeline and accept a classroom action.
+
 ### W0 Bilibili Course Shell — 2026-08-12
 
 - Re-scope the first web slice to a fixed Bilibili course presentation and teacher/student page validation.
