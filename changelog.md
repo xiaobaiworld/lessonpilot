@@ -4,6 +4,13 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### Role-Specific Course Pages — 2026-08-12
+
+- Rework the teacher home into a task-first workspace with the current course, pending teaching decision, course health, and direct design/preview actions.
+- Reframe the student page as a single-course learning shell with lesson context, progress, video, interaction, feedback, and summary.
+- Move Bilibili source inspection and local HTML5 video replacement behind collapsed tester-only controls so provider and compatibility details do not interrupt a learner.
+- Add page information-architecture checks and verify the teacher design route plus student-preview route in a headless browser.
+
 ### Web Runtime First — 2026-08-12
 
 - Shift the next validation slice from plugin-required preview to a student web runtime.

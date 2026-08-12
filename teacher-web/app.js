@@ -54,7 +54,10 @@
   };
   document.querySelectorAll('[data-route]').forEach((button) => button.addEventListener('click', () => setRoute(button.dataset.route)));
   document.querySelector('#open-timeline').addEventListener('click', () => setRoute('timeline'));
-  document.querySelectorAll('.course-card').forEach((button) => button.addEventListener('click', () => setRoute('timeline')));
+  document.querySelector('#continue-course').addEventListener('click', () => setRoute('timeline'));
+  document.querySelector('#open-suggestion').addEventListener('click', () => { setRoute('timeline'); window.setTimeout(() => selectEvent('activity'), 0); });
+  document.querySelector('#create-course').addEventListener('click', () => showToast('新课程会从视频与字幕开始，当前为界面原型。'));
+  document.querySelector('#preview-home').addEventListener('click', () => { showToast('学生预览会打开课程体验页，当前为界面原型。'); window.open('../student-web/', '_blank', 'noopener,noreferrer'); });
   document.querySelector('#choose-video').addEventListener('click', () => showToast('原型演示：下一步接入本地视频选择器。'));
   document.querySelector('#import-subtitle').addEventListener('click', () => showToast('原型演示：下一步接入 SRT / VTT 导入与本地 Whisper 生成。'));
   document.querySelector('#preview-timeline').addEventListener('click', () => { showToast('课堂模拟会展示学生视角，真实扩展桥将在下一步接入。'); window.open(lessonUrl, '_blank', 'noopener,noreferrer'); });

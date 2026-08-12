@@ -1,6 +1,6 @@
 /**
- * Student web runtime shell. It keeps Bilibili as the sample course source and
- * uses a selected local HTML5 video for the browser-controlled interaction demo.
+ * Student web runtime. The learning view stays focused on one lesson; source
+ * inspection and local-video replacement are isolated in tester-only controls.
  */
 (function initStudentRuntime() {
   const STORAGE_KEY_PREFIX = 'lessonpilot.studentWebSession.v2';
@@ -9,9 +9,8 @@
   const sessionState = document.querySelector('#session-state');
   const timeLabel = document.querySelector('#time-label');
   const progressLabel = document.querySelector('#progress-label');
-  const bilibiliStage = document.querySelector('#bilibili-stage');
+  const progressBar = document.querySelector('#progress-bar');
   const localStage = document.querySelector('#local-stage');
-  const bilibiliCard = document.querySelector('#bilibili-card');
   const introCard = document.querySelector('#intro-card');
   const questionCard = document.querySelector('#question-card');
   const feedbackCard = document.querySelector('#feedback-card');
@@ -30,9 +29,9 @@
   const skipButton = document.querySelector('#skip-button');
   const continueButton = document.querySelector('#continue-button');
   const restartButton = document.querySelector('#restart-button');
-  const showBilibiliButton = document.querySelector('#show-bilibili-button');
   const showLocalButton = document.querySelector('#show-local-button');
-  const switchToLocalButton = document.querySelector('#switch-to-local-button');
+  const showSourceButton = document.querySelector('#show-source-button');
+  const sourceInspection = document.querySelector('#source-inspection');
   const fileInput = document.querySelector('#video-file-input');
   const localEmptyState = document.querySelector('#local-empty-state');
   const localReadyState = document.querySelector('#local-ready-state');
@@ -44,7 +43,6 @@
   let session = null;
   let activeNode = null;
   let localVideoUrl = null;
-  let mode = 'bilibili';
 
   function storageKey() {
     return `${STORAGE_KEY_PREFIX}.${course.id}`;
@@ -95,9 +93,8 @@
     const completed = session ? session.answers.length : 0;
     const count = course ? course.nodes.length : 0;
     progressLabel.textContent = `${completed} / ${count} 已完成`;
-    if (mode === 'bilibili') {
-      sessionState.textContent = 'B 站来源样例';
-    } else if (!video.currentSrc) {
+    progressBar.style.width = count ? `${Math.min(100, (completed / count) * 100)}%` : '0%';
+    if (!video.currentSrc) {
       sessionState.textContent = '等待本地视频';
     } else {
       sessionState.textContent = completed === count ? '学习完成' : '本地可控课堂';
@@ -105,30 +102,9 @@
   }
 
   function showOnly(card) {
-    [bilibiliCard, introCard, questionCard, feedbackCard, summaryCard, loadErrorCard].forEach((item) => {
+    [introCard, questionCard, feedbackCard, summaryCard, loadErrorCard].forEach((item) => {
       item.hidden = item !== card;
     });
-  }
-
-  function setMode(nextMode) {
-    mode = nextMode;
-    const isBilibili = mode === 'bilibili';
-    bilibiliStage.hidden = !isBilibili;
-    localStage.hidden = isBilibili;
-    showBilibiliButton.classList.toggle('is-active', isBilibili);
-    showLocalButton.classList.toggle('is-active', !isBilibili);
-    showBilibiliButton.setAttribute('aria-pressed', String(isBilibili));
-    showLocalButton.setAttribute('aria-pressed', String(!isBilibili));
-    if (isBilibili) {
-      video.pause();
-      activeNode = null;
-      showOnly(bilibiliCard);
-    } else if (video.currentSrc) {
-      showOnly(introCard);
-    } else {
-      showOnly(null);
-    }
-    updateProgress();
   }
 
   function triggerNode(node) {
@@ -208,7 +184,7 @@
   }
 
   function maybeTriggerNextNode() {
-    if (mode !== 'local' || activeNode || video.paused || !session) {
+    if (activeNode || video.paused || !session) {
       return;
     }
     const nextNode = runtime.getNextTrigger(course.nodes, session, video.currentTime);
@@ -280,7 +256,7 @@
       document.querySelector('#bilibili-page-link').href = course.source.pageUrl;
       document.querySelector('#bilibili-player').src = course.source.embedUrl;
       updateProgress();
-      setMode('bilibili');
+      showOnly(introCard);
     } catch (error) {
       loadErrorCopy.textContent = error.message || '未知错误。';
       showOnly(loadErrorCard);
@@ -335,9 +311,13 @@
     showOnly(introCard);
   });
 
-  showBilibiliButton.addEventListener('click', () => setMode('bilibili'));
-  showLocalButton.addEventListener('click', () => setMode('local'));
-  switchToLocalButton.addEventListener('click', () => setMode('local'));
+  showLocalButton.addEventListener('click', () => fileInput.click());
+  showSourceButton.addEventListener('click', () => {
+    sourceInspection.hidden = !sourceInspection.hidden;
+    if (!sourceInspection.hidden) {
+      sourceInspection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  });
   fileInput.addEventListener('change', () => setLocalVideo(fileInput.files[0]));
   replaceVideoButton.addEventListener('click', () => fileInput.click());
   video.addEventListener('timeupdate', () => {

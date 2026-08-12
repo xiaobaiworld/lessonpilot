@@ -1,7 +1,7 @@
 # Lessons — LessonPilot
 
 Version: 0.3
-Last updated: 2026-08-11
+Last updated: 2026-08-12
 
 ## 2026-08-07 — Chrome Extension Is Delivery Shape, Not Product Positioning
 
@@ -91,3 +91,9 @@ The defensible asset is not a large event warehouse. It is the accumulated link 
 A Bilibili iframe can present the fixed sample course and give the learner a clear route to the original page, but the webpage cannot responsibly promise stable access to its time, pause, or timed-node behavior. Keep that source/presentation path separate from the HTML5 video control path.
 
 The local HTML5 proof needs no upload, backend, or hosting cost: the browser can play a user-selected file through an Object URL and reliably drive the timed interaction loop. Test fixtures must be long enough to reach configured node timestamps; the first web sample uses 1-second and 3-second nodes because they can be verified against a very short public video. These are runtime checks, not final teaching timestamps.
+
+## 2026-08-12 — Match the Interface to the Role, Not the Competitor's Market
+
+Edpuzzle and Nearpod clarify that video can become a lesson, but their K-12 procurement and classroom-demo aesthetics do not match LessonPilot's first buyer. The teacher needs a compact operational workspace that says what course needs attention next; the learner needs a quiet one-course delivery surface that says what to watch and answer next.
+
+Provider and compatibility evidence is useful during validation, but it becomes cognitive noise when shown to a learner. Keep that evidence in an explicit tester-only area rather than turning the student page into a platform-choice screen.

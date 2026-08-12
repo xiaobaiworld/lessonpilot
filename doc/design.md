@@ -5,7 +5,7 @@ Last updated: 2026-08-12
 
 ## 1. Architecture Decision
 
-2026-08-12 delivery update: student first use is web-first. The extension remains the Bilibili page-overlay and PC enhancement adapter, while `student-web/` provides a no-install validation entry point across desktop and mobile browsers. In the web runtime, the fixed Bilibili course is a source sample rendered in a cross-origin iframe; it is deliberately not treated as a controllable `PlayerAdapter`. The same page accepts a local HTML5 video for the fully controlled `pause -> question -> feedback -> continue` proof. No video is uploaded or hosted in this slice.
+2026-08-12 delivery update: student first use is web-first. The extension remains the Bilibili page-overlay and PC enhancement adapter, while `student-web/` provides a no-install validation entry point across desktop and mobile browsers. In the web runtime, the fixed Bilibili course is a source sample rendered in a cross-origin iframe; it is deliberately not treated as a controllable `PlayerAdapter`. The same page accepts a local HTML5 video for the fully controlled `pause -> question -> feedback -> continue` proof. No video is uploaded or hosted in this slice. The normal learner shell exposes only the lesson, progress, video, activity, feedback, and summary; source inspection and local-video replacement remain tester-only controls.
 
 The first demo uses a DOM-injected video interaction layer rather than making a Chrome side panel the primary experience.
 
@@ -258,7 +258,8 @@ The response must use a validated structured shape before rendering. API credent
 - Place the avatar near the lower-right edge without covering native controls.
 - Display one activity card at a time when playback pauses.
 - Show compact progress such as `1 / 3`.
-- Use the teacher editor as a quiet operational tool: node list, edit form, preview command, and latest report.
+- Use the teacher surface as a quiet operational workspace: the course in progress, pending teaching decisions, course health, then the timeline editor, preview command, and latest report.
+- Do not expose provider, iframe, adapter, local-file, or compatibility choices in the normal student flow; isolate them under explicit tester-only controls.
 - Do not build a general AI chat panel in the first demo.
 
 ## 7. Platform Expansion Boundary

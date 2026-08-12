@@ -23,53 +23,50 @@
 
       <main>
         <section id="home-view" class="view workspace-home" aria-labelledby="home-title">
-          <div class="workspace-head">
+          <div class="dashboard-head">
             <div>
               <p class="eyebrow">LessonPilot Studio / 我的课程</p>
-              <h1 id="home-title">AI 已经帮你备好课，<br><em>你来决定怎么教。</em></h1>
-              <p class="lead">上传已有课程和字幕，LessonPilot 会先识别知识点、易错点与互动机会。老师只需要审核、调整，然后模拟并发布。</p>
+              <h1 id="home-title">继续完成你的课程。</h1>
+              <p class="lead">从上次停下的位置继续设计互动、预览学生体验，然后发布一条可以交付的课程链接。</p>
             </div>
-            <div class="head-note"><span class="note-line"></span><p>不是视频编辑<br>而是课堂设计</p></div>
+            <button class="quiet-action" id="create-course" type="button">新建课程 <span>＋</span></button>
           </div>
 
-          <div class="import-stage">
-            <div class="import-stage-top"><span class="section-number">01</span><span class="section-label">上传课程，交给 AI 先备课</span><span class="stage-status">本地草稿</span></div>
-            <div class="import-grid">
-              <div class="video-dropzone" id="video-dropzone" tabindex="0" role="button" aria-label="选择视频">
-                <div class="drop-icon">▶</div>
-                <h2>选一条你已经录好的视频</h2>
-                <p>不需要重新录制，也不需要上传到云端。先选视频，再导入它的字幕。</p>
-                <button class="dark-button" id="choose-video" type="button">选择视频文件 <span>↗</span></button>
-                <small>MP4 / MOV · 视频只作为本地预览载体</small>
-              </div>
-              <div class="subtitle-dropzone" id="subtitle-dropzone" tabindex="0" role="button" aria-label="导入字幕">
-                <div class="caption-icon">Aa</div>
-                <h2>导入带时间戳的字幕</h2>
-                <p>支持 SRT、VTT。也可以稍后用本地 Whisper 生成，再回来校对。</p>
-                <button class="light-button" id="import-subtitle" type="button">导入字幕文件 <span>↑</span></button>
-                <small>SRT / VTT / JSON · 只读取文字和时间</small>
-              </div>
+          <section class="course-focus" aria-labelledby="focus-title">
+            <div class="focus-video" aria-label="课程视频预览"><span class="focus-play">▶</span><span class="focus-duration">03:42</span></div>
+            <div class="focus-main">
+              <div class="focus-status"><span class="status-dot"></span><span>课堂设计进行中</span><span>已保存刚刚</span></div>
+              <p class="eyebrow">当前课程</p>
+              <h2 id="focus-title">英语面试表达：把答案说得具体</h2>
+              <p>3 个已确认互动 · 1 个需要老师决定的建议 · 学生端已准备好预览</p>
+              <div class="focus-actions"><button class="dark-button" id="continue-course" type="button">继续设计课堂 <span>→</span></button><button class="light-button" id="preview-home" type="button">预览学生课程 <span>↗</span></button></div>
             </div>
-            <div class="import-foot"><span class="ready-mark">●</span><span id="import-state">已准备一份示例字幕，方便先看效果</span><button id="open-timeline" class="text-button" type="button">打开示例时间线 →</button></div>
-          </div>
-
-          <div class="studio-flow" aria-label="课程创作流程"><span class="flow-active"><b>01</b>上传课程</span><i>→</i><span><b>02</b>AI 分析</span><i>→</i><span><b>03</b>设计课堂</span><i>→</i><span><b>04</b>模拟学生</span><i>→</i><span><b>05</b>发布课程</span></div>
-
-          <div class="feature-row" aria-label="AI 备课与老师审核流程">
-            <div class="feature-intro"><span class="section-number">02</span><strong>AI 先给出一份备课草案</strong><p>老师不必从空白时间线开始，只需判断建议是否符合自己的教学意图。</p></div>
-            <div class="feature-item feature-attention"><span class="feature-symbol">01</span><strong>识别教学重点</strong><small>梳理知识点、目标和学生易错处</small></div>
-            <div class="feature-item feature-voice"><span class="feature-symbol">02</span><strong>建议课堂互动</strong><small>说明为什么该暂停、提问或补充</small></div>
-            <div class="feature-item feature-ai"><span class="feature-symbol">03</span><strong>老师最终决定</strong><small>采纳、修改或忽略，然后再发布</small></div>
-          </div>
-
-          <section class="recent-course" aria-labelledby="recent-title">
-            <div class="recent-heading"><div><span class="section-number">03</span><h2 id="recent-title">最近的课程草稿</h2></div><span>1 条本地草稿</span></div>
-            <button class="course-card" type="button" data-route="timeline">
-              <span class="course-thumb"><span>▶</span><b>03:42</b></span>
-              <span class="course-card-copy"><small>BILIBILI DEMO · AI 备课草案已生成</small><strong>英语面试表达：把答案说得具体</strong><span>4 条 AI 建议 · 3 项课堂设计 · 最后编辑刚刚</span></span>
-              <span class="course-arrow">→</span>
-            </button>
+            <aside class="focus-next" aria-label="下一步任务"><span>下一步</span><strong>确认 00:35 的互动练习</strong><p>AI 已识别这里是知识点转折，等待你的教学决定。</p><button class="text-button" id="open-suggestion" type="button">查看这条建议 →</button></aside>
           </section>
+
+          <section class="course-health" aria-label="课程进度">
+            <div><strong>03</strong><span>已确认互动</span></div>
+            <div><strong>01</strong><span>待确认建议</span></div>
+            <div><strong>12</strong><span>已校对字幕段</span></div>
+            <div><strong>未发布</strong><span>学生课程状态</span></div>
+          </section>
+
+          <section class="workspace-actions" aria-labelledby="workspace-actions-title">
+            <div class="section-heading"><div><p class="eyebrow">开始另一门课</p><h2 id="workspace-actions-title">把已有录播课变成可检查的学习。</h2></div><p>导入素材后，先从字幕与知识点开始设计，不需要重新录制。</p></div>
+            <div class="action-grid">
+              <div class="workspace-action video-dropzone" id="video-dropzone" tabindex="0" role="button" aria-label="选择视频">
+                <div class="drop-icon">▶</div><h3>导入已有视频</h3><p>选择本地视频作为课程预览载体。</p><button class="text-button" id="choose-video" type="button">选择视频文件 →</button>
+              </div>
+              <div class="workspace-action subtitle-dropzone" id="subtitle-dropzone" tabindex="0" role="button" aria-label="导入字幕">
+                <div class="caption-icon">Aa</div><h3>导入带时间戳的字幕</h3><p>从字幕定位教学重点和互动机会。</p><button class="text-button" id="import-subtitle" type="button">导入字幕文件 →</button>
+              </div>
+              <div class="workspace-action example-action">
+                <div class="example-number">01</div><h3>先看一份示例</h3><p>用当前课程快速了解从字幕到互动的设计过程。</p><button id="open-timeline" class="text-button" type="button">打开课堂设计 →</button>
+              </div>
+            </div>
+          </section>
+
+          <div class="studio-flow" aria-label="课程创作流程"><span><b>01</b>导入课程</span><i>→</i><span><b>02</b>设计课堂</span><i>→</i><span><b>03</b>预览学生体验</span><i>→</i><span><b>04</b>发布课程</span></div>
         </section>
 
         <section id="timeline-view" class="view timeline-view" aria-labelledby="timeline-title" hidden>
