@@ -4,6 +4,12 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### Teacher Sales Sample Course Header — 2026-08-13
+
+- Replace prototype status text with the course directory `英语职业课 / 英文面试表达`.
+- Remove preview, save, unsaved, and duplicated sample-course controls from the sales-sample header.
+- Keep example-data disclosure in the student completion section, where it applies to the displayed records.
+
 ### Teacher Editor Static Reload Fix — 2026-08-13
 
 - Make the shared teacher editor script tolerate controls that exist only on earlier page variants.

@@ -1,6 +1,5 @@
 (function initTeacherSample() {
   const toast = document.querySelector('#toast');
-  const saveLabel = document.querySelector('#save-label');
   const previewDialog = document.querySelector('#preview-dialog');
   const previewBody = document.querySelector('#preview-dialog-body');
   const addPanel = document.querySelector('#add-node-panel');
@@ -63,16 +62,6 @@
   document.querySelector('#add-node-on-track').addEventListener('click', toggleAddPanel);
   document.querySelector('#add-node-demo').addEventListener('click', () => {
     showToast('示例图只演示增加节点的入口，不会新增已保存的第四个节点。');
-  });
-
-  document.querySelector('#save-course').addEventListener('click', () => {
-    saveLabel.textContent = '示例已保存到本页';
-    showToast('示例已保存到本页，刷新后仍回到初始样例。');
-  });
-
-  document.querySelector('#preview-course').addEventListener('click', () => {
-    showToast('打开学生课程页，查看同一门课的学生端外形。');
-    window.open('../student-web/', '_blank', 'noopener,noreferrer');
   });
 
   document.querySelectorAll('[data-preview]').forEach((button) => {

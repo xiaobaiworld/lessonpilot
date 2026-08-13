@@ -14,7 +14,11 @@ const studentApp = fs.readFileSync('student-web/app.js', 'utf8');
 const checks = [
   {
     label: 'sales sample uses the course title as the page heading',
-    run: () => samplePage.includes('英语面试表达：把答案说得具体') && samplePage.includes('id="course-title"') && !samplePage.includes('沿着字幕，设计学生真正需要的课堂动作')
+    run: () => samplePage.includes('英语面试表达：把答案说得具体') && samplePage.includes('id="course-title"') && samplePage.includes('英语职业课') && samplePage.includes('英文面试表达') && !samplePage.includes('沿着字幕，设计学生真正需要的课堂动作')
+  },
+  {
+    label: 'sales sample header avoids prototype actions and duplicate sample status',
+    run: () => !samplePage.includes('预览学生课程') && !samplePage.includes('保存课堂设计') && !samplePage.includes('示例未保存') && !samplePage.includes('<small>示例课程</small>') && !samplePage.includes('<span>示例课程</span>')
   },
   {
     label: 'sales sample stacks video above a full-width timeline',

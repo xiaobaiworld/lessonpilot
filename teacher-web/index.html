@@ -6,31 +6,26 @@
     <meta name="description" content="LessonPilot 课堂设计工作台示例：时间线上的关键节点、学生效果与完成情况">
     <title>英语面试表达：把答案说得具体 · LessonPilot</title>
     <link rel="icon" href="data:,">
-    <link rel="stylesheet" href="styles.css?v=64c76a8">
+    <link rel="stylesheet" href="styles.css?v=b4d80ff-1">
   </head>
   <body>
     <div class="app-shell">
       <header class="topbar">
         <a class="brand" href="./" aria-label="LessonPilot 示例课程">
           <span class="brand-mark">LP</span>
-          <span><strong>LessonPilot Studio</strong><small>示例课程</small></span>
+          <span><strong>LessonPilot Studio</strong></span>
         </a>
-        <div class="connection-status">
-          <span class="status-dot"></span>
-          <span>示例课程</span>
-        </div>
       </header>
 
       <main class="view sample-page" id="sample-page">
         <header class="sample-head">
           <div>
-            <p class="eyebrow">示例课程 · B 站 · 03:42 · 字幕已导入 · 3 个关键节点</p>
+            <nav class="course-breadcrumb" aria-label="课程目录">
+              <a href="./">英语职业课</a>
+              <span aria-hidden="true">/</span>
+              <span aria-current="page">英文面试表达</span>
+            </nav>
             <h1 id="course-title">英语面试表达：把答案说得具体</h1>
-          </div>
-          <div class="sample-head-actions">
-            <span class="save-label" id="save-label">示例未保存</span>
-            <button class="light-button" id="preview-course" type="button">预览学生课程</button>
-            <button class="dark-button" id="save-course" type="button">保存课堂设计</button>
           </div>
         </header>
 
@@ -272,6 +267,6 @@
       <div class="sample-lightbox-body" id="preview-dialog-body"></div>
     </dialog>
     <div id="toast" class="toast" role="status" aria-live="polite" aria-hidden="true"></div>
-    <script src="sample.js"></script>
+    <script src="sample.js?v=b4d80ff-1"></script>
   </body>
 </html>
