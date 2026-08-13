@@ -11,24 +11,20 @@ const studentApp = fs.readFileSync('student-web/app.js', 'utf8');
 
 const checks = [
   {
-    label: 'teacher home explains the four product capabilities before course editing',
-    run: () => teacherPage.includes('把一节录播课变成可练习的学习') && ['接入已有课程', '按字幕设计动作', '预览学生体验', '查看学习结果'].every((label) => teacherPage.includes(label))
-  },
-  {
-    label: 'teacher home keeps a direct student preview action',
-    run: () => teacherPage.includes('预览学生课程') && teacherPage.includes('id="preview-home"')
+    label: 'teacher home centers the classroom-design task',
+    run: () => teacherPage.includes('沿着字幕，设计学生真正需要的课堂动作') && teacherPage.includes('主要任务') && teacherPage.includes('id="continue-course"') && teacherPage.includes('进入课堂设计')
   },
   {
     label: 'teacher W0 workspace does not offer local video import',
-    run: () => teacherPage.includes('确认 B 站课程链接') && !teacherPage.includes('选择视频文件')
+    run: () => teacherPage.includes('BV1WW4y1e7GL') && !teacherPage.includes('选择视频文件')
   },
   {
     label: 'teacher W0 workspace accepts a Bilibili link and a subtitle file',
     run: () => teacherPage.includes('id="course-url-input"') && teacherPage.includes('id="subtitle-file-input"')
   },
   {
-    label: 'teacher home is honest that learning-result recording is not delivered in W0',
-    run: () => teacherPage.includes('不记录学习会话，也不生成报告') && !teacherPage.includes('新建课程')
+    label: 'teacher home keeps learning results as a small honest process note',
+    run: () => teacherPage.includes('学生学习过程') && teacherPage.includes('不记录学习会话，也不生成报告') && !teacherPage.includes('预览学生课程') && !teacherPage.includes('新建课程')
   },
   {
     label: 'student entry presents learning goals, a dominant source video, and learning results',

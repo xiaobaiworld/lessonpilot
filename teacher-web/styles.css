@@ -1386,13 +1386,13 @@ textarea:focus-visible {
   }
 }
 
-/* W0 teacher home: orient first-time teachers to the real workflow. */
-.capability-head {
+/* W0 teacher home: keep classroom design as the dominant task. */
+.design-home-head {
   align-items: end;
   margin-bottom: 52px;
 }
 
-.capability-note {
+.design-scope {
   max-width: 245px;
   margin: 0 0 5px;
   padding-left: 16px;
@@ -1402,85 +1402,59 @@ textarea:focus-visible {
   line-height: 1.7;
 }
 
-.capability-note span {
+.design-scope span {
   display: block;
   margin-bottom: 3px;
   color: var(--green);
   font-weight: 700;
 }
 
-.capability-map {
-  border-top: 1px solid var(--ink);
-}
-
-.capability-heading {
-  padding: 26px 0 22px;
-  margin: 0;
-}
-
-.capability-heading h2 {
-  max-width: 660px;
-  font-size: clamp(25px, 3vw, 38px);
-  line-height: 1.28;
-}
-
-.capability-steps {
+.design-entry {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  grid-template-columns: minmax(300px, 0.72fr) minmax(420px, 1.28fr);
   border: 1px solid var(--ink);
   background: var(--paper-bright);
 }
 
-.capability-step {
-  position: relative;
+.design-setup,
+.design-task {
   display: flex;
   min-width: 0;
-  min-height: 410px;
   flex-direction: column;
   align-items: flex-start;
-  padding: 26px 24px 24px;
+  padding: clamp(28px, 4vw, 48px);
 }
 
-.capability-step + .capability-step {
-  border-left: 1px solid var(--line-dark);
+.design-setup {
+  background: #e9eee9;
+  border-right: 1px solid var(--ink);
 }
 
-.step-number {
-  color: var(--green);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.capability-icon {
-  display: grid;
-  width: 40px;
-  height: 40px;
-  margin: 23px 0 22px;
-  place-items: center;
-  border: 1px solid currentColor;
-  border-radius: 4px;
-  color: var(--green);
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.capability-step h3 {
-  margin: 0 0 10px;
-  font-size: 19px;
+.design-setup h2,
+.design-task h2 {
+  margin: 8px 0 12px;
   letter-spacing: 0;
 }
 
-.capability-step > p {
-  margin: 0 0 20px;
+.design-setup h2 {
+  font-size: 23px;
+}
+
+.design-task h2 {
+  font-size: clamp(36px, 4.5vw, 58px);
+  line-height: 1.08;
+}
+
+.design-setup > p,
+.design-task > p {
+  max-width: 500px;
+  margin: 0 0 24px;
   color: var(--ink-soft);
   font-size: 13px;
   line-height: 1.7;
 }
 
-.capability-step .field-label {
+.design-setup .field-label {
   display: grid;
   width: 100%;
   gap: 7px;
@@ -1490,7 +1464,7 @@ textarea:focus-visible {
   font-weight: 700;
 }
 
-.capability-step .field-label input {
+.design-setup .field-label input {
   width: 100%;
   min-width: 0;
   height: 38px;
@@ -1501,146 +1475,129 @@ textarea:focus-visible {
   color: var(--ink);
 }
 
-.capability-step .text-button,
-.capability-step .file-button {
+.design-setup .text-button,
+.design-setup .file-button {
   margin: 0;
 }
 
-.capability-step .file-button {
+.design-setup .file-button {
   display: inline-block;
   margin-top: 13px;
   cursor: pointer;
 }
 
-.capability-step .file-name,
-.capability-step .field-error {
+.design-setup .file-name,
+.design-setup .field-error {
   width: 100%;
   margin: 10px 0 0;
   font-size: 11px;
   line-height: 1.55;
 }
 
-.capability-step .field-error {
+.design-setup .field-error {
   color: var(--danger);
 }
 
-.capability-step .dark-button,
-.capability-step .light-button {
-  margin-top: auto;
+
+.design-action-types {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 8px 0 28px;
+  border-top: 1px solid var(--line-dark);
+  border-left: 1px solid var(--line-dark);
 }
 
-.capability-status {
-  margin-top: 15px !important;
-  padding-top: 13px;
-  border-top: 1px solid var(--line);
-  color: var(--green) !important;
-  font-size: 11px !important;
+.design-action-types span {
+  min-height: 64px;
+  padding: 14px;
+  border-right: 1px solid var(--line-dark);
+  border-bottom: 1px solid var(--line-dark);
+  font-size: 13px;
   font-weight: 700;
 }
 
-.capability-step-results {
-  background: #e9eee9;
-}
-
-.result-boundary {
-  margin-top: auto !important;
-  margin-bottom: 0 !important;
-  padding-top: 16px;
-  border-top: 1px solid var(--line-dark);
-  font-size: 12px !important;
-}
-
-.result-boundary strong {
+.design-action-types b {
   display: block;
   margin-bottom: 5px;
   color: var(--green);
-  font-size: 11px;
+  font-size: 10px;
 }
 
-.capability-next {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 30px;
-  padding: 32px 0 0;
-  margin-top: 48px;
+.design-task-note {
+  margin: 0 0 26px !important;
+  font-size: 14px !important;
 }
 
-.capability-next .section-heading {
-  flex: 1;
-  margin: 0;
+.design-task .dark-button {
+  min-height: 50px;
+  margin-top: auto;
+  padding-right: 20px;
 }
 
-.capability-next-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+.learning-trace {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.85fr) minmax(360px, 1.15fr);
+  gap: 40px;
+  align-items: start;
+  padding: 30px 0 0;
+  margin-top: 42px;
+  border-top: 1px solid var(--ink);
 }
 
-@media (max-width: 1120px) {
-  .capability-steps {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+.learning-trace h2 {
+  max-width: 480px;
+  margin: 8px 0 0;
+  font-size: 22px;
+  line-height: 1.35;
+  letter-spacing: 0;
+}
 
-  .capability-step {
-    min-height: 350px;
-  }
-
-  .capability-step:nth-child(3) {
-    border-top: 1px solid var(--line-dark);
-    border-left: 0;
-  }
-
-  .capability-step:nth-child(4) {
-    border-top: 1px solid var(--line-dark);
-  }
+.learning-trace > p {
+  max-width: 570px;
+  margin: 6px 0 0;
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.75;
 }
 
 @media (max-width: 720px) {
-  .capability-head {
+  .design-home-head {
     gap: 22px;
     margin-bottom: 36px;
   }
 
-  .capability-note {
+  .design-scope {
     max-width: 320px;
   }
 
-  .capability-heading {
-    padding: 22px 0 18px;
-  }
-
-  .capability-steps {
+  .design-entry,
+  .learning-trace {
     grid-template-columns: 1fr;
   }
 
-  .capability-step {
-    min-height: 0;
-    padding: 24px 20px;
+  .design-setup,
+  .design-task {
+    padding: 28px 22px;
   }
 
-  .capability-step + .capability-step,
-  .capability-step:nth-child(3),
-  .capability-step:nth-child(4) {
-    border-top: 1px solid var(--line-dark);
-    border-left: 0;
+  .design-setup {
+    border-right: 0;
+    border-bottom: 1px solid var(--ink);
   }
 
-  .capability-step .field-label,
-  .capability-step .dark-button,
-  .capability-step .light-button,
-  .result-boundary {
-    margin-top: 22px;
+  .design-task h2 {
+    font-size: 40px;
   }
 
-  .capability-next {
-    display: block;
-    padding-top: 28px;
-    margin-top: 36px;
+  .learning-trace {
+    gap: 14px;
+    padding-top: 26px;
+    margin-top: 32px;
   }
 
-  .capability-next-actions {
-    margin-top: 20px;
+  .learning-trace > p {
+    margin-top: 0;
   }
 }
 

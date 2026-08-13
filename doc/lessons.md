@@ -9,6 +9,12 @@ An operational dashboard assumes a teacher already knows what the product does a
 
 The teacher home should therefore expose the actual workflow in order: connect an existing course and its authorized subtitles, design an action at a caption, preview the student experience, then understand the result structure. Each step needs either a real command or an explicit W0 boundary; never fill the last step with invented reports or a disabled promise.
 
+## 2026-08-13 — One Teacher Screen Needs One Dominant Job
+
+After a teacher understands the basic product idea, a home page that treats setup, preview, results, and classroom design as equal modules competes with the work that matters most. For this W0, subtitle preparation is a prerequisite and student learning evidence is an outcome; neither should visually rival classroom design.
+
+Make the primary task explicit, keep the prerequisite input next to it, and reduce downstream outcomes to only the context needed for a teacher to make a better design decision.
+
 ## 2026-08-12 — Page Directories Are Not Separate Local Services
 
 `teacher-web/` and `student-web/` look like two standalone static sites, but the verified W0 topology is one repository-root HTTP server with two paths on the same origin.

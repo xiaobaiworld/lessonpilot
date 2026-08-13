@@ -4,6 +4,12 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### Classroom-Design Teacher Home — 2026-08-13
+
+- Reduce the teacher home from a four-module capability map to one dominant classroom-design task.
+- Keep the fixed Bilibili course and manual subtitle import as compact setup inputs beside the design entry.
+- Replace home-page student preview and result modules with a small, honest note about the learning process and future evidence.
+
 ### Teacher Capability-Guided Home — 2026-08-13
 
 - Replace the assumed current-course dashboard with a first-use workspace that explains existing-course intake, caption-anchored classroom design, student preview, and learning results.

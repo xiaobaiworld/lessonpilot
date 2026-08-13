@@ -96,10 +96,7 @@
     showToast(`已导入 ${captions.length} 段字幕。选择一段开始设计课堂动作。`);
   };
   document.querySelectorAll('[data-route]').forEach((button) => button.addEventListener('click', () => setRoute(button.dataset.route)));
-  document.querySelector('#open-timeline').addEventListener('click', () => setRoute('timeline'));
   document.querySelector('#continue-course').addEventListener('click', () => setRoute('timeline'));
-  document.querySelector('#open-suggestion').addEventListener('click', () => { setRoute('timeline'); window.setTimeout(() => selectEvent('activity'), 0); });
-  document.querySelector('#preview-home').addEventListener('click', () => { showToast('学生预览会打开课程体验页，当前为界面原型。'); window.open('../student-web/', '_blank', 'noopener,noreferrer'); });
   document.querySelector('#confirm-course-url').addEventListener('click', confirmCourseUrl);
   subtitleFileInput.addEventListener('change', importSubtitleFile);
   document.querySelector('#preview-timeline').addEventListener('click', () => { showToast('课堂模拟会展示学生视角，真实扩展桥将在下一步接入。'); window.open(lessonUrl, '_blank', 'noopener,noreferrer'); });

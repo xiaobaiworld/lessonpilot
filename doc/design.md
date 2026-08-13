@@ -89,19 +89,18 @@ fixed Bilibili page URL
 
 ### 2.0.2 W0 Teacher Home
 
-The teacher home is a function-guided workspace, not a current-course dashboard and not a marketing landing page. Its first-use flow is:
+The teacher home is a classroom-design workspace, not a current-course dashboard and not a marketing landing page. Its first-use flow is:
 
 ```text
-understand the available capability
-  -> confirm the fixed Bilibili course and import authorized subtitles
-  -> design a classroom action on a caption
-  -> preview the student course shell
-  -> understand the learning-result structure that later sessions will fill
+confirm the fixed Bilibili course and import authorized subtitles
+  -> enter classroom design
+  -> select a caption and author a classroom action
+  -> understand the small learning-evidence trace that later sessions will fill
 ```
 
-- The home makes four modules legible: existing-course intake, caption-anchored classroom design, student preview, and learning results.
-- Course link confirmation, SRT/VTT import, timeline editing, and student preview are interactive W0 commands.
-- Learning results are an honest future-facing structure only in W0: no session recording, report, analytics, or AI interpretation is claimed as delivered.
+- Classroom design is the only dominant home task. Course link confirmation and SRT/VTT import are compact setup inputs for that task, not peer modules.
+- The home links directly into the caption timeline. Student preview remains reachable from the editor where it supports a design decision; it is not a home-page task.
+- A small learning-process/evidence note explains the eventual outcome of authored actions. W0 records no session, report, analytics, or AI interpretation.
 - The page links into the timeline rather than duplicating the timeline editor on the home surface.
 
 ### 2.1 Demo Scope Controller
@@ -315,7 +314,7 @@ The response must use a validated structured shape before rendering. API credent
 - Place the avatar near the lower-right edge without covering native controls.
 - Display one activity card at a time when playback pauses.
 - Show compact progress such as `1 / 3`.
-- Use the teacher surface as a quiet operational workspace: on first entry, orient the teacher to the four real product modules; after that, lead directly to source intake, the timeline editor, and student preview. Do not imply that a current course or a latest report already exists.
+- Use the teacher surface as a quiet operational workspace: lead with classroom design, keep source intake compact and adjacent, and show only a small learning-evidence outcome note. Do not imply that a current course or a latest report already exists.
 - Do not expose provider, iframe, adapter, local-file, or compatibility choices in the normal student flow. W0 uses one concise “在 B 站打开原课” fallback instead of a technical testing panel.
 - Do not build a general AI chat panel in the first demo.
 

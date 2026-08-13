@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="LessonPilot Studio · AI 互动课程创作工作台">
     <title>LessonPilot Studio · AI 互动课程创作工作台</title>
+    <link rel="icon" href="data:,">
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
@@ -15,7 +16,6 @@
           <span><strong>LessonPilot Studio</strong><small>AI 互动课程创作工作台</small></span>
         </button>
         <nav class="topnav" aria-label="主导航">
-          <button class="nav-link is-active" type="button" data-route="home">产品能力</button>
           <button class="nav-link" type="button" data-route="timeline">设计课堂</button>
         </nav>
         <div class="connection-status"><span class="status-dot"></span><span>本地演示</span><span class="status-divider"></span><span>扩展待连接</span></div>
@@ -23,36 +23,29 @@
 
       <main>
         <section id="home-view" class="view workspace-home" aria-labelledby="home-title">
-          <div class="dashboard-head capability-head">
+          <div class="dashboard-head design-home-head">
             <div>
-              <p class="eyebrow">LessonPilot Studio / 课程改造工作台</p>
-              <h1 id="home-title">把一节录播课变成可练习的学习。</h1>
-              <p class="lead">从已有课程和字幕开始，老师决定学生在哪一段停下来思考、练习和回看。这里先带你看清这套产品怎样工作。</p>
+              <p class="eyebrow">LessonPilot Studio / 课堂设计</p>
+              <h1 id="home-title">沿着字幕，设计学生真正需要的课堂动作。</h1>
+              <p class="lead">把教学判断放在具体一句话上：这里要不要提醒？要不要补充？还是让学生先练一次？</p>
             </div>
-            <p class="capability-note"><span>W0 当前范围</span>固定 B 站样例 + 教师提供的字幕文件</p>
+            <p class="design-scope"><span>W0 当前范围</span>固定 B 站样例 + 教师提供的字幕文件</p>
           </div>
 
-          <section class="capability-map" aria-labelledby="capability-map-title">
-            <div class="section-heading capability-heading"><div><p class="eyebrow">你可以用 LessonPilot 做什么</p><h2 id="capability-map-title">把教学判断放在视频真正需要它的地方。</h2></div><p>不是重新录制，也不是把视频换到新平台。先以一节已有课程为例，走完从字幕到学生学习体验的路径。</p></div>
-            <ol class="capability-steps">
-              <li class="capability-step capability-step-source">
-                <span class="step-number">01</span><div class="capability-icon" aria-hidden="true">↗</div><h3>接入已有课程</h3><p>确认 B 站课程链接，再导入你已取得的 SRT 或 VTT 字幕。字幕会成为后续教学设计的时间锚点。</p><label class="field-label">课程链接<input id="course-url-input" type="url" value="https://www.bilibili.com/video/BV1WW4y1e7GL/" inputmode="url"></label><button class="text-button" id="confirm-course-url" type="button">确认课程链接 →</button><p class="field-error" id="course-url-error" hidden></p><label class="text-button file-button" for="subtitle-file-input">导入字幕文件 →</label><input id="subtitle-file-input" type="file" accept=".srt,.vtt,text/plain,text/vtt" hidden><p class="file-name" id="subtitle-file-name">当前支持固定样例与手动取得的字幕</p><p class="field-error" id="subtitle-file-error" hidden></p>
-              </li>
-              <li class="capability-step capability-step-design">
-                <span class="step-number">02</span><div class="capability-icon" aria-hidden="true">Aa</div><h3>按字幕设计动作</h3><p>选中一句字幕，为学生安排重点提醒、老师补充、互动练习或受限的点评追问。教学决定始终由老师完成。</p><button id="open-timeline" class="dark-button" type="button">打开课堂设计 <span>→</span></button><p class="capability-status">当前可用：字幕时间线与课堂动作编辑</p>
-              </li>
-              <li class="capability-step capability-step-preview">
-                <span class="step-number">03</span><div class="capability-icon" aria-hidden="true">▶</div><h3>预览学生体验</h3><p>在学生页面检查课程目标、放大的来源视频和学习结果展示是否对学生足够清楚。</p><button class="light-button" id="preview-home" type="button">预览学生课程 <span>↗</span></button><p class="capability-status">当前可用：跨桌面与移动浏览器的课程入口</p>
-              </li>
-              <li class="capability-step capability-step-results">
-                <span class="step-number">04</span><div class="capability-icon" aria-hidden="true">□</div><h3>查看学习结果</h3><p>学生完成练习后，结果会回到课程目标和老师设计的动作上，帮助你判断哪一段需要补讲或复练。</p><p class="result-boundary"><strong>下一阶段接入</strong> 当前学生页只展示本节课预期形成的学习结果，不记录学习会话，也不生成报告。</p>
-              </li>
-            </ol>
+          <section class="design-entry" aria-labelledby="design-entry-title">
+            <aside class="design-setup" aria-labelledby="setup-title">
+              <p class="eyebrow">开始设计前</p><h2 id="setup-title">准备课程字幕</h2><p>固定样例已预填。确认课程链接，再导入你已取得的 SRT 或 VTT 字幕。</p><label class="field-label">课程链接<input id="course-url-input" type="url" value="https://www.bilibili.com/video/BV1WW4y1e7GL/" inputmode="url"></label><button class="text-button" id="confirm-course-url" type="button">确认课程链接 →</button><p class="field-error" id="course-url-error" hidden></p><label class="text-button file-button" for="subtitle-file-input">导入字幕文件 →</label><input id="subtitle-file-input" type="file" accept=".srt,.vtt,text/plain,text/vtt" hidden><p class="file-name" id="subtitle-file-name">字幕只在当前浏览器解析，不上传到服务器</p><p class="field-error" id="subtitle-file-error" hidden></p>
+            </aside>
+            <div class="design-task">
+              <p class="eyebrow">主要任务</p><h2 id="design-entry-title">设计课堂</h2><p>选择一句字幕，在这个时间点加入老师真正想让学生做的事。</p>
+              <div class="design-action-types" aria-label="可设计的课堂动作"><span><b>01</b>重点提醒</span><span><b>02</b>老师补充</span><span><b>03</b>互动练习</span><span><b>04</b>点评追问</span></div>
+              <p class="design-task-note">字幕负责定位，课堂动作负责把一节录播课变成学生会参与的学习。</p><button id="continue-course" class="dark-button" type="button">进入课堂设计 <span>→</span></button>
+            </div>
           </section>
 
-          <section class="workspace-actions capability-next" aria-labelledby="capability-next-title">
-            <div class="section-heading"><div><p class="eyebrow">从这里开始试用</p><h2 id="capability-next-title">先导入字幕，再决定第一处学生动作。</h2></div><p>W0 只验证固定 B 站样例的课程呈现和课堂设计。视频不上传、不托管，字幕只在当前浏览器解析。</p></div>
-            <div class="capability-next-actions"><button id="continue-course" class="dark-button" type="button">打开课堂设计 <span>→</span></button><button class="light-button" id="open-suggestion" type="button">查看示例教学节点 <span>→</span></button></div>
+          <section class="learning-trace" aria-labelledby="learning-trace-title">
+            <div><p class="eyebrow">学生学习过程</p><h2 id="learning-trace-title">每一个课堂动作，都会让学生的学习过程更清楚。</h2></div>
+            <p>学生观看课程、在你设计的节点练习并获得反馈；后续这些过程会沉淀为学习证据，帮助你回看哪一段需要补讲或复练。当前 W0 不记录学习会话，也不生成报告。</p>
           </section>
         </section>
 
