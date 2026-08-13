@@ -1,6 +1,6 @@
 # Design — LessonPilot
 
-Version: 0.5
+Version: 0.6
 Last updated: 2026-08-13
 
 ## 1. Architecture Decision
@@ -89,7 +89,11 @@ fixed Bilibili page URL
 
 ### 2.0.2 W0 Teacher Home
 
-The teacher home is a classroom-design workspace, not a current-course dashboard and not a marketing landing page. Its first-use flow is:
+The live `teacher-web/` page remains the W0 functional prototype: confirm the fixed Bilibili course, import authorized subtitles, and author a classroom action on a caption. That path is not the teacher-facing product picture.
+
+The sales sample for teachers is specified in `doc/teacher-course-workspace-design.md` and implemented at `teacher-web/index.html`. It is a one-page classroom-design picture (title, video 3/4 + intro, full-width timeline with typed icons, three node rows with student-effect preview, sample completion). The previous W0 editor remains at `teacher-web/editor.html`. Change real workspace features later, without inventing a second information architecture.
+
+The current functional home is still a classroom-design workspace, not a current-course dashboard and not a marketing landing page. Its first-use flow is:
 
 ```text
 confirm the fixed Bilibili course and import authorized subtitles

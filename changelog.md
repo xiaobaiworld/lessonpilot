@@ -4,6 +4,23 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### Teacher Workspace Sales Sample Page — 2026-08-13
+
+- Implement the confirmed sales sample at `teacher-web/index.html`: video 3/4 + intro 1/4, full-width timeline with typed icons, node rows, and labeled sample completion.
+- Keep the previous subtitle-driven W0 prototype at `teacher-web/editor.html`.
+
+### Teacher Workspace Timeline Stack — 2026-08-13
+
+- Stack video above a full-width timeline instead of placing them side by side.
+- Give a small video about three-quarters of the row width, with course intro in the remaining quarter.
+- Mark timeline interaction points with distinct icons and visible labels.
+
+### Teacher Workspace Sales Sample — 2026-08-13
+
+- Define `doc/teacher-course-workspace-design.md` as the teacher-facing sales sample, not the shipped workspace.
+- Keep the four-layer picture (course, timeline, node rows with student-effect preview, sample completion) as the target shape of the later real workspace.
+- Leave `teacher-web/` functional code unchanged in this round.
+
 ### Classroom-Design Teacher Home — 2026-08-13
 
 - Reduce the teacher home from a four-module capability map to one dominant classroom-design task.

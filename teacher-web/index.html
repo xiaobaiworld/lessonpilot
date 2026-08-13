@@ -3,90 +3,275 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="LessonPilot Studio · AI 互动课程创作工作台">
-    <title>LessonPilot Studio · AI 互动课程创作工作台</title>
+    <meta name="description" content="LessonPilot 课堂设计工作台示例：时间线上的关键节点、学生效果与完成情况">
+    <title>英语面试表达：把答案说得具体 · LessonPilot</title>
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
     <div class="app-shell">
       <header class="topbar">
-        <button class="brand" type="button" data-route="home" aria-label="返回 LessonPilot 首页">
+        <a class="brand" href="./" aria-label="LessonPilot 示例课程">
           <span class="brand-mark">LP</span>
-          <span><strong>LessonPilot Studio</strong><small>AI 互动课程创作工作台</small></span>
-        </button>
-        <nav class="topnav" aria-label="主导航">
-          <button class="nav-link" type="button" data-route="timeline">设计课堂</button>
-        </nav>
-        <div class="connection-status"><span class="status-dot"></span><span>本地演示</span><span class="status-divider"></span><span>扩展待连接</span></div>
+          <span><strong>LessonPilot Studio</strong><small>示例课程</small></span>
+        </a>
+        <div class="connection-status">
+          <span class="status-dot"></span>
+          <span>示例课程</span>
+        </div>
       </header>
 
-      <main>
-        <section id="home-view" class="view workspace-home" aria-labelledby="home-title">
-          <div class="dashboard-head design-home-head">
-            <div>
-              <p class="eyebrow">LessonPilot Studio / 课堂设计</p>
-              <h1 id="home-title">沿着字幕，设计学生真正需要的课堂动作。</h1>
-              <p class="lead">把教学判断放在具体一句话上：这里要不要提醒？要不要补充？还是让学生先练一次？</p>
-            </div>
-            <p class="design-scope"><span>W0 当前范围</span>固定 B 站样例 + 教师提供的字幕文件</p>
+      <main class="view sample-page" id="sample-page">
+        <header class="sample-head">
+          <div>
+            <p class="eyebrow">示例课程 · B 站 · 03:42 · 字幕已导入 · 3 个关键节点</p>
+            <h1 id="course-title">英语面试表达：把答案说得具体</h1>
+          </div>
+          <div class="sample-head-actions">
+            <span class="save-label" id="save-label">示例未保存</span>
+            <button class="light-button" id="preview-course" type="button">预览学生课程</button>
+            <button class="dark-button" id="save-course" type="button">保存课堂设计</button>
+          </div>
+        </header>
+
+        <section class="sample-stage" aria-label="课程视频与时间线">
+          <div class="sample-stage-top">
+            <figure class="sample-video">
+              <div class="sample-video-frame">
+                <p class="sample-video-fallback">BV1WW4y1e7GL · 英语面试表达</p>
+                <iframe
+                  title="课程视频"
+                  src="https://player.bilibili.com/player.html?bvid=BV1WW4y1e7GL&autoplay=0"
+                  allowfullscreen
+                ></iframe>
+              </div>
+              <figcaption>B 站来源 · 用来对时间点，网页不控制播放</figcaption>
+            </figure>
+            <aside class="sample-intro" aria-labelledby="intro-title">
+              <p class="eyebrow">整体介绍</p>
+              <h2 id="intro-title">把抽象形容词换成有证据的回答</h2>
+              <p>三个节点沿着同一条时间线：先看清重点，再动手补全结构，最后迁到自己的经历。</p>
+              <ol>
+                <li><button type="button" data-focus-node="1">01 重点提醒</button> 具体例子比形容词有用</li>
+                <li><button type="button" data-focus-node="2">02 互动练习</button> 补全 STAR 里的 Action</li>
+                <li><button type="button" data-focus-node="3">03 点评追问</button> 把结构迁到自己的经历</li>
+              </ol>
+            </aside>
           </div>
 
-          <section class="design-entry" aria-labelledby="design-entry-title">
-            <aside class="design-setup" aria-labelledby="setup-title">
-              <p class="eyebrow">开始设计前</p><h2 id="setup-title">准备课程字幕</h2><p>固定样例已预填。确认课程链接，再导入你已取得的 SRT 或 VTT 字幕。</p><label class="field-label">课程链接<input id="course-url-input" type="url" value="https://www.bilibili.com/video/BV1WW4y1e7GL/" inputmode="url"></label><button class="text-button" id="confirm-course-url" type="button">确认课程链接 →</button><p class="field-error" id="course-url-error" hidden></p><label class="text-button file-button" for="subtitle-file-input">导入字幕文件 →</label><input id="subtitle-file-input" type="file" accept=".srt,.vtt,text/plain,text/vtt" hidden><p class="file-name" id="subtitle-file-name">字幕只在当前浏览器解析，不上传到服务器</p><p class="field-error" id="subtitle-file-error" hidden></p>
-            </aside>
-            <div class="design-task">
-              <p class="eyebrow">主要任务</p><h2 id="design-entry-title">设计课堂</h2><p>选择一句字幕，在这个时间点加入老师真正想让学生做的事。</p>
-              <div class="design-action-types" aria-label="可设计的课堂动作"><span><b>01</b>重点提醒</span><span><b>02</b>老师补充</span><span><b>03</b>互动练习</span><span><b>04</b>点评追问</span></div>
-              <p class="design-task-note">字幕负责定位，课堂动作负责把一节录播课变成学生会参与的学习。</p><button id="continue-course" class="dark-button" type="button">进入课堂设计 <span>→</span></button>
+          <div class="sample-timeline" aria-label="课程时间线">
+            <div class="sample-timeline-head">
+              <strong>课程时间线</strong>
+              <span>00:00 — 03:42</span>
             </div>
-          </section>
-
-          <section class="learning-trace" aria-labelledby="learning-trace-title">
-            <div><p class="eyebrow">学生学习过程</p><h2 id="learning-trace-title">每一个课堂动作，都会让学生的学习过程更清楚。</h2></div>
-            <p>学生观看课程、在你设计的节点练习并获得反馈；后续这些过程会沉淀为学习证据，帮助你回看哪一段需要补讲或复练。当前 W0 不记录学习会话，也不生成报告。</p>
-          </section>
+            <div class="sample-track" id="sample-track">
+              <div class="sample-track-line" aria-hidden="true"></div>
+              <div class="sample-density" aria-hidden="true">
+                <i style="left:4%;width:7%"></i>
+                <i style="left:14%;width:9%"></i>
+                <i style="left:28%;width:8%"></i>
+                <i style="left:40%;width:10%"></i>
+                <i style="left:54%;width:7%"></i>
+                <i style="left:68%;width:11%"></i>
+                <i style="left:84%;width:8%"></i>
+              </div>
+              <button class="sample-mark is-attention is-active" type="button" data-node="1" style="left:15.8%" aria-current="true">
+                <span class="sample-mark-icon" aria-hidden="true">
+                  <svg viewBox="0 0 20 20" width="16" height="16"><path d="M10 1.6 12.2 7h5.6l-4.5 3.4 1.7 5.5L10 12.8 5 15.9l1.7-5.5L2.2 7h5.6Z" fill="currentColor"/></svg>
+                </span>
+                <span class="sample-mark-copy">
+                  <b>01 重点提醒</b>
+                  <small>00:35 · 具体例子更有用</small>
+                </span>
+              </button>
+              <button class="sample-mark is-activity is-label-above" type="button" data-node="2" style="left:35.1%">
+                <span class="sample-mark-icon" aria-hidden="true">
+                  <svg viewBox="0 0 20 20" width="16" height="16"><rect x="3.5" y="3.5" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                </span>
+                <span class="sample-mark-copy">
+                  <b>02 互动练习</b>
+                  <small>01:18 · 补全 Action</small>
+                </span>
+              </button>
+              <button class="sample-mark is-followup" type="button" data-node="3" style="left:49.1%">
+                <span class="sample-mark-icon" aria-hidden="true">
+                  <svg viewBox="0 0 20 20" width="16" height="16"><path d="M4 5h7.5a3 3 0 0 1 0 6H8l5 5" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                </span>
+                <span class="sample-mark-copy">
+                  <b>03 点评追问</b>
+                  <small>01:49 · 迁到自己的经历</small>
+                </span>
+              </button>
+              <button class="sample-add-mark" id="add-node-on-track" type="button" style="left:92%" title="增加节点">＋</button>
+            </div>
+            <div class="sample-track-times" aria-hidden="true">
+              <span>00:00</span><span>01:00</span><span>02:00</span><span>03:42</span>
+            </div>
+          </div>
         </section>
 
-        <section id="timeline-view" class="view timeline-view" aria-labelledby="timeline-title" hidden>
-          <div class="timeline-head">
-            <div><button class="back-link" type="button" data-route="home">← 我的课程</button><p class="eyebrow">课堂设计 / 英语面试表达</p><h1 id="timeline-title">沿着字幕，设计这堂课的动作。</h1><p>选择一个字幕段落，在它的时间点加入提醒、老师补充、学生练习或点评追问。老师决定每个动作是否出现。</p></div>
-            <div class="timeline-actions"><span class="save-label" id="save-label">草稿已保存</span><button class="light-button" id="preview-timeline" type="button">模拟学生课堂 ↗</button><button class="dark-button" id="save-timeline" type="button">保存课程</button></div>
+        <section class="sample-nodes" aria-labelledby="nodes-title">
+          <div class="sample-section-head">
+            <h2 id="nodes-title">关键节点</h2>
+            <p>每个节点同一行同时看到制作内容和学生端效果。</p>
           </div>
 
-          <section class="course-overview" aria-label="课程概览">
-            <div class="overview-video"><span class="overview-play">▶</span><span class="overview-progress"></span><b>03:42</b></div>
-            <div class="overview-info"><small>BILIBILI DEMO · 字幕驱动时间线</small><h2>英语面试表达：把答案说得具体</h2><p id="timeline-source-summary">BV1WW4y1e7GL · 当前示例字幕已整理成可设计的课堂时间线</p><div class="analysis-status"><span class="status-check">✓</span><span id="caption-import-status">等待导入已取得的字幕文件</span><button class="text-button" id="refresh-analysis" type="button">重新分析</button></div></div>
-            <div class="overview-stats"><div><strong>04</strong><span>AI 教学建议</span></div><div><strong>03</strong><span>已确认设计</span></div></div>
-            <div class="overview-legend"><strong>课堂设计图例</strong><span><i class="dot dot-attention"></i>重点提醒</span><span><i class="dot dot-voice"></i>老师补充</span><span><i class="dot dot-activity"></i>学生练习</span><span><i class="dot dot-ai"></i>点评追问</span></div>
-          </section>
-
-          <div class="timeline-layout">
-            <div class="timeline-canvas">
-              <div class="timeline-toolbar"><div><strong>课堂时间线</strong><span>字幕 · 知识点 · AI 建议 · 课堂设计</span></div><div><button class="toolbar-button" id="zoom-out" type="button">−</button><span>100%</span><button class="toolbar-button" id="zoom-in" type="button">＋</button></div></div>
-              <div class="timeline-ruler"><span>00:00</span><span>00:30</span><span>01:00</span><span>01:30</span><span>02:00</span><span>02:30</span><span>03:00</span><span>03:42</span></div>
-              <div class="caption-list" id="caption-list" role="listbox" aria-label="字幕段落列表"></div>
-            </div>
-            <aside class="event-panel" aria-labelledby="event-title">
-              <div class="copilot-card"><div class="copilot-heading"><span class="copilot-spark">✦</span><div><strong>LessonPilot AI</strong><small>课堂设计副驾驶</small></div><span class="copilot-live">分析中</span></div><p>我发现这一句适合先暂停，再让学生把结构迁移到自己的经历。</p><div class="copilot-reason"><span>建议原因</span><strong>这是本段的知识点转折</strong></div><div class="copilot-actions"><button class="text-button" id="ignore-suggestion" type="button">忽略</button><button class="dark-button" id="accept-suggestion" type="button">采纳建议</button></div></div>
-              <div class="event-panel-head"><span class="eyebrow">当前字幕 · 00:35</span><h2 id="event-title">课堂设计</h2><p id="selected-caption">“A strong answer needs a specific example.”</p><small class="design-hint">告诉 AI 你希望学生在这里获得什么，剩下的交给它生成。</small></div>
-              <div class="event-options">
-                <button class="event-option event-option-attention" type="button" data-event="attention"><span class="option-icon">✦</span><span><strong>注意力爆发</strong><small>让重点词闪出来，帮学生重新集中。</small></span><b>→</b></button>
-                <button class="event-option event-option-voice" type="button" data-event="voice"><span class="option-icon">◉</span><span><strong>老师语音</strong><small>在这里补一句，或者直接喊学生名字。</small></span><b>→</b></button>
-                <button class="event-option event-option-activity" type="button" data-event="activity"><span class="option-icon">□</span><span><strong>互动练习</strong><small>选择题、填空题或自由回答。</small></span><b>→</b></button>
-                <button class="event-option event-option-ai" type="button" data-event="ai"><span class="option-icon">⌁</span><span><strong>点评与追问</strong><small>按老师选定的评价方向反馈。</small></span><b>→</b></button>
+          <article class="sample-node is-active" id="node-1" data-node="1">
+            <div class="sample-node-make">
+              <p class="sample-node-meta"><span class="sample-type is-attention">01 重点提醒</span><time>00:35</time></p>
+              <h3>具体例子比抽象形容词更有说服力</h3>
+              <p class="sample-caption">“A strong answer needs a specific example.”</p>
+              <p>播放到这里时暂停，标出 <em>specific example</em>，提醒学生：只说 hardworking 不够，要落到做过的事。</p>
+              <button class="text-button sample-edit" type="button" data-edit="1">编辑节点</button>
+              <div class="sample-edit-panel" id="edit-1" hidden>
+                <label>课堂动作摘要<textarea rows="3">播放到这里时暂停，标出 specific example，提醒学生：只说 hardworking 不够，要落到做过的事。</textarea></label>
+                <p class="sample-edit-note">示例图里的修改只留在本页，不会写入课程。</p>
               </div>
-              <div class="event-detail" id="event-detail" hidden><span class="eyebrow" id="event-detail-label">注意力爆发</span><h3 id="event-detail-title">让这一句被记住</h3><p id="event-detail-copy">播放到这里时，关键词会短暂放大并出现星星效果。</p><label>告诉 AI<input id="event-label-input" type="text" value="这里很重要" placeholder="例如：这里提醒学生注意语气"></label><button class="dark-button" id="add-event" type="button">生成并加入课堂设计</button></div>
-              <button class="simulation-button" id="simulate-class" type="button"><span>▶</span><span><strong>模拟学生课堂</strong><small>看看这堂课实际会如何回应</small></span><b>↗</b></button>
-              <p class="event-note">当前原型只根据字幕与时间生成备课建议，不分析视频画面。</p>
-            </aside>
+            </div>
+            <figure class="sample-node-preview">
+              <figcaption>学生端效果预览</figcaption>
+              <button class="sample-preview-shot is-attention" type="button" data-preview="1" aria-label="放大节点 1 的学生端效果">
+                <div class="shot-video"><span>视频已暂停</span><strong>specific example</strong></div>
+                <p>关键词和老师提醒出现在画面上</p>
+              </button>
+            </figure>
+          </article>
+
+          <article class="sample-node" id="node-2" data-node="2">
+            <div class="sample-node-make">
+              <p class="sample-node-meta"><span class="sample-type is-activity">02 互动练习</span><time>01:18</time></p>
+              <h3>补全 STAR 表达中的 Action</h3>
+              <p class="sample-caption">“I noticed a problem, so I suggested a different approach.”</p>
+              <p>视频旁出现填空：I noticed a problem, so I ______ a different approach. 标准答案 suggested。答错后可再试一次。</p>
+              <button class="text-button sample-edit" type="button" data-edit="2">编辑节点</button>
+              <div class="sample-edit-panel" id="edit-2" hidden>
+                <label>题目与标准答案<textarea rows="3">I noticed a problem, so I ______ a different approach. 标准答案：suggested</textarea></label>
+                <p class="sample-edit-note">示例图里的修改只留在本页，不会写入课程。</p>
+              </div>
+            </div>
+            <figure class="sample-node-preview">
+              <figcaption>学生端效果预览</figcaption>
+              <button class="sample-preview-shot is-activity" type="button" data-preview="2" aria-label="放大节点 2 的学生端效果">
+                <div class="shot-card">
+                  <span>补全 Action</span>
+                  <p>I noticed a problem, so I <u>　　</u> a different approach.</p>
+                  <b>提交</b>
+                </div>
+                <p>填空题、提交按钮和即时反馈</p>
+              </button>
+            </figure>
+          </article>
+
+          <article class="sample-node" id="node-3" data-node="3">
+            <div class="sample-node-make">
+              <p class="sample-node-meta"><span class="sample-type is-followup">03 点评追问</span><time>01:49</time></p>
+              <h3>把结构迁移到学生自己的经历</h3>
+              <p class="sample-caption">“Now try to connect the structure to your own experience.”</p>
+              <p>自由回答。评价只看三件事：有没有具体情境、有没有自己的行动、有没有结果。不展开成开放聊天。</p>
+              <button class="text-button sample-edit" type="button" data-edit="3">编辑节点</button>
+              <div class="sample-edit-panel" id="edit-3" hidden>
+                <label>评价方向<textarea rows="3">只检查：具体情境、自己的行动、结果。不展开成开放聊天。</textarea></label>
+                <p class="sample-edit-note">示例图里的修改只留在本页，不会写入课程。</p>
+              </div>
+            </div>
+            <figure class="sample-node-preview">
+              <figcaption>学生端效果预览</figcaption>
+              <button class="sample-preview-shot is-followup" type="button" data-preview="3" aria-label="放大节点 3 的学生端效果">
+                <div class="shot-card">
+                  <span>写一条自己的经历</span>
+                  <p class="shot-lines"></p>
+                  <small>评价方向：情境 · 行动 · 结果</small>
+                </div>
+                <p>自由回答区，评价方向可见且受限</p>
+              </button>
+            </figure>
+          </article>
+
+          <div class="sample-add-wrap">
+            <button class="light-button" id="add-node" type="button">＋ 增加节点</button>
+            <div class="sample-add-panel" id="add-node-panel" hidden>
+              <p>选择时间点和节点类型。示例图只演示入口，不会新增第四个已保存节点。</p>
+              <div class="sample-add-fields">
+                <label>时间点
+                  <select>
+                    <option>01:08 · Listen to the structure one more time.</option>
+                    <option>02:06 · Think of one difficult situation you have solved.</option>
+                    <option>02:48 · Finally, tell us the result and what you learned.</option>
+                  </select>
+                </label>
+                <label>节点类型
+                  <select>
+                    <option>重点提醒</option>
+                    <option>老师补充</option>
+                    <option>互动练习</option>
+                    <option>点评追问</option>
+                  </select>
+                </label>
+              </div>
+              <button class="text-button" id="add-node-demo" type="button">生成学生端效果预览</button>
+            </div>
           </div>
+        </section>
+
+        <section class="sample-results" aria-labelledby="results-title">
+          <div class="sample-section-head">
+            <h2 id="results-title">学生课程完成情况</h2>
+            <p class="sample-data-flag">示例数据</p>
+          </div>
+          <div class="sample-summary" aria-label="整体情况">
+            <p><strong>2</strong><span>参与学生</span></p>
+            <p><strong>1 / 2</strong><span>课程完成</span></p>
+            <p><strong>2 · 1 · 1</strong><span>节点 01 / 02 / 03 完成人数</span></p>
+            <p><button class="sample-weak" type="button" data-focus-node="2"><strong>节点 02</strong><span>最需要关注</span></button></p>
+          </div>
+          <table class="sample-students">
+            <thead>
+              <tr>
+                <th>学生</th>
+                <th>整体完成</th>
+                <th>节点 01</th>
+                <th>节点 02</th>
+                <th>节点 03</th>
+                <th>需要关注</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr data-student="1">
+                <td><button type="button" data-expand-student="1">学生 1</button></td>
+                <td>已完成</td>
+                <td>已理解</td>
+                <td>二次作答通过</td>
+                <td>已提交</td>
+                <td>节点 02 曾答错</td>
+              </tr>
+              <tr class="sample-student-detail" id="student-1-detail" hidden>
+                <td colspan="6">节点 01 一次看懂。节点 02 第一次填成 noticed，第二次改为 suggested 后通过。节点 03 已提交自己的项目经历，评价覆盖情境和行动。</td>
+              </tr>
+              <tr data-student="2">
+                <td><button type="button" data-expand-student="2">学生 2</button></td>
+                <td>进行中</td>
+                <td>已理解</td>
+                <td>未完成</td>
+                <td>未开始</td>
+                <td>需要继续学习</td>
+              </tr>
+              <tr class="sample-student-detail" id="student-2-detail" hidden>
+                <td colspan="6">节点 01 已理解。节点 02 停在填空页，尚未提交。节点 03 未开始。</td>
+              </tr>
+            </tbody>
+          </table>
         </section>
       </main>
     </div>
+
+    <dialog class="sample-lightbox" id="preview-dialog" aria-labelledby="preview-dialog-title">
+      <div class="sample-lightbox-bar">
+        <h2 id="preview-dialog-title">学生端效果预览</h2>
+        <button class="text-button" id="close-preview" type="button">关闭</button>
+      </div>
+      <div class="sample-lightbox-body" id="preview-dialog-body"></div>
+    </dialog>
     <div id="toast" class="toast" role="status" aria-live="polite" aria-hidden="true"></div>
-    <script src="subtitle-parser.js"></script>
-    <script src="app.js"></script>
+    <script src="sample.js"></script>
   </body>
 </html>

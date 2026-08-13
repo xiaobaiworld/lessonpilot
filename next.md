@@ -34,6 +34,7 @@
 | 推广视频 | `doc/promo-video.md` |
 | 多创作者 / AI 计费预案 | `doc/multi-creator-platform.md` |
 | 教师端与学生端颜色系统 | `doc/ui-design.md` |
+| 教师销售示例图 | `doc/teacher-course-workspace-design.md` |
 
 ## Current Step — Web Runtime First
 

@@ -46,7 +46,8 @@ python3 -m http.server 4173
 
 Open:
 
-- Teacher Creator Studio: [http://localhost:4173/teacher-web/](http://localhost:4173/teacher-web/)
+- Teacher sales sample: [http://localhost:4173/teacher-web/](http://localhost:4173/teacher-web/)
+- Teacher W0 editor: [http://localhost:4173/teacher-web/editor.html](http://localhost:4173/teacher-web/editor.html)
 - Student course: [http://localhost:4173/student-web/](http://localhost:4173/student-web/)
 
 Do not start `teacher-web/` or `student-web/` as separate server roots, and do not use a second port such as `4174`. The teacher preview link is relative (`../student-web/`), and the student page must fetch `student-web/course.json` from the same repository-root service. The configured student sample embeds Bilibili video `BV1WW4y1e7GL` and keeps a direct original-page fallback.
