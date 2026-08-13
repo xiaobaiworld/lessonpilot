@@ -50,6 +50,8 @@ Open:
 - Teacher W0 editor: [http://localhost:4173/teacher-web/editor.html](http://localhost:4173/teacher-web/editor.html)
 - Student course: [http://localhost:4173/student-web/](http://localhost:4173/student-web/)
 
+The teacher sales sample is a finished-course picture for conversations with teachers. Its header is intentionally minimal: `LessonPilot Studio`, then `英语职业课 / 英文面试表达`, then the course title. It does not show save, preview, unsaved, or sample-status controls. The functional subtitle-import and classroom-action prototype remains a separate page at `teacher-web/editor.html`.
+
 Do not start `teacher-web/` or `student-web/` as separate server roots, and do not use a second port such as `4174`. The teacher preview link is relative (`../student-web/`), and the student page must fetch `student-web/course.json` from the same repository-root service. The configured student sample embeds Bilibili video `BV1WW4y1e7GL` and keeps a direct original-page fallback.
 
 ## Load Extension (Spike)

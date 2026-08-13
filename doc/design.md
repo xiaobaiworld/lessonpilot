@@ -91,7 +91,7 @@ fixed Bilibili page URL
 
 The live `teacher-web/` page remains the W0 functional prototype: confirm the fixed Bilibili course, import authorized subtitles, and author a classroom action on a caption. That path is not the teacher-facing product picture.
 
-The sales sample for teachers is specified in `doc/teacher-course-workspace-design.md` and implemented at `teacher-web/index.html`. It is a one-page classroom-design picture (title, video 3/4 + intro, full-width timeline with typed icons, three node rows with student-effect preview, sample completion). The previous W0 editor remains at `teacher-web/editor.html`. Change real workspace features later, without inventing a second information architecture.
+The sales sample for teachers is specified in `doc/teacher-course-workspace-design.md` and implemented at `teacher-web/index.html`. It is a one-page classroom-design picture: a minimal brand and course-directory header (`英语职业课 / 英文面试表达`), course title, video 3/4 + intro, full-width timeline with typed icons, three node rows with student-effect preview, and sample completion. It deliberately omits save, preview, unsaved, and sample-status controls. The previous W0 editor remains at `teacher-web/editor.html`. Change real workspace features later, without inventing a second information architecture.
 
 The current functional home is still a classroom-design workspace, not a current-course dashboard and not a marketing landing page. Its first-use flow is:
 
