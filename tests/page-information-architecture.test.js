@@ -7,6 +7,7 @@ const fs = require('fs');
 
 const samplePage = fs.readFileSync('teacher-web/index.html', 'utf8');
 const editorPage = fs.readFileSync('teacher-web/editor.html', 'utf8');
+const editorApp = fs.readFileSync('teacher-web/app.js', 'utf8');
 const studentPage = fs.readFileSync('student-web/index.html', 'utf8');
 const studentApp = fs.readFileSync('student-web/app.js', 'utf8');
 
@@ -46,6 +47,10 @@ const checks = [
   {
     label: 'teacher W0 editor keeps learning results as a small honest process note',
     run: () => editorPage.includes('学生学习过程') && editorPage.includes('不记录学习会话，也不生成报告') && !editorPage.includes('新建课程')
+  },
+  {
+    label: 'teacher W0 editor script tolerates page-specific controls being absent',
+    run: () => editorApp.includes("document.querySelector('#continue-course')?.addEventListener") && editorPage.includes('src="app.js?v=')
   },
   {
     label: 'student entry presents learning goals, a dominant source video, and learning results',

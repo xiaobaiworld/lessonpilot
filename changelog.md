@@ -4,6 +4,12 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### Teacher Editor Static Reload Fix — 2026-08-13
+
+- Make the shared teacher editor script tolerate controls that exist only on earlier page variants.
+- Version the editor script URL so a browser does not keep executing the pre-split cached bundle after pulling the sales-sample changes.
+- Add a page contract check covering the optional control binding and cache-busted editor script.
+
 ### Teacher Workspace Sales Sample Page — 2026-08-13
 
 - Implement the confirmed sales sample at `teacher-web/index.html`: video 3/4 + intro 1/4, full-width timeline with typed icons, node rows, and labeled sample completion.
