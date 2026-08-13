@@ -25,6 +25,10 @@ Start with the situation.
 00:00:04.000 --> 00:00:06.000
 Then explain your action.`;
 
+const compactTimestampSrt = `1
+0:0:39,0 --> 0:0:42,0
+I'm hard-working, diligent, loyal, flexible and knowledgeable.`;
+
 const checks = [
   {
     label: 'parses SRT timestamps and preserves multiline caption text',
@@ -42,6 +46,15 @@ const checks = [
       return result.ok && result.captions.length === 2
         && result.captions[0].startSeconds === 1
         && result.captions[1].endSeconds === 6;
+    }
+  },
+  {
+    label: 'parses compact SRT timestamps from the supplied interview subtitles',
+    run: () => {
+      const result = parseSubtitle(compactTimestampSrt, 'interview.srt');
+      return result.ok && result.captions.length === 1
+        && result.captions[0].time === '00:39'
+        && result.captions[0].endSeconds === 42;
     }
   },
   {

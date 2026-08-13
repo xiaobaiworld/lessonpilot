@@ -4,6 +4,16 @@ Only record verified changes.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-08-14
+
+### Real Subtitle-Grounded Course Version
+
+- Add the supplied subtitle source for the fixed Bilibili interview lesson to the repository.
+- Replace placeholder teacher-sample nodes with verified content points at `00:39`, `02:16`, and `05:45`.
+- Align the timeline, node copy, classroom actions, student previews, and design documentation to the same course moments.
+- Extend the local subtitle parser to accept the compact single-digit timestamp format used by the supplied SRT.
+- Record the English-copy review boundary because the checked-in source is a Chinese AI translation, not original English captions.
+
 ### Teacher Sales Sample Course Header — 2026-08-13
 
 - Replace prototype status text with the course directory `英语职业课 / 英文面试表达`.

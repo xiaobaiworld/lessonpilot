@@ -10,7 +10,7 @@
   }
 })(typeof window !== 'undefined' ? window : globalThis, function createSubtitleParser() {
   function toSeconds(timestamp) {
-    const match = String(timestamp).trim().match(/^(?:(\d{1,2}):)?(\d{2}):(\d{2})[,.](\d{1,3})$/);
+    const match = String(timestamp).trim().match(/^(?:(\d{1,2}):)?(\d{1,2}):(\d{1,2})[,.](\d{1,3})$/);
     if (!match) return null;
     const hours = Number(match[1] || 0);
     const minutes = Number(match[2]);

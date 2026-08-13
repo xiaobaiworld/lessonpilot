@@ -2,7 +2,7 @@
 
 LessonPilot is an early-stage course-runtime project for upgrading an English teacher's existing recorded course into an interactive course product. The Chrome extension remains a Bilibili overlay spike; the first student validation entry is now a web page so students do not need to install a plugin.
 
-The first demo targets a real teacher-style Bilibili English interview lesson. Its job is to show that a teacher can add timed practice, feedback, and learning evidence without re-recording the video.
+The first demo targets a real teacher-style Bilibili English interview lesson. Its job is to show that a teacher can add timed practice, feedback, and learning evidence without re-recording the video. The current teacher sales sample is grounded in the checked-in Chinese AI-translated subtitle source at `doc/英文面试问答流程（超全！）｜自我介绍 矛盾处理 优缺点 技能.srt`.
 
 ## Product Positioning
 
@@ -51,6 +51,8 @@ Open:
 - Student course: [http://localhost:4173/student-web/](http://localhost:4173/student-web/)
 
 The teacher sales sample is a finished-course picture for conversations with teachers. Its header is intentionally minimal: `LessonPilot Studio`, then `英语职业课 / 英文面试表达`, then the course title. It does not show save, preview, unsaved, or sample-status controls. The functional subtitle-import and classroom-action prototype remains a separate page at `teacher-web/editor.html`.
+
+The current sales sample uses three subtitle-grounded teaching points from the 08:33 lesson: `00:39` evidence after capability words, `02:16` ordering a coworker-conflict response, and `05:45` practicing the four-step stress response. The source file contains Chinese AI translation rather than original English captions, so the English display copy remains teacher-review material.
 
 Do not start `teacher-web/` or `student-web/` as separate server roots, and do not use a second port such as `4174`. The teacher preview link is relative (`../student-web/`), and the student page must fetch `student-web/course.json` from the same repository-root service. The configured student sample embeds Bilibili video `BV1WW4y1e7GL` and keeps a direct original-page fallback.
 
