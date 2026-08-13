@@ -265,6 +265,12 @@ Only record verified changes.
 
 - Created independent project structure for the English video course AI assistant Chrome extension.
 - Added first requirements document, design note, development plan, lessons, and current next step.
+### Teacher Timeline Visual Pass — 2026-08-14
+
+- Rebuild the teacher sales timeline as a media timeline with elapsed/total time, playback progress, a playhead, and minute ticks matched to the real 08:33 source duration.
+- Align every classroom node marker to one baseline with stable icon sizing across active and inactive states.
+- Remove layout-explainer copy from the sales page and simplify mobile labels to prevent crowding.
+
 ### Teacher Sales Page Copy Boundary — 2026-08-14
 
 - Remove Bilibili/player implementation caveats from the teacher-facing sales page.

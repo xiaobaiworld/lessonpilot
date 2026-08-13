@@ -22,7 +22,7 @@ const checks = [
   },
   {
     label: 'sales page contains no implementation caveats or prototype disclaimers',
-    run: () => !samplePage.includes('B 站来源') && !samplePage.includes('网页不控制播放') && !samplePage.includes('用来对时间点') && !samplePage.includes('示例图里的修改') && !samplePage.includes('只演示入口')
+    run: () => !samplePage.includes('B 站来源') && !samplePage.includes('网页不控制播放') && !samplePage.includes('用来对时间点') && !samplePage.includes('示例图里的修改') && !samplePage.includes('只演示入口') && !samplePage.includes('每个节点同一行同时看到制作内容和学生端效果')
   },
   {
     label: 'sales sample stacks video above a full-width timeline',
@@ -30,7 +30,7 @@ const checks = [
   },
   {
     label: 'sales sample timeline marks typed interaction points with visible labels',
-    run: () => samplePage.includes('01 重点提醒') && samplePage.includes('02 互动练习') && samplePage.includes('03 点评追问') && samplePage.includes('具体例子更有用')
+    run: () => samplePage.includes('01 重点提醒') && samplePage.includes('02 互动练习') && samplePage.includes('03 点评追问') && samplePage.includes('具体例子比形容词有用') && samplePage.includes('sample-track-progress') && samplePage.includes('sample-playhead') && samplePage.includes('01:00') && samplePage.includes('08:33') && !samplePage.includes('01:42 / 03:42')
   },
   {
     label: 'sales sample shows three node rows with student-effect previews',

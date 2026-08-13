@@ -1840,6 +1840,7 @@ a.brand {
 }
 
 .sample-timeline {
+  position: relative;
   padding: 16px 20px 18px;
   border-top: 1px solid var(--line);
 }
@@ -1867,35 +1868,81 @@ a.brand {
 
 .sample-track {
   position: relative;
-  height: 118px;
-  margin-top: 8px;
+  height: 154px;
+  margin-top: 10px;
 }
 
 .sample-track-line {
   position: absolute;
-  top: 36px;
+  top: 72px;
   right: 0;
   left: 0;
-  height: 2px;
-  background: var(--line-dark);
+  height: 5px;
+  border-radius: 999px;
+  background: #d6dbd5;
+}
+
+.sample-track-progress {
+  position: absolute;
+  top: 72px;
+  left: 0;
+  width: 19.9%;
+  height: 5px;
+  border-radius: 999px 0 0 999px;
+  background: var(--green);
+}
+
+.sample-playhead {
+  position: absolute;
+  top: 48px;
+  z-index: 2;
+  width: 2px;
+  height: 54px;
+  background: var(--green);
+}
+
+.sample-playhead::after {
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--green);
+  content: "";
+  transform: translateX(-50%);
+}
+
+.sample-playhead span {
+  position: absolute;
+  top: -23px;
+  left: 50%;
+  padding: 3px 6px;
+  background: var(--green);
+  color: var(--paper-bright);
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
+  line-height: 1;
+  white-space: nowrap;
+  transform: translateX(-50%);
 }
 
 .sample-density i {
   position: absolute;
-  top: 33px;
+  top: 68px;
   height: 8px;
-  background: #e4e7e1;
+  background: rgba(255, 253, 248, 0.68);
 }
 
 .sample-mark,
 .sample-add-mark {
   position: absolute;
-  top: 22px;
+  top: 56px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 148px;
-  margin-left: -74px;
+  width: 76px;
+  margin-left: -38px;
   padding: 0;
   background: none;
   border: 0;
@@ -1915,8 +1962,8 @@ a.brand {
 
 .sample-mark-icon {
   display: grid;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   place-items: center;
   border: 1px solid currentColor;
   background: var(--paper-bright);
@@ -1930,9 +1977,8 @@ a.brand {
 .sample-mark.is-followup { color: #405a52; }
 .sample-mark.is-followup .sample-mark-icon { background: var(--ai-pale); }
 .sample-mark.is-active .sample-mark-icon {
-  width: 34px;
-  height: 34px;
   border-width: 2px;
+  box-shadow: 0 0 0 4px rgba(29, 92, 67, 0.14);
 }
 
 .sample-mark-copy {
@@ -1949,6 +1995,7 @@ a.brand {
 
 .sample-mark-copy b {
   font-size: 12px;
+  white-space: nowrap;
 }
 
 .sample-mark-copy small {
@@ -1957,15 +2004,52 @@ a.brand {
   line-height: 1.4;
 }
 
-.sample-mark.is-label-above {
-  top: auto;
-  bottom: 52px;
-  flex-direction: column-reverse;
+.sample-track-ticks {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 30px;
+  color: var(--ink-soft);
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
 }
 
-.sample-mark.is-label-above .sample-mark-copy {
-  margin-top: 0;
-  margin-bottom: 8px;
+.sample-track-ticks > span {
+  position: absolute;
+  bottom: 0;
+  display: grid;
+  justify-items: center;
+  width: 1px;
+  height: 30px;
+}
+
+.sample-track-ticks i {
+  display: block;
+  width: 1px;
+  height: 7px;
+  background: var(--line-dark);
+}
+
+.sample-track-ticks b {
+  position: absolute;
+  top: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.sample-track-ticks > span:first-child b {
+  transform: none;
+}
+
+.sample-track-ticks > span.is-end b {
+  transform: translateX(-100%);
+}
+
+.sample-track-ticks > span:first-child,
+.sample-track-ticks > span.is-end {
+  width: 0;
 }
 
 .sample-track-times {
@@ -2331,15 +2415,25 @@ a.brand {
   }
 
   .sample-track {
-    height: 96px;
+    height: 142px;
   }
 
   .sample-mark {
-    width: 92px;
-    margin-left: -46px;
+    width: 36px;
+    margin-left: -18px;
   }
 
-  .sample-mark-copy b {
-    font-size: 11px;
+  .sample-mark-copy {
+    display: none;
+  }
+
+  .sample-track-ticks > span:nth-child(even) {
+    display: none;
+  }
+}
+
+@media (min-width: 721px) and (max-width: 900px) {
+  .sample-track-ticks > span:nth-child(even) {
+    display: none;
   }
 }

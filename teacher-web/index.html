@@ -6,7 +6,7 @@
     <meta name="description" content="LessonPilot 课堂设计工作台示例：时间线上的关键节点、学生效果与完成情况">
     <title>英语面试表达：把答案说得具体 · LessonPilot</title>
     <link rel="icon" href="data:,">
-    <link rel="stylesheet" href="styles.css?v=b4d80ff-1">
+    <link rel="stylesheet" href="styles.css?v=timeline-20260814-1">
   </head>
   <body>
     <div class="app-shell">
@@ -33,7 +33,7 @@
           <div class="sample-stage-top">
             <figure class="sample-video">
               <div class="sample-video-frame">
-                <p class="sample-video-fallback">BV1WW4y1e7GL · 英语面试表达</p>
+                <p class="sample-video-fallback">英语面试表达</p>
                 <iframe
                   title="课程视频"
                   src="https://player.bilibili.com/player.html?bvid=BV1WW4y1e7GL&autoplay=0"
@@ -56,10 +56,12 @@
           <div class="sample-timeline" aria-label="课程时间线">
             <div class="sample-timeline-head">
               <strong>课程时间线</strong>
-              <span>00:00 — 03:42</span>
+              <span>01:42 / 08:33</span>
             </div>
             <div class="sample-track" id="sample-track">
               <div class="sample-track-line" aria-hidden="true"></div>
+              <div class="sample-track-progress" aria-hidden="true"></div>
+              <div class="sample-playhead" aria-label="当前播放位置 01:42" style="left:19.9%"><span>01:42</span></div>
               <div class="sample-density" aria-hidden="true">
                 <i style="left:4%;width:7%"></i>
                 <i style="left:14%;width:9%"></i>
@@ -69,37 +71,46 @@
                 <i style="left:68%;width:11%"></i>
                 <i style="left:84%;width:8%"></i>
               </div>
-              <button class="sample-mark is-attention is-active" type="button" data-node="1" style="left:15.8%" aria-current="true">
+              <button class="sample-mark is-attention is-active" type="button" data-node="1" style="left:6.8%" aria-current="true">
                 <span class="sample-mark-icon" aria-hidden="true">
                   <svg viewBox="0 0 20 20" width="16" height="16"><path d="M10 1.6 12.2 7h5.6l-4.5 3.4 1.7 5.5L10 12.8 5 15.9l1.7-5.5L2.2 7h5.6Z" fill="currentColor"/></svg>
                 </span>
                 <span class="sample-mark-copy">
-                  <b>01 重点提醒</b>
-                  <small>00:35 · 具体例子更有用</small>
+                  <b>01 提醒</b>
+                  <small>00:35</small>
                 </span>
               </button>
-              <button class="sample-mark is-activity is-label-above" type="button" data-node="2" style="left:35.1%">
+              <button class="sample-mark is-activity" type="button" data-node="2" style="left:15.2%">
                 <span class="sample-mark-icon" aria-hidden="true">
                   <svg viewBox="0 0 20 20" width="16" height="16"><rect x="3.5" y="3.5" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"/></svg>
                 </span>
                 <span class="sample-mark-copy">
-                  <b>02 互动练习</b>
-                  <small>01:18 · 补全 Action</small>
+                  <b>02 练习</b>
+                  <small>01:18</small>
                 </span>
               </button>
-              <button class="sample-mark is-followup" type="button" data-node="3" style="left:49.1%">
+              <button class="sample-mark is-followup" type="button" data-node="3" style="left:21.2%">
                 <span class="sample-mark-icon" aria-hidden="true">
                   <svg viewBox="0 0 20 20" width="16" height="16"><path d="M4 5h7.5a3 3 0 0 1 0 6H8l5 5" fill="none" stroke="currentColor" stroke-width="2"/></svg>
                 </span>
                 <span class="sample-mark-copy">
-                  <b>03 点评追问</b>
-                  <small>01:49 · 迁到自己的经历</small>
+                  <b>03 追问</b>
+                  <small>01:49</small>
                 </span>
               </button>
               <button class="sample-add-mark" id="add-node-on-track" type="button" style="left:92%" title="增加节点">＋</button>
-            </div>
-            <div class="sample-track-times" aria-hidden="true">
-              <span>00:00</span><span>01:00</span><span>02:00</span><span>03:42</span>
+              <div class="sample-track-ticks" aria-hidden="true">
+                <span style="left:0%"><i></i><b>00:00</b></span>
+                <span style="left:11.7%"><i></i><b>01:00</b></span>
+                <span style="left:23.4%"><i></i><b>02:00</b></span>
+                <span style="left:35.1%"><i></i><b>03:00</b></span>
+                <span style="left:46.8%"><i></i><b>04:00</b></span>
+                <span style="left:58.5%"><i></i><b>05:00</b></span>
+                <span style="left:70.2%"><i></i><b>06:00</b></span>
+                <span style="left:81.9%"><i></i><b>07:00</b></span>
+                <span style="left:93.6%"><i></i><b>08:00</b></span>
+                <span class="is-end" style="left:100%"><i></i><b>08:33</b></span>
+              </div>
             </div>
           </div>
         </section>
@@ -107,7 +118,6 @@
         <section class="sample-nodes" aria-labelledby="nodes-title">
           <div class="sample-section-head">
             <h2 id="nodes-title">关键节点</h2>
-            <p>每个节点同一行同时看到制作内容和学生端效果。</p>
           </div>
 
           <article class="sample-node is-active" id="node-1" data-node="1">
@@ -263,6 +273,6 @@
       <div class="sample-lightbox-body" id="preview-dialog-body"></div>
     </dialog>
     <div id="toast" class="toast" role="status" aria-live="polite" aria-hidden="true"></div>
-    <script src="sample.js?v=b4d80ff-1"></script>
+    <script src="sample.js?v=df3f3d4-1"></script>
   </body>
 </html>
