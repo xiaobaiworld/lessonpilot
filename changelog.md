@@ -265,3 +265,8 @@ Only record verified changes.
 
 - Created independent project structure for the English video course AI assistant Chrome extension.
 - Added first requirements document, design note, development plan, lessons, and current next step.
+### Teacher Sales Page Copy Boundary — 2026-08-14
+
+- Remove Bilibili/player implementation caveats from the teacher-facing sales page.
+- Keep the page focused on course design, student effects, and learning outcomes; implementation boundaries remain in internal documentation.
+- Replace prototype-only wording around node editing with product-oriented classroom-design language.

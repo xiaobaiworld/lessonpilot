@@ -61,7 +61,7 @@
   document.querySelector('#add-node').addEventListener('click', toggleAddPanel);
   document.querySelector('#add-node-on-track').addEventListener('click', toggleAddPanel);
   document.querySelector('#add-node-demo').addEventListener('click', () => {
-    showToast('示例图只演示增加节点的入口，不会新增已保存的第四个节点。');
+    showToast('节点效果预览已生成，可继续完善课堂设计。');
   });
 
   document.querySelectorAll('[data-preview]').forEach((button) => {

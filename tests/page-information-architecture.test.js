@@ -21,6 +21,10 @@ const checks = [
     run: () => !samplePage.includes('预览学生课程') && !samplePage.includes('保存课堂设计') && !samplePage.includes('示例未保存') && !samplePage.includes('<small>示例课程</small>') && !samplePage.includes('<span>示例课程</span>')
   },
   {
+    label: 'sales page contains no implementation caveats or prototype disclaimers',
+    run: () => !samplePage.includes('B 站来源') && !samplePage.includes('网页不控制播放') && !samplePage.includes('用来对时间点') && !samplePage.includes('示例图里的修改') && !samplePage.includes('只演示入口')
+  },
+  {
     label: 'sales sample stacks video above a full-width timeline',
     run: () => samplePage.includes('sample-stage-top') && samplePage.includes('sample-timeline') && samplePage.includes('整体介绍')
   },
