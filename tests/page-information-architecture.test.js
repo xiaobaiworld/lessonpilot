@@ -33,6 +33,10 @@ const checks = [
     run: () => samplePage.includes('示例数据') && samplePage.includes('学生课程完成情况') && samplePage.includes('最需要关注')
   },
   {
+    label: 'sales sample busts stale stylesheet caches after visual changes',
+    run: () => /<link rel="stylesheet" href="styles\.css\?v=[^"]+">/.test(samplePage)
+  },
+  {
     label: 'teacher W0 editor still centers the classroom-design task',
     run: () => editorPage.includes('沿着字幕，设计学生真正需要的课堂动作') && editorPage.includes('主要任务') && editorPage.includes('id="continue-course"') && editorPage.includes('进入课堂设计')
   },
