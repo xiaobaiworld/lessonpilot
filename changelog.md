@@ -276,3 +276,8 @@ Only record verified changes.
 - Remove Bilibili/player implementation caveats from the teacher-facing sales page.
 - Keep the page focused on course design, student effects, and learning outcomes; implementation boundaries remain in internal documentation.
 - Replace prototype-only wording around node editing with product-oriented classroom-design language.
+### Subtitle-Grounded Teacher Nodes — 2026-08-14
+
+- Read the supplied interview SRT and replace placeholder node content with three real teaching moments at `00:39`, `02:16`, and `05:45`.
+- Align each node's title, English classroom copy, student preview, and timeline position with the subtitle meaning.
+- Record the remaining source-language caveat: the supplied file is Chinese AI translation, so final English wording needs teacher review before publishing.

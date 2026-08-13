@@ -30,7 +30,11 @@ const checks = [
   },
   {
     label: 'sales sample timeline marks typed interaction points with visible labels',
-    run: () => samplePage.includes('01 重点提醒') && samplePage.includes('02 互动练习') && samplePage.includes('03 点评追问') && samplePage.includes('具体例子比形容词有用') && samplePage.includes('sample-track-progress') && samplePage.includes('sample-playhead') && samplePage.includes('01:00') && samplePage.includes('08:33') && !samplePage.includes('01:42 / 03:42')
+    run: () => samplePage.includes('01 重点提醒') && samplePage.includes('02 互动练习') && samplePage.includes('03 点评追问') && samplePage.includes('sample-track-progress') && samplePage.includes('sample-playhead') && samplePage.includes('00:39') && samplePage.includes('02:16') && samplePage.includes('05:45') && samplePage.includes('08:33')
+  },
+  {
+    label: 'sales sample uses teaching content grounded in the supplied interview subtitles',
+    run: () => samplePage.includes('hard-working, diligent, loyal, flexible and knowledgeable') && samplePage.includes('assessing my own words and actions') && samplePage.includes('remain calm, ask questions, assess my options, and take action') && !samplePage.includes('补全 STAR 表达中的 Action')
   },
   {
     label: 'sales sample shows three node rows with student-effect previews',
