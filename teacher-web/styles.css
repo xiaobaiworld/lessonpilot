@@ -1386,6 +1386,264 @@ textarea:focus-visible {
   }
 }
 
+/* W0 teacher home: orient first-time teachers to the real workflow. */
+.capability-head {
+  align-items: end;
+  margin-bottom: 52px;
+}
+
+.capability-note {
+  max-width: 245px;
+  margin: 0 0 5px;
+  padding-left: 16px;
+  border-left: 2px solid var(--green);
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.capability-note span {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--green);
+  font-weight: 700;
+}
+
+.capability-map {
+  border-top: 1px solid var(--ink);
+}
+
+.capability-heading {
+  padding: 26px 0 22px;
+  margin: 0;
+}
+
+.capability-heading h2 {
+  max-width: 660px;
+  font-size: clamp(25px, 3vw, 38px);
+  line-height: 1.28;
+}
+
+.capability-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--ink);
+  background: var(--paper-bright);
+}
+
+.capability-step {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 410px;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 26px 24px 24px;
+}
+
+.capability-step + .capability-step {
+  border-left: 1px solid var(--line-dark);
+}
+
+.step-number {
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.capability-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  margin: 23px 0 22px;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  color: var(--green);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.capability-step h3 {
+  margin: 0 0 10px;
+  font-size: 19px;
+  letter-spacing: 0;
+}
+
+.capability-step > p {
+  margin: 0 0 20px;
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.capability-step .field-label {
+  display: grid;
+  width: 100%;
+  gap: 7px;
+  margin: auto 0 12px;
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.capability-step .field-label input {
+  width: 100%;
+  min-width: 0;
+  height: 38px;
+  padding: 0 9px;
+  border: 1px solid var(--line-dark);
+  border-radius: 4px;
+  background: var(--paper-bright);
+  color: var(--ink);
+}
+
+.capability-step .text-button,
+.capability-step .file-button {
+  margin: 0;
+}
+
+.capability-step .file-button {
+  display: inline-block;
+  margin-top: 13px;
+  cursor: pointer;
+}
+
+.capability-step .file-name,
+.capability-step .field-error {
+  width: 100%;
+  margin: 10px 0 0;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.capability-step .field-error {
+  color: var(--danger);
+}
+
+.capability-step .dark-button,
+.capability-step .light-button {
+  margin-top: auto;
+}
+
+.capability-status {
+  margin-top: 15px !important;
+  padding-top: 13px;
+  border-top: 1px solid var(--line);
+  color: var(--green) !important;
+  font-size: 11px !important;
+  font-weight: 700;
+}
+
+.capability-step-results {
+  background: #e9eee9;
+}
+
+.result-boundary {
+  margin-top: auto !important;
+  margin-bottom: 0 !important;
+  padding-top: 16px;
+  border-top: 1px solid var(--line-dark);
+  font-size: 12px !important;
+}
+
+.result-boundary strong {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--green);
+  font-size: 11px;
+}
+
+.capability-next {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 30px;
+  padding: 32px 0 0;
+  margin-top: 48px;
+}
+
+.capability-next .section-heading {
+  flex: 1;
+  margin: 0;
+}
+
+.capability-next-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+@media (max-width: 1120px) {
+  .capability-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .capability-step {
+    min-height: 350px;
+  }
+
+  .capability-step:nth-child(3) {
+    border-top: 1px solid var(--line-dark);
+    border-left: 0;
+  }
+
+  .capability-step:nth-child(4) {
+    border-top: 1px solid var(--line-dark);
+  }
+}
+
+@media (max-width: 720px) {
+  .capability-head {
+    gap: 22px;
+    margin-bottom: 36px;
+  }
+
+  .capability-note {
+    max-width: 320px;
+  }
+
+  .capability-heading {
+    padding: 22px 0 18px;
+  }
+
+  .capability-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .capability-step {
+    min-height: 0;
+    padding: 24px 20px;
+  }
+
+  .capability-step + .capability-step,
+  .capability-step:nth-child(3),
+  .capability-step:nth-child(4) {
+    border-top: 1px solid var(--line-dark);
+    border-left: 0;
+  }
+
+  .capability-step .field-label,
+  .capability-step .dark-button,
+  .capability-step .light-button,
+  .result-boundary {
+    margin-top: 22px;
+  }
+
+  .capability-next {
+    display: block;
+    padding-top: 28px;
+    margin-top: 36px;
+  }
+
+  .capability-next-actions {
+    margin-top: 20px;
+  }
+}
+
 /* Timeline workspace redesign */
 .topnav { display: flex; align-items: center; gap: 26px; margin-left: auto; margin-right: clamp(24px, 5vw, 80px); }
 .nav-link { padding: 8px 0; background: transparent; border: 0; border-bottom: 2px solid transparent; color: var(--ink-soft); font-size: 13px; cursor: pointer; }

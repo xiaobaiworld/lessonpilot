@@ -11,8 +11,8 @@ const studentApp = fs.readFileSync('student-web/app.js', 'utf8');
 
 const checks = [
   {
-    label: 'teacher home leads with a current-course continuation action',
-    run: () => teacherPage.includes('继续完成你的课程') && teacherPage.includes('继续设计课堂')
+    label: 'teacher home explains the four product capabilities before course editing',
+    run: () => teacherPage.includes('把一节录播课变成可练习的学习') && ['接入已有课程', '按字幕设计动作', '预览学生体验', '查看学习结果'].every((label) => teacherPage.includes(label))
   },
   {
     label: 'teacher home keeps a direct student preview action',
@@ -25,6 +25,10 @@ const checks = [
   {
     label: 'teacher W0 workspace accepts a Bilibili link and a subtitle file',
     run: () => teacherPage.includes('id="course-url-input"') && teacherPage.includes('id="subtitle-file-input"')
+  },
+  {
+    label: 'teacher home is honest that learning-result recording is not delivered in W0',
+    run: () => teacherPage.includes('不记录学习会话，也不生成报告') && !teacherPage.includes('新建课程')
   },
   {
     label: 'student entry presents learning goals, a dominant source video, and learning results',

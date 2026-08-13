@@ -1,7 +1,13 @@
 # Lessons — LessonPilot
 
 Version: 0.3
-Last updated: 2026-08-12
+Last updated: 2026-08-13
+
+## 2026-08-13 — Teach the Product Before Asking Teachers to Resume Work
+
+An operational dashboard assumes a teacher already knows what the product does and has a course in progress. That is the wrong first surface for a new product demonstration: it turns product discovery into unexplained status numbers and a to-do list.
+
+The teacher home should therefore expose the actual workflow in order: connect an existing course and its authorized subtitles, design an action at a caption, preview the student experience, then understand the result structure. Each step needs either a real command or an explicit W0 boundary; never fill the last step with invented reports or a disabled promise.
 
 ## 2026-08-12 — Page Directories Are Not Separate Local Services
 

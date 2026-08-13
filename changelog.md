@@ -4,6 +4,13 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### Teacher Capability-Guided Home — 2026-08-13
+
+- Replace the assumed current-course dashboard with a first-use workspace that explains existing-course intake, caption-anchored classroom design, student preview, and learning results.
+- Keep the fixed Bilibili link confirmation, manual SRT/VTT import, timeline editor, and student preview as direct commands from the new workflow.
+- State clearly that W0 displays an expected learning-result structure but does not yet record learning sessions or generate reports.
+- Verify desktop and 375px layouts, source import, action editing, and teacher-to-student preview without horizontal overflow.
+
 ### Local Web Service Contract — 2026-08-12
 
 - Document one repository-root local server for both teacher and student web pages.

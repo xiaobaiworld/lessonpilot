@@ -15,7 +15,7 @@
           <span><strong>LessonPilot Studio</strong><small>AI 互动课程创作工作台</small></span>
         </button>
         <nav class="topnav" aria-label="主导航">
-          <button class="nav-link is-active" type="button" data-route="home">我的课程</button>
+          <button class="nav-link is-active" type="button" data-route="home">产品能力</button>
           <button class="nav-link" type="button" data-route="timeline">设计课堂</button>
         </nav>
         <div class="connection-status"><span class="status-dot"></span><span>本地演示</span><span class="status-divider"></span><span>扩展待连接</span></div>
@@ -23,50 +23,37 @@
 
       <main>
         <section id="home-view" class="view workspace-home" aria-labelledby="home-title">
-          <div class="dashboard-head">
+          <div class="dashboard-head capability-head">
             <div>
-              <p class="eyebrow">LessonPilot Studio / 我的课程</p>
-              <h1 id="home-title">继续完成你的课程。</h1>
-              <p class="lead">从上次停下的位置继续设计互动、预览学生体验，然后发布一条可以交付的课程链接。</p>
+              <p class="eyebrow">LessonPilot Studio / 课程改造工作台</p>
+              <h1 id="home-title">把一节录播课变成可练习的学习。</h1>
+              <p class="lead">从已有课程和字幕开始，老师决定学生在哪一段停下来思考、练习和回看。这里先带你看清这套产品怎样工作。</p>
             </div>
-            <button class="quiet-action" id="create-course" type="button">新建课程 <span>＋</span></button>
+            <p class="capability-note"><span>W0 当前范围</span>固定 B 站样例 + 教师提供的字幕文件</p>
           </div>
 
-          <section class="course-focus" aria-labelledby="focus-title">
-            <div class="focus-video" aria-label="课程视频预览"><span class="focus-play">▶</span><span class="focus-duration">03:42</span></div>
-            <div class="focus-main">
-              <div class="focus-status"><span class="status-dot"></span><span>课堂设计进行中</span><span>已保存刚刚</span></div>
-              <p class="eyebrow">当前课程</p>
-              <h2 id="focus-title">英语面试表达：把答案说得具体</h2>
-              <p>3 个已确认互动 · 1 个需要老师决定的建议 · 学生端已准备好预览</p>
-              <div class="focus-actions"><button class="dark-button" id="continue-course" type="button">继续设计课堂 <span>→</span></button><button class="light-button" id="preview-home" type="button">预览学生课程 <span>↗</span></button></div>
-            </div>
-            <aside class="focus-next" aria-label="下一步任务"><span>下一步</span><strong>确认 00:35 的互动练习</strong><p>AI 已识别这里是知识点转折，等待你的教学决定。</p><button class="text-button" id="open-suggestion" type="button">查看这条建议 →</button></aside>
+          <section class="capability-map" aria-labelledby="capability-map-title">
+            <div class="section-heading capability-heading"><div><p class="eyebrow">你可以用 LessonPilot 做什么</p><h2 id="capability-map-title">把教学判断放在视频真正需要它的地方。</h2></div><p>不是重新录制，也不是把视频换到新平台。先以一节已有课程为例，走完从字幕到学生学习体验的路径。</p></div>
+            <ol class="capability-steps">
+              <li class="capability-step capability-step-source">
+                <span class="step-number">01</span><div class="capability-icon" aria-hidden="true">↗</div><h3>接入已有课程</h3><p>确认 B 站课程链接，再导入你已取得的 SRT 或 VTT 字幕。字幕会成为后续教学设计的时间锚点。</p><label class="field-label">课程链接<input id="course-url-input" type="url" value="https://www.bilibili.com/video/BV1WW4y1e7GL/" inputmode="url"></label><button class="text-button" id="confirm-course-url" type="button">确认课程链接 →</button><p class="field-error" id="course-url-error" hidden></p><label class="text-button file-button" for="subtitle-file-input">导入字幕文件 →</label><input id="subtitle-file-input" type="file" accept=".srt,.vtt,text/plain,text/vtt" hidden><p class="file-name" id="subtitle-file-name">当前支持固定样例与手动取得的字幕</p><p class="field-error" id="subtitle-file-error" hidden></p>
+              </li>
+              <li class="capability-step capability-step-design">
+                <span class="step-number">02</span><div class="capability-icon" aria-hidden="true">Aa</div><h3>按字幕设计动作</h3><p>选中一句字幕，为学生安排重点提醒、老师补充、互动练习或受限的点评追问。教学决定始终由老师完成。</p><button id="open-timeline" class="dark-button" type="button">打开课堂设计 <span>→</span></button><p class="capability-status">当前可用：字幕时间线与课堂动作编辑</p>
+              </li>
+              <li class="capability-step capability-step-preview">
+                <span class="step-number">03</span><div class="capability-icon" aria-hidden="true">▶</div><h3>预览学生体验</h3><p>在学生页面检查课程目标、放大的来源视频和学习结果展示是否对学生足够清楚。</p><button class="light-button" id="preview-home" type="button">预览学生课程 <span>↗</span></button><p class="capability-status">当前可用：跨桌面与移动浏览器的课程入口</p>
+              </li>
+              <li class="capability-step capability-step-results">
+                <span class="step-number">04</span><div class="capability-icon" aria-hidden="true">□</div><h3>查看学习结果</h3><p>学生完成练习后，结果会回到课程目标和老师设计的动作上，帮助你判断哪一段需要补讲或复练。</p><p class="result-boundary"><strong>下一阶段接入</strong> 当前学生页只展示本节课预期形成的学习结果，不记录学习会话，也不生成报告。</p>
+              </li>
+            </ol>
           </section>
 
-          <section class="course-health" aria-label="课程进度">
-            <div><strong>03</strong><span>已确认互动</span></div>
-            <div><strong>01</strong><span>待确认建议</span></div>
-            <div><strong>12</strong><span>已校对字幕段</span></div>
-            <div><strong>未发布</strong><span>学生课程状态</span></div>
+          <section class="workspace-actions capability-next" aria-labelledby="capability-next-title">
+            <div class="section-heading"><div><p class="eyebrow">从这里开始试用</p><h2 id="capability-next-title">先导入字幕，再决定第一处学生动作。</h2></div><p>W0 只验证固定 B 站样例的课程呈现和课堂设计。视频不上传、不托管，字幕只在当前浏览器解析。</p></div>
+            <div class="capability-next-actions"><button id="continue-course" class="dark-button" type="button">打开课堂设计 <span>→</span></button><button class="light-button" id="open-suggestion" type="button">查看示例教学节点 <span>→</span></button></div>
           </section>
-
-          <section class="workspace-actions" aria-labelledby="workspace-actions-title">
-            <div class="section-heading"><div><p class="eyebrow">当前验证范围</p><h2 id="workspace-actions-title">先把一节真实课程设计清楚。</h2></div><p>W0 只围绕固定 B 站样例验证课程呈现与教学设计，不导入或托管视频。</p></div>
-            <div class="action-grid">
-              <div class="workspace-action video-dropzone">
-                <div class="drop-icon">↗</div><h3>确认 B 站课程链接</h3><p>固定样例已预填。确认后，字幕将作为课堂动作的时间锚点。</p><label class="field-label">课程链接<input id="course-url-input" type="url" value="https://www.bilibili.com/video/BV1WW4y1e7GL/" inputmode="url"></label><button class="text-button" id="confirm-course-url" type="button">确认课程链接 →</button><p class="field-error" id="course-url-error" hidden></p>
-              </div>
-              <div class="workspace-action subtitle-dropzone">
-                <div class="caption-icon">Aa</div><h3>导入已取得的字幕</h3><p>选择 SRT 或 VTT。字幕只在当前浏览器解析，不上传到服务器。</p><label class="text-button file-button" for="subtitle-file-input">选择字幕文件 →</label><input id="subtitle-file-input" type="file" accept=".srt,.vtt,text/plain,text/vtt" hidden><p class="file-name" id="subtitle-file-name">尚未导入文件</p><p class="field-error" id="subtitle-file-error" hidden></p>
-              </div>
-              <div class="workspace-action example-action">
-                <div class="example-number">01</div><h3>先看一份示例</h3><p>用当前课程快速了解从字幕到互动的设计过程。</p><button id="open-timeline" class="text-button" type="button">打开课堂设计 →</button>
-              </div>
-            </div>
-          </section>
-
-          <div class="studio-flow" aria-label="课程创作流程"><span><b>01</b>导入课程</span><i>→</i><span><b>02</b>设计课堂</span><i>→</i><span><b>03</b>预览学生体验</span><i>→</i><span><b>04</b>发布课程</span></div>
         </section>
 
         <section id="timeline-view" class="view timeline-view" aria-labelledby="timeline-title" hidden>

@@ -1,7 +1,7 @@
 # Design — LessonPilot
 
-Version: 0.4
-Last updated: 2026-08-12
+Version: 0.5
+Last updated: 2026-08-13
 
 ## 1. Architecture Decision
 
@@ -86,6 +86,23 @@ fixed Bilibili page URL
 - Accept UTF-8 SRT/VTT files, ignore VTT metadata blocks, normalize comma/dot timestamps, and preserve multi-line caption text.
 - Reject empty or unparsable files with a field-level error; do not replace the current working timeline on failure.
 - Imported captions and action edits are page-local prototype state in W0. Persistence, source scraping, and AI analysis are later work.
+
+### 2.0.2 W0 Teacher Home
+
+The teacher home is a function-guided workspace, not a current-course dashboard and not a marketing landing page. Its first-use flow is:
+
+```text
+understand the available capability
+  -> confirm the fixed Bilibili course and import authorized subtitles
+  -> design a classroom action on a caption
+  -> preview the student course shell
+  -> understand the learning-result structure that later sessions will fill
+```
+
+- The home makes four modules legible: existing-course intake, caption-anchored classroom design, student preview, and learning results.
+- Course link confirmation, SRT/VTT import, timeline editing, and student preview are interactive W0 commands.
+- Learning results are an honest future-facing structure only in W0: no session recording, report, analytics, or AI interpretation is claimed as delivered.
+- The page links into the timeline rather than duplicating the timeline editor on the home surface.
 
 ### 2.1 Demo Scope Controller
 
@@ -298,7 +315,7 @@ The response must use a validated structured shape before rendering. API credent
 - Place the avatar near the lower-right edge without covering native controls.
 - Display one activity card at a time when playback pauses.
 - Show compact progress such as `1 / 3`.
-- Use the teacher surface as a quiet operational workspace: the course in progress, pending teaching decisions, course health, then the timeline editor, preview command, and latest report.
+- Use the teacher surface as a quiet operational workspace: on first entry, orient the teacher to the four real product modules; after that, lead directly to source intake, the timeline editor, and student preview. Do not imply that a current course or a latest report already exists.
 - Do not expose provider, iframe, adapter, local-file, or compatibility choices in the normal student flow. W0 uses one concise “在 B 站打开原课” fallback instead of a technical testing panel.
 - Do not build a general AI chat panel in the first demo.
 
