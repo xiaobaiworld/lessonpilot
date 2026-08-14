@@ -5,7 +5,11 @@ Last updated: 2026-08-14
 
 ## 1. Architecture Decision
 
-2026-08-12 delivery update: student first use is web-first. The extension remains the Bilibili page-overlay and PC enhancement adapter, while `student-web/` provides a no-install W0 entry point across desktop and mobile browsers. W0 begins with a fixed Bilibili course link plus a teacher-provided SRT/VTT subtitle file. The browser parses the subtitle file locally into the teacher timeline; it does not scrape Bilibili subtitles or treat the cross-origin iframe as a controllable `PlayerAdapter`. W0 has no local video, upload, hosting, or replacement-player path. The learner shell presents the lesson, learning goals, an intentionally dominant source video, and honest learning-result expectations; timed interaction remains a Bilibili original-page/extension concern until separately proven for the web.
+2026-08-14 交付更新，取代 2026-08-12 的「学生端网页优先」决定：学生宿主是**装了插件的 B 站原页面，仅 PC 浏览器**。定时自动打断是五类节点的共同前提，不是其中一项能力，而它要求与 `<video>` 在同一个文档里读取播放时间——跨源嵌入永远做不到。因此只要课程视频留在 B 站，手机端就不可能。逐条排查见 `doc/lessons.md` 2026-08-14 条目。
+
+原 `student-web/` 学生网页壳已删除，不做改造保留：既然学生路径定在插件上，再留一个网页学生入口只能演示产品不出售的那个版本。老师要看真实学生效果，装插件、打开 B 站原页面，和学生走同一条路径——所以老师自己也要装插件，教师端网页是编辑界面，不是免安装产品。
+
+教师端网页仍从固定 B 站课程链接加老师提供的 SRT/VTT 字幕文件开始，在浏览器本地解析。它不抓取 B 站字幕，也不把跨源 iframe 当作可控的 `PlayerAdapter`；嵌入播放器只是确认内容的取景器，节点定位的时间真源是字幕文件而不是播放器。不提供本地视频、上传、托管或替代播放器路径。
 
 The first demo uses a DOM-injected video interaction layer rather than making a Chrome side panel the primary experience.
 
@@ -27,21 +31,19 @@ Bundled or locally saved lesson configuration
   -> report presenter renders student and teacher views
 ```
 
-The teacher editor is a localhost website that writes local lesson configuration through an allowlisted bridge and launches the same student runtime in preview mode.
+教师编辑器是一个 localhost 网站，通过白名单桥写入本地课程配置。它不启动网页学生运行时；预览指的是装好插件后打开 B 站原页面。
 
-### 1.1 Local Service Boundary
+### 1.1 本地服务边界
 
-W0 has one local static service, started from the repository root:
+W0 只有一个本地静态服务，从仓库根目录启动：
 
 ```text
 http://127.0.0.1:4173/
-  -> /teacher-web/   Creator Studio
-  -> /student-web/   student course shell
+  -> /teacher-web/            teacher workspace sample page
+  -> /teacher-web/editor.html teacher W0 editor
 ```
 
-Start it with `python3 -m http.server 4173` while the working directory is the repository root. `teacher-web/` and `student-web/` are route/resource boundaries inside the same origin, not independently hosted applications. This is required because the teacher preview opens `../student-web/` and the student shell fetches `./course.json` relative to its route.
-
-Do not run a second student-only service on port `4174`. A directory-root server can make a page appear to load while changing navigation and configuration resolution, which no longer matches the verified W0 topology.
+在仓库根目录下运行 `python3 -m http.server 4173`。即使现在只剩一个页面目录，也必须从仓库根启动：路径和测试用例都是相对这个根解析的，而以子目录为根的服务会让页面看起来能打开，却改变了导航和配置的解析结果。不要把 `teacher-web/` 当作独立服务根，也不要引入 `4174` 这样的第二个端口。
 
 Minimum adapter surface for D0/D1 (Bilibili implementation only):
 
@@ -61,14 +63,14 @@ PlayerAdapter
 
 ## 2. Student Runtime Components
 
-### 2.0 W0 Web Course Shell
+### 2.0 学生宿主
 
-`student-web/` is not yet a second video runtime. It is a course-delivery shell that reads the fixed course reference, renders its title and learning context, embeds the source video where the host permits it, and always exposes a direct Bilibili fallback.
+学生宿主只有一个：装了插件的 B 站原页面，PC 浏览器。content script 解析出 `VideoRef`，从同文档的 `<video>` 读取播放时间，在下一个未完成节点处暂停，并把学习窗口挂到页面上。
 
-- Do not call iframe playback APIs or infer playback state from the cross-origin player.
-- Do not offer a local-file, Object URL, upload, or hosting fallback in W0.
-- Show learning goals above the video. Below it, show the learning results the course is designed to produce and label them as pending until a controllable interaction/session path exists; never fabricate completion.
-- Keep technical source inspection out of the ordinary learner flow; the direct original-page link is the only necessary fallback.
+- 对平台播放器的干预保持最小：只做暂停加自己的 DOM 层。不改倍速、不阻止跳过、不降原声、不改播放器 UI。这是合规底线，不是偏好。
+- 没有网页学生入口。不要以「更轻」或「免安装」为理由重新引入——没有定时触发，五类节点一个都交付不了。
+- 不提供本地文件、Object URL、上传或托管路径。
+- 学生用开发者模式加载已解压插件即可安装。D0/D1 阶段由老师逐个带装；上架商店打包属于规模期决策。
 
 ### 2.0.1 W0 Link and Subtitle Intake
 
@@ -89,9 +91,15 @@ fixed Bilibili page URL
 
 ### 2.0.2 W0 Teacher Home
 
-The live `teacher-web/` page remains the W0 functional prototype: confirm the fixed Bilibili course, import authorized subtitles, and author a classroom action on a caption. That path is not the teacher-facing product picture.
+The `/teacher-web/editor.html` page remains the W0 functional prototype: confirm the fixed Bilibili course, import authorized subtitles, and author a classroom action on a caption. The separate `/teacher-web/` entry is the teacher workspace sample page used in sales conversations.
 
-The sales sample for teachers is specified in `doc/teacher-course-workspace-design.md` and implemented in `teacher-web/index.html`, `teacher-web/sample.css`, and `teacher-web/sample.js`. It is a one-page classroom-design picture: a minimal brand and course-directory header (`英语职业课 / 英文面试表达`), course title, video 3/4 + intro, a 3/4 timeline beside a 1/4 add-node rail, three node rows with student-effect preview, and sample completion. The timeline is a continuous pale blue-gray bar in the same family as the video progress track; color only shows playback position. The add-node rail uses one summary line, not a type glossary. The page omits save, preview, unsaved, and sample-status controls. The previous W0 editor remains at `teacher-web/editor.html`. Change real workspace features later, without inventing a second information architecture.
+The **teacher workspace sample page** is specified in `doc/teacher-course-workspace-design.md`; its production location is the separate `/teacher-web/` page built from `teacher-web/index.html`, `teacher-web/sample.css`, and `teacher-web/sample.js`. It is a pre-populated workspace used during sales conversations, not a marketing landing page and not the real-data workspace itself. The real teacher workspace remains a separate page at `teacher-web/editor.html`. Both pages must share information architecture, node semantics, and visual rules; only sample versus real data, persistence, publishing, and session connectivity may differ.
+
+The online first-contact sales page is a third, independent surface at `/teacher-web/forsales.html`, specified in `doc/teacher-sales-page-design.md`. It owns target-buyer recognition, the no-re-recording promise, value translation, evidence ordering, and the request to transform one real course. It may present workspace evidence, but its sales narrative must not become the header or information architecture of either teacher workspace page.
+
+The approved target state uses eight interaction nodes and five teacher-facing components (`重点标注`, `老师补充`, `选择题`, `填空题`, `问答题`). Course-video selection and within-video timeline paging are separate controls; videos longer than 15 minutes page in 15-minute segments. The timeline header keeps only the segment label and previous/next buttons on its right side; it does not duplicate player elapsed/total time or add zoom-minus/zoom-plus controls. Player time, timeline progress, active node, inspector, node row, preview, and completion evidence all reference the same node identity and current time. The timeline does not add a separate vertical playhead through the active marker. This target has been approved in the design preview but is not yet fully implemented in `/teacher-web/`.
+
+The component bar is deliberately minimal: its heading is `交互节点`, followed only by the five components. Timeline summaries alternate above and below the axis and connect to markers with type-colored lines. Segment boundaries are explicit (`开始 / 结束` for one segment; previous/next labels for paged video). Creating a node first persists a stable-id draft. A checked-by-default `自动保存` checkbox below the centered save button controls whether later field edits use debounced autosave; when disabled, edits remain local until manual save. Save attempts use `saving`, `saved`, and `save_failed`; failures retain the local edit and expose manual retry.
 
 The current functional home is still a classroom-design workspace, not a current-course dashboard and not a marketing landing page. Its first-use flow is:
 
@@ -354,7 +362,13 @@ After D1: add YouTubePlayerAdapter as the second platform
 After a real overseas customer: redesign multilingual and multi-region needs from evidence
 ```
 
-YouTube is the right second platform because it tests a different video ID model, player behavior, and SPA navigation. Other sites are not ranked until real teacher courses require them.
+YouTube 被列入的理由在 2026-08-14 变了。它不只是用来验证 `PlayerAdapter` 抽象是否成立；它是唯一提供官方 IFrame Player API（`getCurrentTime`、`pauseVideo`、`seekTo`、`onStateChange`）、允许普通网页做定时触发的平台，因此也是通往免安装、可上手机的学生形态的唯一路线。把它当作产品形态的备用出口。B 站是唯一逼我们用插件的平台——其它选择要么有官方控制 API，要么是自己托管。D0/D1 只做 B 站的排期不变。
+
+它的政策限制比初看时窄：禁止的是在播放器**前方**叠加，不是禁止并排。合规的布局是把播放器固定在一个区域，节点触发时缩小播放器、在旁边渲染学习窗口——任何时候都没有东西盖住播放器。剩下的限制只是尺寸：缩小后视口不低于 200×200，若显示控制栏则要能完整显示（16:9 官方建议至少 480×270）。这修正了两处早先的判断：`dark-player` 覆盖主题是不再需要，而不是被禁止；S09 不用遮挡带，改为通过 IFrame API 关闭字幕轨——这属于文档描述的行为，不是擅自修改播放器，但具体参数与 captions 模块调用仍需实测确认。并排布局完全不触碰播放器画面，比在 B 站页面上盖一层更干净。
+
+由此带出两个待办。`doc/learning-window-standard.md` 假设窗口挂在播放器之上，需要增加一档并排挂载方式。另外，当前买方的课程和学生都在 B 站，这个 API 优势可能触及不到他们。
+
+Other sites are not ranked until real teacher courses require them.
 
 Multilingual UI, course-language systems, regional payments, data residency, and international store distribution are fully deferred. Do not add locale or region schema work now. The only reserved expansion seam is `VideoRef` + `PlayerAdapter`.
 

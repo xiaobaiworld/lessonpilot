@@ -1,17 +1,37 @@
 /**
- * Guardrails for the teacher sales sample, W0 editor, and student course shell.
- * Run: node tests/page-information-architecture.test.js
+ * 教师销售页、工作台示例页与 W0 编辑器的信息架构护栏。
+ * 运行：node tests/page-information-architecture.test.js
+ *
+ * 2026-08-14：`student-web/` 已删除，学生宿主固定为装了插件的 B 站原页面，
+ * 因此本文件不再断言任何网页学生端。
  */
 
 const fs = require('fs');
 
+const forSalesPage = fs.readFileSync('teacher-web/forsales.html', 'utf8');
 const samplePage = fs.readFileSync('teacher-web/index.html', 'utf8');
+const sampleCss = fs.readFileSync('teacher-web/sample.css', 'utf8');
+const sharedCss = fs.readFileSync('teacher-web/styles.css', 'utf8');
 const editorPage = fs.readFileSync('teacher-web/editor.html', 'utf8');
 const editorApp = fs.readFileSync('teacher-web/app.js', 'utf8');
-const studentPage = fs.readFileSync('student-web/index.html', 'utf8');
-const studentApp = fs.readFileSync('student-web/app.js', 'utf8');
 
 const checks = [
+  {
+    label: 'forsales is a separate online sales page with a self-explanatory first screen',
+    run: () => forSalesPage.includes('给已经在卖录播课的英语老师') && forSalesPage.includes('不用重录') && forSalesPage.includes('学生必须练、老师看得见结果')
+  },
+  {
+    label: 'forsales uses specific workspace proof and keeps sample evidence honest',
+    run: () => forSalesPage.includes('完整课程示例') && forSalesPage.includes('八个节点') && forSalesPage.includes('节点 06') && forSalesPage.includes('示例数据')
+  },
+  {
+    label: 'forsales closes with one low-friction real-course conversion',
+    run: () => forSalesPage.includes('id="copy-request"') && forSalesPage.includes('我想拿一节正在卖的录播课，做一次互动改造演示。') && !forSalesPage.includes('立即购买')
+  },
+  {
+    label: 'workspace sample stays separate from forsales positioning and conversion copy',
+    run: () => !samplePage.includes('给已经在卖录播课的英语老师') && !samplePage.includes('复制申请话术') && !samplePage.includes('我想拿一节正在卖的录播课')
+  },
   {
     label: 'sales sample uses the course title as the page heading',
     run: () => samplePage.includes('英语面试表达：把答案说得具体') && samplePage.includes('id="course-title"') && samplePage.includes('英语职业课') && samplePage.includes('英文面试表达') && !samplePage.includes('沿着字幕，设计学生真正需要的课堂动作')
@@ -25,8 +45,12 @@ const checks = [
     run: () => !samplePage.includes('B 站来源') && !samplePage.includes('网页不控制播放') && !samplePage.includes('用来对时间点') && !samplePage.includes('示例图里的修改') && !samplePage.includes('只演示入口') && !samplePage.includes('每个节点同一行同时看到制作内容和学生端效果')
   },
   {
-    label: 'sales sample stacks video above a full-width timeline',
-    run: () => samplePage.includes('sample-stage-top') && samplePage.includes('sample-timeline') && samplePage.includes('整体介绍')
+    label: 'sales sample stacks a 3/4 timeline beside the add-node rail',
+    run: () => samplePage.includes('sample-stage-top') && samplePage.includes('sample-stage-bottom') && samplePage.includes('sample-timeline') && samplePage.includes('sample-add-rail') && samplePage.includes('整体介绍') && samplePage.includes('在视频中增加互动，让学习更有效。') && !samplePage.includes('sample-add-types') && samplePage.includes('＋ 增加节点') && !samplePage.includes('add-node-on-track')
+  },
+  {
+    label: 'sales sample add-node form uses family-specific standard content fields',
+    run: () => samplePage.includes('id="add-node-family"') && samplePage.includes('value="attention"') && samplePage.includes('value="voice"') && samplePage.includes('value="practice"') && samplePage.includes('value="followup"') && samplePage.includes('标出的关键词') && samplePage.includes('提醒正文') && samplePage.includes('id="add-node-preview"')
   },
   {
     label: 'sales sample timeline marks typed interaction points with visible labels',
@@ -45,8 +69,8 @@ const checks = [
     run: () => samplePage.includes('示例数据') && samplePage.includes('学生课程完成情况') && samplePage.includes('最需要关注')
   },
   {
-    label: 'sales sample busts stale stylesheet caches after visual changes',
-    run: () => /<link rel="stylesheet" href="styles\.css\?v=[^"]+">/.test(samplePage)
+    label: 'sales sample keeps markup, styles, and behavior in its own files',
+    run: () => samplePage.includes('href="styles.css"') && /<link rel="stylesheet" href="sample\.css\?v=[^"]+">/.test(samplePage) && /src="sample\.js\?v=[^"]+"/.test(samplePage) && sampleCss.includes('.sample-timeline') && sampleCss.includes('.sample-add-rail') && !sharedCss.includes('.sample-timeline') && !sharedCss.includes('.sample-add-rail')
   },
   {
     label: 'teacher W0 editor still centers the classroom-design task',
@@ -69,12 +93,12 @@ const checks = [
     run: () => editorApp.includes("document.querySelector('#continue-course')?.addEventListener") && editorPage.includes('src="app.js?v=')
   },
   {
-    label: 'student entry presents learning goals, a dominant source video, and learning results',
-    run: () => studentPage.includes('学习目标') && studentPage.includes('学习结果展示') && studentPage.includes('id="bilibili-player"')
+    label: '仓库里不存在网页学生入口（学生宿主只有 B 站原页面加插件）',
+    run: () => !fs.existsSync('student-web')
   },
   {
-    label: 'W0 student page has no local-video or timed-interaction runtime controls',
-    run: () => !studentPage.includes('video-file-input') && !studentPage.includes('测试者工具') && !studentPage.includes('question-card') && !studentApp.includes('ObjectURL')
+    label: '教师端页面不引导学生用网页学习，也不承诺网页定时弹题',
+    run: () => !samplePage.includes('student-web') && !editorPage.includes('student-web') && !editorApp.includes('student-web')
   }
 ];
 
@@ -92,4 +116,4 @@ if (failed > 0) {
   process.exit(1);
 }
 
-console.log('All W0 page information architecture checks passed.');
+console.log('All teacher and student page information architecture checks passed.');

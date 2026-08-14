@@ -1,8 +1,8 @@
 # LessonPilot
 
-LessonPilot is an early-stage course-runtime project for upgrading an English teacher's existing recorded course into an interactive course product. The Chrome extension remains a Bilibili overlay spike; the first student validation entry is now a web page so students do not need to install a plugin.
+LessonPilot is an early-stage course-runtime project for upgrading an English teacher's existing recorded course into an interactive course product. Teachers design courses in a local web workspace; students learn on the Bilibili original page with the Chrome extension installed, because timed auto-interruption — the shared precondition of every node type — requires same-document access to the player that a cross-origin embed cannot provide.
 
-The first demo targets a real teacher-style Bilibili English interview lesson. Its job is to show that a teacher can add timed practice, feedback, and learning evidence without re-recording the video. The current teacher sales sample is grounded in the checked-in Chinese AI-translated subtitle source at `doc/英文面试问答流程（超全！）｜自我介绍 矛盾处理 优缺点 技能.srt`.
+The first demo targets a real teacher-style Bilibili English interview lesson. Its job is to show that a teacher can add timed practice, feedback, and learning evidence without re-recording the video. The current teacher workspace sample page is grounded in the checked-in Chinese AI-translated subtitle source at `doc/英文面试问答流程（超全！）｜自我介绍 矛盾处理 优缺点 技能.srt`.
 
 ## Product Positioning
 
@@ -60,7 +60,7 @@ What keeps the advisory half safe is window self-sufficiency: turn off everythin
 
 ## Local Web Service
 
-The teacher and student pages are two paths served by **one static server started from the repository root**. The directories are page boundaries, not separate services.
+The teacher pages are served by **one static server started from the repository root**. The directories are page boundaries, not separate services. There is no web student page: as of 2026-08-14 the student host is the Bilibili original page with the extension installed, on PC browsers only.
 
 ```bash
 cd /Users/bai/code/lessonpilot
@@ -69,15 +69,17 @@ python3 -m http.server 4173
 
 Open:
 
-- Teacher sales sample: [http://localhost:4173/teacher-web/](http://localhost:4173/teacher-web/)
+- Teacher online sales page: [http://localhost:4173/teacher-web/forsales.html](http://localhost:4173/teacher-web/forsales.html)
+- Teacher workspace sample page: [http://localhost:4173/teacher-web/](http://localhost:4173/teacher-web/)
 - Teacher W0 editor: [http://localhost:4173/teacher-web/editor.html](http://localhost:4173/teacher-web/editor.html)
-- Student course: [http://localhost:4173/student-web/](http://localhost:4173/student-web/)
 
-The teacher sales sample is a finished-course picture for conversations with teachers. Change it in `teacher-web/index.html`, `teacher-web/sample.css`, and `teacher-web/sample.js`. The timeline is a continuous pale blue-gray bar aligned with the video, and the add-node rail summarizes adding interaction in the video. Its header is intentionally minimal: `LessonPilot Studio`, then `英语职业课 / 英文面试表达`, then the course title. It does not show save, preview, unsaved, or sample-status controls. The functional subtitle-import and classroom-action prototype remains a separate page at `teacher-web/editor.html`.
+The independent `teacher-web/forsales.html` page owns the online first-contact narrative: target-teacher recognition, the no-re-recording promise, concrete workspace evidence, honest sample results, and the request to transform one real course. The teacher workspace sample remains a separate, pre-populated proof page at `teacher-web/index.html`; it is not the landing page or the real-data workspace. Its information architecture, node semantics, and visual system stay aligned with the real teacher workspace. The functional subtitle-import and classroom-action prototype remains separate at `teacher-web/editor.html`.
 
-The current sales sample uses three subtitle-grounded teaching points from the 08:33 lesson: `00:39` evidence after capability words, `02:16` ordering a coworker-conflict response, and `05:45` practicing the four-step stress response. The source file contains Chinese AI translation rather than original English captions, so the English display copy remains teacher-review material.
+The current teacher workspace sample page uses subtitle-grounded teaching points from the 08:33 lesson. The source file contains Chinese AI translation rather than original English captions, so the English display copy remains teacher-review material.
 
-Do not start `teacher-web/` or `student-web/` as separate server roots, and do not use a second port such as `4174`. The teacher preview link is relative (`../student-web/`), and the student page must fetch `student-web/course.json` from the same repository-root service. The configured student sample embeds Bilibili video `BV1WW4y1e7GL` and keeps a direct original-page fallback.
+The approved target design for the sample page demonstrates eight interaction nodes through five teacher-facing components: 重点标注、老师补充、选择题、填空题、问答题. Node timestamps come from the imported subtitle file, not from the embedded player — a cross-origin iframe cannot report its playback position, so selecting a node reloads the player with a new `t=` value rather than staying in sync. Course videos are selected separately from the timeline's 15-minute segment paging. These rules are specified in `doc/teacher-course-workspace-design.md` and mapped to the underlying node contract in `doc/node-content-standard.md`; the current `teacher-web/` implementation has not yet been fully brought in line with this eight-node preview.
+
+Do not start `teacher-web/` as its own server root, and do not use a second port such as `4174`. Paths and test fixtures resolve relative to the repository root. The configured course sample at `teacher-web/course.json` embeds Bilibili video `BV1WW4y1e7GL` and keeps a direct original-page fallback.
 
 ## Load Extension (Spike)
 
@@ -103,7 +105,8 @@ See [Bilibili mascot spike notes](doc/bili-mascot-spike.md) for open-source rese
 | [Design](doc/design.md) | Runtime components, data contracts, and the mandatory/advisory scope split |
 | [Development Plan](doc/dev-plan.md) | Phase order and validation gates |
 | [Student Runtime Summary](doc/student-runtime.md) | Navigation across student-side scope, plus personal review space and data ownership |
-| [Teacher Course Workspace](doc/teacher-course-workspace-design.md) | The teacher-facing sales sample shape |
+| [Teacher Course Workspace](doc/teacher-course-workspace-design.md) | The separate, pre-populated teacher workspace sample page |
+| [Teacher Online Sales Page](doc/teacher-sales-page-design.md) | Online first-contact narrative, evidence order, honesty boundary, and conversion |
 | [Teacher Demo Design](doc/teacher-demo.md) | Teacher demo entries and D0/D1 narrative |
 | [UI Design](doc/ui-design.md) | Color system and two-page information architecture |
 | [Teacher Promotion Video](doc/promo-video.md) | Promotion script |

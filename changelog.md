@@ -10,9 +10,30 @@ Only record verified changes.
 - Record the YouTube-compliant interaction layout: pause through the IFrame API, resize the unobscured player, render the learning window beside it, then restore playback after submission.
 - Distinguish automatic restoration of the page layout from browser-native fullscreen, which must be requested directly from the learner's submission click and degrade to in-page playback if denied.
 
-### Teacher Sales Sample Layout And Module — 2026-08-14
+### 学生宿主收束为 B 站原页面加插件 — 2026-08-14
 
-- Keep the sales sample in three files: `teacher-web/index.html`, `teacher-web/sample.css`, and `teacher-web/sample.js`. Shared chrome stays in `teacher-web/styles.css`.
+方向性变更：**定时自动打断是五类节点的共同前提，不是其中一项能力**，因此学生宿主只能是装了插件的 B 站原页面（仅 PC 浏览器）。此前四份文档里的「学生首用网页优先、不要求装插件」结论作废。
+
+- 排查并记录跨源 iframe 读取播放时间的所有路线，全部封闭：读进度条像素无 API 支持、`getDisplayMedia()` 屏幕共享因权限提示与控制栏自动隐藏不可用、墙上时钟推算在手动暂停时失真、代理转发等于重新托管他人内容。且即使拿到当前秒数也无法暂停跨源 iframe。
+- 删除 `student-web/`（`app.js`、`index.html`、`styles.css`）；`course.json` 迁至 `teacher-web/course.json`，课程标识与教学文案继续被 `tests/course-config.test.js` 约束。
+- 老师预览真实学生效果改为装插件打开 B 站原页面，与学生同一路径。教师端网页只负责编辑，「教师端全程免安装」不再成立；工作台里的「学生端效果预览」明确降级为静态示意图。
+- 修正 `doc/teacher-course-workspace-design.md` 5.2 节与验收标准第 8 条：时间真源是导入的字幕文件，选中节点时播放器带 `t=` 重载定位，不承诺双向同步，不得用动画或进度推移暗示网页在跟踪播放位置。
+- 标注 `doc/node-content-standard.md` 第 7 节「不能读时间」降级只适用于教师预览等次要场景，不可作为学生端主形态。
+- 记录合规边界：对平台播放器的干预限于暂停加自有 DOM 层，不改倍速、不阻止跳过、不降原声、不改播放器 UI。
+- 修正 YouTube 的定位：它是唯一提供官方 IFrame Player API、因而唯一能支撑免安装且可上手机学生形态的平台，属产品形态备用出口而非 `PlayerAdapter` 抽象验证。其政策禁止的是在播放器**前方**叠加，缩小播放器并排显示学习窗口是合规的（视口不低于 200×200，16:9 建议至少 480×270），因此 `dark-player` 覆盖主题变为不再需要，S09 改用 IFrame API 关闭字幕轨（参数待实测）。D0/D1 只做 B 站的排期不变。
+- 同步改动：`doc/design.md`、`doc/requirements.md`、`doc/student-runtime.md`、`doc/dev-plan.md`、`doc/lessons.md`、`doc/node-content-standard.md`、`doc/teacher-course-workspace-design.md`、`next.md`、`README.md`、`tests/page-information-architecture.test.js`、`tests/course-config.test.js`。
+- 五个测试文件全部通过。
+
+### Teacher Online Sales Page — 2026-08-14
+
+- Add `teacher-web/forsales.html` as the independent first online sales surface. Simple outreach gets a teacher to this page; the page itself explains the problem, value, proof, and next action.
+- Keep `teacher-web/index.html` as the separate teacher workspace sample page. Sales copy and conversion stay out of the workspace and W0 editor.
+- Use the approved eight-node workspace as specific product evidence inside `forsales`: a target-teacher promise, old-course before/after translation, a four-step transformation story, explicit teaching-value translation for sample evidence, and a low-friction “reply to the sender” course-conversion action.
+- Verify `forsales` at desktop and 375px widths with no document-level horizontal overflow; verify that the application-copy action copies the intended request sentence. The only observed console error belongs to the embedded Bilibili player's own fingerprint reporter.
+
+### Teacher Workspace Sample Page — 2026-08-14
+
+- Keep the workspace sample page in three files: `teacher-web/index.html`, `teacher-web/sample.css`, and `teacher-web/sample.js`. Shared chrome stays in `teacher-web/styles.css`.
 - Align the timeline to the video column at about 3/4 width, with the add-node rail in the remaining quarter. The add control is not on the axis.
 - Draw the timeline as one continuous pale blue-gray bar matching the video progress track. Color changes only mark played versus unplayed; do not segment the bar.
 - Summarize the add-node rail as adding interaction in the video. Do not list the four node types there.
@@ -325,6 +346,23 @@ Only record verified changes.
 - Rebuild the teacher sales timeline as a media timeline with elapsed/total time, playback progress, a playhead, and minute ticks matched to the real 08:33 source duration.
 - Align every classroom node marker to one baseline with stable icon sizing across active and inactive states.
 - Remove layout-explainer copy from the sales page and simplify mobile labels to prevent crowding.
+- Separate course-video selection from within-video navigation: use a video dropdown for multi-video courses and paginate long timelines in 15-minute segments.
+- Keep the current 08:33 sample on one `1 / 1` segment with disabled paging controls, and remove the subtitle-snapping control from the sales example.
+- Align the embedded sample player with the selected `06:19` node so the player time, timeline progress, playhead, and inspector all describe the same course state.
+- Replace the selected key-node row's left accent line with a full-row soft highlight, subtle outline, and explicit `正在编辑` badge.
+- Replace the four generic timeline chapter bands with eight position-aligned node summaries, staggered across two rows and color-matched to each node type.
+- Reduce the node inspector's save action to a compact right-aligned primary button instead of a full-width bar.
+- Synchronize the workspace design, UI color system, node component mapping, README, and current-step documentation with the approved eight-node teacher sample page.
+- Replace the timeline's functional heading with the course name and rename the video selector to lesson-based labels such as `第一节`.
+- Move node summaries to alternating positions above and below the timeline, with type-colored connector lines linking every summary to its marker.
+- Remove the redundant vertical playhead from node 06; the active state now relies on the shared progress endpoint, filled marker, and selected summary.
+- Center the compact save button and define autosave for node creation and edits, with explicit saving, saved, and failure states plus manual retry.
+- Add compact timeline boundary markers: `开始 / 结束` for a single segment, with previous/next segment labels defined for paged videos.
+- Rename the component-bar heading from `拖入节点` to `交互节点` while keeping drag instructions in the helper text.
+- Remove the component-bar drag helper text to keep the editor header compact.
+- Resynchronize the workspace design, UI rules, architecture notes, node contract, and current plan with the latest timeline boundaries, connectors, autosave, naming, and compact component-bar decisions.
+- Replace the static autosave-success text with a checked-by-default `自动保存` checkbox below the save button; it controls autosave for subsequent node edits.
+- Simplify the timeline header controls to only the centered segment label with previous/next paging; remove the duplicated elapsed/total time and zoom minus/plus controls.
 
 ### Teacher Sales Page Copy Boundary — 2026-08-14
 

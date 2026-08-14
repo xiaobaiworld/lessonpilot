@@ -1,6 +1,6 @@
 # 节点内容与展示标准
 
-版本：0.3
+版本：0.4
 更新时间：2026-08-14
 状态：目标契约。本文件定义**节点这一层**：一个节点的边界（第 4 节）与它装进学习窗口的内容（第 5 节）。窗口本身（尺寸、呈现方式、生命周期、键盘、习题本、AI 问答、证据）见 `doc/learning-window-standard.md`。当前 D0/D1 的 `type: multiple_choice | fill_blank | free_answer` 是本标准的子集，替换前不得混用两套字段。
 
@@ -58,7 +58,7 @@
 | `multiple_choice` / `fill_blank` / `free_answer` | `interaction` | 学生怎么作答，不是节点为什么存在 |
 | 字幕遮挡、暂停、降原声 | `effects` | 平台相关的建议性修饰，不是一种新题型 |
 
-老师工作台只暴露 `family` 的中文名。`interaction` 只在「互动练习」里作为练习方式出现；「点评追问」默认 `free_text`。
+教师工作台示例页直接暴露五个可拖拽组件，并把底层 `family + interaction` 组合隐藏在组件名称后：重点标注、老师补充、选择题、填空题、问答题。真实工作台应使用相同名称；“问答题”对应 `followup + free_text`。
 
 ## 3. 封闭枚举
 
@@ -81,9 +81,9 @@
 | `listen` | voice | 要做 |
 | `choice` | practice | 要做，对应现有选择题 |
 | `blank` | practice | 要做，对应现有填空题 |
-| `order` | practice | 要做，销售示例图节点 2 已使用 |
+| `order` | practice | 协议保留，但不进入当前教师工作台五组件面板 |
 | `match` | practice | 可收敛，暂不进 Demo |
-| `free_text` | followup | 要做，对应现有自由回答 |
+| `free_text` | followup | 要做，老师界面名称为“问答题” |
 | `dictation` | practice | 延后：涉及麦克风与评测 |
 
 不合法组合在保存时拒绝，例如 `family: attention` 配 `interaction: choice`。
@@ -456,13 +456,15 @@ AI 失败时保留原文，明确写「未生成反馈」，不得用套话冒�
 
 | 缺的能力 | 对内容的处理 | 证据怎么记 |
 |---|---|---|
-| 不能读时间 | 节点按时间顺序列出，学生手动打开，内容不变 | 标 `openSource: learner`、`trigger: manual` |
+| 不能读时间 | 节点按时间顺序列出，学生手动打开，内容不变 | 标 `openSource: learner`、`trigger: manual`。**仅限教师预览等次要场景，不可作为学生端主形态，见下方说明** |
 | 不能暂停 | 同样展示内容块，不承诺画面冻结 | `effects.pause` 记入 `unsupportedEffects` |
 | 不能覆盖画面 | 窗口改用 `docked` 或 `sheet`，内容不变 | 不影响完成状态 |
 | 不能播老师音频或降原声 | 展示 `display.transcript` | `transcript_only` |
 | 不认识 `family` 或 `interaction` | 显示 `unsupported` 应用，不白屏 | `unsupported`，不得记成跳过或完成 |
 
-网页第一期可以没有定时弹题，但只要它展示节点，就必须用同一份 `display`，不能另写一套「网页专用题目」。
+**2026-08-14 补充：「不能读时间」这一行不适用于学生端主形态。** 定时触发不是与其它能力并列的一项功能，而是五类节点的共同前提——重点标注要在那句话出现时标出，老师补充要在那个语境里插入，三种题型要在讲完对应段落时问。失去定时触发不是少一个效果，而是五类节点同时失效，所以 `trigger: manual` 只适合教师预览、能力探测或未来别的宿主，不能当作学生学习路径。学生宿主因此固定为装了插件的 B 站原页面，见 `doc/lessons.md` 2026-08-14 条目。
+
+任何宿主只要展示节点，就必须用同一份 `display`，不能另写一套「网页专用题目」。
 
 ## 8. 学习证据
 
@@ -499,21 +501,22 @@ AI 失败时保留原文，明确写「未生成反馈」，不得用套话冒�
 
 老师据此判断的是完全不同的三件事：学生放弃、学生卡住、产品没显示出来。
 
-## 9. 老师增加节点就是填写标准字段
+## 9. 老师拖入组件就是填写标准字段
 
-工作台「＋ 增加节点」不是自由备注，而是按 `family` 打开对应表单。保存结果必须能直接放进 `nodes[]`。
+工作台组件不是自由备注。老师把五个组件之一拖到时间线后，系统按对应 `family + interaction` 打开表单；保存结果必须能直接放进 `nodes[]`。
 
 ```text
-选择时间点或字幕
-  -> 选择 family（重点提醒 / 老师补充 / 互动练习 / 点评追问）
-  -> 若是互动练习，再选 interaction
+从组件栏选择重点标注 / 老师补充 / 选择题 / 填空题 / 问答题
+  -> 拖到目标时间点
   -> 可选：勾一段字幕作为回看片段（自动生成 recap.range 与 quote）
-  -> 填写该族 display / evaluation
+  -> 填写组件对应的 display / evaluation
   -> 用同一份数据生成 surface: preview
   -> 写入节点行，时间线出现对应图标
 ```
 
-各族表单与第 5 节字段一一对应。不要为预览再准备第二套文案。示例图阶段可以不持久化第四个节点，但外形必须让老师看见：换类型就是换标准字段，生成效果用的是刚填的内容。
+五个组件的映射为：重点标注 = `attention + notice`；老师补充 = `voice + listen`；选择题 = `practice + choice`；填空题 = `practice + blank`；问答题 = `followup + free_text`。各表单与第 5 节字段一一对应。不要为预览再准备第二套文案。教师工作台示例页可以不持久化新增节点，但必须让老师看见：换组件就是换标准字段，生成效果用的是刚填的内容。
+
+真实工作台中，拖入组件后先持久化带稳定 `id` 的节点草稿。字段修改是否防抖自动保存由参数面板的“自动保存”复选框控制，默认开启；关闭时只保留本地编辑态，直到手动保存。保存过程明确区分 `saving`、`saved`、`save_failed`。失败时保留本地未提交内容并提供重试，不得覆盖旧版本或伪装成已保存。手动“保存节点”始终可用于立即提交或失败重试。
 
 时间线图标、节点行左侧、学生端效果、完成情况列，共用 `id`、编号、`family` 和 `display.title`。
 
@@ -563,99 +566,29 @@ D0/D1 现有节点是本标准的子集，映射如下。实现替换前，Demo 
 | 无（老师补充尚未进入 Demo 配置） | `voice` | `listen` |
 | `multiple_choice` | `practice` | `choice` |
 | `fill_blank` | `practice` | `blank` |
-| 销售示例图的排序练习 | `practice` | `order` |
+| 旧设计曾使用的排序练习（当前组件面板已移除） | `practice` | `order` |
 | `free_answer` | `followup` | `free_text` |
 
 `doc/design.md` 第 4 节的 Lesson Configuration 在替换完成前仍是 Demo 运行时契约。本文件是目标契约。两者冲突时：已实现的 Demo 行为以 `doc/requirements.md` 为准；老师增加节点、学生展示内容和跨宿主复用以本文件为准。
 
-W0 的 `student-web/course.json` 仍不携带 `nodes`，因为网页还不能作为可控播放器。这不妨碍老师工作台按本标准展示节点内容。
+`student-web/` 及其 `course.json` 已于 2026-08-14 删除，节点由插件在 B 站原页面消费。这不妨碍老师工作台按本标准展示节点内容。
 
-## 13. 样例课的三个节点
+## 13. 样例课的 8 个交互节点
 
-与销售示例图、字幕核对后的三个节点，写成标准对象如下。英文短句仍须老师复核原声。
+教师工作台示例页使用以下 8 个节点。时间点和中文教学意图来自已纳入仓库的中文字幕；英文短句仍须老师复核原声。
 
-节点 1：
+| id | 时间 | 老师界面组件 | family | interaction | `display.title` |
+|---|---:|---|---|---|---|
+| `node-1` | `00:39` | 重点标注 | `attention` | `notice` | 能力词是结论，后面还要补证据 |
+| `node-2` | `02:10` | 选择题 | `practice` | `choice` | 找出“为什么选择我们”的具体理由 |
+| `node-3` | `02:49` | 选择题 | `practice` | `choice` | 处理同事冲突，第一步做什么 |
+| `node-4` | `03:24` | 老师补充 | `voice` | `listen` | 弱点回答要包含真实问题和改进措施 |
+| `node-5` | `05:40` | 填空题 | `practice` | `blank` | 补全任务优先级表达 |
+| `node-6` | `06:19` | 问答题 | `followup` | `free_text` | 用自己的经历回答压力问题 |
+| `node-7` | `06:55` | 重点标注 | `attention` | `notice` | 兴趣不只列清单，还要说明带来的价值 |
+| `node-8` | `07:49` | 问答题 | `followup` | `free_text` | 完成“为什么应该录用我”的个人回答 |
 
-```js
-{
-  id: 'node-1',
-  family: 'attention',
-  interaction: 'notice',
-  trigger: { kind: 'time_cross', timeSeconds: 39 },
-  display: {
-    title: '能力词是结论，后面还要补证据',
-    captionQuote: "I'm hard-working, diligent, loyal, flexible and knowledgeable.",
-    highlights: [
-      { text: 'hard-working' },
-      { text: 'diligent' },
-      { text: 'loyal' },
-      { text: 'flexible' },
-      { text: 'knowledgeable' }
-    ],
-    body: '这些词能概括优势，但需要用做过的事证明。'
-  },
-  evaluation: null,
-  effects: { pause: true }
-}
-```
-
-节点 2：
-
-```js
-{
-  id: 'node-2',
-  family: 'practice',
-  interaction: 'order',
-  trigger: { kind: 'time_cross', timeSeconds: 136 },
-  recap: {
-    range: { start: 96, end: 136 },
-    quote: 'I would start by assessing my own words and actions.',
-    note: '再听一遍这段回答，注意四步的先后。'
-  },
-  display: {
-    title: '排出处理同事冲突的四个步骤',
-    captionQuote: 'I would start by assessing my own words and actions.',
-    prompt: '把四步排成视频中的顺序。',
-    items: [
-      { id: 'reflect', label: 'assess my own words and actions' },
-      { id: 'private', label: 'speak privately' },
-      { id: 'listen', label: 'understand their feelings' },
-      { id: 'solve', label: 'find an amicable way forward' }
-    ]
-  },
-  evaluation: {
-    correctOrder: ['reflect', 'private', 'listen', 'solve'],
-    explanation: '先反思自己，再私下沟通，听对方，最后一起找办法。'
-  },
-  effects: { pause: true }
-}
-```
-
-节点 3：
-
-```js
-{
-  id: 'node-3',
-  family: 'followup',
-  interaction: 'free_text',
-  trigger: { kind: 'time_cross', timeSeconds: 345 },
-  display: {
-    title: '用四步法回答“你如何应对压力”',
-    captionQuote: 'I remain calm, ask questions, assess my options, and take action.',
-    prompt: 'How do you handle stress? 用自己的一次真实经历回答。',
-    scaffold: ['remain calm', 'ask questions', 'assess options', 'take action']
-  },
-  evaluation: {
-    rubric: [
-      { id: 'calm', label: '保持冷静' },
-      { id: 'questions', label: '提出问题' },
-      { id: 'options', label: '评估选择' },
-      { id: 'action', label: '采取行动' }
-    ]
-  },
-  effects: { pause: true }
-}
-```
+教师工作台、学生效果预览和完成情况必须共用这些稳定 `id`、编号、时间和标题。节点 06 是示例页默认选中状态，播放器和时间线都定位在 `06:19`。
 
 ## 14. 扩展规则
 

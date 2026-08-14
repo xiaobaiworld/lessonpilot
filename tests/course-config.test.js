@@ -1,9 +1,12 @@
 /**
- * Contract checks for the W0 static Bilibili course reference.
- * Run: node tests/course-config.test.js
+ * W0 固定 B 站课程引用的契约检查。
+ * 运行：node tests/course-config.test.js
+ *
+ * 2026-08-14：`student-web/` 已删除，学生宿主固定为装了插件的 B 站原页面。
+ * 课程标识与教学文案仍是真实内容，迁到 `teacher-web/course.json` 继续被约束。
  */
 
-const configuredCourse = require('../student-web/course.json');
+const configuredCourse = require('../teacher-web/course.json');
 
 const checks = [
   {

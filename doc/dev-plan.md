@@ -24,28 +24,26 @@ Display contract: everything a student sees belongs to one first-class learning 
 
 Technical spike status: roughly complete for mount, pause/seek, timed dialog, SPA teardown, and timed subtitle overlay. Remaining work is product delivery toward D0, then D1. Follow `next.md`.
 
-2026-08-12 update: the first commercial validation path is now web-first. The Chrome extension remains useful for Bilibili overlay demos and PC learning enhancement, but student first-use must not require plugin installation. Before D0, run a W0 student web course shell that proves the teacher/student page relationship using the fixed Bilibili course.
+2026-08-14 更新，取代 2026-08-12 的「学生端网页优先」结论：学生宿主只有装了插件的 B 站原页面，仅 PC 浏览器。定时自动打断是五类节点的共同前提，而它要求与 `<video>` 同文档读取播放时间，跨源嵌入做不到。原计划中的 `student-web/` 学生网页壳已删除。老师预览真实效果同样装插件、打开 B 站原页面，与学生同一条路径。完整排查见 `doc/lessons.md` 2026-08-14 条目。
 
-W0 keeps the fixed Bilibili lesson as its source sample. A teacher first confirms the fixed page URL, then imports an already obtained SRT/VTT file; local parsing converts captions into the editable timeline. W0 does not scrape platform subtitles. It can embed the original course and link back to Bilibili, but it must not promise reliable time observation, pause, seek, or timed interaction through a cross-origin iframe. W0 explicitly excludes local HTML5 video selection, uploading, hosting, and any substitute-player path. The next technical question is whether the Bilibili original-page adapter can support the first real teaching node, not how to bypass it.
+W0 仍以固定 B 站课程为来源样例。老师先确认固定页面 URL，再导入已取得的 SRT/VTT 文件；本地解析把字幕转成可编辑时间线。W0 不抓取平台字幕。教师端可以嵌入原课并链回 B 站，但不得承诺能通过跨源 iframe 稳定读时、暂停、seek 或定时互动；节点定位的时间真源是字幕文件。W0 明确排除本地 HTML5 视频选择、上传、托管和任何替代播放器。下一个技术问题是 B 站原页面适配器能否支撑第一个真实教学节点，不是如何绕过它。
 
-### W0 — Web Course Shell and Two-Page Validation
+### W0 — 课程链接与字幕时间线验证
 
-Goal:
+目标：
 
-- Make the teacher workspace and student course page describe one coherent course.
-- Prove the path from fixed Bilibili URL to manually obtained subtitle file to caption-anchored classroom action.
-- Validate that a teacher can enter student preview and a student can reach the fixed Bilibili lesson from desktop and mobile browsers.
-- Keep the Bilibili source/control boundary visible in engineering documents but invisible to ordinary learners.
+- 打通「固定 B 站 URL → 手动取得的字幕文件 → 字幕锚点上的课堂动作」这条路径。
+- 让教师工作台完整描述一门课，示例页与真实工作台共用同一信息架构。
+- B 站来源与控制边界写在工程文档里，不出现在教师界面上。
 
-Validation:
+验收：
 
-- Teacher preview opens `student-web/` for the fixed course.
-- Teacher page accepts a valid fixed Bilibili URL and a valid SRT/VTT file; the resulting captions replace the example timeline and can receive a classroom action.
-- Student page renders course title, learning goals, a dominant source video, intended learning results, and original-page fallback without local-video controls.
-- Desktop and 375px widths have no horizontal overflow or critical action overlap.
-- No claim or UI implies that the webpage controls a cross-origin Bilibili player.
+- 教师端接受有效的固定 B 站 URL 和有效 SRT/VTT 文件；解析出的字幕替换示例时间线，并能承载课堂动作。
+- 教师端桌面与窄屏宽度下无横向溢出或关键操作遮挡。
+- 任何文案或界面都不得暗示网页能控制跨源 B 站播放器。
+- 学生侧验证移至 B 站原页面插件路径，不在本阶段用网页页面代替。
 
-Status: in progress
+状态：进行中
 
 ## Demo Milestones
 
