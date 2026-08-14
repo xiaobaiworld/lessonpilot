@@ -1,7 +1,7 @@
 # Design — LessonPilot
 
-Version: 0.6
-Last updated: 2026-08-13
+Version: 0.7
+Last updated: 2026-08-14
 
 ## 1. Architecture Decision
 
@@ -91,7 +91,7 @@ fixed Bilibili page URL
 
 The live `teacher-web/` page remains the W0 functional prototype: confirm the fixed Bilibili course, import authorized subtitles, and author a classroom action on a caption. That path is not the teacher-facing product picture.
 
-The sales sample for teachers is specified in `doc/teacher-course-workspace-design.md` and implemented at `teacher-web/index.html`. It is a one-page classroom-design picture: a minimal brand and course-directory header (`英语职业课 / 英文面试表达`), course title, video 3/4 + intro, full-width timeline with typed icons, three node rows with student-effect preview, and sample completion. It deliberately omits save, preview, unsaved, and sample-status controls. The previous W0 editor remains at `teacher-web/editor.html`. Change real workspace features later, without inventing a second information architecture.
+The sales sample for teachers is specified in `doc/teacher-course-workspace-design.md` and implemented in `teacher-web/index.html`, `teacher-web/sample.css`, and `teacher-web/sample.js`. It is a one-page classroom-design picture: a minimal brand and course-directory header (`英语职业课 / 英文面试表达`), course title, video 3/4 + intro, a 3/4 timeline beside a 1/4 add-node rail, three node rows with student-effect preview, and sample completion. The timeline is a continuous pale blue-gray bar in the same family as the video progress track; color only shows playback position. The add-node rail uses one summary line, not a type glossary. The page omits save, preview, unsaved, and sample-status controls. The previous W0 editor remains at `teacher-web/editor.html`. Change real workspace features later, without inventing a second information architecture.
 
 The current functional home is still a classroom-design workspace, not a current-course dashboard and not a marketing landing page. Its first-use flow is:
 
@@ -171,6 +171,8 @@ The runtime must not require an account or remote database.
 
 ### 2.8 Timed Overlay
 
+Subtitle covers and similar effects are enhancements around the learning window, not a second student surface. The window standard's mounting rules apply to them too: the current implementation attaches to `document.documentElement` with viewport coordinates, so it stops rendering once the learner goes fullscreen. Fix that when the window lands.
+
 - Render one reusable overlay element relative to the active video rectangle.
 - Select the first configured half-open time range matching the current playback time.
 - Recalculate layout while visible after window resize or page scroll.
@@ -239,6 +241,12 @@ Do not display aggregate charts until real multi-learner data exists.
 The implementation sequence may expose D0 early, but only D1 is the complete sales demo.
 
 ## 4. Data Contracts
+
+The student-facing surface is one first-class learning window, specified in `doc/learning-window-standard.md`. Every host implements that one contract to get consistent display and interaction; it also owns the notebook, node-bound AI ask, window lifecycle, and window-layer evidence.
+
+What goes inside the window is `doc/node-content-standard.md`. It separates pedagogical `family`, student `interaction`, portable `display` content, and host playback `effects`, so the same node can render in the extension overlay, the web shell, or a local-video app.
+
+D0/D1 may keep the subset below until that schema replaces the demo runtime. New teacher-authoring UI and new hosts must not grow this older shape.
 
 ### Lesson Configuration
 
@@ -322,7 +330,21 @@ The response must use a validated structured shape before rendering. API credent
 - Do not expose provider, iframe, adapter, local-file, or compatibility choices in the normal student flow. W0 uses one concise “在 B 站打开原课” fallback instead of a technical testing panel.
 - Do not build a general AI chat panel in the first demo.
 
-## 7. Platform Expansion Boundary
+## 7. Scope Split: Mandatory Window vs Advisory Platform Capability
+
+Two kinds of requirement must never be mixed. Full detail in `doc/learning-window-standard.md` section 2.
+
+**Mandatory and identical on every host — the learning window.** Skeleton and regions, size tiers with authored-content limits, singleton queueing, open-source and close-reason semantics, node states, keyboard and accessibility, drafts, window applications and their content blocks, notebook and ownership, AI-ask boundary, evidence shape, unknown-type degradation. The same lesson pack must produce the same title, prompt, options, explanation, rubric, buttons, and evidence everywhere. A host that does not match this is not an implementation of the standard.
+
+**Advisory only — platform playback and picture enhancement.** Pause and resume, seek and range replay, on-picture highlight, caption covering, ducking the original audio, playing teacher audio, host-side timeline marks. These depend on what the platform allows. A host that cannot do them is still fully conformant, owes no explanation, and must not present the gap to learners as a broken feature.
+
+`effects` in a lesson pack is the teacher's intent, not a requirement on the host. Hosts implement what their platform supports and record the rest in `unsupportedEffects`; node completion is unaffected.
+
+What makes the advisory half safe is window self-sufficiency: a node's content must be fully expressible inside the window, so highlight, cover, and ducking never carry irreplaceable content. Turn everything outside the window off, and the learner must still be able to complete the node.
+
+Practical consequence for the current codebase: a cross-origin web shell that can neither read time nor pause is a conformant host as long as it renders the same window and content, with the learner opening nodes manually.
+
+## 8. Platform Expansion Boundary
 
 Confirmed product order:
 
@@ -336,7 +358,7 @@ YouTube is the right second platform because it tests a different video ID model
 
 Multilingual UI, course-language systems, regional payments, data residency, and international store distribution are fully deferred. Do not add locale or region schema work now. The only reserved expansion seam is `VideoRef` + `PlayerAdapter`.
 
-## 8. Open Technical Questions
+## 9. Open Technical Questions
 
 - Which AI backend will handle free-answer review for the local demo?
 - Should the API be reached through a local proxy or a separately configured backend?

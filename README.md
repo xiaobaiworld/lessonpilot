@@ -35,6 +35,29 @@ Scope locks:
 
 The first implementation supports one fixed Bilibili video before expanding to other videos or platforms. The web sample embeds it for source verification, while locally selected HTML5 video is used to validate reliable timed interaction without uploading or hosting video.
 
+## Delivery Standards
+
+Everything a learner sees lives in one first-class learning window. A new client — browser extension, web page, local-video app, or someone else's app — becomes compatible by implementing that one contract, not by copying a page.
+
+```text
+学习窗口   一级容器：尺寸、呈现方式、生命周期、键盘、习题本、AI 问答、证据
+  └─ 节点   一个时间点、一个教学点、一次窗口；边界与播放意图
+       └─ 内容  提醒 / 补充 / 练习 / 追问 的结构化字段
+```
+
+Two kinds of requirement, never mixed:
+
+- **Mandatory and identical everywhere.** The window's display and interaction. The same lesson pack must produce the same title, prompt, options, explanation, buttons, and evidence on every client.
+- **Advisory, platform-dependent.** Pause, seek, on-picture highlight, caption covering, audio ducking. A client that cannot do these is still fully conformant.
+
+What keeps the advisory half safe is window self-sufficiency: turn off everything outside the window, and a learner must still be able to complete the node.
+
+| Layer | Document | Owns |
+|---|---|---|
+| Window | [Learning Window Standard](doc/learning-window-standard.md) | Skeleton, size tiers, mounting, queueing, lifecycle, keyboard, drafts, notebook, AI ask, evidence, host onboarding checklist |
+| Node | [Node Standard](doc/node-content-standard.md) | Node boundaries, independence, playback intents, recap, and the content fields of each node family |
+| Scope split | [Design](doc/design.md) section 7 | Which half is mandatory and which is advisory |
+
 ## Local Web Service
 
 The teacher and student pages are two paths served by **one static server started from the repository root**. The directories are page boundaries, not separate services.
@@ -50,7 +73,7 @@ Open:
 - Teacher W0 editor: [http://localhost:4173/teacher-web/editor.html](http://localhost:4173/teacher-web/editor.html)
 - Student course: [http://localhost:4173/student-web/](http://localhost:4173/student-web/)
 
-The teacher sales sample is a finished-course picture for conversations with teachers. Its header is intentionally minimal: `LessonPilot Studio`, then `英语职业课 / 英文面试表达`, then the course title. It does not show save, preview, unsaved, or sample-status controls. The functional subtitle-import and classroom-action prototype remains a separate page at `teacher-web/editor.html`.
+The teacher sales sample is a finished-course picture for conversations with teachers. Change it in `teacher-web/index.html`, `teacher-web/sample.css`, and `teacher-web/sample.js`. The timeline is a continuous pale blue-gray bar aligned with the video, and the add-node rail summarizes adding interaction in the video. Its header is intentionally minimal: `LessonPilot Studio`, then `英语职业课 / 英文面试表达`, then the course title. It does not show save, preview, unsaved, or sample-status controls. The functional subtitle-import and classroom-action prototype remains a separate page at `teacher-web/editor.html`.
 
 The current sales sample uses three subtitle-grounded teaching points from the 08:33 lesson: `00:39` evidence after capability words, `02:16` ordering a coworker-conflict response, and `05:45` practicing the four-step stress response. The source file contains Chinese AI translation rather than original English captions, so the English display copy remains teacher-review material.
 
@@ -72,14 +95,22 @@ See [Bilibili mascot spike notes](doc/bili-mascot-spike.md) for open-source rese
 
 ## Documents
 
-- [Requirements](doc/requirements.md)
-- [Design](doc/design.md)
-- [Development Plan](doc/dev-plan.md)
-- [Student Runtime Summary](doc/student-runtime.md)
-- [Teacher Demo Design](doc/teacher-demo.md)
-- [Teacher Promotion Video](doc/promo-video.md)
-- [Multi-Creator Platform Plan](doc/multi-creator-platform.md)
-- [Bilibili Mascot Spike](doc/bili-mascot-spike.md)
-- [Lessons](doc/lessons.md)
-- [Changelog](changelog.md)
-- [Next Step](next.md)
+| Document | What it decides |
+|---|---|
+| [Requirements](doc/requirements.md) | Formal features and acceptance for the current single-video demo. Authoritative for shipped behavior |
+| [Learning Window Standard](doc/learning-window-standard.md) | The one contract a new client implements to display and interact identically |
+| [Node Standard](doc/node-content-standard.md) | What a node may do, and the content fields a teacher fills |
+| [Design](doc/design.md) | Runtime components, data contracts, and the mandatory/advisory scope split |
+| [Development Plan](doc/dev-plan.md) | Phase order and validation gates |
+| [Student Runtime Summary](doc/student-runtime.md) | Navigation across student-side scope, plus personal review space and data ownership |
+| [Teacher Course Workspace](doc/teacher-course-workspace-design.md) | The teacher-facing sales sample shape |
+| [Teacher Demo Design](doc/teacher-demo.md) | Teacher demo entries and D0/D1 narrative |
+| [UI Design](doc/ui-design.md) | Color system and two-page information architecture |
+| [Teacher Promotion Video](doc/promo-video.md) | Promotion script |
+| [Multi-Creator Platform Plan](doc/multi-creator-platform.md) | Deferred productization: tenancy, distribution, authorization, AI billing |
+| [Bilibili Mascot Spike](doc/bili-mascot-spike.md) | Extension spike findings |
+| [Lessons](doc/lessons.md) | Decisions learned the hard way |
+| [Changelog](changelog.md) | Verified changes only |
+| [Next Step](next.md) | The current slice and its checklist |
+
+When documents disagree: shipped demo behavior follows Requirements; how a client displays and interacts follows the Learning Window Standard; what a node contains follows the Node Standard; productization ideas in the platform plan are not implementation instructions.

@@ -16,7 +16,7 @@
 
 ```text
 1. git pull
-2. 读本文件 → doc/requirements.md → doc/teacher-demo.md → doc/design.md
+2. 读本文件 → doc/requirements.md → doc/learning-window-standard.md → doc/node-content-standard.md → doc/design.md
 3. Chrome 加载 src/，打开 https://www.bilibili.com/video/BV1WW4y1e7GL/
 4. 手动确认 mascot / 暂停 / 30秒 / 35秒弹窗 / 15–20s 字幕遮挡 / SPA 离开后卸载
 5. 从下方 Current Step 第 1 项未勾选项开始
@@ -27,14 +27,19 @@
 | 需求 | 入口 |
 |---|---|
 | 正式功能与验收 | `doc/requirements.md` |
-| 老师端 Demo / D0 D1 | `doc/teacher-demo.md` |
+| 一级学习窗口（新端接入只看这一份） | `doc/learning-window-standard.md` |
+| 节点边界与内容字段 | `doc/node-content-standard.md` |
+| 强制统一 / 平台建议的范围划分 | `doc/design.md` 第 7 节 |
 | 运行时与 PlayerAdapter | `doc/design.md` |
+| 老师端 Demo / D0 D1 | `doc/teacher-demo.md` |
 | 实施顺序 | `doc/dev-plan.md` |
-| 学生端范围冻结 | `doc/student-runtime.md` |
+| 学生端范围与数据归属 | `doc/student-runtime.md` |
 | 推广视频 | `doc/promo-video.md` |
 | 多创作者 / AI 计费预案 | `doc/multi-creator-platform.md` |
 | 教师端与学生端颜色系统 | `doc/ui-design.md` |
 | 教师销售示例图 | `doc/teacher-course-workspace-design.md` |
+
+三层标准的关系：**窗口**决定怎么显示和交互（强制统一），**节点**决定一次打开窗口能做什么（边界），**内容**决定窗口里出现哪些字段。播放控制与画面增强只是平台建议，做不到不算不合规。
 
 ## Current Step — Web Runtime First
 
@@ -42,12 +47,12 @@
 
 ### 当前切片：教师销售示例图 + W0 编辑器 + 学生网页课程壳
 
-- 目标：`teacher-web/index.html` 作为给老师看的销售示例图；`teacher-web/editor.html` 从固定 B 站链接和手动导入字幕进入课堂时间线，在字幕处编辑动作；`student-web/` 突出视频、学习目标和学习结果展示。
+- 目标：`teacher-web/index.html` + `sample.css` + `sample.js` 作为给老师看的销售示例图；`teacher-web/editor.html` 从固定 B 站链接和手动导入字幕进入课堂时间线，在字幕处编辑动作；`student-web/` 突出视频、学习目标和学习结果展示。
 - 边界：网页不出现本地视频选择、上传、托管或测试者播放器替换；不自动抓取 B 站字幕。跨站播放器不作为网页端读时、暂停、seek 或弹题的正式能力承诺；真实定时互动继续在 B 站原页面插件 spike 中验证。未接后端、AI、跨设备保存或真实学习报告。
 - 验收：教师确认固定课程链接、导入有效 SRT/VTT 后时间线更新并能编辑动作；学生可看到学习目标、放大视频、诚实的学习结果展示及 B 站原课回退；桌面与 375px 页面无横向溢出或关键动作遮挡。
 - 本地服务约定：只从仓库根目录运行 `python3 -m http.server 4173`；教师销售示例为 `/teacher-web/`，教师 W0 编辑器为 `/teacher-web/editor.html`，学生端为 `/student-web/`，三者共用同一 origin。不得分别以目录启动服务，也不得把 `4174` 当作学生端正式入口。
 - 销售示例页头部已冻结为 `LessonPilot Studio` + `英语职业课 / 英文面试表达` + 课程标题，不显示保存、预览、未保存或示例状态；学生完成区继续标注 `示例数据`。
-- 销售页文案只讲课程设计、学生端效果和学习结果，不展示技术边界或页面制作说明；课程时间线采用播放器式进度轨道、播放头、分钟刻度和同一基线的节点标记。
+- 销售页文案只讲课程设计、学生端效果和学习结果，不展示技术边界或页面制作说明。课程时间线与视频进度条同色系：连续淡蓝灰实线，颜色只表示已播放 / 未播放；右侧增加节点用一句总结「在视频中增加互动，让学习更有效。」改示例外形只动 `index.html`、`sample.css`、`sample.js`。
 
 ### A. W0 网页课程壳（进行中）
 
@@ -65,24 +70,24 @@
 
 ### C. 收口现有插件 spike（保留，但不阻塞网页验证）
 
-7. [ ] 在 `BV1WW4y1e7GL` 上手动验收：挂载、暂停、seek、35s 自动弹窗、SPA 离开后 Avatar/监听/遮挡全部移除。
-8. [ ] 确认字幕遮挡 15–20s 区间与窗口缩放后对齐仍正常；回归 `tests/subtitle-blocker.test.js`。
+9. [ ] 在 `BV1WW4y1e7GL` 上手动验收：挂载、暂停、seek、35s 自动弹窗、SPA 离开后 Avatar/监听/遮挡全部移除。
+10. [ ] 确认字幕遮挡 15–20s 区间与窗口缩放后对齐仍正常；回归 `tests/subtitle-blocker.test.js`。
 
 ### D. 内容与确定性节点（Phase 1–2）
 
-9. [x] 定义节点触发状态机：未开始 → 已触发 → 已回答 / 已跳过 / 已完成；跨节点 seek 只触发最早未完成节点。
-10. [x] 为 URL 精确匹配与节点触发状态机补自动化测试。
-11. [ ] 在 B 站原页面插件路径将状态机与第一个真实教学节点连接起来。
-12. [ ] 本地会话记录尝试次数与答案；预览会话与学生会话字段先预留 `sessionType`。
+11. [x] 在 `doc/requirements.md` S07 写定节点触发状态机：未开始 → 已触发 → 已回答 / 已跳过 / 已完成；跨节点 seek 只触发最早未完成节点。**仅文档定义，`src/` 尚无实现。**
+12. [ ] 实现该状态机并补自动化测试；URL 精确匹配已有 `tests/demo-config.test.js` 覆盖，状态机部分尚无测试。
+13. [ ] 在 B 站原页面插件路径将状态机与第一个真实教学节点连接起来。
+14. [ ] 本地会话记录尝试次数与答案；预览会话与学生会话字段先预留 `sessionType`。
 
 ### E. 老师网站与预览桥（Phase 3 = D0 完成条件）
 
-13. [ ] 复用现有 `teacher-web/` Creator Studio 原型，接入 SRT/VTT 导入与字幕校对。
-14. [ ] 实现老师网页保存一个互动节点，并打开 `student-web` 预览链接。
-15. [ ] 后续再实现扩展白名单消息桥：仅精确 origin（含端口）、五种操作、协议版本、`requestId`、双端 schema 校验。
-16. [ ] 跑通网页优先版 D0 验收清单，同步 changelog。
+15. [ ] 复用现有 `teacher-web/` Creator Studio 原型，接入 SRT/VTT 导入与字幕校对。
+16. [ ] 实现老师网页保存一个互动节点，并打开 `student-web` 预览链接。
+17. [ ] 后续再实现扩展白名单消息桥：仅精确 origin（含端口）、五种操作、协议版本、`requestId`、双端 schema 校验。
+18. [ ] 跑通网页优先版 D0 验收清单，同步 changelog。
 
-### D. 之后才做（不要提前塞进当前切片）
+### F. 之后才做（不要提前塞进当前切片）
 
 - D1：三种题型 + 真实 AI 自由回答 + 学生总结 + 老师报告 + 三分钟话术。
 - D1 人工验收后：按 `doc/promo-video.md` 录 60–90s 中文推广片；CTA = 提交真实录播课。

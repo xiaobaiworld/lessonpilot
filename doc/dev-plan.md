@@ -20,6 +20,8 @@ Validation:
 
 Status: complete
 
+Display contract: everything a student sees belongs to one first-class learning window. `doc/learning-window-standard.md` is what a new client implements; `doc/node-content-standard.md` is what a node may contain. Phases below build the Bilibili path only, but no phase may introduce a second student information architecture, and no phase may make a node depend on pause, seek, caption covering, or audio ducking being available.
+
 Technical spike status: roughly complete for mount, pause/seek, timed dialog, SPA teardown, and timed subtitle overlay. Remaining work is product delivery toward D0, then D1. Follow `next.md`.
 
 2026-08-12 update: the first commercial validation path is now web-first. The Chrome extension remains useful for Bilibili overlay demos and PC learning enhancement, but student first-use must not require plugin installation. Before D0, run a W0 student web course shell that proves the teacher/student page relationship using the fixed Bilibili course.
@@ -96,6 +98,7 @@ Validation:
 - Both node types run end to end without AI or network access.
 - Submitted answers and attempts persist locally.
 - Rewatching or seeking does not accidentally duplicate completed responses.
+- Each node stays inside its own window opening: no node requires another node to have been answered first.
 
 ## Phase 3 — Teacher Node Editor and Preview
 

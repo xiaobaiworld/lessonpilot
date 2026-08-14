@@ -1,7 +1,7 @@
 # LessonPilot 界面设计与颜色系统
 
-更新时间：2026-08-13
-状态：颜色系统仍用于教师/学生页；销售示例图外形以 `doc/teacher-course-workspace-design.md` 为准
+更新时间：2026-08-14
+状态：颜色系统仍用于教师/学生页；销售示例图外形以 `doc/teacher-course-workspace-design.md` 为准；节点展示内容以 `doc/node-content-standard.md` 为准
 
 ## 1. 整体方向
 
@@ -70,7 +70,7 @@ AI 不使用紫色。即使 AI 在信息架构中成为主动建议者，也继�
 
 ### 6.1 Creator Studio 信息架构
 
-销售时给老师看的外形以 `doc/teacher-course-workspace-design.md` 为准，页面在 `teacher-web/index.html`：顶部只保留品牌、`英语职业课 / 英文面试表达` 目录与课程标题；上排视频约 3/4、右侧整体介绍，下排全宽时间线。销售页不显示保存、预览和原型状态。原 W0 功能原型在 `teacher-web/editor.html`，稍后按示例图靠拢，中间只允许示意级差别。
+销售时给老师看的外形以 `doc/teacher-course-workspace-design.md` 为准，实现文件是 `teacher-web/index.html`、`sample.css`、`sample.js`：顶部只保留品牌、`英语职业课 / 英文面试表达` 目录与课程标题；上排视频约 3/4、右侧整体介绍，下排时间线约 3/4、右侧增加节点。时间线是连续淡蓝灰实线，颜色只表示播放状态，对齐视频进度条而不是平台品牌粉。增加节点旁用一句总结说明「在视频中增加互动」；按类型切换的标准内容字段在点开后出现。学生端效果与之后的插件、网页、本地视频 App 共用同一份展示内容，见 `doc/node-content-standard.md`。销售页不显示保存、预览和原型状态。原 W0 功能原型在 `teacher-web/editor.html`，稍后按示例图靠拢，中间只允许示意级差别。
 
 - 功能原型首页主叙事：导入授权字幕 → 设计课堂动作；
 - 首页将「设计课堂」作为最大、最直接的命令。课程和字幕输入服务于这个命令；学生过程与结果只用一段轻量说明呈现，不使用虚构的数据、报告卡片或并列的大模块；

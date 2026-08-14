@@ -4,6 +4,45 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### Teacher Sales Sample Layout And Module — 2026-08-14
+
+- Keep the sales sample in three files: `teacher-web/index.html`, `teacher-web/sample.css`, and `teacher-web/sample.js`. Shared chrome stays in `teacher-web/styles.css`.
+- Align the timeline to the video column at about 3/4 width, with the add-node rail in the remaining quarter. The add control is not on the axis.
+- Draw the timeline as one continuous pale blue-gray bar matching the video progress track. Color changes only mark played versus unplayed; do not segment the bar.
+- Summarize the add-node rail as adding interaction in the video. Do not list the four node types there.
+
+### Subtitle Import Fixes — 2026-08-14
+
+- Fix: read an SRT/VTT fractional field as a literal millisecond count instead of padding it to three digits. The supplied interview subtitles vary that width within one file, so padding placed one cue's end before its start and silently dropped it; the real file now imports 177 of 177 cues with no ordering violations or overlaps.
+- Fix: render caption text and teacher event labels with `textContent` rather than an interpolated `innerHTML` string, so an unterminated tag in a teacher's subtitle file cannot execute. Markup output is unchanged.
+- Add parser coverage for the variable-width fractional format, using the timestamp pair that previously failed.
+- Correct the sales-sample timeline description in `doc/design.md`, which still said full-width after the 3/4 timeline plus add-node rail landed.
+- Renumber `next.md` steps to a single 1–18 sequence with unique section letters, and record that the node trigger state machine is defined in `doc/requirements.md` S07 but not yet implemented.
+
+### Learning Window Standard — 2026-08-14
+
+- Make the learning window the first-class object every host implements, so any new client reaches the same display and interaction by implementing one contract.
+- Split requirements into a mandatory half and an advisory half, recorded in `doc/design.md` section 7: the window's display and interaction must be identical everywhere, while pause, seek, on-picture highlight, caption covering, and audio ducking are platform-dependent recommendations that never affect conformance.
+- Require window self-sufficiency, which is what makes the advisory half safe: highlights, caption covers, and audio ducking are enhancements, never the only carrier of a node's content.
+- Restate lesson-pack `effects` as teacher intent rather than a host requirement.
+- Define window skeleton, size tiers with authored-content limits, mounting rules for fullscreen and picture-in-picture, style isolation, singleton queueing, open-source and close-reason semantics, keyboard and IME handling, and draft recovery.
+- Add the course notebook and node-bound AI ask as window applications, with snapshot-plus-reference storage.
+- Decide notebook visibility by authorship: teacher- and system-authored content carries no privacy question, while learner-written notes, tags, and AI questions stay private unless the learner shares them. Submitting an answer is itself delivery to the teacher.
+
+### Node Scope Boundary — 2026-08-14
+
+- Define a node as one time point, one teaching point, one window opening, with self-contained, finite, local, and explainable as its hard rules.
+- Keep nodes independent: allow content references and grouping, forbid prerequisites, unlocking, branching, nesting, and one node mutating another, because seeking and skipping would otherwise strand learners on a broken chain.
+- Separate trigger time, effect range, and recap range; add advisory density and spacing guidance.
+- Close the playback intent set and state that pausing alone is not a node: opening the window must always explain why.
+- Answer the review-earlier-content question in three layers: in-window recap text is mandatory, seek-and-return with a minimized window is the recommended enhancement, and picture-in-picture is deferred because cross-origin players cannot host it and it has no reliable return path.
+
+### Node Content Standard — 2026-08-14
+
+- Define a host-independent node and display contract so plugin, web, and local-video app runtimes share the same student-facing content.
+- Separate pedagogical family, interaction, display payload, evaluation, and playback effects.
+- Align the teacher sales-sample add-node fields with that contract, without persisting a fourth node.
+
 ## [0.6.0] - 2026-08-14
 
 ### Real Subtitle-Grounded Course Version

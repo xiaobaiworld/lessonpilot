@@ -1,7 +1,15 @@
 # Lessons — LessonPilot
 
-Version: 0.3
-Last updated: 2026-08-13
+Version: 0.4
+Last updated: 2026-08-14
+
+## 2026-08-14 — A Real Subtitle File Is Not a Well-Formed One
+
+Timestamp fractions in an exported SRT are a literal millisecond count, and their width varies inside a single file. The supplied interview subtitles use one digit 70 times, two digits 254 times, and three digits 30 times. Padding that field to three digits reads `,6` as 600ms, which put one cue's end before its start; the parser dropped it silently and left an overlapping pair elsewhere. Nothing surfaced the loss because rejecting a malformed cue is also correct behavior.
+
+The test that was supposed to cover this format used `,0` on both ends, where padded and literal readings agree. A fixture can exercise the shape of a real file while still missing the property that makes it hard. When adding format support because of a specific document, take the fixture from the part of that document that actually failed, and assert the parsed count against the file's cue count.
+
+Both lessons generalize: prefer verifying a parser against the whole real input and checking an invariant over it — every cue positive-duration, ordered, non-overlapping — rather than trusting per-case assertions.
 
 ## 2026-08-13 — Teach the Product Before Asking Teachers to Resume Work
 
