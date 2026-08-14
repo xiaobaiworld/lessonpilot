@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Bilibili iframe currentTime probe",
+  "version": "0.0.1",
+  "description": "Tests whether allFrames can read a Bilibili iframe video currentTime.",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "http://localhost/*",
+    "http://127.0.0.1/*",
+    "https://player.bilibili.com/*"
+  ],
+  "background": {
+    "service_worker": "probe.js"
+  },
+  "action": {
+    "default_title": "Probe Bilibili iframe currentTime"
+  }
+}

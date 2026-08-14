@@ -4,6 +4,12 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### Player Integration Feasibility Probes — 2026-08-14
+
+- Add an isolated MV3 manual probe under `tests/manual/bilibili-iframe-current-time/` that injects into every permitted frame and reports whether a Bilibili iframe exposes a finite `video.currentTime`; the probe does not change production extension permissions.
+- Record the YouTube-compliant interaction layout: pause through the IFrame API, resize the unobscured player, render the learning window beside it, then restore playback after submission.
+- Distinguish automatic restoration of the page layout from browser-native fullscreen, which must be requested directly from the learner's submission click and degrade to in-page playback if denied.
+
 ### Teacher Sales Sample Layout And Module — 2026-08-14
 
 - Keep the sales sample in three files: `teacher-web/index.html`, `teacher-web/sample.css`, and `teacher-web/sample.js`. Shared chrome stays in `teacher-web/styles.css`.

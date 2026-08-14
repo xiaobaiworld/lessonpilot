@@ -3,6 +3,14 @@
 Version: 0.4
 Last updated: 2026-08-14
 
+## 2026-08-14 — YouTube 可以用并排答题，但原生全屏恢复必须来自用户点击
+
+YouTube 的禁止遮挡规则不等于播放器不能和学习窗口共存。IFrame Player API 官方提供 `getCurrentTime()`、`pauseVideo()`、`playVideo()` 和 `setSize()`，所以网页可以在节点时间到达时暂停视频，把播放器缩到页面一侧，再在它的边界之外显示学习窗口。这个方案不是在播放器上加透明层或弹窗，而是真正重新排版；播放器任何像素和控制栏都不能被盖住。缩小后的视口仍须至少 `200×200`，16:9 且保留控制栏时采用官方建议的至少 `480×270`。
+
+交互状态机应固定为：到点后 `pauseVideo()`；若当前处于原生全屏，先 `document.exitFullscreen()`；播放器缩小并显示旁侧学习窗口；答题完成后先移除窗口、恢复播放器尺寸和可见性，再 `playVideo()`。恢复为页面内大播放器可以自动执行，但重新进入浏览器原生全屏受 Fullscreen API 的瞬时用户激活限制，必须直接发生在学生点击「提交并全屏继续」的事件处理里，并保留请求失败时只恢复页面内播放的降级。移动端还需真机验证，不能把桌面浏览器结果直接外推。
+
+因此，YouTube 网页学生端的合规基线是「暂停 + 缩小播放器 + 旁侧答题 + 点击恢复」，不是任何形式的覆盖式弹窗。恢复播放前播放器应重新处于可见位置，且超过一半位于屏幕内，以满足 YouTube 对脚本播放可见性的要求。
+
 ## 2026-08-14 — A Real Subtitle File Is Not a Well-Formed One
 
 Timestamp fractions in an exported SRT are a literal millisecond count, and their width varies inside a single file. The supplied interview subtitles use one digit 70 times, two digits 254 times, and three digits 30 times. Padding that field to three digits reads `,6` as 600ms, which put one cue's end before its start; the parser dropped it silently and left an overlapping pair elsewhere. Nothing surfaced the loss because rejecting a malformed cue is also correct behavior.
