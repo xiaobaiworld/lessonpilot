@@ -46,12 +46,29 @@
     window.history.replaceState(null, '', timeline ? '#timeline' : '#home');
     document.title = timeline ? '课堂设计 · LessonPilot Studio' : 'LessonPilot Studio · 我的课程'; window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+  // Caption text and event labels come from a teacher-provided file, so every
+  // string is written with textContent. See doc/node-content-standard.md.
+  const el = (tag, className, text) => {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  };
   const renderCaptions = () => {
     const list = document.querySelector('#caption-list'); list.replaceChildren();
     captions.forEach((caption, index) => {
       const item = document.createElement('button'); item.type = 'button'; item.className = `caption-row${index === selectedCaption ? ' is-selected' : ''}`; item.setAttribute('role', 'option'); item.setAttribute('aria-selected', String(index === selectedCaption));
-      const suggestion = !caption.event && [0, 6, 8, 9].includes(index) ? '<span class="ai-suggestion">AI 建议</span>' : '';
-      item.innerHTML = `<span class="caption-time">${caption.time}</span><span class="caption-body"><span class="caption-text">${caption.text}</span>${index === 2 ? '<small>知识点：用具体经历替代抽象形容词 · 易错点：只描述品质，没有证据</small>' : ''}</span>${caption.event ? `<span class="caption-event event-${caption.event.type}">${caption.event.label}</span>` : suggestion || '<span class="caption-add">＋</span>'}`;
+      const body = el('span', 'caption-body');
+      body.append(el('span', 'caption-text', caption.text));
+      if (index === 2) body.append(el('small', '', '知识点：用具体经历替代抽象形容词 · 易错点：只描述品质，没有证据'));
+      item.append(el('span', 'caption-time', caption.time), body);
+      if (caption.event) {
+        item.append(el('span', `caption-event event-${caption.event.type}`, caption.event.label));
+      } else if ([0, 6, 8, 9].includes(index)) {
+        item.append(el('span', 'ai-suggestion', 'AI 建议'));
+      } else {
+        item.append(el('span', 'caption-add', '＋'));
+      }
       item.addEventListener('click', () => { setCaptionContext(index); renderCaptions(); }); list.appendChild(item);
     });
   };

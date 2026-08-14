@@ -29,6 +29,16 @@ const compactTimestampSrt = `1
 0:0:39,0 --> 0:0:42,0
 I'm hard-working, diligent, loyal, flexible and knowledgeable.`;
 
+// The supplied interview subtitles vary the fractional width inside one file.
+// Padding `,6` to 600ms would end this cue before it starts and drop it.
+const variableFractionSrt = `1
+0:6:21,6 --> 0:6:21,48
+好的
+
+2
+0:6:21,48 --> 0:6:22,48
+谢谢你，理查德`;
+
 const checks = [
   {
     label: 'parses SRT timestamps and preserves multiline caption text',
@@ -55,6 +65,16 @@ const checks = [
       return result.ok && result.captions.length === 1
         && result.captions[0].time === '00:39'
         && result.captions[0].endSeconds === 42;
+    }
+  },
+  {
+    label: 'reads the fractional field as literal milliseconds, keeping short cues',
+    run: () => {
+      const result = parseSubtitle(variableFractionSrt, 'interview.srt');
+      return result.ok && result.captions.length === 2
+        && result.captions[0].startSeconds === 381.006
+        && result.captions[0].endSeconds === 381.048
+        && result.captions[1].endSeconds === 382.048;
     }
   },
   {

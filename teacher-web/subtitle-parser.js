@@ -9,13 +9,19 @@
     module.exports = api;
   }
 })(typeof window !== 'undefined' ? window : globalThis, function createSubtitleParser() {
+  /**
+   * The fractional field is read as a literal millisecond count, not a padded
+   * decimal. Exported subtitle files vary the width of that field within one
+   * document, so padding `,6` to 600ms would place some cues out of order and
+   * silently drop them.
+   */
   function toSeconds(timestamp) {
     const match = String(timestamp).trim().match(/^(?:(\d{1,2}):)?(\d{1,2}):(\d{1,2})[,.](\d{1,3})$/);
     if (!match) return null;
     const hours = Number(match[1] || 0);
     const minutes = Number(match[2]);
     const seconds = Number(match[3]);
-    const milliseconds = Number(match[4].padEnd(3, '0'));
+    const milliseconds = Number(match[4]);
     if (minutes > 59 || seconds > 59) return null;
     return hours * 3600 + minutes * 60 + seconds + milliseconds / 1000;
   }
