@@ -24,9 +24,15 @@
     initialBelow: 2,
     minTotalLines: 7,
     maxLinesPerCaption: 2,
-    // 栏宽约 20 个全角字符。该值与 CSS 的 --subtitle-context-columns 必须一致，
-    // 否则"至少 7 行"在页面上就不成立。由 css-contract 测试锁定两处相等。
-    columnsPerLine: 20
+    // 条数下限：页面上"至少 7 行"由它保证，与栏宽、视口都无关。
+    minRows: 7,
+    // 单行容量，单位是半角宽度（estimateDisplayWidth 里全角算 2、半角算 1）。
+    // 46 来自销售页宽屏实测：正文 9px 时全角字宽 9.2px，正文列宽 216px，
+    // 可容 216 / (9.2 / 2) ≈ 46.9 个半角宽度，取 46。
+    // 它只用来决定截断提示和行数估算，不承担"至少 7 行"的保证——
+    // 栏宽会随视口变化，任何常量都做不到那件事。与 CSS 的 --subtitle-columns
+    // 保持一致，由 css-contract 测试锁定两处相等。
+    columnsPerLine: 46
   });
 
   const CJK_OR_WIDE = /[ᄀ-ᅟ⺀-꓏가-힣豈-﫿︰-﹏＀-｠￠-￦]/;
@@ -134,7 +140,13 @@
     }
 
     // 补足只向后取。上方保持 config.above 条不变，即使前面还有内容可用。
-    while (totalLines < config.minTotalLines && end + 1 <= list.length - 1) {
+    //
+    // 两个下限一起满足：行数下限（minTotalLines）和条数下限（minRows）。
+    // 只看行数不够：行数估算依赖栏宽，窄屏栈式布局下栏更宽，
+    // 估算成 2 行的句子实际只渲染 1 行，页面上就退化到 6 行。
+    // 条数下限与栏宽无关（每条至少渲染 1 行），所以它才是"至少 7 行"的真正保证。
+    while ((totalLines < config.minTotalLines || items.length < config.minRows)
+      && end + 1 <= list.length - 1) {
       end += 1;
       const item = toItem(list, end, centerIndex, config);
       items.push(item);

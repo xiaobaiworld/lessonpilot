@@ -12,13 +12,15 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 
 const { DEFAULT_CONTEXT_OPTIONS } = require('../teacher-web/subtitle-context.js');
-const css = fs.readFileSync('teacher-web/sample.css', 'utf8');
-const html = fs.readFileSync('teacher-web/index.html', 'utf8');
-const js = fs.readFileSync('teacher-web/sample.js', 'utf8');
+/* 销售页是自包含单文件：样式、结构和脚本都在 forsales.html 内。 */
+const page = fs.readFileSync('teacher-web/forsales.html', 'utf8');
+const css = page;
+const html = page;
+const js = page;
 
-test('CSS 的 --subtitle-context-columns 等于 JS 的 columnsPerLine', () => {
-  const match = css.match(/--subtitle-context-columns:\s*(\d+)/);
-  assert.ok(match, 'sample.css 必须声明 --subtitle-context-columns');
+test('CSS 的 --subtitle-columns 等于 JS 的 columnsPerLine', () => {
+  const match = css.match(/--subtitle-columns:\s*(\d+)/);
+  assert.ok(match, 'forsales.html 必须声明 --subtitle-columns');
   assert.equal(Number(match[1]), DEFAULT_CONTEXT_OPTIONS.columnsPerLine);
 });
 
@@ -29,16 +31,16 @@ test('CSS 的 -webkit-line-clamp 等于 JS 的 maxLinesPerCaption', () => {
 });
 
 test('中心句有明显底色，不是只靠字重或边框', () => {
-  const block = css.match(/\.sample-subtitle-item\.is-center\s*\{([^}]*)\}/);
-  assert.ok(block, '必须存在 .sample-subtitle-item.is-center 规则');
+  const block = css.match(/\.subtitle-item\.is-center\s*\{([^}]*)\}/);
+  assert.ok(block, '必须存在 .subtitle-item.is-center 规则');
   assert.match(block[1], /background:/, 'COURSE-06 明确要求底色区分');
 });
 
 test('销售页含字幕上下文列，且不再有常驻节点属性表单', () => {
-  assert.match(html, /id="subtitle-context-list"/);
-  assert.match(html, /id="subtitle-context-empty"/);
-  assert.ok(!html.includes('id="add-node-panel"'), '常驻表单已改为弹出式（COURSE-07）');
-  assert.ok(!html.includes('sample-add-rail'), '右侧区域已由字幕上下文列取代');
+  assert.match(html, /id="subtitle-list"/);
+  assert.match(html, /id="subtitle-empty"/);
+  assert.ok(!html.includes('class="inspector"'), '常驻 inspector 表单已改为弹出式（COURSE-07）');
+  assert.ok(!html.includes('inspector-head'), '右侧区域已由字幕上下文列取代');
 });
 
 test('属性表单是弹出式，且右键与双击都能打开', () => {
@@ -52,7 +54,7 @@ test('提供键盘可达的等价入口，右键与双击不是唯一操作方�
   assert.match(js, /addEventListener\('keydown'/);
   assert.match(js, /event\.key === 'Enter'/);
   // 节点本身是 button，天然可聚焦；这里确认没有被改成不可聚焦的元素。
-  assert.match(html, /<button class="sample-mark/);
+  assert.match(html, /class="marker[^"]*" tabindex="0" role="button"/);
 });
 
 test('关闭表单前不静默丢弃未保存修改', () => {
@@ -68,19 +70,41 @@ test('字幕文本用 textContent 渲染，不拼接 HTML', () => {
 
 test('演示字幕是示例数据，不冒充老师真实课程', () => {
   const demo = fs.readFileSync('teacher-web/demo-captions.js', 'utf8');
-  assert.match(demo, /演示数据/);
-  assert.match(demo, /真实工作台的字幕来自本地导入/);
+  assert.match(demo, /示例课程数据/);
+  assert.match(demo, /真实工作台的字幕来自老师本地导入/);
 });
 
-test('销售页仍然只有一份样式与脚本入口，且带版本参数', () => {
-  assert.match(html, /<link rel="stylesheet" href="sample\.css\?v=[^"]+">/);
-  assert.match(html, /src="sample\.js\?v=[^"]+"/);
+test('销售页外部脚本入口带版本参数（页面本体自包含样式与脚本）', () => {
+  assert.ok(!html.includes('sample.css'), '销售页是自包含单文件，不引外部样式');
   assert.match(html, /src="subtitle-context\.js\?v=[^"]+"/);
   assert.match(html, /src="demo-captions\.js\?v=[^"]+"/);
 });
 
-test('sample.css 不残留已删除的 add-rail/add-panel 选择器', () => {
-  assert.ok(!css.includes('.sample-add-rail'), '孤立 CSS 会让后来者以为该结构还在');
-  assert.ok(!css.includes('.sample-add-panel'));
-  assert.ok(!css.includes('.sample-add-fields'));
+test('销售页不残留已删除的 inspector 选择器', () => {
+  assert.ok(!css.includes('.inspector'), '孤立 CSS 会让后来者以为该结构还在');
+  assert.ok(!css.includes('.inspector-head'));
+  for (const orphan of ['.field{', '.rubric{', '.save{', '.autosave{', '.control{']) {
+    assert.ok(!css.includes(orphan), `${orphan} 已无对应结构，必须一并删除`);
+  }
+});
+
+/**
+ * "至少 7 行"的保证由条数下限承担，不由栏宽常量承担。
+ * 若有人把 minRows 去掉、只留 minTotalLines，窄屏会退回 6 行。
+ */
+test('minRows 是"至少 7 行"的视口无关保证，必须存在且不小于 7', () => {
+  assert.equal(DEFAULT_CONTEXT_OPTIONS.minRows, 7);
+  assert.ok(
+    DEFAULT_CONTEXT_OPTIONS.minRows >= DEFAULT_CONTEXT_OPTIONS.above + 1,
+    'minRows 至少要容纳上方条数加中心条'
+  );
+});
+
+test('浏览器实测页面在库内，行数保证可被复核', () => {
+  const probe = fs.readFileSync('tests/manual/subtitle-rail-lines.html', 'utf8');
+  assert.match(probe, /forsales\.html/);
+  assert.match(probe, /getBoundingClientRect/, '必须量实际渲染高度，而不是断言字符串');
+  for (const w of ['1440', '900', '600']) {
+    assert.ok(probe.includes(w), `要覆盖 ${w}px 视口`);
+  }
 });

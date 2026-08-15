@@ -1,0 +1,29 @@
+<!doctype html><meta charset="utf-8"><title>字幕栏行数实测（COURSE-06）</title>
+<h1 style="font:600 15px system-ui">字幕栏行数实测（COURSE-06）</h1>
+<p style="font:13px system-ui;max-width:60em">
+本页在真实浏览器里量 <code>.subtitle-item p</code> 的渲染高度，检查销售页
+<code>teacher-web/forsales.html</code> 的八个节点在 1440 / 900 / 600px 三档视口下
+是否都至少渲染 7 行、且恰好一条居中、没有任何一条超过 2 行。
+需要本地起静态服务后打开（例如 <code>python3 -m http.server 4173</code>）。
+期望最后一行是 ALL NODES OK。</p><pre id="out">measuring…</pre>
+<iframe id="f" src="../../teacher-web/forsales.html" id="fr" style="width:1440px;height:3400px;border:0"></iframe>
+<script>
+const f=document.getElementById('f');
+f.addEventListener('load',()=>setTimeout(()=>{
+  const d=f.contentDocument, L=[]; let bad=0;
+  for(const W of [1440,900,600]){ f.style.width=W+'px';
+  for(let n=1;n<=8;n++){
+    d.querySelector(`.marker[data-node="${n}"]`).click();
+    const ps=[...d.querySelectorAll('.subtitle-item p')];
+    const lh=parseFloat(getComputedStyle(ps[0]).lineHeight);
+    const per=ps.map(p=>Math.round(p.getBoundingClientRect().height/lh));
+    const tot=per.reduce((a,b)=>a+b,0);
+    const centers=d.querySelectorAll('.subtitle-item.is-center').length;
+    const over=per.filter(x=>x>2).length;
+    if(tot<7||centers!==1||over>0) bad++;
+    L.push(`  W=${W} node${n} rows=${ps.length} lines=[${per}] total=${tot} centers=${centers} over2=${over} ${tot>=7&&centers===1&&!over?'OK':'FAIL'}`);
+  }}
+  L.push(bad===0?'ALL NODES OK (>=7 rendered lines, 1 center, no row over 2 lines)':`FAILURES=${bad}`);
+  document.getElementById('out').textContent=L.join('\n');
+},700));
+</script>

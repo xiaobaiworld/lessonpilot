@@ -77,12 +77,17 @@ test('中心句上方固定 2 条，不因补行而增加', () => {
   assert.ok(result.totalLines >= DEFAULT_CONTEXT_OPTIONS.minTotalLines);
 });
 
-test('默认 5 条已满 7 行时不额外补', () => {
+test('长句行数已够，但条数下限仍然要补到 7 条', () => {
   const captions = longCues(20);
   const result = selectSubtitleContext({ captions, timeSeconds: 105 });
-  assert.equal(result.items.length, 5, '每条 2 行、5 条共 10 行，已超过 7 行下限');
-  assert.equal(result.totalLines, 10);
-  assert.deepEqual(ids(result), ['caption-9', 'caption-10', 'caption-11', 'caption-12', 'caption-13']);
+  // 每条估算 2 行，5 条就够 7 行；但估算依赖栏宽，窄屏下这些句子可能只占 1 行，
+  // 那时 5 条就只有 5 行。条数下限与栏宽无关，所以按 7 条补。
+  assert.equal(result.items.length, 7);
+  assert.equal(result.totalLines, 14);
+  assert.deepEqual(ids(result), [
+    'caption-9', 'caption-10', 'caption-11', 'caption-12',
+    'caption-13', 'caption-14', 'caption-15'
+  ]);
 });
 
 test('短句不足 7 行时只向后补足', () => {
@@ -198,7 +203,7 @@ test('自定义 options 生效，且不修改传入的 captions 数组', () => {
   const result = selectSubtitleContext({
     captions,
     timeSeconds: 105,
-    options: { above: 1, initialBelow: 1, minTotalLines: 4 }
+    options: { above: 1, initialBelow: 1, minTotalLines: 4, minRows: 3 }
   });
   const center = result.items.findIndex((item) => item.isCenter);
   assert.equal(center, 1, '上方 1 条');
@@ -210,4 +215,38 @@ test('items 引用原字幕对象，不复制文本，避免页面拿到过期�
   const captions = longCues(6);
   const result = selectSubtitleContext({ captions, timeSeconds: 25 });
   assert.equal(result.items[0].caption, captions[result.items[0].index]);
+});
+
+/**
+ * 视口不变量（COURSE-06）：
+ * 行数估算依赖栏宽，栏宽随视口变化，所以"估算 7 行"在窄屏栈式布局下会退化成 6 行实测。
+ * 行数无法靠常量保证，但行数下限可以：每条字幕至少渲染 1 行，
+ * 所以补齐到至少 7 条，就在任何视口下都至少 7 行。
+ */
+test('补齐到至少 7 条字幕，使"至少 7 行"与视口无关', () => {
+  const captions = Array.from({ length: 40 }, (_, i) => ({
+    start: i * 3, end: i * 3 + 2, text: '短'
+  }));
+  const r = selectSubtitleContext({ captions, timeSeconds: 60 });
+  assert.ok(r.items.length >= 7, `全短句时也要补到 7 条，实际 ${r.items.length} 条`);
+  assert.ok(r.totalLines >= 7);
+});
+
+test('长句已满 7 行时也仍然补齐到 7 条', () => {
+  const long = '一'.repeat(200);
+  const captions = Array.from({ length: 40 }, (_, i) => ({
+    start: i * 3, end: i * 3 + 2, text: long
+  }));
+  const r = selectSubtitleContext({ captions, timeSeconds: 60 });
+  assert.ok(r.items.length >= 7, `实际 ${r.items.length} 条`);
+});
+
+test('字幕总数不足 7 条时给出全部，不虚构', () => {
+  const captions = [
+    { start: 0, end: 2, text: 'a' }, { start: 3, end: 5, text: 'b' },
+    { start: 6, end: 8, text: 'c' }
+  ];
+  const r = selectSubtitleContext({ captions, timeSeconds: 4 });
+  assert.equal(r.items.length, 3);
+  assert.equal(r.belowExhausted, true);
 });
