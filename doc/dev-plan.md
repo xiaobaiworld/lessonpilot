@@ -15,19 +15,20 @@
 
 1. `doc/INDEX.md`
 2. `doc/requirements.md`
-3. `doc/data-spec.md`
-4. `doc/stage-one-validation-loop-design.md`
-5. 当前阶段对应的 `doc/plans/` 详细计划
+3. 当前阶段对应的 `doc/requirements/stage-*.md`
+4. `doc/data-spec.md`
+5. `doc/stage-one-validation-loop-design.md`
+6. 当前阶段对应的 `doc/plans/` 详细计划
 
-发生冲突时，以 `doc/requirements.md` 和 `doc/data-spec.md` 为准。不能用计划里的实现建议改变已确认需求。
+发生冲突时，以当前阶段需求、`doc/requirements.md` 和 `doc/data-spec.md` 为准。不能用计划里的实现建议改变已确认需求。
 
 ## 2. 实施顺序
 
 | 阶段 | 可独立验收结果 | 详细计划 | 状态 |
 | --- | --- | --- | --- |
-| 1A | 公网 origin、共享数据契约、插件存储和消息桥可真实连通 | `doc/plans/stage-1a-contract-bridge-deploy.md` | 待开始 |
-| 1B | 默认销售首页和真实工作台可用，老师能保存一门课程 | `doc/plans/stage-1b-sales-workspace.md` | 未开始 |
-| 1C | 四种节点在目标 B 站视频上完成端到端预览 | `doc/plans/stage-1c-runtime-e2e.md` | 未开始 |
+| 1A | 公网 origin、共享数据契约、插件存储和消息桥可真实连通 | `doc/requirements/stage-1a.md` / `doc/plans/stage-1a-contract-bridge-deploy.md` | 待开始 |
+| 1B | 默认销售首页和真实工作台可用，老师能保存一门课程 | `doc/requirements/stage-1b.md` / `doc/plans/stage-1b-sales-workspace.md` | 未开始 |
+| 1C | 四种节点在目标 B 站视频上完成端到端预览 | `doc/requirements/stage-1c.md` / `doc/plans/stage-1c-runtime-e2e.md` | 未开始 |
 
 顺序默认不可颠倒。1B 依赖 1A 的数据契约与桥；1C 依赖 1A 的存储与消息、1B 产生的真实配置。
 

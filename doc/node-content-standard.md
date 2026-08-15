@@ -571,7 +571,7 @@ D0/D1 现有节点是本标准的子集，映射如下。实现替换前，Demo 
 | 旧设计曾使用的排序练习（当前组件面板已移除） | `practice` | `order` |
 | `free_answer` | `followup` | `free_text` |
 
-`doc/design.md` 第 4 节的 Lesson Configuration 在替换完成前仍是 Demo 运行时契约。本文件是目标契约。两者冲突时：已实现的 Demo 行为以 `doc/requirements.md` 为准；老师增加节点、学生展示内容和跨宿主复用以本文件为准。
+`doc/design.md` 第 4 节的 Lesson Configuration 在替换完成前仍是 Demo 运行时契约。本文件是目标契约。两者冲突时：当前行为以 `doc/requirements.md` 和对应阶段需求为准；老师增加节点、学生展示内容和跨宿主复用以本文件为参考。
 
 `student-web/` 及其 `course.json` 已于 2026-08-14 删除，节点由插件在 B 站原页面消费。这不妨碍老师工作台按本标准展示节点内容。
 

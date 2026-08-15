@@ -2,13 +2,14 @@
 
 目标：建立后续页面和运行时共同依赖的唯一数据契约，并在真实公网工作台路径与本机 Chrome 插件之间完成安全消息往返。
 
-前置阅读：`doc/requirements.md` 的 COURSE、BRIDGE、ERR、SEC 条目，`doc/data-spec.md` 全文，`doc/DECISIONS.md` 的 D-004、D-006、D-007。
+前置阅读：`doc/requirements.md` 总览、`doc/requirements/stage-1a.md` 全文、`doc/data-spec.md` 全文，以及 `doc/DECISIONS.md` 的 D-004、D-006、D-007、D-009。
 
 ## Task 1：记录基线并验证部署目标
 
 文件：
 
 - 检查：`.github/workflows/`、仓库 Pages 配置、`teacher-web/`
+- 新增：`teacher-web/workspace.html`（仅包含 1A 连接诊断说明，不实现课程编辑）
 - 修改：仅在需要时新增 Pages 工作流或静态部署配置
 - 记录：`doc/DECISIONS.md`、`changelog.md`（阶段完成时）
 
@@ -16,9 +17,10 @@
 
 1. 运行 `node --test tests/*.test.js`，保存基线结果。
 2. 检查仓库默认分支和 GitHub Pages 当前状态。
-3. 选择最小静态发布方式，使仓库根目录资源路径可用。
-4. 验证 `https://xiaobaiworld.github.io/lessonpilot/teacher-web/workspace.html` 可访问。
-5. 若 Pages 不可用，按 D-007 重开条件记录事实，再选择替代 origin；不要在代码中同时保留模糊通配来源。
+3. 新建不冒充完整工作台的 1A 诊断占位页，明确课程编辑将在 1B 提供。
+4. 选择最小静态发布方式，使仓库根目录资源路径可用。
+5. 验证 `https://xiaobaiworld.github.io/lessonpilot/teacher-web/workspace.html` 可访问。
+6. 若 Pages 不可用，按 D-007 重开条件记录事实，再选择替代 origin；不要在代码中同时保留模糊通配来源。
 
 验收：实际公网 URL 返回页面资源，最终 origin 和 path 被写入插件白名单测试用例。
 
@@ -35,8 +37,8 @@
 - 未知 `schemaVersion`、未知 node type、重复 node ID、非有限时间、节点乱序均拒绝；
 - 选择题少于两个选项或没有唯一正确答案时拒绝；
 - 填空题无答案、问答题无参考反馈、重点标注无内容时拒绝；
-- URL、BVID 和节点字段有空白或错误格式时拒绝；
-- 转换函数从 `WorkspaceDraft` 只提取运行所需字段，不带 `captions`、`sourceUrl` 或额外字段。
+- BVID 和节点字段有空白或错误格式时拒绝；
+- 课程对象包含 `captions`、`sourceUrl`、UI 状态或其它未知字段时拒绝。
 
 实现要求：
 
@@ -58,7 +60,7 @@
 - `PING`、`GET_CURRENT_COURSE`、`SAVE_CURRENT_COURSE`、`CLEAR_CURRENT_COURSE`、`START_PREVIEW_SESSION` 的合法请求；
 - requestId 格式、channel、protocolVersion、operation 和 payload 白名单；
 - 未知字段和未知操作默认拒绝；
-- response 的 success/data/error 互斥；
+- response 的 `ok`、`data`、`error` 组合符合成功/失败互斥规则；
 - 写操作超时不自动重试；
 - requestId 能把响应只交给对应请求。
 
@@ -90,7 +92,10 @@
 文件：
 
 - 新增：`tests/workspace-bridge.test.js`
+- 新增：`tests/workspace-bridge-client.test.js`
+- 新增：`teacher-web/workspace-bridge-client.js`
 - 新增：`src/content/workspace-bridge.js`
+- 修改：`teacher-web/workspace.html`，增加 PING、读取、保存测试课程、清除和创建预览会话的诊断控件
 - 修改：`src/background/service-worker.js`
 - 修改：`src/manifest.json`
 
@@ -101,12 +106,14 @@
 - 非工作台页面、子路径欺骗、协议或 schema 错误不转发；
 - 后台再次校验全部请求，不信任 content script；
 - 每个请求只产生一次响应，监听器重复初始化不会重复转发；
+- 网页客户端只接收 channel、protocolVersion 和 requestId 全部匹配的响应；
+- 网页客户端 3000ms 超时后清理监听状态，写操作不自动重试；
 - 超时、插件异常和版本不兼容返回规定错误码；
 - 日志不包含字幕、题目正文或回答。
 
-实现顺序：页面 `window.postMessage` -> workspace content script -> `chrome.runtime.sendMessage` -> background -> 原路响应。
+实现顺序：workspace bridge client -> `window.postMessage` -> workspace content script -> `chrome.runtime.sendMessage` -> background -> 原路响应。诊断页面只证明协议能力，不增加字幕、时间线或节点编辑 UI。
 
-命令：`node --test tests/workspace-bridge.test.js`
+命令：`node --test tests/workspace-bridge-client.test.js tests/workspace-bridge.test.js`
 
 ## Task 6：真实浏览器验证和收口
 

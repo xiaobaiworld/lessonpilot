@@ -15,6 +15,7 @@
 
 - [ ] 阅读 `doc/INDEX.md`
 - [ ] 阅读 `doc/requirements.md`
+- [ ] 阅读当前需求 `doc/requirements/stage-1a.md`
 - [ ] 阅读 `doc/data-spec.md`
 - [ ] 阅读 `doc/DECISIONS.md` 的 D-004、D-006、D-007
 - [ ] 阅读并执行全局开发规范及数据、安全、测试、错误处理专项规范

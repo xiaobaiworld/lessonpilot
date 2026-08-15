@@ -2,14 +2,16 @@
 
 目标：让老师从默认销售首页进入真实工作台，使用一条 B 站 URL 和对应字幕创建四种节点，并通过 1A 消息桥保存到插件。
 
-前置：1A 门禁全部通过；阅读 `doc/requirements.md` 的 WEB、COURSE、NODE、ERR 条目。
+前置：1A 门禁全部通过；阅读 `doc/requirements.md` 总览和 `doc/requirements/stage-1b.md` 全文。
 
 ## Task 1：迁移页面职责并锁定路由
 
 文件：
 
 - 修改：`teacher-web/index.html` 及其销售页资源
-- 新增：`teacher-web/workspace.html`、`teacher-web/workspace.js`
+- 修改：`teacher-web/workspace.html`，把 1A 诊断页扩展为真实工作台
+- 新增：`teacher-web/workspace.js`
+- 复用：`teacher-web/workspace-bridge-client.js`
 - 修改：`teacher-web/forsales.html`
 - 测试：新增或更新页面结构测试
 
@@ -19,7 +21,7 @@
 2. 先写测试断言 workspace 有课程输入、字幕导入、时间线、节点编辑、保存和预览入口。
 3. 将现有销售页内容迁入 `index.html`，保持已确认销售叙事，不虚构未实现能力。
 4. 让 `forsales.html` 做可访问的兼容跳转，并提供无脚本回退链接。
-5. 新建真实 workspace；复用当前工作台的视觉结构，不复制旧 W0 编辑器架构。
+5. 将 1A 诊断 workspace 扩展为真实工作台；保留桥接客户端，复用当前工作台的视觉结构，不复制旧 W0 编辑器架构。
 
 验收：`/teacher-web/` 是销售页，`/teacher-web/workspace.html` 是编辑页，旧链接不直接 404。
 
@@ -71,6 +73,7 @@
 
 - 页面初始化执行 PING 并展示未安装、版本不兼容、连接成功三种状态；
 - 保存前把草稿转换为严格 `PluginCourseConfig`；
+- 转换结果不包含 `captions`、`sourceUrl` 或工作台 UI 状态；
 - 保存成功后读取确认，只有确认成功才显示已保存；
 - 超时/失败保留页面草稿，提供重试但不自动重复写入；
 - 已有字幕或节点时更换 URL 必须确认；

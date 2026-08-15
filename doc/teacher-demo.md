@@ -8,7 +8,7 @@
 
 ## 0. 文档定位
 
-本文件是老师端 Demo 的单一入口。详细功能与验收仍以 `doc/requirements.md` 的 T01–T04 为准，技术组件以 `doc/design.md` 第 3 节为准，实施顺序以 `doc/dev-plan.md` 为准。
+本文件是旧老师端 Demo 的历史入口。下文 T01–T04 引用的是 `doc/archive/2026-08-15-pre-stage-one/requirements.md`，不是当前需求；当前实施从 `doc/requirements.md` 进入。
 
 老师端 Demo 的任务不是证明已经拥有完整 SaaS 后台，而是用最短路径证明：
 
@@ -137,7 +137,7 @@ D0 是内部验证和早期沟通版本，不能冒充完整销售 Demo。
 
 ### 4.2 D1：完整销售 Demo
 
-目标是完成 `doc/requirements.md` 第 5 节的三分钟销售闭环。
+这里的历史目标对应 `doc/archive/2026-08-15-pre-stage-one/requirements.md` 第 5 节，不是当前完成定义。
 
 在 D0 基础上增加：
 

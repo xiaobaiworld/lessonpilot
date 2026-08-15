@@ -65,14 +65,15 @@ node --test tests/*.test.js
 
 | 文档 | 职责 |
 | --- | --- |
-| [`doc/requirements.md`](doc/requirements.md) | 第一阶段功能、边界与验收 |
+| [`doc/requirements.md`](doc/requirements.md) | 第一阶段总目标、共同边界和阶段导航 |
+| [`doc/requirements/stage-1a.md`](doc/requirements/stage-1a.md) | 当前初期阶段：公网路径、数据契约、存储和消息桥 |
 | [`doc/data-spec.md`](doc/data-spec.md) | 数据结构、消息协议和本地存储 |
 | [`doc/stage-one-validation-loop-design.md`](doc/stage-one-validation-loop-design.md) | 已确认的产品与架构设计 |
 | [`doc/DECISIONS.md`](doc/DECISIONS.md) | 决策、假设、证据和重开条件 |
 | [`doc/dev-plan.md`](doc/dev-plan.md) | 三阶段实施顺序和门禁 |
 | [`next.md`](next.md) | 唯一当前执行步骤 |
 
-解释冲突时按：需求 -> 数据规范 -> 已确认设计 -> 内容/窗口标准 -> 计划。远期平台、推广视频和旧 Demo 文档不得覆盖第一阶段范围。
+解释冲突时按：当前阶段需求 -> 需求总览 -> 数据规范 -> 已确认设计 -> 内容/窗口标准 -> 计划。远期平台、推广视频和旧 Demo 文档不得覆盖第一阶段范围。
 
 ## 核心边界
 

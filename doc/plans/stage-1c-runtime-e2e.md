@@ -2,7 +2,7 @@
 
 目标：插件读取 1B 保存的一门课程，只在匹配 BVID 上运行四种节点，并完成真实视频端到端预览。
 
-前置：1A、1B 门禁通过；阅读 `doc/requirements.md` 的 RUNTIME、NODE、ERR 和验收条目。
+前置：1A、1B 门禁通过；阅读 `doc/requirements.md` 总览和 `doc/requirements/stage-1c.md` 全文。
 
 ## Task 1：课程匹配和运行时生命周期
 

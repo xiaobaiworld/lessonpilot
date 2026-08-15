@@ -6,7 +6,7 @@
 
 状态：已确认，作为需求与开发计划整理的范围依据
 
-当前功能权威见 `doc/requirements.md`，数据与消息字段权威见 `doc/data-spec.md`，方案变更与重开条件见 `doc/DECISIONS.md`。
+当前功能权威见 `doc/requirements.md` 及其 1A/1B/1C 阶段需求，数据与消息字段权威见 `doc/data-spec.md`，方案变更与重开条件见 `doc/DECISIONS.md`。
 
 ## 1. 阶段目标
 
@@ -239,7 +239,7 @@ pending
 
 后续文档整理以本设计为范围依据：
 
-- `doc/requirements.md`：重写当前阶段目标、正式用户流程、功能要求和验收，不再把完整 D1 能力混入当前 P0；
+- `doc/requirements.md`：保留第一阶段总目标和导航；1A/1B/1C 具体功能与验收拆入 `doc/requirements/`，不再把不同实施阶段混在一个执行文件；
 - `doc/dev-plan.md`：只展开第一阶段的实施顺序、每步验证和收口方式，其它阶段保留简短索引；
 - `next.md`：只保留当前一个可执行步骤及紧接着的第一阶段队列，不继续堆叠远期想法；
 - `README.md`：更新当前状态、页面入口、启动方式和第一阶段范围；

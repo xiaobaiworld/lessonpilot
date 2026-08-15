@@ -31,7 +31,7 @@
 
 ### 1.1 当前第一期 Demo
 
-范围是 `doc/requirements.md` 6.1 节的 S01–S09 与 D01，仍然是：
+以下历史范围对应 `doc/archive/2026-08-15-pre-stage-one/requirements.md` 6.1 节的 S01–S09 与 D01：
 
 - 单个指定 B 站视频；
 - 单老师、单课程配置；
