@@ -7,13 +7,15 @@
 
 ## 本轮唯一目标
 
-执行 `tests/manual/stage-1a-bridge/README.md` 的 V1–V7，填写实际结果。全部通过后 1A 才能标记完成并推进到 1B。
+执行 `tests/manual/stage-1a-bridge/README.md` 的 V2–V7，填写实际结果（V1 已完成）。全部通过后 1A 才能标记完成并推进到 1B。
+
+PR：[#1](https://github.com/xiaobaiworld/lessonpilot/pull/1)，CI `node-test` 通过，等你确认后再合并。
 
 代码部分已完成：共享课程契约、版本化消息协议、来源白名单、插件后台存储、白名单消息桥和 1A 诊断页，135 个自动化测试全部通过。不要继续向 1A 增加功能。
 
 ## 待执行
 
-- [ ] V1 全量自动化测试基线
+- [x] V1 全量自动化测试基线（135 pass / 0 fail，CI 同步通过）
 - [ ] V2 Chrome 加载 `src/` 无 manifest 或 service worker 错误
 - [ ] V3 本地 `http://localhost:4173/teacher-web/workspace.html` 完成五个操作往返
 - [ ] V4 `expectedCourseId` 不匹配时课程保持不变
