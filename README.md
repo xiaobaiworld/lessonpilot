@@ -21,18 +21,22 @@ LessonPilot 把老师已有的 B 站录播课变成可在原视频页面运行�
 
 技术 spike 已证明插件可以在指定 B 站页面定位播放器、监听时间、暂停、seek 和卸载注入 UI，但完整产品闭环尚未实现。
 
-当前开发阶段是 **1A：数据契约、消息桥与公网部署**。从 [`next.md`](next.md) 开始，完整计划见 [`doc/dev-plan.md`](doc/dev-plan.md)。旧 W0/D0/D1 计划已经归档，不再是当前排期。
+当前开发阶段是 **1A：数据契约、消息桥与公网部署**。代码已完成并通过 135 个自动化测试：共享课程契约、版本化消息协议、来源白名单、插件后台存储和白名单消息桥。真实 Chrome 与公网往返的人工验证记录在 [`tests/manual/stage-1a-bridge/README.md`](tests/manual/stage-1a-bridge/README.md)，尚待执行；1A 只有该记录填写完毕后才算完成。
+
+从 [`next.md`](next.md) 开始，完整计划见 [`doc/dev-plan.md`](doc/dev-plan.md)。旧 W0/D0/D1 计划已经归档，不再是当前排期。
 
 ## 目标页面
 
 | 路径 | 第一阶段职责 | 当前实现状态 |
 | --- | --- | --- |
-| `/teacher-web/` | 默认公网销售首页 | 待由现有销售页迁入 |
-| `/teacher-web/workspace.html` | 真实教师工作台 | 待实现 |
-| `/teacher-web/forsales.html` | 旧销售链接兼容跳转 | 待迁移 |
+| `/teacher-web/` | 默认公网销售首页 | 待由现有销售页迁入（1B） |
+| `/teacher-web/workspace.html` | 真实教师工作台 | 当前是 1A 连接诊断页；真实工作台在 1B 实现 |
+| `/teacher-web/forsales.html` | 旧销售链接兼容跳转 | 待迁移（1B） |
 | `/teacher-web/editor.html` | 旧原型，仅供迁移参考 | 停止扩展 |
 
-第一阶段默认部署目标是 [GitHub Pages](https://xiaobaiworld.github.io/lessonpilot/)，但仓库 Pages 尚需在 1A 中启用并完成真实验证。
+第一阶段默认部署目标是 [GitHub Pages](https://xiaobaiworld.github.io/lessonpilot/)。Pages 已于 2026-08-15 启用（source 为 GitHub Actions），公网可访问性待首次发布后验证。
+
+公网只发布工作台页面和共享课程契约，`doc/` 与插件运行时代码不上公网，发布集在 `.github/workflows/pages.yml` 中以白名单方式列举（见 D-010）。
 
 ## 本地运行
 
@@ -43,7 +47,15 @@ cd /Users/bai/code/lessonpilot
 python3 -m http.server 4173
 ```
 
-当前页面可以从 [http://localhost:4173/teacher-web/](http://localhost:4173/teacher-web/) 访问。不要把 `teacher-web/` 作为独立 server root，也不要另开第二个端口；资源和测试夹具均按仓库根目录解析。
+当前页面可以从 [http://localhost:4173/teacher-web/](http://localhost:4173/teacher-web/) 访问。不要把 `teacher-web/` 作为独立 server root，也不要另开第二个端口；资源和测试夹具均按仓库根目录解析。端口 4173 写入了插件来源白名单，换端口会使消息桥拒绝该页面。
+
+首次运行或拉取新代码后，先组装共享契约：
+
+```bash
+node tools/assemble-workspace.js
+```
+
+它把 `src/shared/` 复制到 `teacher-web/shared/`，使工作台页面在本地和公网加载同一路径。该目录不入版本库：提交副本会形成第二份契约定义并可能与源文件脱节（D-010）。
 
 运行自动化测试：
 

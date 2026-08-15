@@ -26,7 +26,7 @@
 
 | 阶段 | 可独立验收结果 | 详细计划 | 状态 |
 | --- | --- | --- | --- |
-| 1A | 公网 origin、共享数据契约、插件存储和消息桥可真实连通 | `doc/requirements/stage-1a.md` / `doc/plans/stage-1a-contract-bridge-deploy.md` | 待开始 |
+| 1A | 公网 origin、共享数据契约、插件存储和消息桥可真实连通 | `doc/requirements/stage-1a.md` / `doc/plans/stage-1a-contract-bridge-deploy.md` | 代码完成，人工验证待执行 |
 | 1B | 默认销售首页和真实工作台可用，老师能保存一门课程 | `doc/requirements/stage-1b.md` / `doc/plans/stage-1b-sales-workspace.md` | 未开始 |
 | 1C | 四种节点在目标 B 站视频上完成端到端预览 | `doc/requirements/stage-1c.md` / `doc/plans/stage-1c-runtime-e2e.md` | 未开始 |
 

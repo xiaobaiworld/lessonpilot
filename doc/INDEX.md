@@ -40,6 +40,7 @@
 | 文档 | 可独立验收结果 | 前置 |
 | --- | --- | --- |
 | `doc/plans/stage-1a-contract-bridge-deploy.md` | 数据契约、存储、消息桥和公网部署可验证 | 当前需求/数据规范 |
+| `tests/manual/stage-1a-bridge/README.md` | 1A 真实 Chrome 与公网人工验证记录 | 待执行；1A 完成门禁 |
 | `doc/plans/stage-1b-sales-workspace.md` | 默认销售首页和真实教师工作台可保存课程 | 1A |
 | `doc/plans/stage-1c-runtime-e2e.md` | 四种节点在真实 B 站完成端到端预览 | 1A、1B |
 
@@ -72,7 +73,10 @@
 | 路径 | 内容 |
 | --- | --- |
 | `teacher-web/` | 静态销售页、工作台示例和旧编辑器 |
-| `src/` | Chrome MV3 插件 spike 和后续第一阶段实现 |
+| `src/shared/` | 网页与插件共用的课程契约、消息协议和来源白名单（唯一事实源） |
+| `src/background/` | 插件后台存储与五个操作处理器 |
+| `src/content/` | 工作台消息桥内容脚本，以及 B 站运行时 spike |
+| `tools/assemble-workspace.js` | 把 `src/shared/` 复制到 `teacher-web/shared/`，本地与公网加载同一路径 |
 | `tests/` | Node 自动化测试 |
 | `tests/manual/` | 依赖真实浏览器和 B 站的人工探针 |
 | `changelog.md` | 仅记录已验证交付的变化 |
