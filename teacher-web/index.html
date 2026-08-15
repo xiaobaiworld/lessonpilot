@@ -7,7 +7,7 @@
     <title>英语面试表达：把答案说得具体 · LessonPilot</title>
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="sample.css?v=sample-20260814-1">
+    <link rel="stylesheet" href="sample.css?v=sample-20260815-1">
   </head>
   <body>
     <div class="app-shell">
@@ -59,7 +59,9 @@
               <div class="sample-timeline-head">
                 <strong>课程时间线</strong>
                 <span>02:16 / 08:33</span>
+                <button class="dark-button" id="add-node" type="button">＋ 增加节点</button>
               </div>
+              <p class="sample-timeline-hint">右键或双击节点可打开属性表单，也可选中节点后按 Enter。</p>
               <div class="sample-track" id="sample-track">
                 <div class="sample-track-line" aria-hidden="true"></div>
                 <div class="sample-track-progress" aria-hidden="true"></div>
@@ -105,40 +107,11 @@
                 </div>
               </div>
             </div>
-            <aside class="sample-add-rail" aria-labelledby="add-node-title">
-              <p class="eyebrow" id="add-node-title">增加节点</p>
-              <p class="sample-add-purpose">在视频中增加互动，让学习更有效。</p>
-              <button class="dark-button" id="add-node" type="button">＋ 增加节点</button>
-              <div class="sample-add-panel" id="add-node-panel" hidden>
-                <label>时间点
-                  <select id="add-node-time">
-                    <option>03:02 · 复盘项目时我会看哪里还能改进</option>
-                    <option>06:25 · 我喜欢保持运动习惯</option>
-                    <option>07:59 · 给成功候选人的建议</option>
-                  </select>
-                </label>
-                <label>节点类型
-                  <select id="add-node-family">
-                    <option value="attention">重点提醒</option>
-                    <option value="voice">老师补充</option>
-                    <option value="practice">互动练习</option>
-                    <option value="followup">点评追问</option>
-                  </select>
-                </label>
-                <div class="sample-add-std" id="add-node-fields">
-                  <label>标题<input name="title" value="把习惯说成可证明的行动"></label>
-                  <label>标出的关键词<input name="highlights" value="keep exercising"></label>
-                  <label>提醒正文<textarea name="body" rows="2">“我喜欢运动”还不够。标出 keep exercising，提醒学生补上频率和结果。</textarea></label>
-                </div>
-                <figure class="sample-add-preview" id="add-node-preview" hidden>
-                  <figcaption>学生端效果</figcaption>
-                  <div class="sample-preview-shot is-attention" id="add-node-shot">
-                    <div class="shot-video"><span>视频已暂停</span><strong>keep exercising</strong></div>
-                    <p>标出关键词，并出现老师提醒</p>
-                  </div>
-                </figure>
-                <button class="text-button" id="add-node-demo" type="button">生成学生端效果</button>
-              </div>
+            <aside class="sample-subtitle-rail" aria-labelledby="subtitle-context-title">
+              <p class="eyebrow" id="subtitle-context-title">节点处字幕</p>
+              <p class="sample-subtitle-time" id="subtitle-context-time">02:16</p>
+              <ol class="sample-subtitle-list" id="subtitle-context-list" aria-live="polite"></ol>
+              <p class="sample-subtitle-empty" id="subtitle-context-empty" hidden>还没有导入字幕。</p>
             </aside>
           </div>
         </section>
@@ -268,6 +241,32 @@
       </main>
     </div>
 
+    <dialog class="sample-node-form" id="node-form-dialog" aria-labelledby="node-form-title">
+      <form id="node-form" method="dialog">
+        <div class="sample-node-form-bar">
+          <h2 id="node-form-title">节点属性</h2>
+          <p class="sample-node-form-time" id="node-form-time"></p>
+        </div>
+        <label>时间点<input id="node-form-at" name="at" readonly></label>
+        <label>节点类型
+          <select id="node-form-family" name="family">
+            <option value="attention">重点提醒</option>
+            <option value="voice">老师补充</option>
+            <option value="practice">互动练习</option>
+            <option value="followup">点评追问</option>
+          </select>
+        </label>
+        <label>标题<input id="node-form-title-input" name="title"></label>
+        <label>标出的关键词<input id="node-form-highlights" name="highlights"></label>
+        <label>正文<textarea id="node-form-body" name="body" rows="3"></textarea></label>
+        <p class="sample-node-form-note">示例数据。真实工作台在 1B 保存到本机插件。</p>
+        <div class="sample-node-form-actions">
+          <button class="text-button" id="node-form-cancel" type="button">取消</button>
+          <button class="dark-button" id="node-form-save" type="submit">保存节点</button>
+        </div>
+      </form>
+    </dialog>
+
     <dialog class="sample-lightbox" id="preview-dialog" aria-labelledby="preview-dialog-title">
       <div class="sample-lightbox-bar">
         <h2 id="preview-dialog-title">学生端效果预览</h2>
@@ -276,6 +275,8 @@
       <div class="sample-lightbox-body" id="preview-dialog-body"></div>
     </dialog>
     <div id="toast" class="toast" role="status" aria-live="polite" aria-hidden="true"></div>
-    <script src="sample.js?v=sample-20260814-1"></script>
+    <script src="subtitle-context.js?v=subtitle-context-20260815-1"></script>
+    <script src="demo-captions.js?v=demo-captions-20260815-1"></script>
+    <script src="sample.js?v=sample-20260815-1"></script>
   </body>
 </html>

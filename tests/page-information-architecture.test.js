@@ -45,12 +45,13 @@ const checks = [
     run: () => !samplePage.includes('B 站来源') && !samplePage.includes('网页不控制播放') && !samplePage.includes('用来对时间点') && !samplePage.includes('示例图里的修改') && !samplePage.includes('只演示入口') && !samplePage.includes('每个节点同一行同时看到制作内容和学生端效果')
   },
   {
-    label: 'sales sample stacks a 3/4 timeline beside the add-node rail',
-    run: () => samplePage.includes('sample-stage-top') && samplePage.includes('sample-stage-bottom') && samplePage.includes('sample-timeline') && samplePage.includes('sample-add-rail') && samplePage.includes('整体介绍') && samplePage.includes('在视频中增加互动，让学习更有效。') && !samplePage.includes('sample-add-types') && samplePage.includes('＋ 增加节点') && !samplePage.includes('add-node-on-track')
+    label: 'sales sample stacks a 3/4 timeline beside the subtitle context rail (COURSE-06)',
+    run: () => samplePage.includes('sample-stage-top') && samplePage.includes('sample-stage-bottom') && samplePage.includes('sample-timeline') && samplePage.includes('sample-subtitle-rail') && samplePage.includes('整体介绍') && !samplePage.includes('sample-add-types') && samplePage.includes('＋ 增加节点') && !samplePage.includes('add-node-on-track')
   },
   {
-    label: 'sales sample add-node form uses family-specific standard content fields',
-    run: () => samplePage.includes('id="add-node-family"') && samplePage.includes('value="attention"') && samplePage.includes('value="voice"') && samplePage.includes('value="practice"') && samplePage.includes('value="followup"') && samplePage.includes('标出的关键词') && samplePage.includes('提醒正文') && samplePage.includes('id="add-node-preview"')
+    // 右侧原为常驻的节点属性表单，现由字幕上下文列取代；表单改为弹出式（COURSE-06/07）。
+    label: 'sales sample node properties form is a dialog, not a resident rail panel',
+    run: () => samplePage.includes('id="node-form-dialog"') && samplePage.includes('id="node-form-family"') && samplePage.includes('value="attention"') && samplePage.includes('value="voice"') && samplePage.includes('value="practice"') && samplePage.includes('value="followup"') && samplePage.includes('标出的关键词') && !samplePage.includes('id="add-node-panel"') && !samplePage.includes('id="add-node-preview"')
   },
   {
     label: 'sales sample timeline marks typed interaction points with visible labels',
@@ -70,7 +71,7 @@ const checks = [
   },
   {
     label: 'sales sample keeps markup, styles, and behavior in its own files',
-    run: () => samplePage.includes('href="styles.css"') && /<link rel="stylesheet" href="sample\.css\?v=[^"]+">/.test(samplePage) && /src="sample\.js\?v=[^"]+"/.test(samplePage) && sampleCss.includes('.sample-timeline') && sampleCss.includes('.sample-add-rail') && !sharedCss.includes('.sample-timeline') && !sharedCss.includes('.sample-add-rail')
+    run: () => samplePage.includes('href="styles.css"') && /<link rel="stylesheet" href="sample\.css\?v=[^"]+">/.test(samplePage) && /src="sample\.js\?v=[^"]+"/.test(samplePage) && sampleCss.includes('.sample-timeline') && sampleCss.includes('.sample-subtitle-rail') && !sharedCss.includes('.sample-timeline') && !sharedCss.includes('.sample-subtitle-rail')
   },
   {
     label: 'teacher W0 editor still centers the classroom-design task',
