@@ -21,3 +21,10 @@ logs/
 
 # Agent tool state (not project content)
 .superpowers/
+.gstack/
+
+# Pages publish assembly output (D-010).
+# The shared contract has exactly one source of truth in src/shared/.
+# teacher-web/shared/ is assembled at publish time and must never be committed,
+# or the repository would carry a second, silently drifting copy of the contract.
+teacher-web/shared/

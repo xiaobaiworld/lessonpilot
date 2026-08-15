@@ -80,6 +80,7 @@
 - 理由：现有纯静态页面无需新增后端或付费基础设施。
 - 假设：GitHub Pages 在目标老师网络环境中可稳定访问。
 - 重开条件：访问不稳定、域名被阻断、需要自定义域名，或未来加入后端。
+- 相关：D-010 决定该 origin 上实际发布哪些文件。D-010 不替代本决策，本决策的 origin 选择本身仍待真实访问验证。
 
 ## D-008 文档以当前事实源加完整历史归档组织
 
@@ -100,3 +101,37 @@
 - 理由：阶段边界与现有计划和门禁一致，其他 Agent 可以只读取当前阶段而不误做后续功能。
 - 数据保护：原需求的独有条目全部迁入总览或三个阶段文件；完整整理前版本仍可从 Git 提交 `7a4e842` 和历史归档追溯。
 - 重开条件：某项需求跨越两个阶段且无法用共同规则表达，或阶段顺序被新的真实证据改变。
+
+## D-010 GitHub Pages 采用发布期组装，公网只暴露页面与共享契约
+
+- 日期：2026-08-15
+- 状态：已接受，待 Pages 实际发布验证
+- 问题：`A-DATA-01` 要求网页和插件复用同一份课程契约，并明确禁止两份相似校验器。但两者是不同分发单元：网页部署到 GitHub Pages，插件从本机 `src/` 以已解压方式加载。契约文件必须同时被两边取到，而契约放在 `src/shared/` 时，公网页面要引用 `../src/shared/`，这要求把仓库根目录整体发布。
+- 已确认事实：仓库 `xiaobaiworld/lessonpilot` 是公开仓库（`private: false`），但公开仓库与"把全部文件放到可直接抓取的 Pages 站点"不是同一件事。`doc/` 当前包含竞品与定价研究、销售话术、多创作者商业与计费预案。
+- 方案 A：Pages 以 `main` 分支根目录为源，页面引用 `../src/shared/`。
+- 方案 B：契约移到仓库根 `shared/`，Pages 只发布 `teacher-web/` 与 `shared/`。
+- 方案 C：契约源文件唯一存放 `src/shared/`，用 GitHub Actions 在发布期把 `teacher-web/` 与 `src/shared/` 组装成 artifact 发布。
+- 决定：采用方案 C。Pages 源设为 GitHub Actions；workflow 以白名单方式显式列举要发布的文件；公网只包含 `workspace.html`、`workspace-bridge-client.js` 和三个 `shared/` 契约文件。
+- 理由：同时满足"唯一契约源文件"和"不把商业资料与插件运行时代码发上公网"。用白名单而非排除法，是因为以后往 `doc/` 增加文件时，排除法会因为忘记加规则而静默泄漏，白名单不会。
+- 放弃 A 的原因：`doc/` 下的定价研究、销售话术和商业预案进入公网可索引范围，且被抓取后不可逆；换取的只是省掉一个 workflow。
+- 放弃 B 的原因：MV3 不允许扩展引用其根目录之外的文件，实际需把 `src/` 全部提到仓库根或做副本，改动面大于 C，且副本会破坏"唯一契约"这一需求本身。
+- 代价与假设：页面对契约的引用路径本地为 `../src/shared/`、公网为 `./shared/`。该差异集中在 `workspace.html` 的一处脚本路径，并由测试锁定；假设组装产物 `teacher-web/shared/` 始终被 `.gitignore` 排除，不会变成提交进仓库的第二份副本。
+- 待验证：Pages 实际发布成功且公网路径可访问（Stage 1A T6）。
+- 重开条件：需要自定义域名；Pages 在目标老师网络不可用（并入 D-007 重开条件）；或页面与插件之外出现第三个契约消费方。
+- 影响：新增 `.github/workflows/pages.yml`；`.gitignore` 增加 `teacher-web/shared/`；`doc/requirements/stage-1a.md` 的 A-DEPLOY-02 由本决策提供实现方式。
+
+## D-011 课程契约按执行层分工，错误码不成为插件探测信号
+
+- 日期：2026-08-15
+- 状态：已接受
+- 问题：实施 1A 前逐条核对 `doc/data-spec.md` 与 `doc/requirements/stage-1a.md` 时，发现五处规则无法在单一层执行，或按字面实现会与 1A 完成定义冲突。
+- 事实与处置：
+  1. **`captionId` 引用完整性**：data-spec §8 要求非空 `captionId` 必须引用现有字幕，但 `PluginCourseConfig` 按 A-DATA-02 不含 `captions`，插件侧没有字幕可比对，该规则在插件侧物理上无法执行。决定拆两级：共享契约只校验格式（非空、ASCII、≤80）；"必须引用现有字幕"归 `WorkspaceDraft` 层，由 1B 草稿校验器执行。规则不被放弃，只是明确归属层。
+  2. **`INVALID_CHANNEL` 语义**：若 channel 不匹配时 content script 回错误响应，白名单页面上任意第三方脚本就能用错误码探测插件是否安装。决定 channel 不匹配时静默丢弃、不产生任何响应（该消息在语义上不是发给本桥的）；`INVALID_CHANNEL` 保留给 background 校验 content script 转发的信封，属内部一致性检查。channel 匹配但版本不支持仍返回 `UNSUPPORTED_VERSION`。
+  3. **`updatedAt` 归属**：若 background 保存时重写 `updatedAt`，1A 完成定义第 4 条"保存后读取的课程与写入课程深度相等"永远失败。决定由页面产生并通过校验，background 原样存储、原样回显，只校验它是合法 UTC ISO 串。
+  4. **normalize 与 validate 分工**：data-spec 要求节点有序，1A 计划要求乱序拒绝，A-DATA-01 要求不静默修复语义错误。决定 `normalizeCourse()` 负责排序并返回新对象，`validateCourse()` 对乱序直接拒绝不排序；写入侧先 normalize 再 validate，background 只 validate——插件不替网页修数据。
+  5. **`enabled: false` 语义**：1A 只校验类型，不赋予过滤语义；"至少一个节点"按数组长度判断，不看 `enabled`。运行时行为属 1C。
+- 放弃的做法：在插件侧放宽或删除 `captionId` 规则（会让规则消失而非归位）；让 channel 不匹配返回错误码（会形成探测信号）；让 background 生成 `updatedAt`（会与完成定义冲突）。
+- 假设：1B 实现 `WorkspaceDraft` 校验器时会承接 `captionId` 引用完整性；若 1B 未承接，该规则会在无人执行的状态下丢失。
+- 重开条件：`PluginCourseConfig` 未来需要携带字幕子集；或 1C 定义 `enabled: false` 的运行时行为时发现需要在契约层过滤。
+- 影响：`doc/data-spec.md` 新增第 13 节记录以上分工；`src/shared/course-contract.js` 与 `src/background/` 按此实现。
