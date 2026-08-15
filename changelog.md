@@ -4,6 +4,14 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### 第一阶段文档收口 — 2026-08-15
+
+- 将当前目标收敛为礼宾式真实验证闭环：公网销售首页、真实教师工作台、本机已解压插件和 B 站原页面；明确四种节点、单课程和非目标边界。
+- 完整归档混合 W0/D0/D1 与远期内容的旧 requirements、dev-plan 和 next，建立当前需求、数据规范、决策记录、文档索引和 1A/1B/1C 三份可独立验收的实施计划。
+- 统一目标页面职责、消息桥、存储键、协议操作、错误码和预览会话字段；GitHub Pages 保持为待真实验证的实施默认，而非已完成事实。
+- 为历史、未来和仅作视觉参考的文档增加权威状态说明，并记录本轮长度、重复、拆分和索引健康审计结果。
+- 验证 31 份 Markdown 无失效本地链接、Git diff 无空白错误，现有 5 个 Node 测试套件全部通过；本轮不修改产品代码。
+
 ### Player Integration Feasibility Probes — 2026-08-14
 
 - Add an isolated MV3 manual probe under `tests/manual/bilibili-iframe-current-time/` that injects into every permitted frame and reports whether a Bilibili iframe exposes a finite `video.currentTime`; the probe does not change production extension permissions.

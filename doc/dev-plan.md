@@ -1,159 +1,97 @@
-# Development Plan — LessonPilot
+# LessonPilot 第一阶段开发计划
 
-Version: 0.4
-Last updated: 2026-08-11
+版本：2.0
 
-## Phase 0 — Product and Demo Definition
+更新时间：2026-08-15
+状态：待实施
 
-Goal:
+## 1. 计划目标
 
-- Define the buyer as an English teacher with an existing paid recorded course.
-- Define the demo as a course-upgrade loop rather than a general AI side panel.
-- Lock the student interaction, teacher authoring, preview, and report boundaries.
-- Lock expansion order: Bilibili through D1, YouTube after D1, multilingual/region fully deferred.
+本计划只服务于第一阶段真实验证闭环：老师从公网销售页进入真实工作台，使用一条 B 站视频和对应字幕制作四种互动节点，将课程保存到本机插件，并在 B 站原页面完成预览。
 
-Validation:
+本计划不负责证明完整商业模式，也不要求无人协助。字幕获取、插件安装、首次配置和测试过程可以由 LessonPilot 提供者协助。
 
-- Requirements, design, README, lessons, teacher-demo, student-runtime, and plan describe the same product.
-- Demo scope remains limited to one Bilibili video and three interaction nodes.
-- `VideoRef` / `PlayerAdapter` are the only reserved multi-platform seams.
+开始编码前依次阅读：
 
-Status: complete
+1. `doc/INDEX.md`
+2. `doc/requirements.md`
+3. `doc/data-spec.md`
+4. `doc/stage-one-validation-loop-design.md`
+5. 当前阶段对应的 `doc/plans/` 详细计划
 
-Display contract: everything a student sees belongs to one first-class learning window. `doc/learning-window-standard.md` is what a new client implements; `doc/node-content-standard.md` is what a node may contain. Phases below build the Bilibili path only, but no phase may introduce a second student information architecture, and no phase may make a node depend on pause, seek, caption covering, or audio ducking being available.
+发生冲突时，以 `doc/requirements.md` 和 `doc/data-spec.md` 为准。不能用计划里的实现建议改变已确认需求。
 
-Technical spike status: roughly complete for mount, pause/seek, timed dialog, SPA teardown, and timed subtitle overlay. Remaining work is product delivery toward D0, then D1. Follow `next.md`.
+## 2. 实施顺序
 
-2026-08-14 更新，取代 2026-08-12 的「学生端网页优先」结论：学生宿主只有装了插件的 B 站原页面，仅 PC 浏览器。定时自动打断是五类节点的共同前提，而它要求与 `<video>` 同文档读取播放时间，跨源嵌入做不到。原计划中的 `student-web/` 学生网页壳已删除。老师预览真实效果同样装插件、打开 B 站原页面，与学生同一条路径。完整排查见 `doc/lessons.md` 2026-08-14 条目。
+| 阶段 | 可独立验收结果 | 详细计划 | 状态 |
+| --- | --- | --- | --- |
+| 1A | 公网 origin、共享数据契约、插件存储和消息桥可真实连通 | `doc/plans/stage-1a-contract-bridge-deploy.md` | 待开始 |
+| 1B | 默认销售首页和真实工作台可用，老师能保存一门课程 | `doc/plans/stage-1b-sales-workspace.md` | 未开始 |
+| 1C | 四种节点在目标 B 站视频上完成端到端预览 | `doc/plans/stage-1c-runtime-e2e.md` | 未开始 |
 
-W0 仍以固定 B 站课程为来源样例。老师先确认固定页面 URL，再导入已取得的 SRT/VTT 文件；本地解析把字幕转成可编辑时间线。W0 不抓取平台字幕。教师端可以嵌入原课并链回 B 站，但不得承诺能通过跨源 iframe 稳定读时、暂停、seek 或定时互动；节点定位的时间真源是字幕文件。W0 明确排除本地 HTML5 视频选择、上传、托管和任何替代播放器。下一个技术问题是 B 站原页面适配器能否支撑第一个真实教学节点，不是如何绕过它。
+顺序默认不可颠倒。1B 依赖 1A 的数据契约与桥；1C 依赖 1A 的存储与消息、1B 产生的真实配置。
 
-### W0 — 课程链接与字幕时间线验证
+## 3. 共同实施规则
 
-目标：
+- 保持当前零依赖、静态页面、Chrome MV3 插件结构；新增依赖必须先记录决策。
+- 每个行为变更先写失败测试，再做最小实现，再运行相关测试和完整回归。
+- 不把完整字幕发送给插件；工作台本地保留字幕，只发送运行所需课程配置。
+- 动态文本使用安全 DOM API，不允许课程内容注入 HTML、CSS 或 JavaScript。
+- 所有配置写操作都必须返回明确成功或错误，不能乐观展示假成功。
+- 自动化不能覆盖的真实 Chrome、GitHub Pages、B 站播放器行为，必须写入人工验证记录。
+- 每个阶段完成后更新 `next.md`、`doc/DECISIONS.md`（若有新决策）、相关权威文档和 `changelog.md`。
+- 不顺手实现 `doc/requirements.md` 非目标清单中的功能。
 
-- 打通「固定 B 站 URL → 手动取得的字幕文件 → 字幕锚点上的课堂动作」这条路径。
-- 让教师工作台完整描述一门课，示例页与真实工作台共用同一信息架构。
-- B 站来源与控制边界写在工程文档里，不出现在教师界面上。
+## 4. 阶段门禁
 
-验收：
+### 1A 完成门禁
 
-- 教师端接受有效的固定 B 站 URL 和有效 SRT/VTT 文件；解析出的字幕替换示例时间线，并能承载课堂动作。
-- 教师端桌面与窄屏宽度下无横向溢出或关键操作遮挡。
-- 任何文案或界面都不得暗示网页能控制跨源 B 站播放器。
-- 学生侧验证移至 B 站原页面插件路径，不在本阶段用网页页面代替。
+- GitHub Pages 实际可访问，或 D-007 已按真实证据重开并确定替代 origin；
+- 页面到插件的连接、保存、读取、清除、预览会话操作都经过双向 schema 校验；
+- 来源、路径、协议版本或载荷错误均失败关闭；
+- `chrome.storage.local` 中只有一门当前课程和一份当前预览会话；
+- 自动化测试通过，并在真实已解压插件环境完成一次消息往返。
 
-状态：进行中
+### 1B 完成门禁
 
-## Demo Milestones
+- `/teacher-web/` 是销售首页，旧 `/teacher-web/forsales.html` 能兼容跳转；
+- `/teacher-web/workspace.html` 可输入 B 站 URL、导入字幕、编辑四种节点并恢复本地草稿；
+- URL 切换有明确警告，取消不丢数据，确认后按协议清除旧课程；
+- 保存到插件失败时保留工作台数据并显示可操作错误；
+- 页面在桌面 Chrome 的目标宽度下可完成主要流程。
 
-### D0 — Configurable Interaction Demo
+### 1C 完成门禁
 
-Reached after Phase 3:
+- 插件只在保存课程对应的 BVID 上启动；
+- 四种节点都能到点暂停、完成或跳过、反馈后继续；
+- seek、刷新、B 站 SPA 切换、播放器缺失和重复挂载符合需求；
+- 问答题只保存原始回答并显示老师反馈，不评分、不调用 AI；
+- 使用老师真实视频和字幕完成一次完整人工验收。
 
-- One content-matched deterministic activity runs end to end.
-- The teacher changes or creates one fixed node in the localhost teacher website.
-- Save-and-preview opens a student web runtime link first; the extension bridge can follow after the web loop is proven.
-- The student web runtime shows the changed result without plugin installation.
-- Preview attempts persist in a separate local session.
+## 5. 第一阶段最终验收
 
-D0 is suitable for internal validation and early conversations, but it is not the complete sales demo.
+最终验收不是“页面看起来完成”，而是以下链路在一台真实 PC Chrome 上连续成立：
 
-### D1 — Complete Sales Demo
+```text
+公网销售首页
+  -> 真实教师工作台
+  -> 输入真实 B 站 URL 并导入匹配字幕
+  -> 创建至少一个节点（最终回归覆盖四种）
+  -> 保存到本机插件
+  -> 打开对应 B 站原页面
+  -> 到点自动暂停并完成互动
+  -> 继续播放
+```
 
-Reached after Phase 5:
+技术验收后应尽快邀请真实老师试用。是否继续扩大产品范围，应由老师是否提供真实课程、是否愿意安装插件和亲手配置等行为信号决定，而不是由继续补功能替代。
 
-- Three activity types run against the real source video.
-- Free-answer review uses a real AI backend with honest fallback.
-- One session produces both learner summary and teacher report.
-- The full teacher-edit -> preview -> practice -> report story fits in three minutes.
+## 6. 变更控制
 
-## Phase 1 — Video Interaction Engine
+细节允许调整，但出现以下任一变化时必须先更新决策和权威文档，再改代码：
 
-Goal:
-
-- Validate the existing mascot and playback-control spike manually.
-- Add a student web runtime with a reusable timed-node state machine.
-- Mount and unmount safely across Bilibili SPA navigation.
-
-Validation:
-
-- Student opens a web course link and reaches the fixed Bilibili source through the student shell.
-- The student shell does not claim cross-origin playback control; interaction behavior is verified on the supported Bilibili original-page plugin path.
-- Mobile and desktop layouts keep the course context, source area, and original-page action usable.
-- The existing Bilibili plugin spike remains gated to the supported video and passes current regression tests.
-
-## Phase 2 — Deterministic Student Activities
-
-Goal:
-
-- Add the multiple-choice and fill-in renderers on the supported controllable player path.
-- Add feedback, retry, continue, progress, and local session recording there.
-- Author node content only after checking the matching source-video segments.
-
-Validation:
-
-- Both node types run end to end without AI or network access.
-- Submitted answers and attempts persist locally.
-- Rewatching or seeking does not accidentally duplicate completed responses.
-- Each node stays inside its own window opening: no node requires another node to have been answered first.
-
-## Phase 3 — Teacher Node Editor and Preview
-
-Goal:
-
-- Add a localhost teacher website for the fixed video's nodes.
-- Persist edits and preview them in the student web runtime.
-- Add a minimal allowlisted website-to-extension configuration bridge only after the web runtime loop is proven.
-
-Validation:
-
-- Teacher can change at least one timestamp or prompt.
-- The changed node appears in the student web preview.
-- Preview works without installing or reinstalling an extension.
-- Invalid timestamps and incomplete activity definitions are rejected clearly.
-
-## Phase 4 — Free Answer and Reports
-
-Goal:
-
-- Add AI review for the free-answer node.
-- Generate student and teacher views from one recorded session.
-
-Validation:
-
-- Feedback cites the learner's actual answer and teacher rubric.
-- Reports never invent activity or results.
-- No API key or real learner data is committed.
-- A defined fallback state handles unavailable AI service.
-
-## Phase 5 — Sales Demo Validation
-
-Goal:
-
-- Polish the three-minute teacher demonstration.
-- Record a 60–90 second teacher-facing sales video from the verified D1 product.
-- Show it to qualified teachers who already sell recorded courses.
-
-Validation:
-
-- The full teacher-edit -> web preview -> student-practice -> report loop works.
-- The promotion video shows only verified behavior and ends with one real-course submission action.
-- At least three qualified teacher conversations are recorded.
-- Success is measured by a concrete next commitment, not compliments.
-
-## Deferred
-
-- YouTube as a second player adapter after D1 validation.
-- General video import and subtitle parsing.
-- Automatic interaction-node generation.
-- Accounts, payments, classes, and cohort analytics.
-- Voice and pronunciation features.
-- Chrome Web Store publishing.
-- Full teacher course management.
-- Multilingual UI, course-language systems, multi-region commercial/compliance design, and any locale/region schema work.
-- Independent consumer free/Pro product line.
-
-## Delivery Workflow
-
-Each phase uses `next.md` for one verified step at a time. After tests and manual acceptance pass, synchronize docs and changelog, record any new lesson, create a small Git commit, and push only when a remote is configured and the target is confirmed. A larger release or merge requires a full branch diff and documentation review before user-authorized merge.
+- 改变 B 站原页面加插件的宿主方案；
+- 改变销售首页、工作台或兼容页职责；
+- 增加后端、账号、云存储或第三方运行依赖；
+- 增加节点类型、AI 能力或自动字幕获取；
+- 改变单课程覆盖语义；
+- 改变消息桥的信任边界或公网部署 origin。

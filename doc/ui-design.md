@@ -1,5 +1,7 @@
 # LessonPilot 界面设计与颜色系统
 
+> 文档状态（2026-08-15）：当前视觉参考。页面职责和第一阶段功能已经更新，以 `doc/requirements.md` 为准；本文旧页面命名和 AI 产品描述不得扩大当前范围。
+
 更新时间：2026-08-14
 状态：颜色系统仍用于教师/学生页；教师工作台示例页外形以 `doc/teacher-course-workspace-design.md` 为准；节点展示内容以 `doc/node-content-standard.md` 为准
 

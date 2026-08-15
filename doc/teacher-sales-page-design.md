@@ -1,5 +1,7 @@
 # 教师线上销售页设计
 
+> 文档状态（2026-08-15）：销售叙事与视觉证据仍是当前参考；正式默认入口改为 `teacher-web/index.html`，`forsales.html` 仅保留兼容跳转。功能和诚实边界以 `doc/requirements.md` 为准。
+
 版本：0.1
 更新时间：2026-08-14
 状态：v5 独立预览已验证，正式入口为 `teacher-web/forsales.html`。

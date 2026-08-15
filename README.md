@@ -1,119 +1,83 @@
 # LessonPilot
 
-LessonPilot is an early-stage course-runtime project for upgrading an English teacher's existing recorded course into an interactive course product. Teachers design courses in a local web workspace; students learn on the Bilibili original page with the Chrome extension installed, because timed auto-interruption — the shared precondition of every node type — requires same-document access to the player that a cross-origin embed cannot provide.
+LessonPilot 把老师已有的 B 站录播课变成可在原视频页面运行的互动课程。老师在公网工作台导入一条 B 站视频链接和对应字幕，配置互动节点；学生在 PC Chrome 安装本机插件后，于 B 站原页面到点暂停、作答、查看反馈并继续播放。
 
-The first demo targets a real teacher-style Bilibili English interview lesson. Its job is to show that a teacher can add timed practice, feedback, and learning evidence without re-recording the video. The current teacher workspace sample page is grounded in the checked-in Chinese AI-translated subtitle source at `doc/英文面试问答流程（超全！）｜自我介绍 矛盾处理 优缺点 技能.srt`.
+当前不是成熟平台，而是第一阶段真实验证闭环。第一目标是验证老师是否愿意提供真实课程、安装插件并亲手配置，而不是继续补齐账号、AI、报告或规模化交付能力。
 
-## Product Positioning
+## 当前范围
 
-For English teachers and course creators:
+- 公网静态销售首页；
+- 公网真实教师工作台；
+- 一门当前课程，一条标准 B 站视频 URL；
+- 老师提供字幕，或 LessonPilot 人工协助取得字幕；
+- 重点标注、选择题、填空题、问答题四种节点；
+- 本机 Chrome 已解压插件；
+- B 站原页面学习运行时；
+- 本地保存，无账号、后端或云同步。
 
-> Upgrade an already-recorded course into an interactive course product without re-recording it.
+问答题只保存学生原始回答，并展示老师预设的参考反馈；第一阶段不评分、不调用 AI。
 
-For learners:
+## 当前状态
 
-> Watch the lesson, pause for active practice, apply the teacher's examples, and receive concrete feedback.
+技术 spike 已证明插件可以在指定 B 站页面定位播放器、监听时间、暂停、seek 和卸载注入 UI，但完整产品闭环尚未实现。
 
-The first buyer is a teacher or small training operator who already sells recorded courses. The project is not positioned as a video quality tool or a general student chatbot.
+当前开发阶段是 **1A：数据契约、消息桥与公网部署**。从 [`next.md`](next.md) 开始，完整计划见 [`doc/dev-plan.md`](doc/dev-plan.md)。旧 W0/D0/D1 计划已经归档，不再是当前排期。
 
-## Current Phase
+## 目标页面
 
-Technical spike is roughly done. Next delivery target is **D0** (configurable interaction demo), then **D1** (complete sales demo).
+| 路径 | 第一阶段职责 | 当前实现状态 |
+| --- | --- | --- |
+| `/teacher-web/` | 默认公网销售首页 | 待由现有销售页迁入 |
+| `/teacher-web/workspace.html` | 真实教师工作台 | 待实现 |
+| `/teacher-web/forsales.html` | 旧销售链接兼容跳转 | 待迁移 |
+| `/teacher-web/editor.html` | 旧原型，仅供迁移参考 | 停止扩展 |
 
-Continue from [`next.md`](next.md) on any machine:
+第一阶段默认部署目标是 [GitHub Pages](https://xiaobaiworld.github.io/lessonpilot/)，但仓库 Pages 尚需在 1A 中启用并完成真实验证。
 
-1. `git pull`
-2. Load `src/` in Chrome and verify the demo video still works
-3. Follow the unchecked D0 steps in `next.md`
+## 本地运行
 
-Scope locks:
-
-- Bilibili only through D0/D1
-- YouTube only after D1, as a second player adapter
-- No multilingual UI or multi-region commercial/compliance work now
-- Keep only the `VideoRef` / `PlayerAdapter` seam needed for Bilibili stability and a future YouTube adapter
-
-The first implementation supports one fixed Bilibili video before expanding to other videos or platforms. The web sample embeds it for source verification, while locally selected HTML5 video is used to validate reliable timed interaction without uploading or hosting video.
-
-## Delivery Standards
-
-Everything a learner sees lives in one first-class learning window. A new client — browser extension, web page, local-video app, or someone else's app — becomes compatible by implementing that one contract, not by copying a page.
-
-```text
-学习窗口   一级容器：尺寸、呈现方式、生命周期、键盘、习题本、AI 问答、证据
-  └─ 节点   一个时间点、一个教学点、一次窗口；边界与播放意图
-       └─ 内容  提醒 / 补充 / 练习 / 追问 的结构化字段
-```
-
-Two kinds of requirement, never mixed:
-
-- **Mandatory and identical everywhere.** The window's display and interaction. The same lesson pack must produce the same title, prompt, options, explanation, buttons, and evidence on every client.
-- **Advisory, platform-dependent.** Pause, seek, on-picture highlight, caption covering, audio ducking. A client that cannot do these is still fully conformant.
-
-What keeps the advisory half safe is window self-sufficiency: turn off everything outside the window, and a learner must still be able to complete the node.
-
-| Layer | Document | Owns |
-|---|---|---|
-| Window | [Learning Window Standard](doc/learning-window-standard.md) | Skeleton, size tiers, mounting, queueing, lifecycle, keyboard, drafts, notebook, AI ask, evidence, host onboarding checklist |
-| Node | [Node Standard](doc/node-content-standard.md) | Node boundaries, independence, playback intents, recap, and the content fields of each node family |
-| Scope split | [Design](doc/design.md) section 7 | Which half is mandatory and which is advisory |
-
-## Local Web Service
-
-The teacher pages are served by **one static server started from the repository root**. The directories are page boundaries, not separate services. There is no web student page: as of 2026-08-14 the student host is the Bilibili original page with the extension installed, on PC browsers only.
+从仓库根目录启动唯一静态服务：
 
 ```bash
 cd /Users/bai/code/lessonpilot
 python3 -m http.server 4173
 ```
 
-Open:
+当前页面可以从 [http://localhost:4173/teacher-web/](http://localhost:4173/teacher-web/) 访问。不要把 `teacher-web/` 作为独立 server root，也不要另开第二个端口；资源和测试夹具均按仓库根目录解析。
 
-- Teacher online sales page: [http://localhost:4173/teacher-web/forsales.html](http://localhost:4173/teacher-web/forsales.html)
-- Teacher workspace sample page: [http://localhost:4173/teacher-web/](http://localhost:4173/teacher-web/)
-- Teacher W0 editor: [http://localhost:4173/teacher-web/editor.html](http://localhost:4173/teacher-web/editor.html)
+运行自动化测试：
 
-The independent `teacher-web/forsales.html` page owns the online first-contact narrative: target-teacher recognition, the no-re-recording promise, concrete workspace evidence, honest sample results, and the request to transform one real course. The teacher workspace sample remains a separate, pre-populated proof page at `teacher-web/index.html`; it is not the landing page or the real-data workspace. Its information architecture, node semantics, and visual system stay aligned with the real teacher workspace. The functional subtitle-import and classroom-action prototype remains separate at `teacher-web/editor.html`.
+```bash
+node --test tests/*.test.js
+```
 
-The current teacher workspace sample page uses subtitle-grounded teaching points from the 08:33 lesson. The source file contains Chinese AI translation rather than original English captions, so the English display copy remains teacher-review material.
+加载当前插件 spike：
 
-The approved target design for the sample page demonstrates eight interaction nodes through five teacher-facing components: 重点标注、老师补充、选择题、填空题、问答题. Node timestamps come from the imported subtitle file, not from the embedded player — a cross-origin iframe cannot report its playback position, so selecting a node reloads the player with a new `t=` value rather than staying in sync. Course videos are selected separately from the timeline's 15-minute segment paging. These rules are specified in `doc/teacher-course-workspace-design.md` and mapped to the underlying node contract in `doc/node-content-standard.md`; the current `teacher-web/` implementation has not yet been fully brought in line with this eight-node preview.
+1. 打开 `chrome://extensions/`，启用开发者模式；
+2. 选择“加载已解压的扩展程序”，目录为仓库的 `src/`；
+3. 打开 `https://www.bilibili.com/video/BV1WW4y1e7GL/` 验证现有 spike。
 
-Do not start `teacher-web/` as its own server root, and do not use a second port such as `4174`. Paths and test fixtures resolve relative to the repository root. The configured course sample at `teacher-web/course.json` embeds Bilibili video `BV1WW4y1e7GL` and keeps a direct original-page fallback.
+固定视频和固定节点只用于 spike 回归，1C 必须改为读取教师工作台保存的当前课程。
 
-## Load Extension (Spike)
+## 文档入口
 
-1. Open `chrome://extensions/` and enable Developer mode.
-2. Click **Load unpacked** and select the `src/` directory.
-3. Open the demo video: `https://www.bilibili.com/video/BV1WW4y1e7GL/`
-4. Click the mascot in the bottom-right corner to pause or resume playback.
-5. Use the three buttons above the mascot: **暂停**, **30秒**, **35秒**.
-6. When playback reaches 35 seconds, a dialog appears automatically.
-7. Between configured time ranges, a customizable bar covers the subtitle area on the video.
+开始任何跨文件实现前先读 [`doc/INDEX.md`](doc/INDEX.md)。当前事实源为：
 
-Customize subtitle blockers in `src/content/config/demo-lesson.js`.
+| 文档 | 职责 |
+| --- | --- |
+| [`doc/requirements.md`](doc/requirements.md) | 第一阶段功能、边界与验收 |
+| [`doc/data-spec.md`](doc/data-spec.md) | 数据结构、消息协议和本地存储 |
+| [`doc/stage-one-validation-loop-design.md`](doc/stage-one-validation-loop-design.md) | 已确认的产品与架构设计 |
+| [`doc/DECISIONS.md`](doc/DECISIONS.md) | 决策、假设、证据和重开条件 |
+| [`doc/dev-plan.md`](doc/dev-plan.md) | 三阶段实施顺序和门禁 |
+| [`next.md`](next.md) | 唯一当前执行步骤 |
 
-See [Bilibili mascot spike notes](doc/bili-mascot-spike.md) for open-source research and technical decisions.
+解释冲突时按：需求 -> 数据规范 -> 已确认设计 -> 内容/窗口标准 -> 计划。远期平台、推广视频和旧 Demo 文档不得覆盖第一阶段范围。
 
-## Documents
+## 核心边界
 
-| Document | What it decides |
-|---|---|
-| [Requirements](doc/requirements.md) | Formal features and acceptance for the current single-video demo. Authoritative for shipped behavior |
-| [Learning Window Standard](doc/learning-window-standard.md) | The one contract a new client implements to display and interact identically |
-| [Node Standard](doc/node-content-standard.md) | What a node may do, and the content fields a teacher fills |
-| [Design](doc/design.md) | Runtime components, data contracts, and the mandatory/advisory scope split |
-| [Development Plan](doc/dev-plan.md) | Phase order and validation gates |
-| [Student Runtime Summary](doc/student-runtime.md) | Navigation across student-side scope, plus personal review space and data ownership |
-| [Teacher Course Workspace](doc/teacher-course-workspace-design.md) | The separate, pre-populated teacher workspace sample page |
-| [Teacher Online Sales Page](doc/teacher-sales-page-design.md) | Online first-contact narrative, evidence order, honesty boundary, and conversion |
-| [Teacher Demo Design](doc/teacher-demo.md) | Teacher demo entries and D0/D1 narrative |
-| [UI Design](doc/ui-design.md) | Color system and two-page information architecture |
-| [Teacher Promotion Video](doc/promo-video.md) | Promotion script |
-| [Multi-Creator Platform Plan](doc/multi-creator-platform.md) | Deferred productization: tenancy, distribution, authorization, AI billing |
-| [Bilibili Mascot Spike](doc/bili-mascot-spike.md) | Extension spike findings |
-| [Lessons](doc/lessons.md) | Decisions learned the hard way |
-| [Changelog](changelog.md) | Verified changes only |
-| [Next Step](next.md) | The current slice and its checklist |
-
-When documents disagree: shipped demo behavior follows Requirements; how a client displays and interacts follows the Learning Window Standard; what a node contains follows the Node Standard; productization ideas in the platform plan are not implementation instructions.
+- 学生宿主只使用 B 站原页面加 PC Chrome 插件；跨源网页无法稳定控制 B 站播放器。
+- 教师工作台通过版本化 `window.postMessage` 与白名单 content script 通信，再由插件后台严格校验和存储。
+- 完整字幕只留在教师浏览器，不发送给插件；插件只接收运行所需课程配置。
+- 更换课程 URL 时必须提醒；确认后清除旧课程，取消则完整保留。
+- 第一阶段允许礼宾式协助，不以自动抓字幕、自助安装或应用商店发布为完成条件。
