@@ -41,6 +41,7 @@
 | --- | --- | --- |
 | `doc/plans/stage-1a-contract-bridge-deploy.md` | 数据契约、存储、消息桥和公网部署可验证 | 当前需求/数据规范 |
 | `tests/manual/stage-1a-bridge/README.md` | 1A 真实 Chrome 与公网人工验证记录 | 待执行；1A 完成门禁 |
+| `doc/plans/stage-1b-sales-page-revision.md` | 销售页私信 CTA、飞书表单和真实试用承诺 | 1B 销售入口修订，可先于工作台 UI |
 | `doc/plans/stage-1b-sales-workspace.md` | 默认销售首页和真实教师工作台可保存课程 | 1A |
 | `doc/plans/stage-1c-runtime-e2e.md` | 四种节点在真实 B 站完成端到端预览 | 1A、1B |
 
