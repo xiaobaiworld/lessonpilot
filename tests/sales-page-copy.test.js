@@ -130,8 +130,8 @@ test('品牌主张固定在主标题上方', () => {
   const h1 = page.indexOf('<h1>');
   assert.ok(brand > -1 && h1 > -1);
   assert.ok(brand < h1, '品牌主张必须排在 h1 之前');
-  // 受众行仍要保留，两者不是互相替代的关系。
-  assert.match(visible, /给已经在卖录播课的英语老师/);
+  // 受众由品牌主张和身份段承担，不再单独写一行 eyebrow。
+  assert.ok(!visible.includes('给已经在卖录播课的英语老师'), '这行已按要求删除');
 });
 
 /**
