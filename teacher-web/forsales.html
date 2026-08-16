@@ -195,7 +195,7 @@
           node.rubric = fields.rubric.value;
         }
         snapshot = stateOf();
-        showToast('示例节点已更新。真实工作台在 1B 保存到本机插件。');
+        showToast('已更新。这是示例课程，改动不会影响你的课。');
       });
       document.querySelector('#nf-cancel').addEventListener('click', closeForm);
       dialog.addEventListener('cancel', (event) => {
@@ -206,7 +206,7 @@
 
     selectNode(6);
 
-    document.querySelector('#copy-request').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(requestText);showToast('已复制：'+requestText)}catch(error){showToast('请回复发送者：'+requestText)}});
+    document.querySelector('#copy-request').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(requestText);showToast('已复制：'+requestText)}catch(error){showToast('请手动复制：'+requestText)}});
   </script>
 </body>
 </html>

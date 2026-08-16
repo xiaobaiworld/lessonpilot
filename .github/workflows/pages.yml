@@ -48,6 +48,12 @@ jobs:
           set -euo pipefail
           mkdir -p site/teacher-web/shared
 
+          # The sales page teachers are meant to read. Self-contained single file
+          # plus the two scripts it loads; nothing here reads doc/, src/ or tests/.
+          cp teacher-web/forsales.html             site/teacher-web/
+          cp teacher-web/subtitle-context.js       site/teacher-web/
+          cp teacher-web/demo-captions.js          site/teacher-web/
+
           # The 1A diagnostics page and its page-side scripts.
           cp teacher-web/workspace.html            site/teacher-web/
           cp teacher-web/workspace-bridge-client.js site/teacher-web/

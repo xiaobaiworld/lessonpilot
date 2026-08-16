@@ -6,8 +6,11 @@
  * 替设计辩解的话，混进了老师能看见的文案里。它们不影响功能，所以功能测试
  * 全绿也发现不了，只能靠文案本身的断言拦住。
  *
- * 只检查「可见文案」：先剥掉 style / script / svg / 注释和标签，
- * 剩下的才是老师真正会读到的字。
+ * 检查两处文案，因为老师读到的字不只在标签之间：
+ * 1. 静态可见文案——剥掉 style / script / svg / 注释和标签后剩下的部分；
+ * 2. 运行时文案——脚本里的中文字面量。toast、confirm 提示这些是点了才出现的，
+ *    剥掉 <script> 就看不见，而它们同样直接显示给老师。
+ *    「1B 保存到本机插件」当初就是躲在 showToast 里逃过第一版护栏的。
  */
 
 const test = require('node:test');
@@ -23,12 +26,22 @@ const visibleCopy = (() => {
   return s.replace(/<[^>]+>/g, ' ');
 })();
 
+/** 脚本里的中文字面量：toast、confirm 这类点了才显示的文案。 */
+const runtimeCopy = (() => {
+  const page = fs.readFileSync('teacher-web/forsales.html', 'utf8');
+  const script = (page.match(/<script>[\s\S]*?<\/script>/g) || []).join('\n');
+  return (script.match(/'[^']*[\u4e00-\u9fa5][^']*'/g) || []).join('\n');
+})();
+
+/** 老师能读到的全部文案：静态的加运行时的。 */
+const allCopy = `${visibleCopy}\n${runtimeCopy}`;
+
 test('不出现内部阶段编号与实现名词', () => {
   // 「1B」「W0」是我们的排期编号；「插件」「本机」「工作台」是实现细节。
   for (const word of ['1A', '1B', '1C', 'W0', '本机插件', 'chrome', 'storage']) {
     assert.ok(
-      !visibleCopy.includes(word),
-      `可见文案出现内部词「${word}」，老师读不懂也不需要知道`
+      !allCopy.includes(word),
+      `文案出现内部词「${word}」，老师读不懂也不需要知道`
     );
   }
 });
@@ -71,4 +84,13 @@ test('不出现界面状态词', () => {
 test('示例数据仍然明确标注，不冒充真实交付结果', () => {
   assert.ok(visibleCopy.includes('示例数据'), '完成情况必须标为示例');
   assert.ok(visibleCopy.includes('示例课程'), '节点表单里的改动必须说明不影响真实课程');
+});
+
+test('不泄漏销售渠道，不提醒老师这是转发来的推销页', () => {
+  for (const word of ['发送者', '发给你的人', '转发给你', '销售']) {
+    assert.ok(
+      !allCopy.includes(word),
+      `文案出现渠道用语「${word}」，会让老师意识到自己在被推销`
+    );
+  }
 });
