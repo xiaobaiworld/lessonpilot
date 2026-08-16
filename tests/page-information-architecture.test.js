@@ -18,7 +18,7 @@ const editorApp = fs.readFileSync('teacher-web/app.js', 'utf8');
 const checks = [
   {
     label: 'forsales is a separate online sales page with a self-explanatory first screen',
-    run: () => forSalesPage.includes('给已经在卖录播课的英语老师') && forSalesPage.includes('不用重录') && forSalesPage.includes('学生必须练、老师看得见结果')
+    run: () => forSalesPage.includes('让用心抵达，让理解更深。') && forSalesPage.includes('我是 LessonPilot 的开发者') && forSalesPage.includes('老师能看见结果') && forSalesPage.includes('你的讲解一句不改')
   },
   {
     label: 'forsales uses specific workspace proof and keeps sample evidence honest',
@@ -26,11 +26,11 @@ const checks = [
   },
   {
     label: 'forsales closes with one low-friction real-course conversion',
-    run: () => forSalesPage.includes('id="copy-request"') && forSalesPage.includes('我想拿一节正在卖的录播课，做一次互动改造演示。') && !forSalesPage.includes('立即购买')
+    run: () => forSalesPage.includes('id="copy-request"') && forSalesPage.includes('做一次可以实际运行的智能互动课程试用') && !forSalesPage.includes('立即购买')
   },
   {
     label: 'workspace sample stays separate from forsales positioning and conversion copy',
-    run: () => !samplePage.includes('给已经在卖录播课的英语老师') && !samplePage.includes('复制申请话术') && !samplePage.includes('我想拿一节正在卖的录播课')
+    run: () => !samplePage.includes('我是 LessonPilot 的开发者') && !samplePage.includes('回复我，试一节真实课') && !samplePage.includes('复制试用话术')
   },
   {
     label: 'sales sample uses the course title as the page heading',

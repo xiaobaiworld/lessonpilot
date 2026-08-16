@@ -4,6 +4,24 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### Stage 1A 数据契约、消息桥与部署（代码完成，人工验证待执行）— 2026-08-15
+
+已验证的变化：
+
+- 新增共享课程契约 `src/shared/course-contract.js`，网页与插件复用同一份 schema 与校验逻辑。闭合 schema 拒绝未知字段，`captions`/`sourceUrl` 等工作台字段无法混入插件课程；`normalizeCourse` 只整理表示形式，`validateCourse` 对乱序等语义错误直接拒绝。43 个测试，行覆盖 97.7%。
+- 新增版本化消息协议 `src/shared/bridge-protocol.js` 与来源白名单 `src/shared/workspace-origins.js`。陌生 channel 静默丢弃，我方 channel 上的畸形请求才回错误码；origin 与 pathname 成对校验，覆盖前缀、后缀和子域欺骗。21 个测试。
+- 新增插件后台存储与五个操作处理器。保存后读取与写入深度相等；`expectedCourseId` 不匹配时返回 `COURSE_MISMATCH` 且原课程不变；读失败返回 `STORAGE_FAILURE` 而非报告课程不存在；每次读取重新校验存量数据。26 个测试。
+- 新增白名单工作台消息桥：内容脚本在 JS 层断言精确 origin 与 pathname（Chrome match pattern 无法限定端口），重复注入不产生重复监听，写操作超时不自动重试并标记结果未确认。34 个测试。
+- 新增 1A 连接诊断页 `teacher-web/workspace.html`，只验证协议往返，不含字幕、时间线或节点编辑。
+- 插件 manifest 补齐 `storage` 权限，版本 0.2.3 → 0.7.0 与项目版本对齐。
+- 新增测试门禁与 Pages 发布工作流；发布集为显式白名单，`doc/` 与插件运行时代码不上公网。
+- GitHub Pages 已启用（source 为 GitHub Actions），`has_pages` 由 false 变为 true。
+- 自动化测试从 5 个套件增至 135 个测试，全部通过。
+- 本地验证：工作台页面五个资源均返回 200；四个页面脚本在共享全局中按文档顺序加载后，测试课程校验通过、保存信封合法。
+- 对抗检查通过：同一 `github.io` origin 下其它仓库路径被拒绝，`__proto__` 类键不污染原型，存储失败不报告已保存，损坏课程仍可用正确 ID 清除。
+
+尚未验证，因此不计入已完成：真实 Chrome 已解压插件的往返、公网 Pages 可访问性、非白名单页面探针实测。步骤见 `tests/manual/stage-1a-bridge/README.md`。
+
 ### 第一阶段文档收口 — 2026-08-15
 
 - 将当前目标收敛为礼宾式真实验证闭环：公网销售首页、真实教师工作台、本机已解压插件和 B 站原页面；明确四种节点、单课程和非目标边界。

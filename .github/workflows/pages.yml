@@ -1,0 +1,99 @@
+name: pages
+
+# Publish the teacher-facing pages to GitHub Pages (D-010).
+#
+# The publish set is an explicit allowlist, not the repository with exclusions. The
+# repository holds competitor pricing research, sales scripts and commercialisation
+# plans under doc/, plus the extension runtime under src/. With an exclude list,
+# adding a file to doc/ later would leak it by default; with an allowlist, a new file
+# is private until someone deliberately adds it here.
+#
+# Adding a path below makes it publicly fetchable and indexable, and that is not
+# reversible once crawled. Treat edits to the copy steps as a security change.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One publish at a time; never cancel a run mid-deploy.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # Never publish a build whose contract fails its own tests.
+      - name: Assemble shared contract
+        run: node tools/assemble-workspace.js
+
+      - name: Run tests
+        run: node --test tests/*.test.js
+
+      - name: Stage the publish set
+        run: |
+          set -euo pipefail
+          mkdir -p site/teacher-web/shared
+
+          # The sales page teachers are meant to read. Self-contained single file
+          # plus the two scripts it loads; nothing here reads doc/, src/ or tests/.
+          cp teacher-web/forsales.html             site/teacher-web/
+          cp teacher-web/subtitle-context.js       site/teacher-web/
+          cp teacher-web/demo-captions.js          site/teacher-web/
+
+          # The 1A diagnostics page and its page-side scripts.
+          cp teacher-web/workspace.html            site/teacher-web/
+          cp teacher-web/workspace-bridge-client.js site/teacher-web/
+          cp teacher-web/workspace-diagnostics.js   site/teacher-web/
+
+          # The shared contract, assembled from its single source in src/shared/.
+          cp teacher-web/shared/bridge-protocol.js  site/teacher-web/shared/
+          cp teacher-web/shared/course-contract.js  site/teacher-web/shared/
+
+          # Jekyll would otherwise skip files it considers special.
+          touch site/.nojekyll
+
+      - name: Verify nothing private was staged
+        run: |
+          set -euo pipefail
+          # A copy step added carelessly is the realistic failure mode here, so fail
+          # the build rather than trust review to catch it.
+          if find site -type d \( -name doc -o -name src -o -name tests \) | grep -q .; then
+            echo "refusing to publish: private directory staged"
+            exit 1
+          fi
+          if find site -name '*.md' | grep -q .; then
+            echo "refusing to publish: markdown staged"
+            exit 1
+          fi
+          echo "publish set:"
+          find site -type f | sort
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

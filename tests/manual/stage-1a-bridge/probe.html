@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>非白名单来源探针 · Stage 1A</title>
+    <link rel="icon" href="data:,">
+    <style>
+      body { margin:0; padding:32px 20px; background:#f4f0e6; color:#16251f;
+             font:16px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif; }
+      main { width:min(760px,100%); margin:0 auto; }
+      h1 { font-size:22px; margin:0 0 8px; }
+      .why { padding:14px 16px; border-left:3px solid #8b4f3d; background:#fffdf8;
+             color:#52635b; font-size:14px; margin:0 0 24px; }
+      button { min-height:44px; padding:0 18px; border:1px solid #cbd3cd; border-radius:8px;
+               background:#fffdf8; font:inherit; font-weight:650; cursor:pointer; }
+      .verdict { margin:20px 0 0; padding:14px 16px; border:1px solid #cbd3cd;
+                 border-radius:10px; background:#fffdf8; font-size:15px; font-weight:650; }
+      pre { margin:12px 0 0; padding:14px 16px; border:1px solid #cbd3cd; border-radius:10px;
+            background:#fffdf8; font-size:13px; white-space:pre-wrap; word-break:break-all; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>非白名单来源探针</h1>
+
+      <p class="why">
+        本页故意不在插件白名单内（路径不是 <code>/teacher-web/workspace.html</code>）。
+        它按正确协议发送与真实工作台完全相同的消息，用来验证 1A 完成定义第 11 条：
+        非白名单页面即使消息格式完全合法，也不能读取或修改插件存储。
+        <strong>预期结果是收不到任何响应</strong>；收到任何响应都意味着信任边界被突破。
+      </p>
+
+      <button id="run" type="button">发送 5 个操作（预期全部无响应）</button>
+
+      <p class="verdict" id="verdict">尚未运行。</p>
+      <pre id="log"></pre>
+
+      <script>
+        // Deliberately hand-rolled rather than reusing the shared client: this page
+        // must be able to send messages the real client would refuse to build, and
+        // it must not depend on files that are only published to the workspace path.
+        const CHANNEL = 'lessonpilot.workspace.v1';
+        const RESPONSE_CHANNEL = 'lessonpilot.extension.v1';
+        const COURSE_ID = 'bilibili:BV1WW4y1e7GL';
+        const TIMEOUT_MS = 3000;
+
+        const logEl = document.getElementById('log');
+        const verdictEl = document.getElementById('verdict');
+        let responsesSeen = 0;
+
+        function log(line) {
+          logEl.textContent += line + '\n';
+        }
+
+        // Any reply at all is a failure, so listen for everything and report it.
+        window.addEventListener('message', (event) => {
+          if (event.source !== window) return;
+          if (event.data?.channel !== RESPONSE_CHANNEL) return;
+          responsesSeen += 1;
+          log('!! UNEXPECTED RESPONSE: ' + JSON.stringify(event.data));
+        });
+
+        function probeCourse() {
+          return {
+            schemaVersion: 1,
+            courseId: COURSE_ID,
+            videoRef: { platform: 'bilibili', videoId: 'BV1WW4y1e7GL' },
+            nodes: [{
+              id: 'node-probe-1',
+              enabled: true,
+              family: 'attention',
+              interaction: 'notice',
+              trigger: { kind: 'time_cross', timeSeconds: 5, captionId: null },
+              display: { title: '探针写入', body: '若插件保存了这个节点，则信任边界被突破。' },
+              evaluation: null,
+              effects: { pause: true }
+            }],
+            updatedAt: new Date().toISOString()
+          };
+        }
+
+        document.getElementById('run').addEventListener('click', () => {
+          logEl.textContent = '';
+          responsesSeen = 0;
+          log('origin:   ' + window.location.origin);
+          log('pathname: ' + window.location.pathname + '  (not whitelisted)');
+          log('');
+
+          const operations = [
+            ['PING', {}],
+            ['GET_CURRENT_COURSE', {}],
+            ['SAVE_CURRENT_COURSE', { course: probeCourse() }],
+            ['START_PREVIEW_SESSION', { courseId: COURSE_ID }],
+            ['CLEAR_CURRENT_COURSE', { expectedCourseId: COURSE_ID }]
+          ];
+
+          for (const [type, payload] of operations) {
+            const envelope = {
+              channel: CHANNEL,
+              protocolVersion: 1,
+              requestId: 'req-' + crypto.randomUUID(),
+              type,
+              payload
+            };
+            window.postMessage(envelope, window.location.origin);
+            log('sent ' + type);
+          }
+
+          verdictEl.textContent = '已发送，等待 ' + (TIMEOUT_MS / 1000) + ' 秒确认无响应…';
+
+          window.setTimeout(() => {
+            if (responsesSeen === 0) {
+              verdictEl.textContent = 'PASS：未收到任何响应，非白名单来源被正确拒绝。'
+                + '请再到 1A 诊断页执行「读取当前课程」，确认存储未被本页修改。';
+            } else {
+              verdictEl.textContent = 'FAIL：收到 ' + responsesSeen
+                + ' 个响应。信任边界被突破，必须停止 1A 收口并修复。';
+            }
+          }, TIMEOUT_MS);
+        });
+      </script>
+    </main>
+  </body>
+</html>

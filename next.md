@@ -3,43 +3,47 @@
 更新时间：2026-08-15
 
 当前阶段：1A 数据契约、消息桥与公网部署
-状态：等待实施 Agent 开始
+状态：代码完成，等待真实浏览器与公网人工验证
 
 ## 本轮唯一目标
 
-完成 `doc/plans/stage-1a-contract-bridge-deploy.md`，使公网教师工作台路径与本机已解压 Chrome 插件之间具备安全、可测试的课程配置通道。
+执行 `tests/manual/stage-1a-bridge/README.md` 的 V2–V7，填写实际结果（V1 已完成）。全部通过后 1A 才能标记完成并推进到 1B。
 
-不要先做工作台 UI 或学生运行时。没有稳定契约和真实消息桥，后续页面和插件会各自形成不兼容的数据结构。
+PR：[#1](https://github.com/xiaobaiworld/lessonpilot/pull/1)，CI `node-test` 通过，等你确认后再合并。
 
-## 开始前
+代码部分已完成：共享课程契约、版本化消息协议、来源白名单、插件后台存储、白名单消息桥和 1A 诊断页，135 个自动化测试全部通过。不要继续向 1A 增加功能。
 
-- [ ] 阅读 `doc/INDEX.md`
-- [ ] 阅读 `doc/requirements.md`
-- [ ] 阅读当前需求 `doc/requirements/stage-1a.md`
-- [ ] 阅读 `doc/data-spec.md`
-- [ ] 阅读 `doc/DECISIONS.md` 的 D-004、D-006、D-007
-- [ ] 阅读并执行全局开发规范及数据、安全、测试、错误处理专项规范
-- [ ] 检查工作区已有修改，不覆盖 `.gitignore` 或其他用户改动
-- [ ] 运行 `node --test tests/*.test.js`，记录基线
+## 待执行
 
-## 本轮交付
+- [x] V1 全量自动化测试基线（135 pass / 0 fail，CI 同步通过）
+- [ ] V2 Chrome 加载 `src/` 无 manifest 或 service worker 错误
+- [ ] V3 本地 `http://localhost:4173/teacher-web/workspace.html` 完成五个操作往返
+- [ ] V4 `expectedCourseId` 不匹配时课程保持不变
+- [ ] V5 非白名单探针页无任何响应，且存储未被修改
+- [ ] V6 扩展与页面重载后无重复响应
+- [ ] V7 合并到 `main` 后 `pages.yml` 首次发布，验证公网路径与发布集
 
-- [ ] 验证或启用 GitHub Pages，记录实际 origin 和 workspace 路径
-- [ ] 建立共享课程契约和严格校验
-- [ ] 建立版本化 bridge request/response 协议
-- [ ] 实现白名单工作台 content script 到 background 的消息转发
-- [ ] 实现当前课程的读取、保存、清除和预览会话操作
-- [ ] 覆盖来源、路径、版本、requestId、operation、payload 和存储保护测试
-- [ ] 在真实 Chrome 已解压插件与公网/本地工作台路径完成一次往返验证
-- [ ] 更新验证记录、`changelog.md` 和本文件，将当前阶段推进到 1B
+准备命令：
+
+```bash
+node tools/assemble-workspace.js
+python3 -m http.server 4173
+node --test tests/*.test.js
+```
+
+## V7 的前置条件
+
+Pages 已启用（`build_type: workflow`），但 `workflow_dispatch` 要求工作流存在于默认分支，因此公网验证必须在 `stage-1a-contract-bridge-deploy` 合并到 `main` 之后执行。合并需用户确认。
+
+若公网不可访问：按 D-007 重开条件记录证据，不得默默更换 origin 或加入模糊来源。
 
 ## 完成定义
 
-只有详细计划的所有自动化测试通过，并且真实浏览器消息往返成功，1A 才能标记完成。若 GitHub Pages 不可用，不得默默换域名；按 D-007 的重开条件记录证据并更新决策。
+`doc/requirements/stage-1a.md` 第 8 节十二条。当前第 1、10、11、12 条依赖上述人工验证，其余已由自动化测试覆盖。
 
 ## 后续顺序
 
-1. 1B：`doc/plans/stage-1b-sales-workspace.md`
+1. 1B：`doc/plans/stage-1b-sales-workspace.md`，含新增 Task 3b 字幕上下文列与弹出式节点属性表单（COURSE-06、COURSE-07）
 2. 1C：`doc/plans/stage-1c-runtime-e2e.md`
 3. 第一位真实老师验证
 

@@ -1,8 +1,11 @@
 {
   "manifest_version": 3,
   "name": "LessonPilot",
-  "version": "0.2.3",
+  "version": "0.7.0",
   "description": "Turn Bilibili English lessons into interactive AI-assisted lessons.",
+  "permissions": [
+    "storage"
+  ],
   "host_permissions": [
     "https://www.bilibili.com/*"
   ],
@@ -10,6 +13,19 @@
     "service_worker": "background/service-worker.js"
   },
   "content_scripts": [
+    {
+      "//": "Coarse patterns: a Chrome match pattern cannot pin a port, so http://localhost/... matches any port. workspace-bridge.js re-checks the exact origin and pathname against src/shared/workspace-origins.js before registering a listener.",
+      "matches": [
+        "https://xiaobaiworld.github.io/lessonpilot/teacher-web/workspace.html",
+        "http://localhost/teacher-web/workspace.html"
+      ],
+      "js": [
+        "shared/bridge-protocol.js",
+        "shared/workspace-origins.js",
+        "content/workspace-bridge.js"
+      ],
+      "run_at": "document_idle"
+    },
     {
       "matches": [
         "https://www.bilibili.com/video/*"

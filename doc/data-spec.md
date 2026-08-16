@@ -113,10 +113,11 @@ flowchart LR
 规则：
 
 - `courseId` 固定从 `platform:videoId` 派生；
-- `nodes` 至少一个，按 `trigger.timeSeconds`、再按 `id` 升序；
+- `nodes` 至少一个（按数组长度计，不看 `enabled`），按 `trigger.timeSeconds`、再按 `id` 升序；
 - 所有节点 ID 唯一；
 - 保存采用整对象替换，不做部分 patch；
-- 完整字幕、网页草稿 UI 状态和未确认节点不得进入该对象。
+- 完整字幕、网页草稿 UI 状态和未确认节点不得进入该对象；
+- `updatedAt` 由工作台页面在构造课程时产生，插件后台原样存储、原样回显，不重写；后台只校验它是合法 UTC ISO 串。
 
 ## 8. 节点公共结构
 
@@ -145,6 +146,8 @@ flowchart LR
 - `captionId` 可为 `null`，非空时必须引用当前草稿字幕；
 - `effects.pause` 固定为 `true`；
 - 合法组合只有：`attention + notice`、`practice + choice`、`practice + blank`、`followup + free_text`。
+
+`captionId` 有两级校验，见第 13 节：共享契约层只校验格式，「必须引用现有字幕」由 `WorkspaceDraft` 层执行。`enabled` 在第一阶段只校验类型，不参与「至少一个节点」的计数。
 
 ## 9. 节点分支
 
@@ -280,16 +283,22 @@ flowchart LR
 
 错误码封闭集合：
 
-- `INVALID_CHANNEL`
-- `UNSUPPORTED_VERSION`
-- `UNKNOWN_OPERATION`
-- `INVALID_REQUEST`
-- `INVALID_COURSE`
-- `COURSE_MISMATCH`
-- `STORAGE_FAILURE`
-- `EXTENSION_UNAVAILABLE`（页面超时后本地产生）
+| 错误码 | 产生层 | 说明 |
+| --- | --- | --- |
+| `INVALID_CHANNEL` | background | 仅用于校验 content script 转发的信封，属内部一致性检查。content script 遇到 channel 不匹配时静默丢弃，不返回此码，见下。 |
+| `UNSUPPORTED_VERSION` | content script、background | channel 匹配但 `protocolVersion` 不在支持集合内 |
+| `UNKNOWN_OPERATION` | content script、background | `type` 不在五个开放操作内 |
+| `INVALID_REQUEST` | content script、background | `requestId`、payload 形状或未知字段不合法 |
+| `INVALID_COURSE` | background | 课程 schema 校验失败；错误体只含错误码与字段路径，不含课程正文 |
+| `COURSE_MISMATCH` | background | `expectedCourseId` 与当前课程不一致，或预览会话 `courseId` 不一致 |
+| `STORAGE_FAILURE` | background | `chrome.storage.local` 读写失败 |
+| `EXTENSION_UNAVAILABLE` | 页面客户端 | 3000ms 超时后本地产生，非来自插件 |
 
-页面等待响应 3000ms；超时后结束该请求并显示重试，不自动重复写操作。
+**channel 不匹配为静默丢弃，不是错误响应。** 工作台页面上可能有其它脚本发送 `window.postMessage`；若对 channel 不匹配的消息回一个错误码，任意第三方脚本就能借此探测插件是否安装。channel 不匹配的消息在语义上不是发给本桥的，直接忽略。
+
+页面等待响应 3000ms；超时后结束该请求并显示重试，不自动重复写操作。写操作超时后不得自动重试，避免重复副作用。
+
+`requestId` 格式：`^req-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`，由页面用 `crypto.randomUUID()` 生成并加 `req-` 前缀。`sessionId` 格式：`^session-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`，由插件后台生成。
 
 ## 11. `PreviewSession`
 
@@ -321,3 +330,26 @@ flowchart LR
 - 日志只记录操作、requestId、courseId、节点数量、结果和错误码；
 - 日志不记录完整字幕、题目正文、学生原始回答或浏览历史；
 - 每个会话状态可追溯到课程 ID、课程 `updatedAt` 和节点 ID。
+
+## 13. 校验层分工
+
+依据 D-011。同一条规则只能有一个执行层；下表让实现者和后续 Agent 能直接查到某条规则该由谁执行，避免网页与插件各写一份近似校验器。
+
+| 规则 | 执行层 | 原因 |
+| --- | --- | --- |
+| 字段类型、枚举、ID 唯一、时间有限非负、节点组合合法、文案非空、选项与答案一致 | 共享契约（`src/shared/course-contract.js`） | 网页与插件必须得到相同结论，A-DATA-01 |
+| `captionId` **格式**（`null` 或非空 ASCII、≤80） | 共享契约 | 插件侧可执行 |
+| `captionId` **引用现有字幕** | `WorkspaceDraft` 层（1B 实现） | `PluginCourseConfig` 不含 `captions`，插件侧无字幕可比对；规则不放弃，只归位 |
+| `subtitlesConfirmed` 为真才允许保存 | `WorkspaceDraft` 层（1B 实现） | 该字段不进入插件课程 |
+| 节点排序 | `normalizeCourse()` | 表示形式整理，返回新对象，不修改入参 |
+| 乱序拒绝 | `validateCourse()` | A-DATA-01 要求不静默修复语义错误 |
+| `updatedAt` 生成 | 工作台页面 | 后台重写会使「保存后读取深度相等」永远失败 |
+| `updatedAt` 格式校验 | 共享契约 | 两侧结论需一致 |
+| `expectedCourseId` 匹配 | background | 只有后台掌握当前存量课程 |
+| 存量数据重新校验 | background 读取路径 | A-STORAGE-01，损坏数据不得流入运行时 |
+| origin、pathname、`event.source` | content script | 只有页面上下文能判断真实来源 |
+| 信封（channel、版本、requestId、operation、payload） | 页面、content script、background 各一次 | A-BRIDGE-02 纵深防御，后台不因来自扩展内部而跳过 |
+
+调用顺序：写入侧（1B 工作台）先 `normalizeCourse()` 再 `validateCourse()`；background 只 `validateCourse()`，不 normalize——插件不替网页修数据。
+
+`enabled: false` 在第一阶段只校验类型，不赋予过滤语义，其运行时行为由 1C 定义。
