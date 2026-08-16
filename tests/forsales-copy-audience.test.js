@@ -122,8 +122,8 @@ test('学习结果块在数字之前先说明这是产品形态示意', () => {
   assert.ok(notice > -1, '缺少说明框');
   assert.ok(numbers > -1);
   assert.ok(notice < numbers, '说明必须排在数字前面，否则先被读到的是数字');
-  assert.match(page, /不是现在已经上线的报告/, '要说清当前没有这个功能');
-  assert.match(page, /手工整理/, '要说清数据是怎么来的');
+  assert.match(page, /示例数据，当前尚未完成开发/, '要说清当前没有这个功能（计划第 140 行）');
+  assert.match(page, /由开发者手工整理/, '要说清数据是怎么来的，且身份是开发者而不是「我们」');
 });
 
 test('表格自带 caption，被单独截图也带着说明', () => {

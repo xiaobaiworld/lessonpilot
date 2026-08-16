@@ -1,0 +1,42 @@
+<!doctype html><meta charset="utf-8"><title>销售页响应式与节点数实测（WEB-04、D-005）</title>
+<h1 style="font:600 15px system-ui">销售页响应式与节点数实测</h1>
+<p style="font:13px system-ui;max-width:62em">
+在真实浏览器里量 <code>teacher-web/forsales.html</code>，检查 1440 / 900 / 375px 三档
+是否有元素逃出视口（WEB-04），以及节点类型是否仍是契约规定的四种（D-005）。<br>
+时间线在窄屏本来就设计成横向滚动（<code>.timeline-editor{overflow-x:auto}</code>），
+所以祖先里有横向滚动容器的元素不计入溢出，否则会把既有设计误判成缺陷。<br>
+需要本地起静态服务后打开，例如 <code>python3 -m http.server 4173</code>。
+期望三行都是「越界元素=无」，且两个数量都是 4。</p><pre id="out">checking…</pre>
+<iframe id="f" src="../../teacher-web/forsales.html" style="width:375px;height:3000px;border:0"></iframe>
+<script>
+const L=[];const f=document.getElementById('f');
+f.addEventListener('load',()=>setTimeout(()=>{
+  const d=f.contentDocument;
+  for(const W of [1440,900,375]){
+    f.style.width=W+'px';
+    const de=d.documentElement;
+    // 只算真正逃出视口的元素：祖先里有横向滚动容器的不算，
+    // 时间线在窄屏本来就是设计成可横向滚动的。
+    const inScroller=(e)=>{
+      for(let p=e.parentElement;p&&p.tagName!=='BODY';p=p.parentElement){
+        const ov=f.contentWindow.getComputedStyle(p).overflowX;
+        if(ov==='auto'||ov==='scroll') return true;
+      }
+      return false;
+    };
+    const over=[...d.querySelectorAll('body *')].filter(e=>{
+      const r=e.getBoundingClientRect();
+      return r.width>0 && (r.right>W+1 || r.left<-1) && !inScroller(e);
+    }).map(e=>e.tagName+'.'+(e.className||'').toString().split(' ')[0]);
+    L.push(`W=${W} 文档横向溢出=${de.scrollWidth>W+1?de.scrollWidth+'px':'无'} 越界元素=${over.length?[...new Set(over)].slice(0,4).join(','):'无'}`);
+  }
+  f.style.width='375px';
+  const cta=d.querySelector('.cta-primary').getBoundingClientRect();
+  const btn=d.querySelector('#copy-request').getBoundingClientRect();
+  L.push(`375px 主CTA 宽=${cta.width.toFixed(0)} 在视口内=${cta.right<=376}`);
+  L.push(`375px 复制按钮 宽=${btn.width.toFixed(0)} 高=${btn.height.toFixed(0)} 在视口内=${btn.right<=376}`);
+  L.push(`节点类型选项数=${d.querySelectorAll('#nf-kind option').length}（契约要求 4）`);
+  L.push(`组件条按钮数=${d.querySelectorAll('.component').length}（契约要求 4）`);
+  document.getElementById('out').textContent=L.join('\n');
+},900));
+</script>

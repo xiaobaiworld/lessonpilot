@@ -26,7 +26,7 @@ const checks = [
   },
   {
     label: 'forsales closes with one low-friction real-course conversion',
-    run: () => forSalesPage.includes('id="copy-request"') && forSalesPage.includes('我想拿一节正在卖的录播课，做一次互动改造演示。') && !forSalesPage.includes('立即购买')
+    run: () => forSalesPage.includes('id="copy-request"') && forSalesPage.includes('做一次可以实际运行的智能互动课程试用') && !forSalesPage.includes('立即购买')
   },
   {
     label: 'workspace sample stays separate from forsales positioning and conversion copy',
