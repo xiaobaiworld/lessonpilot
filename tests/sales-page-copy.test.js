@@ -208,8 +208,8 @@ test('对比模块的互动方式与契约的四种节点一致', () => {
   const start = page.indexOf('class="hero-proof"');
   const end = page.indexOf('</aside>', start);
   const block = page.slice(start, end).replace(/<[^>]+>/g, ' ');
-  // 「重点提示、选择、填空和问答」对应 attention/choice/blank/free_text 四种。
-  for (const k of ['重点提示', '选择', '填空', '问答']) {
+  // 「重点标注、选择、填空和问答」对应 attention/choice/blank/free_text 四种。
+  for (const k of ['重点标注', '选择', '填空', '问答']) {
     assert.ok(block.includes(k), `对比模块缺少互动方式「${k}」`);
   }
   assert.ok(!block.includes('语音'), '老师语音已在 D-005 放弃');
@@ -223,4 +223,15 @@ test('对比模块不再拿完成率和学习数据当主要价值', () => {
   for (const word of ['完成率', '学习数据', '播放量']) {
     assert.ok(!block.includes(word), `「${word}」已不是这个模块的主要价值`);
   }
+});
+
+/**
+ * 同一种节点只能有一个显示名（2026-08-16 确认统一为契约名「重点标注」）。
+ * 页面上出现两个名字时，老师会以为是两种不同的互动。
+ */
+test('节点显示名全页统一，不出现同义别名', () => {
+  for (const alias of ['重点提示', '重点内容', '重点说明', '老师补充']) {
+    assert.ok(!allCopy.includes(alias), `「${alias}」是「重点标注」的别名，全页只用一个名字`);
+  }
+  assert.ok(allCopy.includes('重点标注'));
 });
