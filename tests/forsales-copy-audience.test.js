@@ -94,3 +94,16 @@ test('不泄漏销售渠道，不提醒老师这是转发来的推销页', () =>
     );
   }
 });
+
+/**
+ * 这页靠链接分发给少数老师做演示，不走搜索流量；
+ * 而且内嵌的示例字幕是第三方公开视频的全文转写，不希望被索引或存档。
+ * workspace.html 早已是这个做法，这里把销售页也锁住。
+ */
+test('不被搜索引擎索引或存档', () => {
+  const page = fs.readFileSync('teacher-web/forsales.html', 'utf8');
+  const meta = page.match(/<meta name="robots" content="([^"]*)">/);
+  assert.ok(meta, '缺少 robots meta；发布后会被收录');
+  assert.match(meta[1], /noindex/);
+  assert.match(meta[1], /noarchive/, '存档副本删不掉，必须一起禁');
+});
