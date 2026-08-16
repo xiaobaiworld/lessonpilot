@@ -4,6 +4,8 @@ Only record verified changes.
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-08-16
+
 ### Stage 1A 数据契约、消息桥与部署（代码完成，人工验证待执行）— 2026-08-15
 
 已验证的变化：
