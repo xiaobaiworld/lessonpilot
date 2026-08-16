@@ -178,3 +178,49 @@ test('学生端工具与插件是同一件事，页面把两个说法挂上钩',
 test('称呼统一为「你」，不混用「您」', () => {
   assert.ok(!visible.includes('您'), '已确认全页统一为「你」');
 });
+
+/**
+ * 首屏对比模块的承诺边界（2026-08-16 确认）。
+ * 这一块最容易越界：它是全页最有说服力的位置，
+ * 一句「按学生水平自动出题」就把当前不存在的能力说成了现成的。
+ */
+test('对比模块不承诺个性化生成能力', () => {
+  for (const word of [
+    '因人而异', '按学生水平', '自动生成题目', '动态生成',
+    '个性化推荐', '智能出题', '自适应'
+  ]) {
+    assert.ok(!allCopy.includes(word), `「${word}」是当前不存在的能力（D-005：固定互动、老师预设反馈）`);
+  }
+  // 反馈必须写成老师预先设计的，不是系统判断的。
+  assert.match(visible, /老师预先设计的反馈/);
+});
+
+test('不使用无法验证的绝对化表述', () => {
+  for (const word of [
+    '独一无二', '全网首创', '防盗版', '无法复制', '唯一',
+    '业界第一', '最好的'
+  ]) {
+    assert.ok(!allCopy.includes(word), `「${word}」无法验证`);
+  }
+});
+
+test('对比模块的互动方式与契约的四种节点一致', () => {
+  const start = page.indexOf('class="hero-proof"');
+  const end = page.indexOf('</aside>', start);
+  const block = page.slice(start, end).replace(/<[^>]+>/g, ' ');
+  // 「重点提示、选择、填空和问答」对应 attention/choice/blank/free_text 四种。
+  for (const k of ['重点提示', '选择', '填空', '问答']) {
+    assert.ok(block.includes(k), `对比模块缺少互动方式「${k}」`);
+  }
+  assert.ok(!block.includes('语音'), '老师语音已在 D-005 放弃');
+  assert.ok(!block.includes('AI'), 'D-005：问答题不调用 AI');
+});
+
+test('对比模块不再拿完成率和学习数据当主要价值', () => {
+  const start = page.indexOf('class="hero-proof"');
+  const end = page.indexOf('</aside>', start);
+  const block = page.slice(start, end);
+  for (const word of ['完成率', '学习数据', '播放量']) {
+    assert.ok(!block.includes(word), `「${word}」已不是这个模块的主要价值`);
+  }
+});
