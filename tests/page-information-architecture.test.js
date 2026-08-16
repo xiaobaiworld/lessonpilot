@@ -18,7 +18,7 @@ const editorApp = fs.readFileSync('teacher-web/app.js', 'utf8');
 const checks = [
   {
     label: 'forsales is a separate online sales page with a self-explanatory first screen',
-    run: () => forSalesPage.includes('让用心抵达，让理解更深。') && forSalesPage.includes('我是 LessonPilot 开发者') && forSalesPage.includes('不用重录') && forSalesPage.includes('学生必须练、老师看得见结果')
+    run: () => forSalesPage.includes('让用心抵达，让理解更深。') && forSalesPage.includes('我是 LessonPilot 开发者') && forSalesPage.includes('老师能看见结果') && forSalesPage.includes('你的讲解一句不改')
   },
   {
     label: 'forsales uses specific workspace proof and keeps sample evidence honest',
