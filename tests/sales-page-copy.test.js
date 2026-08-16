@@ -32,7 +32,8 @@ const runtime = (() => {
 const allCopy = `${visible}\n${runtime}`;
 
 test('身份统一为 LessonPilot 开发者，不用未定义的「我们」', () => {
-  assert.match(visible, /LessonPilot 开发者/);
+  // 「LessonPilot 开发者」和「LessonPilot 的开发者」都算：锁的是身份，不是措辞。
+  assert.match(visible, /LessonPilot 的?开发者/);
   // 「发给我们」是 D-012 点名要去掉的表达：接收人没有定义。
   assert.ok(!allCopy.includes('发给我们'), 'D-012 点名禁止「发给我们」');
   assert.ok(!allCopy.includes('我们会联系你'), '接收人必须是开发者本人');
@@ -145,10 +146,35 @@ test('首屏自成一体，含身份、承诺、目标视频与协助说明', ()
   assert.ok(start > -1 && end > start);
   const hero = page.slice(start, end).replace(/<[^>]+>/g, ' ');
   for (const k of [
-    '让用心抵达，让理解更深。', 'LessonPilot 开发者',
-    '真实、可运行的智能互动课程试用', '准备上传到 B 站',
-    '协助准备字幕', '免费插件', '自己操作工作台'
+    '让用心抵达，让理解更深。', 'LessonPilot 的开发者',
+    '真实、可运行的智能互动课', '愿意上传到 B 站',
+    '协助你准备字幕', '免费使用的学生端工具', '亲自使用工作台'
   ]) {
     assert.ok(hero.includes(k), `首屏缺少「${k}」`);
   }
+});
+
+/**
+ * 首屏叫「学生端工具」，试用说明里叫「插件」——同一个东西两个名字。
+ * 老师要装的就是这个插件，而安全边界那一节的主语也是它，
+ * 所以页面必须把两个说法明确挂上钩，否则老师读完不知道说的是同一件事。
+ */
+test('学生端工具与插件是同一件事，页面把两个说法挂上钩', () => {
+  const usesTool = visible.includes('学生端工具');
+  const usesPlugin = /插件/.test(visible);
+  if (usesTool && usesPlugin) {
+    assert.match(
+      visible,
+      /学生端工具是一个 Chrome 插件/,
+      '两个称呼并存时必须有一句把它们对应起来'
+    );
+  }
+});
+
+/**
+ * 全页统一用「你」，不混用「您」（2026-08-16 已确认）。
+ * 同一页两种称呼在中文里很显眼，读起来像没校对过。
+ */
+test('称呼统一为「你」，不混用「您」', () => {
+  assert.ok(!visible.includes('您'), '已确认全页统一为「你」');
 });
