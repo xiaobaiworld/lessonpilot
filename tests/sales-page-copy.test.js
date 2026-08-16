@@ -118,3 +118,37 @@ test('没有飞书 URL 时不留死链接（计划第 24、102 行）', () => {
     '提到了表单但没有真实飞书 URL；按计划第 24 行应先不显示表单入口'
   );
 });
+
+/**
+ * 品牌主张固定在首屏主标题上方（计划第 36 行）。
+ * 它是固定文案，不是可随手改的装饰句，所以连位置一起锁：
+ * 排到 h1 下面就不再是「主张」，而变成一句普通说明。
+ */
+test('品牌主张固定在主标题上方', () => {
+  assert.match(visible, /让用心抵达，让理解更深。/);
+  const brand = page.indexOf('让用心抵达，让理解更深。');
+  const h1 = page.indexOf('<h1>');
+  assert.ok(brand > -1 && h1 > -1);
+  assert.ok(brand < h1, '品牌主张必须排在 h1 之前');
+  // 受众行仍要保留，两者不是互相替代的关系。
+  assert.match(visible, /给已经在卖录播课的英语老师/);
+});
+
+/**
+ * 首屏要自成一体：只读第一屏的老师也该知道身份、承诺、目标视频和「不用自己搞定」。
+ * 计划第 45-51 行的建议段落把这四件事都放在首屏，
+ * 因为老师犹豫最强的时刻就是首屏，协助说明放到页尾就来不及了。
+ */
+test('首屏自成一体，含身份、承诺、目标视频与协助说明', () => {
+  const start = page.indexOf('class="wrap hero"');
+  const end = page.indexOf('class="hero-proof"');
+  assert.ok(start > -1 && end > start);
+  const hero = page.slice(start, end).replace(/<[^>]+>/g, ' ');
+  for (const k of [
+    '让用心抵达，让理解更深。', 'LessonPilot 开发者',
+    '真实、可运行的智能互动课程试用', '准备上传到 B 站',
+    '协助准备字幕', '免费插件', '自己操作工作台'
+  ]) {
+    assert.ok(hero.includes(k), `首屏缺少「${k}」`);
+  }
+});

@@ -8,10 +8,12 @@
 
 ## 自动化检查
 
-`node --test tests/*.test.js` → 191 pass / 0 fail。
+`node --test tests/*.test.js` → 193 pass / 0 fail。
 
 | 计划要求 | 结果 |
 | --- | --- |
+| 品牌主张固定在主标题上方 | 通过（连位置一起锁：排到 h1 之后就不再是主张） |
+| 首屏自成一体（身份、承诺、目标视频、协助说明） | 通过 |
 | 唯一明确的主 CTA | 通过（`tests/sales-page-copy.test.js` 断言 `.cta-primary` 恰好 1 个） |
 | 不包含「发给我们」 | 通过 |
 | 含开发者身份、B 站/微信联系说明 | 通过 |
