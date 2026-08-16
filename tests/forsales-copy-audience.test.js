@@ -107,3 +107,41 @@ test('不被搜索引擎索引或存档', () => {
   assert.match(meta[1], /noindex/);
   assert.match(meta[1], /noarchive/, '存档副本删不掉，必须一起禁');
 });
+
+/**
+ * 学习结果那一块最容易被误读成「现在就有的报告功能」：
+ * 数字很具体，而老师未必分得清这是已上线功能、未来形态，还是我们手工整理的演示。
+ * 一个「示例数据」徽章不够——它出现在标题行，看数字的人不一定读到。
+ * 所以说明必须在数字之前，并且表格自带 caption，
+ * 让被单独截图裁走的表格也带着这句话。
+ */
+test('学习结果块在数字之前先说明这是产品形态示意', () => {
+  const page = fs.readFileSync('teacher-web/forsales.html', 'utf8');
+  const notice = page.indexOf('preview-notice');
+  const numbers = page.indexOf('class="summary"');
+  assert.ok(notice > -1, '缺少说明框');
+  assert.ok(numbers > -1);
+  assert.ok(notice < numbers, '说明必须排在数字前面，否则先被读到的是数字');
+  assert.match(page, /不是现在已经上线的报告/, '要说清当前没有这个功能');
+  assert.match(page, /手工整理/, '要说清数据是怎么来的');
+});
+
+test('表格自带 caption，被单独截图也带着说明', () => {
+  const page = fs.readFileSync('teacher-web/forsales.html', 'utf8');
+  const caption = page.match(/<caption>([^<]*)<\/caption>/);
+  assert.ok(caption, '完成情况表必须有 caption');
+  assert.match(caption[1], /示例数据/);
+});
+
+test('提示不靠颜色单独承载含义', () => {
+  const page = fs.readFileSync('teacher-web/forsales.html', 'utf8');
+  const rule = page.match(/\.preview-notice\{([^}]*)\}/);
+  assert.ok(rule, '缺少 .preview-notice 样式');
+  // 金色只做边框；它在浅底上只有约 2.1:1，当文字色会不合格。
+  assert.ok(
+    !/color:var\(--gold\)/.test(page),
+    '金色对比度不足 4.5:1，不能用作文字颜色'
+  );
+  assert.match(page, /\.preview-notice strong\{[^}]*color:var\(--ink\)/,
+    '标题用深墨色，色弱读者和黑白打印都要读得到');
+});
