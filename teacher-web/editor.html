@@ -6,7 +6,7 @@
     <meta name="description" content="KnownMap Studio · 字幕驱动课堂设计原型">
     <title>课堂设计原型 · KnownMap Studio</title>
     <link rel="icon" type="image/png" href="assets/knownmap-icon.png">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=visual-node-5">
   </head>
   <body>
     <div class="app-shell">
@@ -70,7 +70,7 @@
 
         <section id="timeline-view" class="view timeline-view" aria-labelledby="timeline-title" hidden>
           <div class="timeline-head">
-            <div><button class="back-link" type="button" data-route="home">← 我的课程</button><p class="eyebrow">课堂设计 / 英语面试表达</p><h1 id="timeline-title">沿着字幕，设计这堂课的动作。</h1><p>选择一个字幕段落，在它的时间点加入重点提醒、选择题、填空题或问答题。老师决定每个动作是否出现。</p></div>
+            <div><button class="back-link" type="button" data-route="home">← 我的课程</button><p class="eyebrow">课堂设计 / 英语面试表达</p><h1 id="timeline-title">沿着时间线，设计这堂课的动作。</h1><p>选择一个节点组件，把重点标注、选择题、填空题或问答题放到最合适的讲解位置。</p></div>
             <div class="timeline-actions"><span class="save-label" id="save-label">草稿未保存</span><button class="light-button" id="preview-timeline" type="button">打开视频 ↗</button><button class="light-button" id="publish-course" type="button">发布课程</button><button class="dark-button" id="save-timeline" type="button">保存草稿</button></div>
           </div>
 
@@ -81,34 +81,55 @@
             <div class="overview-legend"><strong>课堂设计图例</strong><span><i class="dot dot-attention"></i>重点提醒</span><span><i class="dot dot-voice"></i>选择题</span><span><i class="dot dot-activity"></i>填空题</span><span><i class="dot dot-ai"></i>问答题</span></div>
           </section>
 
-          <div class="timeline-layout">
-            <div class="timeline-canvas">
-              <div class="timeline-toolbar"><div><strong>课堂时间线</strong><span>字幕 · 知识点 · AI 建议 · 课堂设计</span></div><div><button class="toolbar-button" id="zoom-out" type="button">−</button><span>100%</span><button class="toolbar-button" id="zoom-in" type="button">＋</button></div></div>
-              <div class="timeline-ruler"><span>00:00</span><span>00:30</span><span>01:00</span><span>01:30</span><span>02:00</span><span>02:30</span><span>03:00</span><span>03:42</span></div>
-              <div class="caption-list" id="caption-list" role="listbox" aria-label="字幕段落列表"></div>
-            </div>
-            <aside class="event-panel" aria-labelledby="event-title">
-              <div class="copilot-card"><div class="copilot-heading"><span class="copilot-spark">✦</span><div><strong>KnownMap AI</strong><small>课堂设计副驾驶</small></div><span class="copilot-live">分析中</span></div><p>我发现这一句适合先暂停，再让学生把结构迁移到自己的经历。</p><div class="copilot-reason"><span>建议原因</span><strong>这是本段的知识点转折</strong></div><div class="copilot-actions"><button class="text-button" id="ignore-suggestion" type="button">忽略</button><button class="dark-button" id="accept-suggestion" type="button">采纳建议</button></div></div>
-              <div class="event-panel-head"><span class="eyebrow">当前字幕 · 00:35</span><h2 id="event-title">课堂设计</h2><p id="selected-caption">“A strong answer needs a specific example.”</p><small class="design-hint">告诉 AI 你希望学生在这里获得什么，剩下的交给它生成。</small></div>
-              <div class="event-options">
-                <button class="event-option event-option-attention" type="button" data-event="attention"><span class="option-icon">✦</span><span><strong>重点提醒</strong><small>暂停并解释这一句为什么重要。</small></span><b>→</b></button>
-                <button class="event-option event-option-voice" type="button" data-event="voice"><span class="option-icon">◉</span><span><strong>选择题</strong><small>让学生从几个选项中判断理解。</small></span><b>→</b></button>
-                <button class="event-option event-option-activity" type="button" data-event="activity"><span class="option-icon">□</span><span><strong>填空题</strong><small>让学生回忆关键词并提交答案。</small></span><b>→</b></button>
-                <button class="event-option event-option-ai" type="button" data-event="ai"><span class="option-icon">⌁</span><span><strong>问答题</strong><small>让学生用自己的经历组织回答。</small></span><b>→</b></button>
+          <section class="node-plugin-bar" id="node-plugin-bar" aria-labelledby="node-plugin-title">
+            <div class="node-plugin-bar-head"><div><span class="eyebrow">交互节点</span><h2 id="node-plugin-title">把课堂动作放到具体时间点。</h2></div><p id="placement-status">选择一个节点组件，再点击时间轴；也可以直接拖到时间轴上。</p></div>
+            <div class="node-plugin-list" id="node-plugin-list" role="toolbar" aria-label="交互节点组件"></div>
+          </section>
+
+          <div class="timeline-layout visual-editor-layout">
+            <div class="timeline-canvas visual-timeline-canvas">
+              <div class="timeline-toolbar"><div><strong>课堂时间线</strong><span>节点会停在老师选定的讲解处</span></div><div><button class="toolbar-button" id="zoom-out" type="button" aria-label="缩小时间轴">−</button><span id="timeline-zoom-label">100%</span><button class="toolbar-button" id="zoom-in" type="button" aria-label="放大时间轴">＋</button></div></div>
+              <div class="timeline-ruler" id="timeline-ruler" aria-hidden="true"></div>
+              <div class="visual-timeline-scroll">
+                <div class="visual-timeline-track" id="visual-timeline-track" tabindex="0" role="application" aria-label="课节时间轴，点击放置节点">
+                  <div class="timeline-axis"></div>
+                  <div class="timeline-progress"></div>
+                  <span class="timeline-boundary timeline-boundary-start">开始</span>
+                  <span class="timeline-boundary timeline-boundary-end" id="timeline-end-label">结束</span>
+                  <div class="timeline-node-layer" id="timeline-node-layer"></div>
+                  <div class="timeline-drop-indicator" id="timeline-drop-indicator" hidden><span></span><b>00:00</b></div>
+                </div>
               </div>
-              <div class="event-detail" id="event-detail" hidden><span class="eyebrow" id="event-detail-label">重点提醒</span><h3 id="event-detail-title">让这一句被记住</h3><p id="event-detail-copy">播放到这里时，课程会暂停并显示这条提醒。</p><div id="node-fields" class="node-fields"></div><button class="dark-button" id="add-event" type="button">加入课堂设计</button></div>
-              <button class="simulation-button" id="simulate-class" type="button"><span>▶</span><span><strong>模拟学生课堂</strong><small>看看这堂课实际会如何回应</small></span><b>↗</b></button>
-              <p class="event-note">当前原型只根据字幕与时间生成备课建议，不分析视频画面。</p>
+              <div class="timeline-empty" id="timeline-empty">导入字幕后，选择上方组件并把第一个节点放到时间线上。</div>
+              <p class="timeline-helper">点击节点可选中，双击或按 Enter 编辑；拖动节点可以调整触发时间。</p>
+            </div>
+            <aside class="subtitle-rail" aria-labelledby="subtitle-rail-title">
+              <div class="subtitle-rail-head"><span id="subtitle-rail-title">节点处字幕</span><strong id="subtitle-rail-time">00:00</strong></div>
+              <ol class="subtitle-list" id="timeline-subtitle-list" aria-live="polite"></ol>
+              <p class="subtitle-empty" id="timeline-subtitle-empty">选中一个节点后，这里显示它附近的字幕。</p>
             </aside>
           </div>
           <section class="access-code-panel" id="access-code-panel" hidden aria-live="polite"><div><p class="eyebrow">学生插件授权</p><h2>课程已发布，可以发给学生。</h2><p>授权码只在创建时显示。学生在 KnownMap 插件中输入后，会下载这门课的最新版本。</p></div><div class="access-code-value"><code id="access-code-value">尚未创建</code><button class="dark-button" id="create-access-code" type="button">创建授权码</button><button class="light-button" id="copy-access-code" type="button" disabled>复制授权码</button></div></section>
         </section>
       </main>
     </div>
+    <dialog class="node-editor-dialog" id="node-editor-dialog" aria-labelledby="node-editor-title">
+      <form id="node-editor-form" method="dialog">
+        <div class="node-dialog-head"><div><span class="eyebrow">节点属性</span><h2 id="node-editor-title">编辑课堂动作</h2></div><span id="node-editor-meta">00:00</span></div>
+        <div id="node-editor-fields" class="node-fields"></div>
+        <p class="node-editor-error" id="node-editor-error" hidden></p>
+        <div class="node-dialog-actions"><button class="text-button" id="node-editor-cancel" type="button">取消</button><button class="light-button" id="node-editor-delete" type="button">删除节点</button><button class="dark-button" id="node-editor-save" type="submit">保存节点</button></div>
+      </form>
+    </dialog>
     <div id="toast" class="toast" role="status" aria-live="polite" aria-hidden="true"></div>
     <script src="subtitle-parser.js?v=literal-ms-1"></script>
+    <script src="subtitle-context.js?v=visual-node-5"></script>
+    <script src="node-plugin-registry.js?v=visual-node-5"></script>
+    <script src="timeline-model.js?v=visual-node-5"></script>
+    <script src="editor-logger.js?v=visual-node-5"></script>
+    <script src="visual-node-editor.js?v=visual-node-5"></script>
     <script src="api-client.js?v=local-api-1"></script>
     <script src="auth-session.js?v=local-api-1"></script>
-    <script src="app.js?v=teacher-api-1"></script>
+    <script src="app.js?v=visual-node-5"></script>
   </body>
 </html>

@@ -87,3 +87,33 @@ test('changing plugin type creates only the target type fields', () => {
   assert.equal('answer' in converted.evaluation, false);
   assert.deepEqual(converted.evaluation.normalize, ['trim', 'casefold']);
 });
+
+test('validates required content for all four node plugins', () => {
+  const attention = registry.createNode('attention', {
+    timeSeconds: 1,
+    idFactory: () => 'node-attention'
+  });
+  attention.display.body = ' ';
+  assert.throws(() => registry.validateNode(attention), /提醒内容/);
+
+  const choice = registry.createNode('choice', {
+    timeSeconds: 2,
+    idFactory: () => 'node-choice'
+  });
+  choice.display.options[1].label = '';
+  assert.throws(() => registry.validateNode(choice), /两个选项/);
+
+  const blank = registry.createNode('blank', {
+    timeSeconds: 3,
+    idFactory: () => 'node-blank'
+  });
+  blank.evaluation.acceptedAnswers = ['Answer', ' answer '];
+  assert.throws(() => registry.validateNode(blank), /不能重复/);
+
+  const qa = registry.createNode('qa', {
+    timeSeconds: 4,
+    idFactory: () => 'node-qa'
+  });
+  qa.evaluation.referenceFeedback = '';
+  assert.throws(() => registry.validateNode(qa), /参考反馈/);
+});

@@ -180,11 +180,51 @@
     ))?.id || null;
   }
 
+  function requireText(value, label) {
+    if (!String(value ?? '').trim()) throw new Error(`${label}不能为空。`);
+  }
+
+  function validateNode(node) {
+    const pluginId = pluginIdForNode(node);
+    if (!pluginId) throw new Error('节点类型不受支持。');
+    requireText(node.display?.title, '节点标题');
+
+    if (node.interaction === 'notice') {
+      requireText(node.display?.body, '提醒内容');
+    } else if (node.interaction === 'choice') {
+      requireText(node.display?.prompt, '选择题题目');
+      const options = node.display?.options || [];
+      if (options.length !== 2 || options.some((option) => !String(option?.label ?? '').trim())) {
+        throw new Error('选择题必须填写两个选项。');
+      }
+      if (!options.some((option) => option.id === node.evaluation?.answer)) {
+        throw new Error('正确答案必须引用已有选项。');
+      }
+      requireText(node.evaluation?.explanation, '答案解释');
+    } else if (node.interaction === 'blank') {
+      requireText(node.display?.prompt, '填空题题目');
+      const answers = node.evaluation?.acceptedAnswers || [];
+      if (!answers.length || answers.some((answer) => !String(answer).trim())) {
+        throw new Error('填空题至少需要一个可接受答案。');
+      }
+      const normalized = answers.map((answer) => String(answer).trim().toLocaleLowerCase());
+      if (new Set(normalized).size !== normalized.length) {
+        throw new Error('可接受答案不能重复。');
+      }
+      requireText(node.evaluation?.explanation, '答案解释');
+    } else if (node.interaction === 'free_text') {
+      requireText(node.display?.prompt, '问答题问题');
+      requireText(node.evaluation?.referenceFeedback, '教师参考反馈');
+    }
+    return node;
+  }
+
   return {
     listPlugins,
     getPlugin,
     createNode,
     convertNode,
-    pluginIdForNode
+    pluginIdForNode,
+    validateNode
   };
 });

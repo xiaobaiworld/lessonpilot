@@ -56,8 +56,21 @@ test('teacher editor loads auth, API, draft, publish and access-code controls', 
     'id="save-timeline"',
     'id="publish-course"',
     'id="create-access-code"',
-    'id="access-code-value"'
+    'id="access-code-value"',
+    'id="node-plugin-bar"',
+    'id="visual-timeline-track"',
+    'id="timeline-node-layer"',
+    'id="timeline-subtitle-list"',
+    'id="node-editor-dialog"',
+    'src="subtitle-context.js?',
+    'src="node-plugin-registry.js?',
+    'src="timeline-model.js?',
+    'src="editor-logger.js?',
+    'src="visual-node-editor.js?'
   ]) {
     assert.ok(page.includes(marker), `missing ${marker}`);
   }
+
+  assert.equal(page.includes('id="caption-list"'), false);
+  assert.equal(page.includes('class="event-options"'), false);
 });

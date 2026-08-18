@@ -28,6 +28,8 @@ backend/*.db
 # Agent tool state (not project content)
 .superpowers/
 .gstack/
+.playwright-cli/
+output/playwright/
 
 # Pages publish assembly output (D-010).
 # The shared contract has exactly one source of truth in src/shared/.
