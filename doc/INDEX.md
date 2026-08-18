@@ -2,7 +2,7 @@
 
 最近审计：2026-08-18
 
-当前阶段：教师平台本地发布与插件授权下载闭环。第一阶段销售页和原型 Demo 已归档。其它 Agent 开始工作时，先读本文件，再按“当前权威”顺序阅读。
+当前阶段：教师平台本地发布与插件授权下载闭环。教师侧节点 1–7 已验证，插件侧节点 8 和完整闭环节点 9 尚未完成。第一阶段销售页和原型 Demo 已归档。其它 Agent 开始工作时，先读本文件，再按“当前权威”顺序阅读。
 
 ## 当前权威
 
@@ -10,15 +10,15 @@
 | --- | --- | --- |
 | `README.md` | 项目入口、当前状态、运行命令 | 当前 |
 | `doc/requirements/teacher-platform-local-stage.md` | 当前教师平台本地开发阶段范围、验收和非目标 | 当前实施需求权威 |
-| `doc/AI_Learning_Companion_Product_Function_Spec_v0.2.md` | 教师中心平台化产品功能、授权码下载/更新语义和验收方向 | 已确认产品规格；尚未代表实现 |
-| `doc/decisions/2026-08-18-teacher-centered-product-v0.2.md` | v0.2 教师账号、工作空间、本地课程和授权码决策过程 | 已接受；尚待实现验证 |
-| `doc/decisions/2026-08-18-teacher-platform-local-slice.md` | 当前本地教师发布、授权码下载切片的范围决策 | 已接受；尚待实现验证 |
-| `doc/teacher-platform-architecture.md` | FastAPI、SQLite、教师端、插件和数据边界 | 当前架构；待代码验证 |
-| `doc/teacher-platform-data-spec.md` | 教师、课程、课节、脚本、发布版本和授权码字段 | 当前数据设计；待代码验证 |
-| `doc/teacher-platform-api-spec.md` | 教师认证、课程发布、授权码和插件下载 API | 当前 API 设计；待代码验证 |
+| `doc/AI_Learning_Companion_Product_Function_Spec_v0.2.md` | 教师中心平台化产品功能、授权码下载/更新语义和验收方向 | 长期产品规格；本地最小切片已部分实现 |
+| `doc/decisions/2026-08-18-teacher-centered-product-v0.2.md` | v0.2 教师账号、工作空间、本地课程和授权码决策过程 | 已接受；当前只实现本地最小切片 |
+| `doc/decisions/2026-08-18-teacher-platform-local-slice.md` | 当前本地教师发布、授权码下载切片的范围决策 | 已接受；教师侧已验证，插件侧待实现 |
+| `doc/teacher-platform-architecture.md` | FastAPI、SQLite、教师端、插件和数据边界 | 当前架构；节点 1–7 已验证 |
+| `doc/teacher-platform-data-spec.md` | 教师、课程、课节、脚本、发布版本和授权码字段 | 当前数据实现；插件本地数据待节点 8 |
+| `doc/teacher-platform-api-spec.md` | 教师认证、课程发布、授权码和插件下载 API | 当前 API 实现；插件客户端待接入 |
 | `doc/student-plugin-course-delivery-design.md` | 单课程授权领取、课程包、字幕导航、本地学习状态和打开 B 站课程页 | 已确认产品设计；尚待实现 |
 | `doc/decisions/2026-08-18-student-plugin-single-course-delivery.md` | 学生插件单课程、可重复授权码和本地学习数据决策过程 | 已接受；尚待实现验证 |
-| `doc/teacher-platform-dev-plan.md` | 当前阶段工作节点、文件范围、测试和提交门禁 | 当前计划入口；节点 7 可视化修正见独立计划 |
+| `doc/teacher-platform-dev-plan.md` | 节点 8–9 的文件范围、测试和阶段收口门禁 | 当前计划入口 |
 | `doc/teacher-visual-node-editor-design.md` | 教师组件注册、横向时间轴、点击/拖放添加和字幕上下文设计 | 已实现并完成本地验证 |
 | `doc/plans/teacher-visual-node-editor.md` | 节点 7 可视化编辑器修正的任务、测试、日志和收口步骤 | 已完成 |
 | `doc/teacher-platform-experience-polish-design.md` | “KnownMap 互动课程工具”命名、登录、课程首页和编辑工作面体验校正 | 已实现并完成本地验证 |
@@ -35,7 +35,9 @@
 | `doc/DECISIONS.md` | 方案比较、假设、重开条件和替代关系 | 当前决策权威 |
 | `doc/archive/2026-08-18-stage-one-demo/dev-plan.md` | 第一阶段销售页和原型 Demo 计划 | 已归档；只用于追溯 |
 | `doc/archive/2026-08-18-stage-one-demo/next.md` | 第一阶段最后执行步骤 | 已归档；不作为当前任务 |
-| `next.md` | 当前教师平台文档/开发执行步骤 | 当前任务权威 |
+| `doc/archive/2026-08-18-teacher-platform-nodes-1-7/dev-plan.md` | 教师平台节点 1–7 完整开发计划 | 已归档；只用于追溯 |
+| `doc/archive/2026-08-18-teacher-platform-nodes-1-7/next.md` | 教师平台节点 1–7 执行与验证记录 | 已归档；不作为当前任务 |
+| `next.md` | 节点 8 的当前执行交接单 | 当前任务权威 |
 | `docs/superpowers/specs/2026-08-18-knownmap-brand-update-design.md` | KnownMap 名称、域名、Logo 几何、颜色和迁移边界 | 当前品牌设计权威 |
 | `docs/knownmap-logo-resources.md` | Logo 形态、颜色含义、使用场景和资源落点 | 当前 Logo 资源说明 |
 | `docs/superpowers/plans/2026-08-18-knownmap-brand-update.md` | KnownMap 品牌资源、页面、文档和验证实施计划 | 当前品牌实施计划 |
@@ -60,9 +62,9 @@
 
 | 文档 | 可独立验收结果 | 前置 |
 | --- | --- | --- |
-| `doc/teacher-platform-dev-plan.md` | 本地 FastAPI + SQLite 教师发布、授权码和插件下载闭环 | 当前 |
-| `doc/teacher-platform-api-spec.md` | Swagger 可调试的认证、课程、发布和下载端点 | 架构与数据文档 |
-| `doc/teacher-platform-data-spec.md` | SQLite 实体和插件输出契约 | 需求确认 |
+| `doc/teacher-platform-dev-plan.md` | 插件授权码下载、课程运行和完整本地闭环 | 当前，节点 8–9 |
+| `doc/student-plugin-course-delivery-design.md` | 单课程插件领取、覆盖、字幕导航和本地状态 | 节点 8 产品设计 |
+| `next.md` | 节点 8 开始前检查与完成门禁 | 当前执行入口 |
 
 ## 已完成阶段计划
 
@@ -102,6 +104,12 @@
 - `dev-plan.md`
 - `next.md`
 
+`doc/archive/2026-08-18-teacher-platform-nodes-1-7/` 保留当前阶段教师侧收口时的：
+
+- `dev-plan.md`
+- `next.md`
+- `README.md`
+
 归档文件只用于追溯，不得覆盖当前教师平台需求、架构和开发计划。
 
 归档文件只用于追溯。若需恢复其中的独有信息，应先判断它是当前需求、未来候选还是历史事实，再写入对应权威文件，不能直接恢复为当前指令。
@@ -120,7 +128,7 @@
 | `deploy/releases/` | 每次成功 Web 生产发布的一文件一记录 |
 | `tests/` | Node 自动化测试 |
 | `tests/manual/` | 依赖真实浏览器和 B 站的人工探针 |
-| `tests/manual/teacher-platform-experience-polish/README.md` | 课程设计平台登录、状态隔离、键盘、字幕、发布锁和三档响应式验收 |
+| `tests/manual/teacher-platform-experience-polish/README.md` | 互动课程工具登录、状态隔离、键盘、字幕、发布锁和三档响应式验收 |
 | `changelog.md` | 仅记录已验证交付的变化 |
 
 ## 文档维护规则
@@ -131,6 +139,16 @@
 - API 变化时同步 `doc/teacher-platform-api-spec.md`；
 - 每个计划步骤完成后更新 `next.md`、相关权威文档和 changelog；
 - 大阶段收口时重新检查长度、重复、孤立文档、失效链接和权威状态，并更新本页审计日期。
+
+## 2026-08-18 教师平台节点 1–7 收口
+
+- 根 `next.md` 从 225 行已完成历史压缩为节点 8 的当前交接单；
+- 节点 1–7 的完整 `next.md` 和开发计划已移入 `doc/archive/2026-08-18-teacher-platform-nodes-1-7/`；
+- 当前开发计划只保留节点 8、节点 9、测试和阶段收口门禁；
+- 旧 `doc/requirements.md` 的“当前实施 1A”状态已校正为历史入口；
+- 架构、API 和当前需求已明确教师端已验证、插件客户端和完整本地闭环未完成；
+- 当前未完成事项没有被清空，下一步仍由根 `next.md` 指向节点 8。
+- `doc/AI_Learning_Companion_Product_Function_Spec_v0.2.md` 为 1121 行，超过 600 行软阈值并进入重构审计级别。本次保留单文件，因为它是 2026-08-18 已确认的连续产品基线，当前开发只读取其实现切片，临近节点 8 时拆分会增加引用迁移和遗漏风险。当前权威入口仍是该文件，推荐按“教师账号”“课程”“授权码”“学习记录”“教师后台”等二级标题检索。进入学生身份/学习数据阶段或下一次实质扩写前，必须拆为概览、教师课程、授权和学习数据子文档，并保留 v0.2 原文归档。
 
 ## 2026-08-18 事实同步
 

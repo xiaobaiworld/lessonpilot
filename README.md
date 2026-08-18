@@ -5,7 +5,7 @@ Logo 规范：[`docs/superpowers/specs/2026-08-18-knownmap-brand-update-design.m
 
 KnownMap 把老师已有的 B 站录播课变成可在原视频页面运行的互动课程。老师在公网工作台导入一条 B 站视频链接和对应字幕，配置互动节点；学生在 PC Chrome 安装本机插件后，于 B 站原页面到点暂停、作答、查看反馈并继续播放。
 
-第一阶段销售页和原型 Demo 已完成并归档。当前开发目标是本地教师平台：教师用预建测试账号发布一门课程，通过授权码让学生在 B 站插件中下载并运行课程配置。
+第一阶段销售页和原型 Demo 已完成并归档。当前本地教师平台已经完成教师侧节点 1–7：教师可以用预建测试账号创建、设计和发布一门课程，并创建课程授权码。下一步是插件侧节点 8：学生在 B 站页面输入授权码，下载并运行课程配置。
 
 ## 当前范围
 
@@ -15,8 +15,8 @@ KnownMap 把老师已有的 B 站录播课变成可在原视频页面运行的�
 - B 站视频绑定和课程发布；
 - 重点标注、选择题、填空题、问答题四种节点；
 - 教师创建课程授权码；
-- 学生使用 KnownMap 提供的解压版 Chrome 插件下载课程；
-- 本地数据库和插件本地课程配置；
+- 学生使用 KnownMap 提供的解压版 Chrome 插件下载课程（节点 8 待实现）；
+- 本地数据库已实现；插件已有本地存储适配器，下载后的课程配置接入待节点 8；
 - 教师 API 和教师编辑器公网部署作为后续阶段，不在当前实现范围；
 - 销售页已经作为 `knownmap.com` 的生产首页发布。
 
@@ -24,9 +24,9 @@ KnownMap 把老师已有的 B 站录播课变成可在原视频页面运行的�
 
 ## 当前状态
 
-技术 spike 已证明插件可以在指定 B 站页面定位播放器、监听时间、暂停、seek 和卸载注入 UI，但完整产品闭环尚未实现。
+技术 spike 已证明插件可以在指定 B 站页面定位播放器、监听时间、暂停、seek 和卸载注入 UI；教师端和课程下载 API 已完成，但插件尚未接入授权码下载，因此完整本地闭环仍未完成。
 
-当前开发阶段是 **教师平台本地发布与插件授权下载闭环**。节点 1–7 已完成：教师网页已接入本地 FastAPI，可以登录、建课、编辑四种节点、保存草稿、发布课程和创建授权码；插件下载与运行接入属于下一节点。
+当前开发阶段是 **教师平台本地发布与插件授权下载闭环**。节点 1–7 已完成并验证；节点 8–9 尚未完成。根目录 [`next.md`](next.md) 已整理为节点 8 的交接单，已完成记录保存在 [`doc/archive/2026-08-18-teacher-platform-nodes-1-7/`](doc/archive/2026-08-18-teacher-platform-nodes-1-7/)。
 
 从 [`next.md`](next.md) 开始，完整计划见 [`doc/teacher-platform-dev-plan.md`](doc/teacher-platform-dev-plan.md)。第一阶段计划已归档，不再是当前排期。
 
@@ -86,7 +86,7 @@ uv run uvicorn app.main:app --reload --port 8000
 
 API 文档位于 `http://127.0.0.1:8000/docs`，健康检查位于 `http://127.0.0.1:8000/health`。开发环境默认使用 DEBUG 级别和可读控制台日志；正常运行环境使用 INFO 级别和结构化 JSON 日志。业务操作摘要写入 SQLite 的 `operation_logs` 表。
 
-当前教师页面已作为“KnownMap 互动课程工具”接入本地 API 和可视化节点时间轴；插件下载和运行仍待后续节点。
+当前教师页面已作为“KnownMap 互动课程工具”接入本地 API 和可视化节点时间轴；插件仍运行固定技术 spike，尚未从授权码下载的课程替换运行配置。
 
 预建本地测试教师账号：
 
@@ -142,7 +142,7 @@ node --test tests/*.test.js
 | [`doc/teacher-platform-data-spec.md`](doc/teacher-platform-data-spec.md) | 当前教师平台数据模型和插件输出 |
 | [`doc/teacher-platform-api-spec.md`](doc/teacher-platform-api-spec.md) | 当前教师认证、课程、发布和下载 API |
 | [`doc/DECISIONS.md`](doc/DECISIONS.md) | 决策、假设、证据和重开条件 |
-| [`doc/teacher-platform-dev-plan.md`](doc/teacher-platform-dev-plan.md) | 当前阶段开发节点、测试和提交门禁 |
+| [`doc/teacher-platform-dev-plan.md`](doc/teacher-platform-dev-plan.md) | 当前节点 8–9 的开发步骤、测试和收口门禁 |
 | [`next.md`](next.md) | 唯一当前执行步骤 |
 
 品牌资源：

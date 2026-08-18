@@ -4,6 +4,15 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### 教师平台节点 1–7 文档收口 — 2026-08-18
+
+- 已完成的节点 1–7 执行记录和完整开发计划移入 `doc/archive/2026-08-18-teacher-platform-nodes-1-7/`，保留历史证据。
+- 根 `next.md` 和当前开发计划只保留尚未完成的节点 8–9，下一步明确为插件授权码下载、课程保存和 B 站运行。
+- README、产品规格、当前需求、架构、数据、API、决策和索引统一为同一状态：教师端与公开下载 API 已验证，插件客户端和完整本地闭环未完成。
+- 纠正旧第一阶段需求总览的“当前实施 1A”状态，以及架构中把插件授权码入口写成已存在的表述。
+- API 文档删除尚未实现的 `CONFIG_INVALID` 和 `RATE_LIMITED` 响应声明，并补充登录失败的统一用户提示。
+- 验证：70 份 Markdown 相对链接全部有效；Node 240 pass；后端 37 pass，覆盖率 87%；Bandit 无发现；`pip-audit` 无已知漏洞；`git diff --check` 通过。
+
 ### Web 生产发布可追踪与回滚 — 2026-08-18
 
 - `knownmap.com` 的销售页发布改为绑定已推送到 GitHub 的精确 commit SHA，从 Git 对象白名单构建，不读取未提交工作区。

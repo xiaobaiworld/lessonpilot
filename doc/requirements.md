@@ -4,7 +4,7 @@
 
 更新时间：2026-08-15
 
-状态：第一阶段需求入口。当前正在实施 1A，具体需求以 `doc/requirements/stage-1a.md` 为准。
+状态：历史第一阶段需求入口。销售页和原型 Demo 已归档；当前实施需求以 `doc/requirements/teacher-platform-local-stage.md` 为准。
 
 ## 1. 第一阶段要验证什么
 
@@ -52,11 +52,11 @@ KnownMap 当前只验证一条真实闭环：
 
 | 阶段 | 当前状态 | 本阶段交付 | 需求文档 |
 | --- | --- | --- | --- |
-| 1A | 当前实施 | 公网路径、共享数据契约、本地存储和安全消息桥 | `doc/requirements/stage-1a.md` |
-| 1B | 1A 后实施 | 默认销售首页和可制作一门课程的真实教师工作台 | `doc/requirements/stage-1b.md` |
-| 1C | 1B 后实施 | 四种节点在匹配 B 站原页面完成真实预览 | `doc/requirements/stage-1c.md` |
+| 1A | 历史阶段，代码已交付 | 公网路径、共享数据契约、本地存储和安全消息桥 | `doc/requirements/stage-1a.md` |
+| 1B | 历史阶段，部分交付 | 默认销售首页和可制作一门课程的真实教师工作台 | `doc/requirements/stage-1b.md` |
+| 1C | 历史阶段，部分交付 | 四种节点在匹配 B 站原页面完成真实预览 | `doc/requirements/stage-1c.md` |
 
-阶段默认按 1A -> 1B -> 1C 顺序推进。每个阶段必须满足自己的验收标准，不能以“后面会补”跳过当前门禁。
+本表用于追溯旧阶段，不再承担当前排期。当前教师平台本地闭环的范围、验收和非目标由 `doc/requirements/teacher-platform-local-stage.md` 规定。
 
 ## 5. 共同产品规则
 
@@ -101,11 +101,10 @@ KnownMap 当前只验证一条真实闭环：
 
 解释当前实现时按以下顺序：
 
-1. 当前阶段需求：`doc/requirements/stage-1a.md`、`stage-1b.md` 或 `stage-1c.md`；
-2. 本文件：第一阶段总目标、共同边界和最终完成定义；
-3. `doc/data-spec.md`：数据结构、消息和状态字段；
-4. `doc/stage-one-validation-loop-design.md`：设计理由和范围依据；
-5. `doc/node-content-standard.md`、`doc/learning-window-standard.md`：当前四种节点所使用的标准子集；
-6. `doc/dev-plan.md`、`next.md`：实施顺序，不得修改需求。
+1. 当前实施需求：`doc/requirements/teacher-platform-local-stage.md`；
+2. 当前产品规格：`doc/AI_Learning_Companion_Product_Function_Spec_v0.2.md`；
+3. 当前架构、数据、API 和计划文档；
+4. 本文件及 1A/1B/1C 文件：历史第一阶段追溯；
+5. `doc/node-content-standard.md`、`doc/learning-window-standard.md`：节点与窗口参考。
 
 旧 W0/D0/D1 合并需求位于 `doc/archive/2026-08-15-pre-stage-one/requirements.md`，只用于追溯。
