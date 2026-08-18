@@ -33,7 +33,7 @@ KnownMap 把老师已有的 B 站录播课变成可在原视频页面运行的�
 
 | 路径 | 第一阶段职责 | 当前实现状态 |
 | --- | --- | --- |
-| `/teacher-web/` | 历史销售页和教师工作台原型 | 当前界面基础，后续接入本地 API |
+| `/teacher-web/` | 历史销售页和教师工作台原型 | 保留作视觉和历史入口 |
 | `/teacher-web/workspace.html` | 历史 1A 连接诊断页 | 保留作协议诊断参考 |
 | `/teacher-web/forsales.html` | 历史公网销售页 | 第一阶段已完成，当前不作为主开发入口 |
 | `/teacher-web/editor.html` | 当前教师工作台 | 本地开发主入口，已接入教师平台 API |
@@ -59,7 +59,7 @@ uv run uvicorn app.main:app --reload --port 8000
 
 API 文档位于 `http://127.0.0.1:8000/docs`，健康检查位于 `http://127.0.0.1:8000/health`。开发环境默认使用 DEBUG 级别和可读控制台日志；正常运行环境使用 INFO 级别和结构化 JSON 日志。业务操作摘要写入 SQLite 的 `operation_logs` 表。
 
-当前教师页面以现有原型视觉为基础，已接入本地 API；插件下载和运行仍待后续节点。
+当前教师页面已接入本地 API 和可视化节点时间轴；插件下载和运行仍待后续节点。
 
 预建本地测试教师账号：
 

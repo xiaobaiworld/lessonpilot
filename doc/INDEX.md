@@ -17,8 +17,8 @@
 | `doc/teacher-platform-data-spec.md` | 教师、课程、课节、脚本、发布版本和授权码字段 | 当前数据设计；待代码验证 |
 | `doc/teacher-platform-api-spec.md` | 教师认证、课程发布、授权码和插件下载 API | 当前 API 设计；待代码验证 |
 | `doc/teacher-platform-dev-plan.md` | 当前阶段工作节点、文件范围、测试和提交门禁 | 当前计划入口；节点 7 可视化修正见独立计划 |
-| `doc/teacher-visual-node-editor-design.md` | 教师组件注册、横向时间轴、点击/拖放添加和字幕上下文设计 | 当前设计；待实现验证 |
-| `doc/plans/teacher-visual-node-editor.md` | 节点 7 可视化编辑器修正的任务、测试、日志和收口步骤 | 当前实施计划；待执行 |
+| `doc/teacher-visual-node-editor-design.md` | 教师组件注册、横向时间轴、点击/拖放添加和字幕上下文设计 | 已实现并完成本地验证 |
+| `doc/plans/teacher-visual-node-editor.md` | 节点 7 可视化编辑器修正的任务、测试、日志和收口步骤 | 已完成 |
 | `doc/requirements/stage-1a.md` | 公网路径、共享契约、插件存储和安全消息桥 | 历史原型阶段；代码已合并 |
 | `doc/requirements/stage-1b.md` | 销售首页、真实工作台、字幕和节点制作 | 历史原型阶段；部分已交付 |
 | `doc/requirements/stage-1c.md` | B 站运行时、四种节点和端到端预览 | 历史原型阶段；部分已交付 |
