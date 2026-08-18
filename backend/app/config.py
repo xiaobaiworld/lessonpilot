@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     log_level: str | None = None
     session_ttl_seconds: int = 86400
     session_cookie_name: str = "knownmap_session"
+    cors_origins: str = "http://127.0.0.1:4173,http://localhost:4173"
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -39,3 +40,7 @@ class Settings(BaseSettings):
             ]
             if missing:
                 raise ValueError(f"Missing required production secrets: {', '.join(missing)}")
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]

@@ -22,6 +22,7 @@ class LessonPublic(BaseModel):
     title: str
     sort_order: int
     video_ref: VideoRef
+    has_draft: bool
     status: str
     created_at: datetime
     updated_at: datetime

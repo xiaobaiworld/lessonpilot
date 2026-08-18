@@ -12,6 +12,7 @@ build/
 # Local config and secrets
 .env
 .env.*
+!.env.example
 config.local.*
 *.key
 *.pem

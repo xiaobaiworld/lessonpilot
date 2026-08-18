@@ -54,3 +54,19 @@ def test_production_logging_uses_json_renderer(capsys) -> None:
     parsed = json.loads(output)
     assert parsed["event"] == "test.event"
     assert parsed["outcome"] == "success"
+
+
+def test_cors_allows_local_teacher_workspace_with_credentials() -> None:
+    client = TestClient(create_app(make_settings()))
+
+    response = client.options(
+        "/api/v1/auth/login",
+        headers={
+            "Origin": "http://127.0.0.1:4173",
+            "Access-Control-Request-Method": "POST",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "http://127.0.0.1:4173"
+    assert response.headers["access-control-allow-credentials"] == "true"

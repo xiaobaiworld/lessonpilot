@@ -18,10 +18,29 @@
         <nav class="topnav" aria-label="主导航">
           <button class="nav-link" type="button" data-route="timeline">设计课堂</button>
         </nav>
-        <div class="connection-status"><span class="status-dot"></span><span>本地演示</span><span class="status-divider"></span><span>扩展待连接</span></div>
+        <div class="connection-status">
+          <span class="status-dot" id="api-status-dot"></span>
+          <span id="api-status-label">正在连接本地 API</span>
+          <span class="status-divider"></span>
+          <button class="topbar-action" id="logout-button" type="button" hidden>退出</button>
+        </div>
       </header>
 
       <main>
+        <section id="auth-view" class="view auth-view" aria-labelledby="auth-title" hidden>
+          <div class="auth-panel">
+            <p class="eyebrow">KnownMap Studio / 教师入口</p>
+            <h1 id="auth-title">登录教师工作台。</h1>
+            <p>使用预建的开发测试账号进入本地课程发布工作台。</p>
+            <form id="login-form">
+              <label class="field-group"><span>开发账号</span><input id="login-name" name="login_name" autocomplete="username" required></label>
+              <label class="field-group"><span>密码</span><input id="login-password" name="password" type="password" autocomplete="current-password" required></label>
+              <button class="dark-button" type="submit">登录工作台 <span>→</span></button>
+            </form>
+            <p class="field-error" id="login-error" hidden></p>
+          </div>
+        </section>
+
         <section id="home-view" class="view workspace-home" aria-labelledby="home-title">
           <div class="dashboard-head design-home-head">
             <div>
@@ -34,11 +53,11 @@
 
           <section class="design-entry" aria-labelledby="design-entry-title">
             <aside class="design-setup" aria-labelledby="setup-title">
-              <p class="eyebrow">开始设计前</p><h2 id="setup-title">准备课程字幕</h2><p>固定样例已预填。确认课程链接，再导入你已取得的 SRT 或 VTT 字幕。</p><label class="field-label">课程链接<input id="course-url-input" type="url" value="https://www.bilibili.com/video/BV1WW4y1e7GL/" inputmode="url"></label><button class="text-button" id="confirm-course-url" type="button">确认课程链接 →</button><p class="field-error" id="course-url-error" hidden></p><label class="text-button file-button" for="subtitle-file-input">导入字幕文件 →</label><input id="subtitle-file-input" type="file" accept=".srt,.vtt,text/plain,text/vtt" hidden><p class="file-name" id="subtitle-file-name">字幕只在当前浏览器解析，不上传到服务器</p><p class="field-error" id="subtitle-file-error" hidden></p>
+              <p class="eyebrow">开始设计前</p><h2 id="setup-title">准备课程字幕</h2><p>确认课程链接，再导入你已取得的 SRT 或 VTT 字幕。课程内容保存在本地 API。</p><label class="field-label">课程名称<input id="course-title-input" type="text" value="英语面试表达：把答案说得具体"></label><label class="field-label">课节名称<input id="lesson-title-input" type="text" value="第一课 · 用具体经历回答"></label><label class="field-label">课程链接<input id="course-url-input" type="url" value="https://www.bilibili.com/video/BV1WW4y1e7GL/" inputmode="url"></label><button class="text-button" id="confirm-course-url" type="button">确认课程链接 →</button><p class="field-error" id="course-url-error" hidden></p><label class="text-button file-button" for="subtitle-file-input">导入字幕文件 →</label><input id="subtitle-file-input" type="file" accept=".srt,.vtt,text/plain,text/vtt" hidden><p class="file-name" id="subtitle-file-name">字幕只在当前浏览器解析，不上传到服务器</p><p class="field-error" id="subtitle-file-error" hidden></p>
             </aside>
             <div class="design-task">
               <p class="eyebrow">主要任务</p><h2 id="design-entry-title">设计课堂</h2><p>选择一句字幕，在这个时间点加入老师真正想让学生做的事。</p>
-              <div class="design-action-types" aria-label="可设计的课堂动作"><span><b>01</b>重点提醒</span><span><b>02</b>老师补充</span><span><b>03</b>互动练习</span><span><b>04</b>点评追问</span></div>
+              <div class="design-action-types" aria-label="可设计的课堂动作"><span><b>01</b>重点提醒</span><span><b>02</b>选择题</span><span><b>03</b>填空题</span><span><b>04</b>问答题</span></div>
               <p class="design-task-note">字幕负责定位，课堂动作负责把一节录播课变成学生会参与的学习。</p><button id="continue-course" class="dark-button" type="button">进入课堂设计 <span>→</span></button>
             </div>
           </section>
@@ -51,15 +70,15 @@
 
         <section id="timeline-view" class="view timeline-view" aria-labelledby="timeline-title" hidden>
           <div class="timeline-head">
-            <div><button class="back-link" type="button" data-route="home">← 我的课程</button><p class="eyebrow">课堂设计 / 英语面试表达</p><h1 id="timeline-title">沿着字幕，设计这堂课的动作。</h1><p>选择一个字幕段落，在它的时间点加入提醒、老师补充、学生练习或点评追问。老师决定每个动作是否出现。</p></div>
-            <div class="timeline-actions"><span class="save-label" id="save-label">草稿已保存</span><button class="light-button" id="preview-timeline" type="button">模拟学生课堂 ↗</button><button class="dark-button" id="save-timeline" type="button">保存课程</button></div>
+            <div><button class="back-link" type="button" data-route="home">← 我的课程</button><p class="eyebrow">课堂设计 / 英语面试表达</p><h1 id="timeline-title">沿着字幕，设计这堂课的动作。</h1><p>选择一个字幕段落，在它的时间点加入重点提醒、选择题、填空题或问答题。老师决定每个动作是否出现。</p></div>
+            <div class="timeline-actions"><span class="save-label" id="save-label">草稿未保存</span><button class="light-button" id="preview-timeline" type="button">打开视频 ↗</button><button class="light-button" id="publish-course" type="button">发布课程</button><button class="dark-button" id="save-timeline" type="button">保存草稿</button></div>
           </div>
 
           <section class="course-overview" aria-label="课程概览">
             <div class="overview-video"><span class="overview-play">▶</span><span class="overview-progress"></span><b>03:42</b></div>
-            <div class="overview-info"><small>BILIBILI DEMO · 字幕驱动时间线</small><h2>英语面试表达：把答案说得具体</h2><p id="timeline-source-summary">BV1WW4y1e7GL · 当前示例字幕已整理成可设计的课堂时间线</p><div class="analysis-status"><span class="status-check">✓</span><span id="caption-import-status">等待导入已取得的字幕文件</span><button class="text-button" id="refresh-analysis" type="button">重新分析</button></div></div>
-            <div class="overview-stats"><div><strong>04</strong><span>AI 教学建议</span></div><div><strong>03</strong><span>已确认设计</span></div></div>
-            <div class="overview-legend"><strong>课堂设计图例</strong><span><i class="dot dot-attention"></i>重点提醒</span><span><i class="dot dot-voice"></i>老师补充</span><span><i class="dot dot-activity"></i>学生练习</span><span><i class="dot dot-ai"></i>点评追问</span></div>
+            <div class="overview-info"><small>BILIBILI · 字幕驱动时间线</small><h2 id="timeline-course-title">英语面试表达：把答案说得具体</h2><p id="timeline-source-summary">BV1WW4y1e7GL · 当前课节还没有保存到本地 API</p><div class="analysis-status"><span class="status-check">✓</span><span id="caption-import-status">等待导入已取得的字幕文件</span><button class="text-button" id="refresh-analysis" type="button">重新分析</button></div></div>
+            <div class="overview-stats"><div><strong id="node-count">00</strong><span>已设计节点</span></div><div><strong id="publish-version">—</strong><span>当前发布版本</span></div></div>
+            <div class="overview-legend"><strong>课堂设计图例</strong><span><i class="dot dot-attention"></i>重点提醒</span><span><i class="dot dot-voice"></i>选择题</span><span><i class="dot dot-activity"></i>填空题</span><span><i class="dot dot-ai"></i>问答题</span></div>
           </section>
 
           <div class="timeline-layout">
@@ -72,21 +91,24 @@
               <div class="copilot-card"><div class="copilot-heading"><span class="copilot-spark">✦</span><div><strong>KnownMap AI</strong><small>课堂设计副驾驶</small></div><span class="copilot-live">分析中</span></div><p>我发现这一句适合先暂停，再让学生把结构迁移到自己的经历。</p><div class="copilot-reason"><span>建议原因</span><strong>这是本段的知识点转折</strong></div><div class="copilot-actions"><button class="text-button" id="ignore-suggestion" type="button">忽略</button><button class="dark-button" id="accept-suggestion" type="button">采纳建议</button></div></div>
               <div class="event-panel-head"><span class="eyebrow">当前字幕 · 00:35</span><h2 id="event-title">课堂设计</h2><p id="selected-caption">“A strong answer needs a specific example.”</p><small class="design-hint">告诉 AI 你希望学生在这里获得什么，剩下的交给它生成。</small></div>
               <div class="event-options">
-                <button class="event-option event-option-attention" type="button" data-event="attention"><span class="option-icon">✦</span><span><strong>注意力爆发</strong><small>让重点词闪出来，帮学生重新集中。</small></span><b>→</b></button>
-                <button class="event-option event-option-voice" type="button" data-event="voice"><span class="option-icon">◉</span><span><strong>老师语音</strong><small>在这里补一句，或者直接喊学生名字。</small></span><b>→</b></button>
-                <button class="event-option event-option-activity" type="button" data-event="activity"><span class="option-icon">□</span><span><strong>互动练习</strong><small>选择题、填空题或自由回答。</small></span><b>→</b></button>
-                <button class="event-option event-option-ai" type="button" data-event="ai"><span class="option-icon">⌁</span><span><strong>点评与追问</strong><small>按老师选定的评价方向反馈。</small></span><b>→</b></button>
+                <button class="event-option event-option-attention" type="button" data-event="attention"><span class="option-icon">✦</span><span><strong>重点提醒</strong><small>暂停并解释这一句为什么重要。</small></span><b>→</b></button>
+                <button class="event-option event-option-voice" type="button" data-event="voice"><span class="option-icon">◉</span><span><strong>选择题</strong><small>让学生从几个选项中判断理解。</small></span><b>→</b></button>
+                <button class="event-option event-option-activity" type="button" data-event="activity"><span class="option-icon">□</span><span><strong>填空题</strong><small>让学生回忆关键词并提交答案。</small></span><b>→</b></button>
+                <button class="event-option event-option-ai" type="button" data-event="ai"><span class="option-icon">⌁</span><span><strong>问答题</strong><small>让学生用自己的经历组织回答。</small></span><b>→</b></button>
               </div>
-              <div class="event-detail" id="event-detail" hidden><span class="eyebrow" id="event-detail-label">注意力爆发</span><h3 id="event-detail-title">让这一句被记住</h3><p id="event-detail-copy">播放到这里时，关键词会短暂放大并出现星星效果。</p><label>告诉 AI<input id="event-label-input" type="text" value="这里很重要" placeholder="例如：这里提醒学生注意语气"></label><button class="dark-button" id="add-event" type="button">生成并加入课堂设计</button></div>
+              <div class="event-detail" id="event-detail" hidden><span class="eyebrow" id="event-detail-label">重点提醒</span><h3 id="event-detail-title">让这一句被记住</h3><p id="event-detail-copy">播放到这里时，课程会暂停并显示这条提醒。</p><div id="node-fields" class="node-fields"></div><button class="dark-button" id="add-event" type="button">加入课堂设计</button></div>
               <button class="simulation-button" id="simulate-class" type="button"><span>▶</span><span><strong>模拟学生课堂</strong><small>看看这堂课实际会如何回应</small></span><b>↗</b></button>
               <p class="event-note">当前原型只根据字幕与时间生成备课建议，不分析视频画面。</p>
             </aside>
           </div>
+          <section class="access-code-panel" id="access-code-panel" hidden aria-live="polite"><div><p class="eyebrow">学生插件授权</p><h2>课程已发布，可以发给学生。</h2><p>授权码只在创建时显示。学生在 KnownMap 插件中输入后，会下载这门课的最新版本。</p></div><div class="access-code-value"><code id="access-code-value">尚未创建</code><button class="dark-button" id="create-access-code" type="button">创建授权码</button><button class="light-button" id="copy-access-code" type="button" disabled>复制授权码</button></div></section>
         </section>
       </main>
     </div>
     <div id="toast" class="toast" role="status" aria-live="polite" aria-hidden="true"></div>
     <script src="subtitle-parser.js?v=literal-ms-1"></script>
-    <script src="app.js?v=caption-textcontent-1"></script>
+    <script src="api-client.js?v=local-api-1"></script>
+    <script src="auth-session.js?v=local-api-1"></script>
+    <script src="app.js?v=teacher-api-1"></script>
   </body>
 </html>

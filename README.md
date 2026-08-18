@@ -25,7 +25,7 @@ KnownMap 把老师已有的 B 站录播课变成可在原视频页面运行的�
 
 技术 spike 已证明插件可以在指定 B 站页面定位播放器、监听时间、暂停、seek 和卸载注入 UI，但完整产品闭环尚未实现。
 
-当前开发阶段是 **教师平台本地发布与插件授权下载闭环**。后端尚未开始编码，需求、架构、数据/API 说明和开发节点已经写入当前文档。
+当前开发阶段是 **教师平台本地发布与插件授权下载闭环**。节点 1–7 已完成：教师网页已接入本地 FastAPI，可以登录、建课、编辑四种节点、保存草稿、发布课程和创建授权码；插件下载与运行接入属于下一节点。
 
 从 [`next.md`](next.md) 开始，完整计划见 [`doc/teacher-platform-dev-plan.md`](doc/teacher-platform-dev-plan.md)。第一阶段计划已归档，不再是当前排期。
 
@@ -36,7 +36,7 @@ KnownMap 把老师已有的 B 站录播课变成可在原视频页面运行的�
 | `/teacher-web/` | 历史销售页和教师工作台原型 | 当前界面基础，后续接入本地 API |
 | `/teacher-web/workspace.html` | 历史 1A 连接诊断页 | 保留作协议诊断参考 |
 | `/teacher-web/forsales.html` | 历史公网销售页 | 第一阶段已完成，当前不作为主开发入口 |
-| `/teacher-web/editor.html` | 旧原型 | 停止扩展，不发布公网 |
+| `/teacher-web/editor.html` | 当前教师工作台 | 本地开发主入口，已接入教师平台 API |
 
 第一阶段默认部署目标是 GitHub Pages。Pages 已于 2026-08-15 启用（source 为 GitHub Actions），`pages` 工作流已在 2026-08-16 成功发布，公网路径实测可访问：
 
@@ -59,7 +59,7 @@ uv run uvicorn app.main:app --reload --port 8000
 
 API 文档位于 `http://127.0.0.1:8000/docs`，健康检查位于 `http://127.0.0.1:8000/health`。开发环境默认使用 DEBUG 级别和可读控制台日志；正常运行环境使用 INFO 级别和结构化 JSON 日志。业务操作摘要写入 SQLite 的 `operation_logs` 表。
 
-当前教师页面仍然是原型界面，后续节点会接入本地 API。
+当前教师页面以现有原型视觉为基础，已接入本地 API；插件下载和运行仍待后续节点。
 
 预建本地测试教师账号：
 

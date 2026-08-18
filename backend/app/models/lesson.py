@@ -45,3 +45,7 @@ class Lesson(Base):
     @property
     def video_ref(self) -> dict[str, str]:
         return {"platform": self.platform, "video_id": self.video_id}
+
+    @property
+    def has_draft(self) -> bool:
+        return self.script_draft is not None

@@ -1705,3 +1705,149 @@ a.brand {
   text-decoration: none;
   color: inherit;
 }
+
+.topbar-action {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.status-dot.is-healthy {
+  background: var(--green);
+  box-shadow: 0 0 0 4px rgba(29, 92, 67, 0.16);
+}
+
+.auth-view {
+  display: grid;
+  min-height: calc(100vh - 72px);
+  place-items: center;
+  padding: 48px 0 80px;
+}
+
+.auth-panel {
+  width: min(480px, 100%);
+  padding: 42px;
+  border: 1px solid var(--ink);
+  background: var(--paper-bright);
+  box-shadow: var(--shadow);
+}
+
+.auth-panel h1 {
+  margin: 0 0 12px;
+  font-size: clamp(32px, 5vw, 48px);
+  line-height: 1.15;
+}
+
+.auth-panel > p:not(.eyebrow) {
+  margin: 0 0 28px;
+  color: var(--ink-soft);
+  line-height: 1.7;
+}
+
+.auth-panel form {
+  display: grid;
+  gap: 18px;
+}
+
+.auth-panel .dark-button {
+  justify-self: start;
+  margin-top: 4px;
+}
+
+.node-fields {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.node-field {
+  display: grid;
+  gap: 6px;
+  color: var(--ink-soft);
+  font-size: 11px;
+}
+
+.node-field input,
+.node-field textarea,
+.node-field select {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid var(--line-dark);
+  border-radius: 4px;
+  background: var(--paper-bright);
+  color: var(--ink);
+}
+
+.node-field textarea {
+  min-height: 70px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.access-code-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  margin-top: 28px;
+  padding: 24px 28px;
+  border: 1px solid var(--green);
+  background: var(--green-pale);
+}
+
+.access-code-panel h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+}
+
+.access-code-panel p:not(.eyebrow) {
+  max-width: 640px;
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.access-code-value {
+  display: grid;
+  justify-items: end;
+  gap: 10px;
+  min-width: 270px;
+}
+
+.access-code-value code {
+  display: block;
+  padding: 10px 12px;
+  border: 1px dashed var(--green);
+  background: var(--paper-bright);
+  color: var(--green-deep);
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+
+@media (max-width: 720px) {
+  .auth-panel {
+    padding: 28px 22px;
+  }
+
+  .access-code-panel {
+    display: block;
+    padding: 22px;
+  }
+
+  .access-code-value {
+    justify-items: start;
+    min-width: 0;
+    margin-top: 20px;
+  }
+
+  .access-code-value code {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+}
