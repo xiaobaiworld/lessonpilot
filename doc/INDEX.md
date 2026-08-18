@@ -16,6 +16,8 @@
 | `doc/teacher-platform-architecture.md` | FastAPI、SQLite、教师端、插件和数据边界 | 当前架构；待代码验证 |
 | `doc/teacher-platform-data-spec.md` | 教师、课程、课节、脚本、发布版本和授权码字段 | 当前数据设计；待代码验证 |
 | `doc/teacher-platform-api-spec.md` | 教师认证、课程发布、授权码和插件下载 API | 当前 API 设计；待代码验证 |
+| `doc/student-plugin-course-delivery-design.md` | 单课程授权领取、课程包、字幕导航、本地学习状态和打开 B 站课程页 | 已确认产品设计；尚待实现 |
+| `doc/decisions/2026-08-18-student-plugin-single-course-delivery.md` | 学生插件单课程、可重复授权码和本地学习数据决策过程 | 已接受；尚待实现验证 |
 | `doc/teacher-platform-dev-plan.md` | 当前阶段工作节点、文件范围、测试和提交门禁 | 当前计划入口；节点 7 可视化修正见独立计划 |
 | `doc/teacher-visual-node-editor-design.md` | 教师组件注册、横向时间轴、点击/拖放添加和字幕上下文设计 | 已实现并完成本地验证 |
 | `doc/plans/teacher-visual-node-editor.md` | 节点 7 可视化编辑器修正的任务、测试、日志和收口步骤 | 已完成 |
