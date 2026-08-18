@@ -9,6 +9,8 @@ from sqlalchemy.pool import StaticPool
 from app.config import Settings
 from app.db_base import Base
 from app.models.operation_log import OperationLog  # noqa: F401
+from app.models.teacher import Teacher  # noqa: F401
+from app.models.teacher_session import TeacherSession  # noqa: F401
 
 def create_database_engine(settings: Settings) -> Engine:
     connect_args = {"check_same_thread": False} if settings.database_url.startswith("sqlite") else {}

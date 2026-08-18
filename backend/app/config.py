@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     session_secret: str | None = None
     access_code_secret: str | None = None
     log_level: str | None = None
+    session_ttl_seconds: int = 86400
+    session_cookie_name: str = "knownmap_session"
 
     model_config = SettingsConfigDict(
         env_file=".env",

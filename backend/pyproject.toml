@@ -7,6 +7,7 @@ dependencies = [
   "alembic>=1.15,<2",
   "fastapi>=0.115,<1",
   "pydantic-settings>=2.7,<3",
+  "pwdlib[argon2]>=0.2,<1",
   "sqlalchemy>=2.0,<3",
   "structlog>=25,<26",
   "uvicorn[standard]>=0.34,<1",
@@ -15,7 +16,7 @@ dependencies = [
 [dependency-groups]
 dev = [
   "httpx>=0.28,<1",
-  "pytest>=8.3,<9",
+  "pytest>=9.0.3,<10",
   "pytest-cov>=6,<7",
 ]
 

@@ -4,6 +4,15 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### 教师测试账号认证 — 2026-08-18
+
+- 新增 FastAPI 教师认证模块：手工 seed 测试账号、登录、会话恢复和退出。
+- 密码使用 Argon2 慢哈希；浏览器只保存 HttpOnly、SameSite 会话 cookie，数据库只保存 token 摘要。
+- 新增 `teachers`、`teacher_sessions` 迁移和认证操作日志，登录成功、失败、会话恢复和退出可按 request ID 追踪。
+- 真实本地验证通过：seed 创建账号，登录返回会话 cookie，`/auth/me` 恢复教师，退出后再次访问返回 401。
+- 验证：后端测试 10 pass、Node 回归 204 pass、Python compileall 通过、Alembic 空数据库迁移通过。
+- 安全验证：`pip-audit` 无已知漏洞，Bandit 无发现；发现并升级了存在 `PYSEC-2026-1845` 的 pytest 8.4.2，当前锁定 pytest 9.1.1。
+
 ### AI Learning Companion 产品功能说明 v0.2 — 2026-08-18
 
 - 基于教师中心需求核对形成 `doc/AI_Learning_Companion_Product_Function_Spec_v0.2.md`，明确教师账号、测试批次、工作空间、课程、课节、授权码、学生和学习数据功能。

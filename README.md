@@ -61,6 +61,18 @@ API 文档位于 `http://127.0.0.1:8000/docs`，健康检查位于 `http://127.0
 
 当前教师页面仍然是原型界面，后续节点会接入本地 API。
 
+预建本地测试教师账号：
+
+```bash
+cd /Users/bai/code/lessonpilot/backend
+SEED_TEACHER_LOGIN_NAME=teacher-test-01 \
+SEED_TEACHER_PASSWORD='replace-with-a-local-test-password' \
+SEED_TEACHER_DISPLAY_NAME='测试教师' \
+uv run python -m app.seed
+```
+
+测试密码只通过本地环境变量传入，不写入代码或日志。
+
 启动现有静态教师页面：
 
 ```bash
