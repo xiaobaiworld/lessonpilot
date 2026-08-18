@@ -4,7 +4,7 @@
 
 更新时间：2026-08-18
 
-状态：当前开发架构；后端骨架、教师认证、课程和单课节已验证
+状态：当前开发架构；后端骨架、教师认证、课程和单课节已验证；教师 API 已接入，可视化编辑器修正待验证
 
 ## 1. 架构目标
 
@@ -121,7 +121,8 @@ backend/
 
 现有目录继续承担：
 
-- `teacher-web/`：教师界面；
+- `teacher-web/`：教师界面。当前可视化节点编辑器由 `node-plugin-registry.js`、`timeline-model.js`、
+  `visual-node-editor.js` 和 `editor-logger.js` 分别承担组件注册、纯时间轴计算、DOM 交互和前端诊断日志；
 - `src/shared/`：插件课程配置和既有消息契约；
 - `src/background/`：插件本地存储；
 - `src/content/`：B 站页面运行时和插件内授权码入口。
@@ -234,6 +235,25 @@ flowchart LR
 4. 插件配置适配器删除数据库内部字段，只输出运行所需结构。
 5. 节点结构先通过服务端 schema 校验，再转换为插件契约。
 
+教师编辑器内部的数据流：
+
+```mermaid
+flowchart LR
+  A["字幕文件：浏览器本地解析"] --> B["captions + durationSeconds"]
+  C["组件注册表"] --> D["点击或拖放放置"]
+  B --> D
+  D --> E["visual-node-editor"]
+  E --> F["canonical nodes"]
+  F --> G["app.js API 编排"]
+  G --> H["PUT lesson draft"]
+  H --> I["后端返回标准 nodes"]
+  I --> E
+```
+
+`visual-node-editor.js` 不直接访问 FastAPI。点击和拖放都调用同一创建动作，组件来源只作为
+前端诊断字段；后端仍只接收既有 `config.nodes` schema。字幕是本地 raw 输入和前端 context，
+不进入 `ScriptDraft.config_json`。
+
 ## 8. 错误和日志
 
 错误响应统一为：
@@ -260,6 +280,13 @@ flowchart LR
 - `course.download.start/success/failure`
 
 日志必须包含 `request_id`、模块、动作、事件、耗时和脱敏输入摘要。授权码原文、密码、课程正文和节点正文不写入日志。
+
+教师编辑器的未提交操作使用浏览器端分级诊断日志：
+
+- 本地开发/测试默认 `debug`：组件选择、放置、拖动、弹窗打开和取消；
+- 正常运行默认 `info`：草稿保存、发布和失败；
+- 不记录字幕正文、节点正文、密码、cookie、会话 token 或授权码原文；
+- 前端诊断日志不替代后端 `OperationLog`，也不新增每次临时拖动的持久化审计端点。
 
 ## 9. 本地运行形态
 

@@ -179,6 +179,36 @@ followup  + free_text
 
 新增节点类型只能通过新增明确的 schema 分支和运行时处理器进入，不允许用任意 JSON 字段绕过校验。
 
+## 3.1 教师编辑器临时投影
+
+教师编辑器在浏览器中维护以下临时状态，不写入 `ScriptDraft.config_json`：
+
+| 字段 | 类型 | 来源 | 用途 | 是否持久化 |
+| --- | --- | --- | --- | --- |
+| `captions` | `Caption[]` | 教师导入的 SRT/VTT | 时间定位和选中节点上下文 | 否 |
+| `durationSeconds` | number | 字幕结束时间计算 | 时间轴长度和坐标换算 | 否 |
+| `selectedNodeId` | string/null | 页面交互 | marker 和弹窗选中状态 | 否 |
+| `armedPluginId` | enum/null | 页面交互 | 点击组件后等待时间轴放置 | 否 |
+| `dirty` | boolean | 编辑器状态 | 显示草稿是否有未保存修改 | 否 |
+
+`captions` 的字段只用于前端：
+
+```json
+{
+  "id": "caption-2",
+  "startSeconds": 35,
+  "endSeconds": 51,
+  "time": "00:35",
+  "text": "A strong answer needs a specific example."
+}
+```
+
+节点创建或移动时，前端从 `timeSeconds` 找到最近字幕并写入 `trigger.captionId`。后端仍按
+既有 schema 校验 `captionId` 格式和节点字段；字幕正文不随草稿提交。
+
+点击添加和拖放添加的差异只保存在前端诊断日志的 `source` 字段（`click` / `drag`），
+不进入节点 JSON，因此两种入口的 canonical 输出完全相同。
+
 ## 4. 插件下载输出
 
 授权码下载成功时返回：

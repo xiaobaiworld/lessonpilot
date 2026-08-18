@@ -4,7 +4,7 @@
 
 更新时间：2026-08-18
 
-状态：实施中（节点 1–7 已完成）
+状态：实施中（节点 1–6 已完成；节点 7 API 接入完成，可视化编辑体验修正中）
 
 关联文档：
 
@@ -14,6 +14,8 @@
 - API：`doc/teacher-platform-api-spec.md`
 - 产品规格：`doc/AI_Learning_Companion_Product_Function_Spec_v0.2.md`
 - 决策：`doc/decisions/2026-08-18-teacher-platform-local-slice.md`
+- 节点 7 可视化修正设计：`doc/teacher-visual-node-editor-design.md`
+- 节点 7 可视化修正计划：`doc/plans/teacher-visual-node-editor.md`
 
 ## 1. 目标
 
@@ -88,7 +90,7 @@
 | 4 | 四种节点草稿可保存、校验和读取 | 3 |
 | 5 | 草稿可发布为不可混淆的已发布版本 | 4 |
 | 6 | 教师可创建授权码，插件下载 API 可按码返回课程 | 5 |
-| 7 | 现有教师界面接入真实 API | 2–6 |
+| 7 | 教师界面接入真实 API，并完成可视化节点编辑器 | 2–6 |
 | 8 | 插件输入授权码、下载、保存并运行课程 | 6 |
 | 9 | 本地完整闭环、回归和文档收口 | 7–8 |
 
@@ -355,7 +357,8 @@ uv run pytest tests/unit/test_access_code_service.py tests/integration/test_down
 
 ### 目标
 
-把现有教师界面的原型状态替换为真实 API 数据，保持当前视觉和主要交互形态。
+把现有教师界面的原型状态替换为真实 API 数据，并将节点编辑体验修正为组件注册驱动的
+横向时间轴。API 接入部分已经完成，后续按独立计划完成可视化修正。
 
 ### 文件
 
@@ -367,6 +370,8 @@ uv run pytest tests/unit/test_access_code_service.py tests/integration/test_down
 - 修改：`teacher-web/workspace.html`（若当前诊断页需要与真实工作台分离）
 - 创建：`tests/teacher-api-client.test.js`
 - 创建：`tests/manual/teacher-platform-local/README.md`
+- 追加修正设计：`doc/teacher-visual-node-editor-design.md`
+- 追加修正计划：`doc/plans/teacher-visual-node-editor.md`
 
 ### 验收
 
@@ -392,6 +397,20 @@ python3 -m http.server 4173
 ### 提交边界
 
 `feat: connect teacher workspace to local api`
+
+### 节点 7 修正
+
+节点 7 的原 API 接入提交不代表可视化编辑体验完成。当前修正必须按
+`doc/plans/teacher-visual-node-editor.md` 执行，完成以下结果后才允许进入节点 8：
+
+- 四种节点以组件注册方式提供；
+- 点击组件后点击时间轴可以创建节点；
+- 拖放组件到时间轴可以创建节点；
+- 两种入口共用同一创建动作；
+- 节点可在横向时间轴上选择、编辑、移动和删除；
+- 字幕作为时间定位和上下文，不再作为主编辑列表；
+- 草稿保存、刷新恢复、发布和授权码流程保持可用；
+- 日志按开发/测试和正常运行级别分层，并完成脱敏验证。
 
 ## 12. 节点 8：插件授权码输入和课程下载
 
@@ -530,6 +549,7 @@ node --test tests/*.test.js
 - 本计划只承担执行顺序、文件范围、验收、测试和提交门禁；
 - 节点 1–9 存在强顺序依赖，拆成多个执行计划会把测试门禁、共享契约和提交顺序分散到多个入口；
 - 当前保留单份执行计划，并用“节点总览”和明确的工作节点边界支持检索；
+- 节点 7 的可视化修正细节已拆到 `doc/plans/teacher-visual-node-editor.md`，避免继续把前端交互细节堆入本计划；
 - 当后续加入学生数据、管理员后台或公网部署时，必须新建独立阶段计划，不继续扩写本文件。
 
 ## 15. 未来扩展顺序
