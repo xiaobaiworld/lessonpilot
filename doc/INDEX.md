@@ -2,25 +2,32 @@
 
 最近审计：2026-08-18
 
-当前阶段：第一阶段真实验证闭环。其它 Agent 开始工作时，先读本文件，再按“当前权威”顺序阅读。
+当前阶段：教师平台本地发布与插件授权下载闭环。第一阶段销售页和原型 Demo 已归档。其它 Agent 开始工作时，先读本文件，再按“当前权威”顺序阅读。
 
 ## 当前权威
 
 | 文档 | 职责 | 状态 |
 | --- | --- | --- |
 | `README.md` | 项目入口、当前状态、运行命令 | 当前 |
-| `doc/requirements.md` | 第一阶段总目标、共同边界和阶段导航 | 当前需求总入口 |
+| `doc/requirements/teacher-platform-local-stage.md` | 当前教师平台本地开发阶段范围、验收和非目标 | 当前实施需求权威 |
 | `doc/AI_Learning_Companion_Product_Function_Spec_v0.2.md` | 教师中心平台化产品功能、授权码下载/更新语义和验收方向 | 已确认产品规格；尚未代表实现 |
 | `doc/decisions/2026-08-18-teacher-centered-product-v0.2.md` | v0.2 教师账号、工作空间、本地课程和授权码决策过程 | 已接受；尚待实现验证 |
-| `doc/requirements/stage-1a.md` | 公网路径、共享契约、插件存储和安全消息桥 | 当前实施需求权威；代码已合并，人工验证收尾中 |
-| `doc/requirements/stage-1b.md` | 销售首页、真实工作台、字幕和节点制作 | 已确认；销售页部分已交付，工作台等待 1A 收口 |
-| `doc/requirements/stage-1c.md` | B 站运行时、四种节点和端到端预览 | 已确认；等待 1A/1B |
-| `doc/data-spec.md` | 数据结构、消息协议和本地存储 | 当前数据权威 |
-| `doc/stage-one-validation-loop-design.md` | 第一阶段设计、架构与理由 | 已确认设计 |
+| `doc/decisions/2026-08-18-teacher-platform-local-slice.md` | 当前本地教师发布、授权码下载切片的范围决策 | 已接受；尚待实现验证 |
+| `doc/teacher-platform-architecture.md` | FastAPI、SQLite、教师端、插件和数据边界 | 当前架构；待代码验证 |
+| `doc/teacher-platform-data-spec.md` | 教师、课程、课节、脚本、发布版本和授权码字段 | 当前数据设计；待代码验证 |
+| `doc/teacher-platform-api-spec.md` | 教师认证、课程发布、授权码和插件下载 API | 当前 API 设计；待代码验证 |
+| `doc/teacher-platform-dev-plan.md` | 当前阶段工作节点、文件范围、测试和提交门禁 | 当前计划入口 |
+| `doc/requirements/stage-1a.md` | 公网路径、共享契约、插件存储和安全消息桥 | 历史原型阶段；代码已合并 |
+| `doc/requirements/stage-1b.md` | 销售首页、真实工作台、字幕和节点制作 | 历史原型阶段；部分已交付 |
+| `doc/requirements/stage-1c.md` | B 站运行时、四种节点和端到端预览 | 历史原型阶段；部分已交付 |
+| `doc/data-spec.md` | 第一阶段插件课程契约、消息协议和本地存储 | 历史插件契约参考 |
+| `doc/stage-one-validation-loop-design.md` | 第一阶段原型设计、架构与理由 | 历史设计参考 |
 | `doc/DECISIONS.md` | 方案比较、假设、重开条件和替代关系 | 当前决策权威 |
-| `doc/dev-plan.md` | 三个实施计划的顺序和门禁 | 当前计划入口 |
-| `next.md` | 唯一当前执行步骤 | 当前任务权威 |
+| `doc/archive/2026-08-18-stage-one-demo/dev-plan.md` | 第一阶段销售页和原型 Demo 计划 | 已归档；只用于追溯 |
+| `doc/archive/2026-08-18-stage-one-demo/next.md` | 第一阶段最后执行步骤 | 已归档；不作为当前任务 |
+| `next.md` | 当前教师平台文档/开发执行步骤 | 当前任务权威 |
 | `docs/superpowers/specs/2026-08-18-knownmap-brand-update-design.md` | KnownMap 名称、域名、Logo 几何、颜色和迁移边界 | 当前品牌设计权威 |
+| `docs/knownmap-logo-resources.md` | Logo 形态、颜色含义、使用场景和资源落点 | 当前 Logo 资源说明 |
 | `docs/superpowers/plans/2026-08-18-knownmap-brand-update.md` | KnownMap 品牌资源、页面、文档和验证实施计划 | 当前品牌实施计划 |
 
 解释冲突时按：当前阶段需求 -> 需求总览 -> 数据规范 -> 已确认设计 -> 内容/窗口标准 -> 计划。计划不得覆盖需求。
@@ -39,20 +46,28 @@
 | `doc/lessons.md` | 历史问题和方法经验 | 历史参考，部分旧 D0/D1 名称需结合决策解释 |
 | `doc/英文面试问答流程（超全！）｜自我介绍 矛盾处理 优缺点 技能.srt` | 当前样例课程的中文 AI 翻译字幕 | 测试/演示数据；英文文案仍需老师复核 |
 
-## 详细实施计划
+## 当前实施计划
 
 | 文档 | 可独立验收结果 | 前置 |
 | --- | --- | --- |
-| `doc/plans/stage-1a-contract-bridge-deploy.md` | 数据契约、存储、消息桥和公网部署可验证 | 已实施；公网发布已验证 |
+| `doc/teacher-platform-dev-plan.md` | 本地 FastAPI + SQLite 教师发布、授权码和插件下载闭环 | 当前 |
+| `doc/teacher-platform-api-spec.md` | Swagger 可调试的认证、课程、发布和下载端点 | 架构与数据文档 |
+| `doc/teacher-platform-data-spec.md` | SQLite 实体和插件输出契约 | 需求确认 |
+
+## 已完成阶段计划
+
+| 文档 | 可独立验收结果 | 前置 |
+| --- | --- | --- |
+| `doc/plans/stage-1a-contract-bridge-deploy.md` | 数据契约、存储、消息桥和公网部署可验证 | 已实施；历史阶段 |
 | `tests/manual/stage-1a-bridge/README.md` | 1A 真实 Chrome 与公网人工验证记录 | V1 与 V7 发布/路径已通过；V2–V6 待执行，是 1A 完成门禁 |
 | `doc/plans/stage-1b-sales-page-revision.md` | 销售页私信 CTA、飞书表单和真实试用承诺 | 已交付（飞书表单入口未实现，等真实 URL） |
 | `tests/manual/sales-page-revision-20260816.md` | 销售页修订的自动化与浏览器验证记录 | 剩剪贴板与 CTA 两项待本机确认 |
-| `doc/plans/stage-1b-sales-workspace.md` | 默认销售首页和真实教师工作台可保存课程 | 未开始；依赖 1A 收口 |
-| `doc/plans/stage-1c-runtime-e2e.md` | 四种节点在真实 B 站完成端到端预览 | 未开始；依赖 1A、1B |
+| `doc/plans/stage-1b-sales-workspace.md` | 默认销售首页和真实教师工作台可保存课程 | 历史原型阶段；部分已交付 |
+| `doc/plans/stage-1c-runtime-e2e.md` | 四种节点在真实 B 站完成端到端预览 | 历史原型阶段；部分已交付 |
 
 ## 未来或已部分替代
 
-以下文件保留数据和远期思考，不得作为第一阶段实现指令：
+以下文件保留历史数据和远期思考，不得作为当前教师平台本地阶段实现指令：
 
 | 文档 | 用途 | 当前状态 |
 | --- | --- | --- |
@@ -72,6 +87,13 @@
 - `dev-plan.md`
 - `next.md`
 
+`doc/archive/2026-08-18-stage-one-demo/` 保留第一阶段收尾时的：
+
+- `dev-plan.md`
+- `next.md`
+
+归档文件只用于追溯，不得覆盖当前教师平台需求、架构和开发计划。
+
 归档文件只用于追溯。若需恢复其中的独有信息，应先判断它是当前需求、未来候选还是历史事实，再写入对应权威文件，不能直接恢复为当前指令。
 
 ## 代码与验证入口
@@ -79,6 +101,7 @@
 | 路径 | 内容 |
 | --- | --- |
 | `teacher-web/` | 静态销售页、工作台示例和旧编辑器 |
+| `backend/` | 当前阶段计划新增的 FastAPI、SQLite 和教师平台 API |
 | `src/shared/` | 网页与插件共用的课程契约、消息协议和来源白名单（唯一事实源） |
 | `src/background/` | 插件后台存储与五个操作处理器 |
 | `src/content/` | 工作台消息桥内容脚本，以及 B 站运行时 spike |
@@ -90,8 +113,9 @@
 ## 文档维护规则
 
 - 形成重要决策时更新 `doc/DECISIONS.md`；
-- 数据字段或消息变化时先更新 `doc/data-spec.md`；
-- 第一阶段共同范围变化时更新 `doc/requirements.md`；阶段行为变化时更新对应 `doc/requirements/stage-*.md`，并建立替代关系；
+- 数据字段或消息变化时先更新对应的数据规范（当前教师平台为 `doc/teacher-platform-data-spec.md`，历史插件契约为 `doc/data-spec.md`）；
+- 当前教师平台范围变化时更新 `doc/requirements/teacher-platform-local-stage.md`，历史第一阶段文档只做追溯；
+- API 变化时同步 `doc/teacher-platform-api-spec.md`；
 - 每个计划步骤完成后更新 `next.md`、相关权威文档和 changelog；
 - 大阶段收口时重新检查长度、重复、孤立文档、失效链接和权威状态，并更新本页审计日期。
 

@@ -17,6 +17,7 @@ Only record verified changes.
 - 新增地图窗口圆形 Logo：统一 SVG 源文件、16/24/48/128 PNG 扩展资源和网页图标。
 - 当前页面、manifest、销售文案和权威文档已同步；`lessonpilot.*` 协议、存储和 JavaScript 全局标识保持兼容。
 - 已验证：全量测试 `204 pass / 0 fail`；已检查扩展图标尺寸，以及桌面和 375px 移动端页面显示。
+- 新增 `docs/knownmap-logo-resources.md`，记录 Logo 的知识空间、学习路径和关键节点含义，以及圆形、方形、透明背景三种资源形态的使用场景。
 
 ### 文档事实同步 — 2026-08-18
 

@@ -1,6 +1,6 @@
 # KnownMap 品牌更新与 Logo 设计
 
-状态：已确认方向，待实施前用户审阅  
+状态：已确认并已落地，资源变体持续补齐
 日期：2026-08-18  
 范围：项目品牌文字、网页展示、Chrome 扩展图标、favicon 与相关文档
 
@@ -14,7 +14,7 @@
 
 ### Logo 概念
 
-采用“地图窗口”圆形图标：
+采用“地图窗口”图标家族，圆形版是主品牌方向：
 
 - 深墨绿圆形底，作为稳定的品牌容器；
 - 浅灰绿地图外轮廓，表达一个可进入、可展开的知识空间；
@@ -39,6 +39,18 @@
 
 主 Logo 不新增蓝紫、霓虹或高饱和渐变。已有页面的节点色和纸张体系可继续复用。
 
+### Logo 形态
+
+三种形态共享同一套地图窗口几何：
+
+- 圆形深绿底：网页品牌头像、favicon 和明确的品牌入口；
+- 方形深绿底：Chrome 扩展入口、工具栏和方形容器；
+- 透明背景：浅色页面、文档、印刷物和已有品牌容器的场景。
+
+透明背景版的外轮廓与主路径使用品牌深绿色 `#1D5C43`，不使用纯黑；竖线使用较浅的 `#6E9180` 并降低不透明度。
+
+详细含义、颜色和使用规则见 [`docs/knownmap-logo-resources.md`](../../knownmap-logo-resources.md)。
+
 ### 尺寸
 
 同一 SVG 几何导出为：
@@ -62,8 +74,12 @@
 ## 资源落点
 
 - `src/assets/icon-16.png`
+- `src/assets/icon-24.png`
 - `src/assets/icon-48.png`
 - `src/assets/icon-128.png`
+- `src/assets/knownmap/knownmap-circle.svg`
+- `src/assets/knownmap/knownmap-square.svg`
+- `src/assets/knownmap/knownmap-transparent.svg`
 - 新增网页 favicon 或品牌 SVG 源文件时，源文件必须只有一份；PNG 为导出物
 - `src/manifest.json` 的用户可见扩展名称改为 `KnownMap`
 - `teacher-web/index.html`、`teacher-web/forsales.html`、`teacher-web/workspace.html`、`teacher-web/editor.html` 中的用户可见品牌改为 KnownMap

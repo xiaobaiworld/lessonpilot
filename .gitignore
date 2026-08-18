@@ -1,5 +1,9 @@
 # Dependencies
 node_modules/
+backend/.venv/
+backend/.pytest_cache/
+backend/**/__pycache__/
+*.py[cod]
 
 # Build output
 dist/
@@ -15,6 +19,7 @@ config.local.*
 # Logs
 logs/
 *.log
+backend/*.db
 
 # macOS
 .DS_Store
