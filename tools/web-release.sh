@@ -282,6 +282,8 @@ validate_release_in_worktree() {
   local worktree
 
   require_command node
+  node --test "$ROOT_DIR/tests/web-release.test.js"
+
   worktree="$(mktemp -d "${TMPDIR:-/tmp}/knownmap-worktree.XXXXXX")"
   rmdir "$worktree"
   git -C "$ROOT_DIR" worktree add --quiet --detach "$worktree" "$commit"
@@ -289,7 +291,6 @@ validate_release_in_worktree() {
   if ! (
     cd "$worktree"
     node --test \
-      tests/web-release.test.js \
       tests/forsales-copy-audience.test.js \
       tests/sales-page-copy.test.js
   ); then
@@ -321,7 +322,7 @@ record_file_for_release() {
   [[ ! -e "$record_file" ]] || fail "release record already exists: $record_file"
   mkdir -p "$record_dir"
   jq \
-    --arg status "active" \
+    --arg status "verified" \
     --arg verifiedAt "$verified_at" \
     '.status = $status
       | .verifiedAt = $verifiedAt
@@ -532,6 +533,7 @@ list_releases() {
   ssh -o BatchMode=yes "$SSH_HOST" bash -s -- "$DEPLOY_ROOT" <<'REMOTE'
 set -euo pipefail
 deploy_root="$1"
+active_target="$(readlink -f "$deploy_root/current" 2>/dev/null || true)"
 if [[ ! -d "$deploy_root/releases" ]]; then
   echo "No tracked releases."
   exit 0
@@ -539,7 +541,15 @@ fi
 find "$deploy_root/releases" -mindepth 2 -maxdepth 2 -name release.json -print0 |
   sort -z |
   while IFS= read -r -d '' metadata; do
-    jq -r '[.releaseId, .status, .gitShortCommit, .deployedAt, (.previousReleaseId // "none")] | @tsv' "$metadata"
+    release_dir="$(dirname "$metadata")"
+    runtime_status="inactive"
+    if [[ "$active_target" == "$release_dir/public" ]]; then
+      runtime_status="active"
+    fi
+    jq -r \
+      --arg runtime_status "$runtime_status" \
+      '[.releaseId, $runtime_status, .gitShortCommit, .deployedAt, (.previousReleaseId // "none")] | @tsv' \
+      "$metadata"
   done
 REMOTE
 }
