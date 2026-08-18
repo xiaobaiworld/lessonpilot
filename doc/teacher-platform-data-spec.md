@@ -4,7 +4,7 @@
 
 更新时间：2026-08-18
 
-状态：当前数据设计；教师、教师会话和操作日志已实现验证
+状态：当前数据设计；教师、会话、工作空间、课程、单课节和操作日志已实现验证
 
 ## 1. 数据分层
 
@@ -85,6 +85,8 @@ output    = API response、PluginCourseConfig、插件本地存储
 | `updated_at` | UTC datetime | 是 | 服务端生成 | internal |
 
 当前每门课程只有一个课节；`sort_order` 为后续多课节保留。
+
+数据库将 `video_ref` 拆为 `platform` 和 `video_id` 两列，API 使用 `{platform, video_id}` 对象；两层映射由 `LessonPublic` schema 固定。
 
 ### 2.6 ScriptDraft
 

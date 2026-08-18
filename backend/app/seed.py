@@ -5,6 +5,7 @@ from app.db import create_database_engine, create_session_factory
 from app.models.teacher import Teacher
 from app.repositories.teacher_repository import add_teacher, get_teacher_by_login_name
 from app.services.auth_service import hash_password, normalize_login_name
+from app.services.course_service import ensure_teacher_workspace
 
 
 def seed_teacher_account(
@@ -30,6 +31,8 @@ def seed_teacher_account(
         teacher.password_hash = hash_password(password)
         teacher.display_name = display_name.strip()
         teacher.status = "active"
+    session.flush()
+    ensure_teacher_workspace(session, teacher)
     return teacher
 
 
