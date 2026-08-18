@@ -17,7 +17,8 @@ KnownMap 把老师已有的 B 站录播课变成可在原视频页面运行的�
 - 教师创建课程授权码；
 - 学生使用 KnownMap 提供的解压版 Chrome 插件下载课程；
 - 本地数据库和插件本地课程配置；
-- 公网部署作为后续阶段，不在当前实现范围。
+- 教师 API 和教师编辑器公网部署作为后续阶段，不在当前实现范围；
+- 销售页已经作为 `knownmap.com` 的生产首页发布。
 
 问答题只保存学生原始回答，并展示老师预设的参考反馈；第一阶段不评分、不调用 AI。
 
@@ -35,15 +36,41 @@ KnownMap 把老师已有的 B 站录播课变成可在原视频页面运行的�
 | --- | --- | --- |
 | `/teacher-web/` | 历史销售页和教师工作台原型 | 保留作视觉和历史入口 |
 | `/teacher-web/workspace.html` | 历史 1A 连接诊断页 | 保留作协议诊断参考 |
-| `/teacher-web/forsales.html` | 历史公网销售页 | 第一阶段已完成，当前不作为主开发入口 |
+| `/teacher-web/forsales.html` | 公网销售页 | 第一阶段已完成，也是 `knownmap.com` 当前生产首页 |
 | `/teacher-web/editor.html` | 当前教师工作台 | 本地开发主入口，已接入教师平台 API |
 
-第一阶段默认部署目标是 GitHub Pages。Pages 已于 2026-08-15 启用（source 为 GitHub Actions），`pages` 工作流已在 2026-08-16 成功发布，公网路径实测可访问：
+## Web 生产发布
 
-- [销售页](https://xiaobaiworld.github.io/lessonpilot/teacher-web/forsales.html)
-- [1A 连接诊断页](https://xiaobaiworld.github.io/lessonpilot/teacher-web/workspace.html)
+销售页生产地址是 [https://knownmap.com](https://knownmap.com)。生产服务器通过本机 SSH
+别名 `aliyun` 连接；公网只发布销售页白名单，不发布教师编辑器、后端、测试、文档、
+插件源码或仓库元数据。
 
-公网只发布这两个页面、它们加载的脚本和两个共享契约文件，`doc/` 与插件运行时代码不上公网，发布集在 `.github/workflows/pages.yml` 中以白名单方式列举（见 D-010）。实测 `/doc/` 与 `/src/` 均返回 404。站点根目录也返回 404，因为发布集不含首页文件；1B 迁移销售首页时一并处理。
+当用户说“发布到网站”或“发布到 Web 网站”时，使用统一入口：
+
+```bash
+tools/web-release.sh deploy <git-ref>
+```
+
+发布必须绑定已经推送到 GitHub 的精确 commit SHA。成功后会：
+
+- 在服务器创建不可变发布目录、`release.json` 和 `SHA256SUMS`；
+- 原子切换 `/var/www/knownmap/current`；
+- 追加服务器发布历史；
+- 创建 `web-prod/<release-id>` GitHub 标签；
+- 在 `deploy/releases/` 生成待提交的生产发布记录。
+
+查询和回滚：
+
+```bash
+tools/web-release.sh status
+tools/web-release.sh list
+tools/web-release.sh verify <release-id>
+tools/web-release.sh history
+tools/web-release.sh rollback <release-id>
+```
+
+完整规则见 [`doc/web-production-release-design.md`](doc/web-production-release-design.md)。
+GitHub Pages 工作流保留为第一阶段历史部署入口，不再代表 `knownmap.com` 当前生产版本。
 
 ## 本地运行
 
