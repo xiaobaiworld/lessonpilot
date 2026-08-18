@@ -3,7 +3,10 @@
   global.KnownMapApi = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis, function createKnownMapApi() {
-  const baseUrl = 'http://127.0.0.1:8000/api/v1';
+  const localHost = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+    ? 'localhost'
+    : '127.0.0.1';
+  const baseUrl = `http://${localHost}:8000/api/v1`;
 
   async function request(path, options = {}) {
     const response = await fetch(`${baseUrl}${path}`, {

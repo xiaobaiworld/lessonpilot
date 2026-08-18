@@ -66,12 +66,12 @@ API 文档位于 `http://127.0.0.1:8000/docs`，健康检查位于 `http://127.0
 ```bash
 cd /Users/bai/code/lessonpilot/backend
 SEED_TEACHER_LOGIN_NAME=teacher-test-01 \
-SEED_TEACHER_PASSWORD='replace-with-a-local-test-password' \
+SEED_TEACHER_PASSWORD=password \
 SEED_TEACHER_DISPLAY_NAME='测试教师' \
 uv run python -m app.seed
 ```
 
-测试密码只通过本地环境变量传入，不写入代码或日志。
+本地预建测试账号密码固定为 `password`，仍只通过 seed 环境变量传入，不预填到页面，也不写入日志。
 
 启动现有静态教师页面：
 

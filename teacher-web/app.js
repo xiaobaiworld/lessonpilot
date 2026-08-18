@@ -402,7 +402,9 @@
       await loadWorkspace();
       showWorkspace();
     } catch (reason) {
-      error.textContent = reason.message || '登录失败，请检查账号和密码。';
+      error.textContent = reason.code === 'AUTH_INVALID_CREDENTIALS'
+        ? '用户名或密码错误'
+        : (reason.message || '登录失败，请稍后重试');
       error.hidden = false;
       loginPassword.focus();
     } finally {

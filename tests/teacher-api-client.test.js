@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const test = require('node:test');
+const vm = require('node:vm');
 
 const api = require('../teacher-web/api-client.js');
 
@@ -25,6 +26,24 @@ test('teacher API client sends credentialed JSON requests to the local FastAPI s
     login_name: 'teacher-test-01',
     password: 'local-password'
   });
+});
+
+test('teacher API client keeps localhost pages and API cookies on the same host', async () => {
+  let capturedUrl;
+  const context = {
+    fetch: async (url) => {
+      capturedUrl = url;
+      return { ok: true, json: async () => ({}) };
+    },
+    window: {
+      location: { hostname: 'localhost' }
+    }
+  };
+  vm.runInNewContext(fs.readFileSync('teacher-web/api-client.js', 'utf8'), context);
+
+  await context.window.KnownMapApi.login('teacher-test-01', 'password');
+
+  assert.equal(capturedUrl, 'http://localhost:8000/api/v1/auth/login');
 });
 
 test('teacher API client exposes stable backend error codes to the workspace', async () => {
@@ -78,9 +97,13 @@ test('teacher editor loads auth, API, draft, publish and access-code controls', 
 test('teacher editor presents a production-like interactive course tool login', () => {
   const page = fs.readFileSync('teacher-web/editor.html', 'utf8');
   const app = fs.readFileSync('teacher-web/app.js', 'utf8');
+  const envExample = fs.readFileSync('backend/.env.example', 'utf8');
 
   assert.ok(page.includes('id="login-name" name="login_name" value="teacher-test-01"'));
   assert.ok(page.includes('KnownMap 互动课程工具'));
+  assert.ok(page.includes('<span>用户名</span>'));
+  assert.equal(page.includes('登录账号'), false);
+  assert.equal(page.includes('使用教师账号继续设计和发布课程。'), false);
   assert.ok(page.includes('id="login-password" name="password" type="password"'));
   assert.equal(/id="login-password"[^>]*\svalue=/.test(page), false);
   assert.ok(page.includes('id="toggle-password"'));
@@ -97,12 +120,16 @@ test('teacher editor presents a production-like interactive course tool login', 
   assert.ok(app.includes("loginPassword.type === 'password' ? 'text' : 'password'"));
   assert.ok(app.includes("loginButton.disabled = true"));
   assert.ok(app.includes("loginButton.disabled = false"));
+  assert.ok(app.includes("reason.code === 'AUTH_INVALID_CREDENTIALS'"));
+  assert.ok(app.includes("'用户名或密码错误'"));
   assert.ok(app.includes("window.scrollTo({ top: 0, behavior: 'auto' })"));
+  assert.ok(envExample.includes('SEED_TEACHER_PASSWORD=password'));
   assert.equal(page.includes('knownmap-local-2026'), false);
   assert.ok(app.includes('let captions = [];'));
   assert.equal(app.includes('Today we are going to talk about'), false);
   assert.ok(page.includes('styles.css?v=brand-lockup-1'));
-  assert.ok(page.includes('app.js?v=brand-lockup-1'));
+  assert.ok(page.includes('api-client.js?v=local-api-2'));
+  assert.ok(page.includes('app.js?v=login-copy-1'));
   assert.ok(page.includes('src="timeline-model.js?v=course-platform-3"'));
   assert.ok(page.includes('src="visual-node-editor.js?v=course-platform-3"'));
   assert.ok(app.includes('captions = [];'));

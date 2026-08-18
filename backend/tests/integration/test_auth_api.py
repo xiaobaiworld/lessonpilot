@@ -70,6 +70,7 @@ def test_invalid_login_is_rejected_without_revealing_account_existence() -> None
     assert wrong_password.json()["error"]["code"] == "AUTH_INVALID_CREDENTIALS"
     assert missing_account.json()["error"]["code"] == wrong_password.json()["error"]["code"]
     assert missing_account.json()["error"]["message"] == wrong_password.json()["error"]["message"]
+    assert wrong_password.json()["error"]["message"] == "用户名或密码错误"
 
 
 def test_disabled_teacher_cannot_login_and_attempt_is_logged() -> None:

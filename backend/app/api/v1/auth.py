@@ -70,7 +70,7 @@ def login(
         )
         db.commit()
         logger.warning("auth.login.failure", duration_ms=duration_ms)
-        raise ApiError(401, "AUTH_INVALID_CREDENTIALS", "登录名或密码错误。")
+        raise ApiError(401, "AUTH_INVALID_CREDENTIALS", "用户名或密码错误")
 
     raw_token, _ = create_teacher_session(
         db,

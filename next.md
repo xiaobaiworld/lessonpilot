@@ -13,6 +13,13 @@
 计划入口：`doc/teacher-platform-dev-plan.md`
 已完成体验计划：`doc/plans/teacher-platform-experience-polish.md`
 
+## 登录便捷性修正
+
+- [x] 本地预建测试账号 `teacher-test-01` 的密码统一为 `password`
+- [x] 删除登录页辅助说明，将“登录账号”改为“用户名”
+- [x] 错误用户名和错误密码统一显示“用户名或密码错误”
+- [x] `localhost` 页面使用 `localhost` API，避免 Cookie 主机名不一致导致登录后 401
+
 ## 当前步骤
 
 - [x] 读取全局规范、项目规则、历史决策和当前页面代码
