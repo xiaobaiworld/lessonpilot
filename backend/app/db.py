@@ -8,6 +8,7 @@ from sqlalchemy.pool import StaticPool
 
 from app.config import Settings
 from app.db_base import Base
+from app.models.access_code import AccessCode  # noqa: F401
 from app.models.course import Course  # noqa: F401
 from app.models.lesson import Lesson  # noqa: F401
 from app.models.operation_log import OperationLog  # noqa: F401

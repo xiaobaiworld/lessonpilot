@@ -4,7 +4,7 @@
 
 更新时间：2026-08-18
 
-状态：当前数据设计；教师、会话、工作空间、课程、单课节、脚本草稿、发布版本和操作日志已实现验证
+状态：当前数据设计；教师、会话、工作空间、课程、单课节、脚本草稿、发布版本、授权码和操作日志已实现验证
 
 ## 1. 数据分层
 
@@ -130,6 +130,9 @@ output    = API response、PluginCourseConfig、插件本地存储
 | `created_at` | UTC datetime | 是 | 服务端生成 | internal |
 
 当前没有 `revoked_at`、`expires_at`、`max_redemptions` 或学生关联字段。
+
+授权码格式为 `KM-XXXXX-XXXXX-XXXXX-XXXXX`，字符集为 Base32 大写字母和数字 2–7。
+查找时对规范化后的授权码计算 HMAC-SHA256；授权码原文不写数据库和日志。
 
 ### 2.9 OperationLog
 

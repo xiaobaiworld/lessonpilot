@@ -4,6 +4,13 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### 课程授权码与下载 — 2026-08-18
+
+- 新增课程授权码创建和公开课程下载 API；同一授权码始终返回课程最新发布版本。
+- 授权码使用高熵 Base32 格式，数据库只保存 HMAC-SHA256 摘要和末五位提示，原文仅在创建响应中返回一次。
+- 未发布课程不能创建授权码；畸形码和未知码统一返回 `INVALID_ACCESS_CODE`，接口不创建学生账号、领取记录或学习数据。
+- 验证：后端测试 36 pass、Node 插件回归 204 pass、Python `compileall` 通过、Alembic 空数据库迁移通过。
+
 ### 课程发布与插件配置 — 2026-08-18
 
 - 新增不可变 `published_scripts` 版本模型、迁移和课程发布 API；每次发布递增版本，不覆盖历史 JSON。
