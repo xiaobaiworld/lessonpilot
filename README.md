@@ -59,7 +59,7 @@ uv run uvicorn app.main:app --reload --port 8000
 
 API 文档位于 `http://127.0.0.1:8000/docs`，健康检查位于 `http://127.0.0.1:8000/health`。开发环境默认使用 DEBUG 级别和可读控制台日志；正常运行环境使用 INFO 级别和结构化 JSON 日志。业务操作摘要写入 SQLite 的 `operation_logs` 表。
 
-当前教师页面已作为“KnownMap 课程设计平台”接入本地 API 和可视化节点时间轴；插件下载和运行仍待后续节点。
+当前教师页面已作为“KnownMap 互动课程工具”接入本地 API 和可视化节点时间轴；插件下载和运行仍待后续节点。
 
 预建本地测试教师账号：
 
@@ -80,7 +80,7 @@ cd /Users/bai/code/lessonpilot
 python3 -m http.server 4173
 ```
 
-课程设计平台可以从 [http://localhost:4173/teacher-web/editor.html](http://localhost:4173/teacher-web/editor.html) 访问。不要把 `teacher-web/` 作为独立 server root，也不要另开第二个端口；资源和测试夹具均按仓库根目录解析。端口 4173 写入了插件来源白名单，换端口会使消息桥拒绝该页面。
+互动课程工具可以从 [http://localhost:4173/teacher-web/editor.html](http://localhost:4173/teacher-web/editor.html) 访问。不要把 `teacher-web/` 作为独立 server root，也不要另开第二个端口；资源和测试夹具均按仓库根目录解析。端口 4173 写入了插件来源白名单，换端口会使消息桥拒绝该页面。
 
 首次运行或拉取新代码后，先组装共享契约：
 

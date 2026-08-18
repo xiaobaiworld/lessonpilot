@@ -21,8 +21,10 @@
 | `doc/teacher-platform-dev-plan.md` | 当前阶段工作节点、文件范围、测试和提交门禁 | 当前计划入口；节点 7 可视化修正见独立计划 |
 | `doc/teacher-visual-node-editor-design.md` | 教师组件注册、横向时间轴、点击/拖放添加和字幕上下文设计 | 已实现并完成本地验证 |
 | `doc/plans/teacher-visual-node-editor.md` | 节点 7 可视化编辑器修正的任务、测试、日志和收口步骤 | 已完成 |
-| `doc/teacher-platform-experience-polish-design.md` | “KnownMap 课程设计平台”命名、登录、课程首页和编辑工作面体验校正 | 已实现并完成本地验证 |
+| `doc/teacher-platform-experience-polish-design.md` | “KnownMap 互动课程工具”命名、登录、课程首页和编辑工作面体验校正 | 已实现并完成本地验证 |
 | `doc/plans/teacher-platform-experience-polish.md` | 教师应用体验校正的测试、实现、浏览器验收和提交步骤 | 已完成 |
+| `doc/knownmap-brand-lockup-refinement-design.md` | Logo 内部留白、互动课程工具称呼和 K/M 字标配色 | 已实现并完成本地验证 |
+| `doc/plans/knownmap-brand-lockup-refinement.md` | 品牌组合标识修正的资源、页面、测试和验收步骤 | 已完成 |
 | `doc/requirements/stage-1a.md` | 公网路径、共享契约、插件存储和安全消息桥 | 历史原型阶段；代码已合并 |
 | `doc/requirements/stage-1b.md` | 销售首页、真实工作台、字幕和节点制作 | 历史原型阶段；部分已交付 |
 | `doc/requirements/stage-1c.md` | B 站运行时、四种节点和端到端预览 | 历史原型阶段；部分已交付 |

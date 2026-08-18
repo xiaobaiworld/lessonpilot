@@ -4,7 +4,7 @@
 
 更新时间：2026-08-18
 
-状态：实施中
+状态：已完成
 
 设计入口：`doc/knownmap-brand-lockup-refinement-design.md`
 
