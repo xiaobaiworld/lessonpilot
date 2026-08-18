@@ -10,6 +10,7 @@ from app.db import get_db
 from app.models.teacher import Teacher
 from app.schemas.course import CourseCreate, CourseDetail, CourseListResponse, CourseSummary
 from app.schemas.lesson import LessonCreate, LessonPublic
+from app.schemas.publish import PublishResponse
 from app.services.course_service import (
     LessonLimitReached,
     ResourceNotFound,
@@ -19,6 +20,7 @@ from app.services.course_service import (
     list_teacher_courses,
 )
 from app.services.operation_log_service import record_operation
+from app.services.publish_service import DraftNotReady, publish_teacher_course
 
 router = APIRouter(prefix="/api/v1/teacher/courses", tags=["teacher-courses"])
 
@@ -232,3 +234,68 @@ def create_course_lesson(
         duration_ms=duration_ms,
     )
     return LessonPublic.model_validate(lesson)
+
+
+@router.post("/{course_id}/publish", response_model=PublishResponse, status_code=status.HTTP_201_CREATED)
+def publish_course(
+    course_id: str,
+    request: Request,
+    teacher: Teacher = Depends(require_teacher),
+    db: Session = Depends(get_db),
+) -> PublishResponse:
+    started_at = perf_counter()
+    try:
+        published = publish_teacher_course(db, teacher, course_id=course_id)
+    except ResourceNotFound:
+        duration_ms = round((perf_counter() - started_at) * 1000)
+        write_operation(
+            db,
+            request,
+            teacher,
+            module="publish",
+            action="publish.course.failure",
+            result="failure",
+            duration_ms=duration_ms,
+            target_type="course",
+            target_id=course_id,
+            error_code="RESOURCE_NOT_FOUND",
+        )
+        db.commit()
+        raise ApiError(404, "RESOURCE_NOT_FOUND", "课程不存在或不可访问。") from None
+    except DraftNotReady:
+        duration_ms = round((perf_counter() - started_at) * 1000)
+        write_operation(
+            db,
+            request,
+            teacher,
+            module="publish",
+            action="publish.course.failure",
+            result="failure",
+            duration_ms=duration_ms,
+            target_type="course",
+            target_id=course_id,
+            error_code="DRAFT_NOT_READY",
+        )
+        db.commit()
+        raise ApiError(409, "DRAFT_NOT_READY", "课程还没有可发布的非空脚本草稿。") from None
+
+    duration_ms = round((perf_counter() - started_at) * 1000)
+    write_operation(
+        db,
+        request,
+        teacher,
+        module="publish",
+        action="publish.course.success",
+        result="success",
+        duration_ms=duration_ms,
+        target_type="course",
+        target_id=course_id,
+    )
+    db.commit()
+    return PublishResponse(
+        course_id=course_id,
+        lesson_id=published.lesson_id,
+        version=published.version,
+        published_at=published.published_at,
+        course=published.config_json,
+    )

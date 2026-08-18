@@ -4,7 +4,7 @@
 
 更新时间：2026-08-18
 
-状态：当前数据设计；教师、会话、工作空间、课程、单课节、脚本草稿和操作日志已实现验证
+状态：当前数据设计；教师、会话、工作空间、课程、单课节、脚本草稿、发布版本和操作日志已实现验证
 
 ## 1. 数据分层
 
@@ -115,6 +115,9 @@ output    = API response、PluginCourseConfig、插件本地存储
 | `published_by` | UUID | 是 | 当前教师 ID | internal |
 
 草稿修改不得覆盖已发布 JSON。插件下载只读取最新已发布版本。
+
+发布时由 adapter 生成并再次校验 `PluginCourseConfig`，其中 `courseId` 从平台和 BVID
+派生，`updatedAt` 固定为 UTC 毫秒格式。每次发布新增一行，不覆盖旧版本。
 
 ### 2.8 AccessCode
 

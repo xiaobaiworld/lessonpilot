@@ -4,6 +4,13 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### 课程发布与插件配置 — 2026-08-18
+
+- 新增不可变 `published_scripts` 版本模型、迁移和课程发布 API；每次发布递增版本，不覆盖历史 JSON。
+- 新增 `PluginCourseConfig` adapter，从课节 BVID 派生 `courseId`，输出插件契约要求的 camelCase 字段和 UTC 毫秒时间。
+- 无课节、无草稿或空草稿统一返回 `DRAFT_NOT_READY`；其他教师发布统一返回 `RESOURCE_NOT_FOUND`。
+- 验证：后端测试 31 pass、Node 插件回归 204 pass、Python `compileall` 通过、Alembic 空数据库迁移通过。
+
 ### 教师脚本草稿 — 2026-08-18
 
 - 新增四种严格脚本节点 schema：`notice`、`choice`、`blank`、`free_text`；拒绝未知字段、空文案、重复节点 ID、乱序节点和错误答案引用。
