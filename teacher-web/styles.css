@@ -1753,6 +1753,13 @@ a.brand {
   gap: 18px;
 }
 
+.auth-panel .auth-test-note {
+  margin: -6px 0 0;
+  color: var(--ink-soft);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
 .auth-panel .dark-button {
   justify-self: start;
   margin-top: 4px;

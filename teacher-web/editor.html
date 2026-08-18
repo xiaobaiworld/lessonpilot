@@ -6,7 +6,7 @@
     <meta name="description" content="KnownMap Studio · 字幕驱动课堂设计原型">
     <title>课堂设计原型 · KnownMap Studio</title>
     <link rel="icon" type="image/png" href="assets/knownmap-icon.png">
-    <link rel="stylesheet" href="styles.css?v=visual-node-5">
+    <link rel="stylesheet" href="styles.css?v=visual-node-6">
   </head>
   <body>
     <div class="app-shell">
@@ -33,8 +33,9 @@
             <h1 id="auth-title">登录教师工作台。</h1>
             <p>使用预建的开发测试账号进入本地课程发布工作台。</p>
             <form id="login-form">
-              <label class="field-group"><span>开发账号</span><input id="login-name" name="login_name" autocomplete="username" required></label>
-              <label class="field-group"><span>密码</span><input id="login-password" name="password" type="password" autocomplete="current-password" required></label>
+              <label class="field-group"><span>开发账号</span><input id="login-name" name="login_name" value="teacher-test-01" autocomplete="username" required></label>
+              <label class="field-group"><span>密码</span><input id="login-password" name="password" type="password" value="knownmap-local-2026" autocomplete="current-password" required></label>
+              <p class="auth-test-note">仅限本地开发测试，请勿用于公网或正式账号。</p>
               <button class="dark-button" type="submit">登录工作台 <span>→</span></button>
             </form>
             <p class="field-error" id="login-error" hidden></p>

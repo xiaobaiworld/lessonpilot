@@ -74,3 +74,10 @@ test('teacher editor loads auth, API, draft, publish and access-code controls', 
   assert.equal(page.includes('id="caption-list"'), false);
   assert.equal(page.includes('class="event-options"'), false);
 });
+
+test('teacher editor pre-fills the public local development account', () => {
+  const page = fs.readFileSync('teacher-web/editor.html', 'utf8');
+
+  assert.ok(page.includes('id="login-name" name="login_name" value="teacher-test-01"'));
+  assert.ok(page.includes('id="login-password" name="password" type="password" value="knownmap-local-2026"'));
+});
