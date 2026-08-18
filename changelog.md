@@ -4,6 +4,13 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### 教师脚本草稿 — 2026-08-18
+
+- 新增四种严格脚本节点 schema：`notice`、`choice`、`blank`、`free_text`；拒绝未知字段、空文案、重复节点 ID、乱序节点和错误答案引用。
+- 新增 `script_drafts` 持久化模型、迁移以及按课节替换保存/读取草稿 API。
+- 草稿 API 按教师资源归属隔离，草稿保存不创建或覆盖已发布版本；保存、读取和失败动作进入操作日志。
+- 真实本地验证通过：后端测试 25 pass、Python `compileall` 通过、Alembic 空数据库迁移创建 `script_drafts` 成功。
+
 ### 教师课程与单课节 — 2026-08-18
 
 - 新增每位预建教师唯一工作空间，以及课程、单课节和 B 站视频绑定数据模型与迁移。

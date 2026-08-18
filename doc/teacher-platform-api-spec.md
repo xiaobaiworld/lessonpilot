@@ -4,7 +4,7 @@
 
 更新时间：2026-08-18
 
-状态：当前 API 设计；健康检查、教师认证、课程和单课节端点已实现验证
+状态：当前 API 设计；健康检查、教师认证、课程、单课节和脚本草稿端点已实现验证
 
 ## 1. 通用约定
 
@@ -173,6 +173,12 @@ Base path：
 - JSON 通过服务端 schema；
 - 草稿写入成功；
 - 已发布版本不改变。
+
+### `GET /teacher/lessons/{lesson_id}/draft`
+
+返回当前教师可访问课节的最新脚本草稿。没有草稿时返回 `DRAFT_NOT_FOUND`。
+
+响应包含 `schema_version`、`config`、`lesson_id`、`node_count` 和 `updated_at`；不返回数据库内部字段。
 
 ## 5. 授权码端点
 

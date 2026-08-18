@@ -36,6 +36,11 @@ class Lesson(Base):
     )
 
     course: Mapped["Course"] = relationship(back_populates="lesson")
+    script_draft: Mapped["ScriptDraft | None"] = relationship(
+        back_populates="lesson",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
 
     @property
     def video_ref(self) -> dict[str, str]:

@@ -4,7 +4,7 @@
 
 更新时间：2026-08-18
 
-状态：当前数据设计；教师、会话、工作空间、课程、单课节和操作日志已实现验证
+状态：当前数据设计；教师、会话、工作空间、课程、单课节、脚本草稿和操作日志已实现验证
 
 ## 1. 数据分层
 
@@ -99,6 +99,9 @@ output    = API response、PluginCourseConfig、插件本地存储
 | `updated_at` | UTC datetime | 是 | 服务端生成 | internal |
 
 `config_json` 保存工作台需要的课节和节点结构，不作为插件最终输出。
+
+草稿节点当前支持 `attention + notice`、`practice + choice`、`practice + blank` 和
+`followup + free_text` 四种严格组合；节点 ID 唯一，并按 `timeSeconds`、ID 升序保存。
 
 ### 2.7 PublishedScript
 
