@@ -1,15 +1,15 @@
-# LessonPilot 第一阶段开发计划
+# KnownMap 第一阶段开发计划
 
 版本：2.0
 
-更新时间：2026-08-15
-状态：待实施
+更新时间：2026-08-18
+状态：实施中（1A 收尾，1B 部分交付）
 
 ## 1. 计划目标
 
 本计划只服务于第一阶段真实验证闭环：老师从公网销售页进入真实工作台，使用一条 B 站视频和对应字幕制作四种互动节点，将课程保存到本机插件，并在 B 站原页面完成预览。
 
-本计划不负责证明完整商业模式，也不要求无人协助。字幕获取、插件安装、首次配置和测试过程可以由 LessonPilot 提供者协助。
+本计划不负责证明完整商业模式，也不要求无人协助。字幕获取、插件安装、首次配置和测试过程可以由 KnownMap 提供者协助。
 
 开始编码前依次阅读：
 
@@ -26,8 +26,8 @@
 
 | 阶段 | 可独立验收结果 | 详细计划 | 状态 |
 | --- | --- | --- | --- |
-| 1A | 公网 origin、共享数据契约、插件存储和消息桥可真实连通 | `doc/requirements/stage-1a.md` / `doc/plans/stage-1a-contract-bridge-deploy.md` | 代码完成，人工验证待执行 |
-| 1B | 默认销售首页和真实工作台可用，老师能保存一门课程 | `doc/requirements/stage-1b.md` / `doc/plans/stage-1b-sales-workspace.md` | 未开始 |
+| 1A | 公网 origin、共享数据契约、插件存储和消息桥可真实连通 | `doc/requirements/stage-1a.md` / `doc/plans/stage-1a-contract-bridge-deploy.md` | 代码已合并，公网路径已验证，真实 Chrome 人工验证待执行 |
+| 1B | 默认销售首页和真实工作台可用，老师能保存一门课程 | `doc/requirements/stage-1b.md` / `doc/plans/stage-1b-sales-workspace.md` | 销售页与试用入口修订已交付（`doc/plans/stage-1b-sales-page-revision.md`）；工作台未开始 |
 | 1C | 四种节点在目标 B 站视频上完成端到端预览 | `doc/requirements/stage-1c.md` / `doc/plans/stage-1c-runtime-e2e.md` | 未开始 |
 
 顺序默认不可颠倒。1B 依赖 1A 的数据契约与桥；1C 依赖 1A 的存储与消息、1B 产生的真实配置。
@@ -47,7 +47,7 @@
 
 ### 1A 完成门禁
 
-- GitHub Pages 实际可访问，或 D-007 已按真实证据重开并确定替代 origin；
+- GitHub Pages 实际可访问，或 D-007 已按真实证据重开并确定替代 origin（已满足：2026-08-16 首次发布成功，公网路径 2026-08-18 实测可访问）；
 - 页面到插件的连接、保存、读取、清除、预览会话操作都经过双向 schema 校验；
 - 来源、路径、协议版本或载荷错误均失败关闭；
 - `chrome.storage.local` 中只有一门当前课程和一份当前预览会话；

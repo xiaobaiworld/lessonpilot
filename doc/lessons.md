@@ -1,4 +1,4 @@
-# Lessons — LessonPilot
+# Lessons — KnownMap
 
 Version: 0.5
 Last updated: 2026-08-14
@@ -167,7 +167,7 @@ The durable preparation is isolating Bilibili selectors behind a player adapter.
 
 ## 2026-08-11 — Small-B-First B2B2C, Not a Consumer Extension
 
-LessonPilot may share a browser-extension shape with consumer products, but the business model is different:
+KnownMap may share a browser-extension shape with consumer products, but the business model is different:
 
 - The teacher buys, configures, distributes, and delivers the course.
 - The learner uses the runtime but is not the primary acquisition target.
@@ -194,7 +194,7 @@ The local HTML5 proof needs no upload, backend, or hosting cost: the browser can
 
 ## 2026-08-12 — Match the Interface to the Role, Not the Competitor's Market
 
-Edpuzzle and Nearpod clarify that video can become a lesson, but their K-12 procurement and classroom-demo aesthetics do not match LessonPilot's first buyer. The teacher needs a compact operational workspace that says what course needs attention next; the learner needs a quiet one-course delivery surface that says what to watch and answer next.
+Edpuzzle and Nearpod clarify that video can become a lesson, but their K-12 procurement and classroom-demo aesthetics do not match KnownMap's first buyer. The teacher needs a compact operational workspace that says what course needs attention next; the learner needs a quiet one-course delivery surface that says what to watch and answer next.
 
 Provider and compatibility evidence is useful during validation, but it becomes cognitive noise when shown to a learner. Keep that evidence in an explicit tester-only area rather than turning the student page into a platform-choice screen.
 

@@ -82,14 +82,11 @@ textarea:focus-visible {
 }
 
 .brand-mark {
-  display: grid;
+  display: block;
   width: 42px;
   height: 42px;
-  place-items: center;
-  background: var(--ink);
-  color: var(--paper-bright);
-  font-size: 14px;
-  font-weight: 700;
+  object-fit: contain;
+  border-radius: 50%;
 }
 
 .brand strong,

@@ -31,9 +31,9 @@ const runtime = (() => {
 
 const allCopy = `${visible}\n${runtime}`;
 
-test('身份统一为 LessonPilot 开发者，不用未定义的「我们」', () => {
-  // 「LessonPilot 开发者」和「LessonPilot 的开发者」都算：锁的是身份，不是措辞。
-  assert.match(visible, /LessonPilot 的?开发者/);
+test('身份统一为 KnownMap 开发者，不用未定义的「我们」', () => {
+  // 「KnownMap 开发者」和「KnownMap 的开发者」都算：锁的是身份，不是措辞。
+  assert.match(visible, /KnownMap 的?开发者/);
   // 「发给我们」是 D-012 点名要去掉的表达：接收人没有定义。
   assert.ok(!allCopy.includes('发给我们'), 'D-012 点名禁止「发给我们」');
   assert.ok(!allCopy.includes('我们会联系你'), '接收人必须是开发者本人');
@@ -146,7 +146,7 @@ test('首屏自成一体，含身份、承诺、目标视频与协助说明', ()
   assert.ok(start > -1 && end > start);
   const hero = page.slice(start, end).replace(/<[^>]+>/g, ' ');
   for (const k of [
-    '让用心抵达，让理解更深。', 'LessonPilot 的开发者',
+    '让用心抵达，让理解更深。', 'KnownMap 的开发者',
     '真实、可运行的智能互动课', '愿意上传到 B 站',
     '协助你准备相关资源', '免费使用的学生端工具', '亲自使用工作台'
   ]) {

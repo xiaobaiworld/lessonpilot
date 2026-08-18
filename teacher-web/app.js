@@ -44,7 +44,7 @@
     const timeline = route === 'timeline'; homeView.hidden = timeline; timelineView.hidden = !timeline;
     document.querySelectorAll('[data-route]').forEach((button) => button.classList.toggle('is-active', button.dataset.route === route));
     window.history.replaceState(null, '', timeline ? '#timeline' : '#home');
-    document.title = timeline ? '课堂设计 · LessonPilot Studio' : 'LessonPilot Studio · 我的课程'; window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.title = timeline ? '课堂设计 · KnownMap Studio' : 'KnownMap Studio · 我的课程'; window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   // Caption text and event labels come from a teacher-provided file, so every
   // string is written with textContent. See doc/node-content-standard.md.

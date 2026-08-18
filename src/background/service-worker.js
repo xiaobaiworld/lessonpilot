@@ -37,7 +37,7 @@ importScripts(
    * answers or browsing history. Node count is a number, never the nodes.
    */
   function logOperation(request, response) {
-    console.debug('[LessonPilot] bridge', {
+    console.debug('[KnownMap] bridge', {
       operation: request.type,
       requestId: request.requestId,
       courseId: request.payload?.course?.courseId

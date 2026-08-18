@@ -3,7 +3,7 @@
 > 研究日期：2026-08-12\
 > 样本：SaaSworthy Digital Learning Platforms 分类。当前页面显示 40
 > 个产品。该分类混合互动课堂、内容创作、学科训练、学习平台、学校基础设施和企业培训，因此本文按与
-> LessonPilot 的业务相关性重新分类。
+> KnownMap 的业务相关性重新分类。
 
 ## 1. 执行结论
 
@@ -15,10 +15,10 @@
 3.  AI 自动出题很难成为壁垒。Edpuzzle 已把 Question Generator 和
     Autograding 放进 Teacher Assist。
 4.  AI 定价已有两条路线：AI 作为订阅功能；订阅 + AI Credits。Mexty 对
-    LessonPilot 最有参考价值。
+    KnownMap 最有参考价值。
 5.  学校市场大量采用询价制。SaaSworthy 当前分类统计：18 个 Quotation
     Based、11 个 Subscription、11 个 Freemium；基础套餐平均约 \$10/月。
-6.  LessonPilot 更值得验证的差异：
+6.  KnownMap 更值得验证的差异：
     -   原视频仍留在 YouTube/Bilibili 等原平台；
     -   AI 在学生观看时继续提问、追问、解释、回放和反馈；
     -   Creator 的教学方法被编码成 Interaction Package，由 Runtime
@@ -67,9 +67,9 @@ Control、Reusable Libraries、SCORM Export、LMS Integration。
 **收费逻辑：**
 `Subscription + Included AI Credits + Usage-based Extra Credits`
 
-**LessonPilot 相关性：★★★★★**
+**KnownMap 相关性：★★★★★**
 
-结论：Mexty 已经证明"AI 自动设计互动课程"不能单独构成 LessonPilot
+结论：Mexty 已经证明"AI 自动设计互动课程"不能单独构成 KnownMap
 的核心差异，同时验证 Creator Studio 可以采用固定订阅 + AI Credits。
 
 ### 3.2 Edpuzzle
@@ -100,9 +100,9 @@ Assist、AI Question Generator、Autograding。
 
 **AI 收费：** AI 没有独立 token/credit 价格，主要作为套餐能力。
 
-**LessonPilot 相关性：★★★★★**
+**KnownMap 相关性：★★★★★**
 
-结论：如果 LessonPilot 只是"视频 + AI 出题"，差异不足。更强的方向是 AI
+结论：如果 KnownMap 只是"视频 + AI 出题"，差异不足。更强的方向是 AI
 在 Runtime 中根据学生回答继续教学。
 
 ### 3.3 Pear Deck
@@ -140,7 +140,7 @@ Assessment、Real-time Analytics、Messaging、Personalized Feedback。
 
 **相关性：★★★★★（架构）**
 
-它验证了 Authoring 与 Runtime/Delivery 分离。LessonPilot 的
+它验证了 Authoring 与 Runtime/Delivery 分离。KnownMap 的
 `Creator Studio → Interaction Package → Extension/App/Player Runtime`
 属于同类架构思想。后续必须继续研究 SoftChalk、H5P、SCORM、xAPI。
 
@@ -214,7 +214,7 @@ retention、student-level customization、rostering、live
 progress、benchmarking 等。
 
 **这一组的共同启示：**
-越是"必须做才能学会"的技能，普通视频的缺口越明显，LessonPilot
+越是"必须做才能学会"的技能，普通视频的缺口越明显，KnownMap
 的互动层价值越高。
 
 ## 6. 内容与学科平台
@@ -250,7 +250,7 @@ K-12 SSO / roster / education infrastructure。
 ### Certfy
 
 Digital Certificate generation。SaaSworthy 显示起价 \$880，并有 Free
-Plan。与 LessonPilot 核心关系低。
+Plan。与 KnownMap 核心关系低。
 
 ### Confetti
 
@@ -304,7 +304,7 @@ Pricing。
   Education
   -------------------------------------------------------------------------------
 
-## 10. 对 LessonPilot 定价的直接启示
+## 10. 对 KnownMap 定价的直接启示
 
 ### Creator Studio 价格带
 
@@ -322,7 +322,7 @@ Pricing。
 
 ### Runtime AI 会改变成本函数
 
-Edpuzzle 的 AI 大量发生在制作阶段。LessonPilot 如果实现：
+Edpuzzle 的 AI 大量发生在制作阶段。KnownMap 如果实现：
 
 `学生回答 → AI理解 → AI追问 → AI解释 → AI决定回放 → 再测试`
 
@@ -357,7 +357,7 @@ Teaching Sessions - AI Teaching Minutes - Monthly Learner Interactions
 -   Student analytics
 -   Video 内插入问题
 
-## 12. LessonPilot 当前仍值得验证的空白
+## 12. KnownMap 当前仍值得验证的空白
 
 ### A. Existing-video-native
 
@@ -400,7 +400,7 @@ Naturally、MindTap、SplashLearn、Kairos、uExcelerate、Certfy、Confetti、C
 
 `Teacher creates once → AI learns teaching design → Video stays on original platform → Every learner gets interaction/practice/feedback → Teacher sees what students understood`
 
-如果这个能力成立，LessonPilot 与"视频插题""AI lesson generator""互动
+如果这个能力成立，KnownMap 与"视频插题""AI lesson generator""互动
 Slides"之间才会形成更明显的产品边界。
 
 ## 15. 数据质量说明
@@ -409,7 +409,7 @@ Slides"之间才会形成更明显的产品边界。
     个，榜单会动态变化。
 -   部分价格记录较旧，例如 Pear Deck、Clever，因此只用于理解计价结构。
 -   没有可靠公开价格的产品均标为 Custom/未公开，没有推测价格。
--   "相关性、优先级、LessonPilot 启示"属于本项目商业分析，不属于
+-   "相关性、优先级、KnownMap 启示"属于本项目商业分析，不属于
     SaaSworthy 原始评价。
 
 ## 16. 主要来源

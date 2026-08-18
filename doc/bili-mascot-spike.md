@@ -5,7 +5,7 @@ Last updated: 2026-08-07
 
 ## 1. 目标
 
-验证 LessonPilot 在 B 站视频页通过 Content Script 控制播放/暂停，并用 2D 小人作为可见交互入口。
+验证 KnownMap 在 B 站视频页通过 Content Script 控制播放/暂停，并用 2D 小人作为可见交互入口。
 
 本 spike 不追求完整产品功能，只验证：
 
@@ -33,10 +33,10 @@ Last updated: 2026-08-07
 | 项目 | 相关能力 | 可借鉴点 | 局限 |
 | --- | --- | --- | --- |
 | [PixelPals](https://github.com/Relja92/PixelPals) | 像素宠物、监听 video play 事件、requestAnimationFrame 动画 | **video 事件驱动角色行为**、content script 注入 overlay、GIF 状态机 | 通用全站宠物，不控制 video |
-| [Umaruify](https://github.com/LakshmanTurlapati/Umaruify) | Live2D + PixiJS 键盘/鼠标互动 | 模块化 content script、overlay 容器隔离 | Live2D 资源重，不适合 LessonPilot 首版 |
+| [Umaruify](https://github.com/LakshmanTurlapati/Umaruify) | Live2D + PixiJS 键盘/鼠标互动 | 模块化 content script、overlay 容器隔离 | Live2D 资源重，不适合 KnownMap 首版 |
 | [universal-pip-player](https://github.com/Prasann62/universal-pip-player) | Document PiP + 播放控制 UI | 播放状态与 UI 双向同步 | PiP 为主，不是页面内角色 |
 
-**结论：** PixelPals 的「监听 video 事件 → 切换角色状态」模式最适合 LessonPilot；首版用 Canvas/CSS 轻量 2D，避免 Live2D 依赖。
+**结论：** PixelPals 的「监听 video 事件 → 切换角色状态」模式最适合 KnownMap；首版用 Canvas/CSS 轻量 2D，避免 Live2D 依赖。
 
 ## 3. 技术方案
 
@@ -97,7 +97,7 @@ B 站页面可能存在多个 `<video>`（推荐预览、广告等）。优先�
 | 小人遮挡视频控件 | 默认右下角，可拖拽；`z-index` 低于 B 站弹层 |
 | SPA 切 P / 切视频 | 监听 URL 变化或 `MutationObserver` 重新 bind（Phase 1 后续） |
 
-## 4. 与 LessonPilot 路线图的关系
+## 4. 与 KnownMap 路线图的关系
 
 - **本 spike：** 验证 design.md 中「Read or control the video element when feasible」
 - **Phase 1：** 在同样 content script 入口旁注入侧栏，小人可作为品牌/IP 触点保留

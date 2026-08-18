@@ -3,17 +3,17 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="LessonPilot Studio · 字幕驱动课堂设计原型">
-    <title>课堂设计原型 · LessonPilot Studio</title>
-    <link rel="icon" href="data:,">
+    <meta name="description" content="KnownMap Studio · 字幕驱动课堂设计原型">
+    <title>课堂设计原型 · KnownMap Studio</title>
+    <link rel="icon" type="image/png" href="assets/knownmap-icon.png">
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
     <div class="app-shell">
       <header class="topbar">
         <a class="brand" href="./" aria-label="返回销售示例图">
-          <span class="brand-mark">LP</span>
-          <span><strong>LessonPilot Studio</strong><small>功能原型 · 字幕导入与动作编辑</small></span>
+          <img class="brand-mark" src="assets/knownmap-icon.png" alt="">
+          <span><strong>KnownMap Studio</strong><small>功能原型 · 字幕导入与动作编辑</small></span>
         </a>
         <nav class="topnav" aria-label="主导航">
           <button class="nav-link" type="button" data-route="timeline">设计课堂</button>
@@ -25,7 +25,7 @@
         <section id="home-view" class="view workspace-home" aria-labelledby="home-title">
           <div class="dashboard-head design-home-head">
             <div>
-              <p class="eyebrow">LessonPilot Studio / 课堂设计</p>
+              <p class="eyebrow">KnownMap Studio / 课堂设计</p>
               <h1 id="home-title">沿着字幕，设计学生真正需要的课堂动作。</h1>
               <p class="lead">把教学判断放在具体一句话上：这里要不要提醒？要不要补充？还是让学生先练一次？</p>
             </div>
@@ -69,7 +69,7 @@
               <div class="caption-list" id="caption-list" role="listbox" aria-label="字幕段落列表"></div>
             </div>
             <aside class="event-panel" aria-labelledby="event-title">
-              <div class="copilot-card"><div class="copilot-heading"><span class="copilot-spark">✦</span><div><strong>LessonPilot AI</strong><small>课堂设计副驾驶</small></div><span class="copilot-live">分析中</span></div><p>我发现这一句适合先暂停，再让学生把结构迁移到自己的经历。</p><div class="copilot-reason"><span>建议原因</span><strong>这是本段的知识点转折</strong></div><div class="copilot-actions"><button class="text-button" id="ignore-suggestion" type="button">忽略</button><button class="dark-button" id="accept-suggestion" type="button">采纳建议</button></div></div>
+              <div class="copilot-card"><div class="copilot-heading"><span class="copilot-spark">✦</span><div><strong>KnownMap AI</strong><small>课堂设计副驾驶</small></div><span class="copilot-live">分析中</span></div><p>我发现这一句适合先暂停，再让学生把结构迁移到自己的经历。</p><div class="copilot-reason"><span>建议原因</span><strong>这是本段的知识点转折</strong></div><div class="copilot-actions"><button class="text-button" id="ignore-suggestion" type="button">忽略</button><button class="dark-button" id="accept-suggestion" type="button">采纳建议</button></div></div>
               <div class="event-panel-head"><span class="eyebrow">当前字幕 · 00:35</span><h2 id="event-title">课堂设计</h2><p id="selected-caption">“A strong answer needs a specific example.”</p><small class="design-hint">告诉 AI 你希望学生在这里获得什么，剩下的交给它生成。</small></div>
               <div class="event-options">
                 <button class="event-option event-option-attention" type="button" data-event="attention"><span class="option-icon">✦</span><span><strong>注意力爆发</strong><small>让重点词闪出来，帮学生重新集中。</small></span><b>→</b></button>

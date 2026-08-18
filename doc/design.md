@@ -1,4 +1,4 @@
-# Design — LessonPilot
+# Design — KnownMap
 
 > 文档状态（2026-08-15）：部分已替代，仅作旧整体架构和历史数据契约参考。第一阶段当前行为以 `doc/requirements.md`、`doc/data-spec.md` 和 `doc/stage-one-validation-loop-design.md` 为准；本文中的 D0/D1、固定视频和页面职责不是当前实施指令。
 

@@ -1,6 +1,6 @@
-# LessonPilot 文档索引
+# KnownMap 文档索引
 
-最近审计：2026-08-15
+最近审计：2026-08-18
 
 当前阶段：第一阶段真实验证闭环。其它 Agent 开始工作时，先读本文件，再按“当前权威”顺序阅读。
 
@@ -12,14 +12,16 @@
 | `doc/requirements.md` | 第一阶段总目标、共同边界和阶段导航 | 当前需求总入口 |
 | `doc/AI_Learning_Companion_Product_Function_Spec_v0.2.md` | 教师中心平台化产品功能、授权码下载/更新语义和验收方向 | 已确认产品规格；尚未代表实现 |
 | `doc/decisions/2026-08-18-teacher-centered-product-v0.2.md` | v0.2 教师账号、工作空间、本地课程和授权码决策过程 | 已接受；尚待实现验证 |
-| `doc/requirements/stage-1a.md` | 公网路径、共享契约、插件存储和安全消息桥 | 当前实施需求权威 |
-| `doc/requirements/stage-1b.md` | 销售首页、真实工作台、字幕和节点制作 | 已确认；等待 1A |
+| `doc/requirements/stage-1a.md` | 公网路径、共享契约、插件存储和安全消息桥 | 当前实施需求权威；代码已合并，人工验证收尾中 |
+| `doc/requirements/stage-1b.md` | 销售首页、真实工作台、字幕和节点制作 | 已确认；销售页部分已交付，工作台等待 1A 收口 |
 | `doc/requirements/stage-1c.md` | B 站运行时、四种节点和端到端预览 | 已确认；等待 1A/1B |
 | `doc/data-spec.md` | 数据结构、消息协议和本地存储 | 当前数据权威 |
 | `doc/stage-one-validation-loop-design.md` | 第一阶段设计、架构与理由 | 已确认设计 |
 | `doc/DECISIONS.md` | 方案比较、假设、重开条件和替代关系 | 当前决策权威 |
 | `doc/dev-plan.md` | 三个实施计划的顺序和门禁 | 当前计划入口 |
 | `next.md` | 唯一当前执行步骤 | 当前任务权威 |
+| `docs/superpowers/specs/2026-08-18-knownmap-brand-update-design.md` | KnownMap 名称、域名、Logo 几何、颜色和迁移边界 | 当前品牌设计权威 |
+| `docs/superpowers/plans/2026-08-18-knownmap-brand-update.md` | KnownMap 品牌资源、页面、文档和验证实施计划 | 当前品牌实施计划 |
 
 解释冲突时按：当前阶段需求 -> 需求总览 -> 数据规范 -> 已确认设计 -> 内容/窗口标准 -> 计划。计划不得覆盖需求。
 
@@ -41,11 +43,12 @@
 
 | 文档 | 可独立验收结果 | 前置 |
 | --- | --- | --- |
-| `doc/plans/stage-1a-contract-bridge-deploy.md` | 数据契约、存储、消息桥和公网部署可验证 | 当前需求/数据规范 |
-| `tests/manual/stage-1a-bridge/README.md` | 1A 真实 Chrome 与公网人工验证记录 | 待执行；1A 完成门禁 |
-| `doc/plans/stage-1b-sales-page-revision.md` | 销售页私信 CTA、飞书表单和真实试用承诺 | 1B 销售入口修订，可先于工作台 UI |
-| `doc/plans/stage-1b-sales-workspace.md` | 默认销售首页和真实教师工作台可保存课程 | 1A |
-| `doc/plans/stage-1c-runtime-e2e.md` | 四种节点在真实 B 站完成端到端预览 | 1A、1B |
+| `doc/plans/stage-1a-contract-bridge-deploy.md` | 数据契约、存储、消息桥和公网部署可验证 | 已实施；公网发布已验证 |
+| `tests/manual/stage-1a-bridge/README.md` | 1A 真实 Chrome 与公网人工验证记录 | V1 与 V7 发布/路径已通过；V2–V6 待执行，是 1A 完成门禁 |
+| `doc/plans/stage-1b-sales-page-revision.md` | 销售页私信 CTA、飞书表单和真实试用承诺 | 已交付（飞书表单入口未实现，等真实 URL） |
+| `tests/manual/sales-page-revision-20260816.md` | 销售页修订的自动化与浏览器验证记录 | 剩剪贴板与 CTA 两项待本机确认 |
+| `doc/plans/stage-1b-sales-workspace.md` | 默认销售首页和真实教师工作台可保存课程 | 未开始；依赖 1A 收口 |
+| `doc/plans/stage-1c-runtime-e2e.md` | 四种节点在真实 B 站完成端到端预览 | 未开始；依赖 1A、1B |
 
 ## 未来或已部分替代
 
@@ -59,7 +62,7 @@
 | `doc/multi-creator-platform.md` | 多创作者、授权、计费预案 | 远期预案 |
 | `doc/promo-video.md` | 完整产品推广视频脚本 | 第二阶段以后 |
 | `doc/Digital_Learning_Platforms_竞争情报与定价研究_v0.1.md` | 竞品与定价研究 | 研究资料 |
-| `LessonPilot_Creator_Studio_设计建议_v0.1.md` | 早期设计建议 | 历史参考 |
+| `LessonPilot_Creator_Studio_设计建议_v0.1.md` | 旧文件名保留的早期设计建议 | 历史参考；品牌已由 D-014 替代 |
 
 ## 完整历史归档
 
@@ -92,7 +95,18 @@
 - 每个计划步骤完成后更新 `next.md`、相关权威文档和 changelog；
 - 大阶段收口时重新检查长度、重复、孤立文档、失效链接和权威状态，并更新本页审计日期。
 
-## 本次健康审计
+## 2026-08-18 事实同步
+
+本轮只校正文档与已合并代码、已发布公网之间的漂移，不新增文档、不改产品代码：
+
+- 自动化测试数由 135 更新为 200（`node --test tests/*.test.js` 实测 200 pass / 0 fail）；
+- PR #1 已于 2026-08-15 合并，`next.md` 里「等你确认后再合并」和「合并后才能验证公网」的前置条件均已解除；
+- `pages` 工作流 2026-08-16 首次发布成功；实测销售页、工作台页和两个共享契约返回 200，`/doc/`、`/src/` 返回 404，站点根返回 404；
+- 1A 人工验证记录的扩展版本由 0.7.0 更正为 0.8.0，分支由 `stage-1a-contract-bridge-deploy` 更正为 `main`，V7 的发布与路径部分填入实测结果；
+- 发布集实际为 8 个文件（销售页及其两个脚本在 1B 修订时加入），原「只含 5 个文件」的预期已按事实修正而非当作缺陷；
+- 1B 状态由「未开始」细化为「销售页修订已交付、工作台未开始」，并把销售页修订计划与其人工验证记录纳入索引。
+
+## 2026-08-15 健康审计
 
 2026-08-15 已按“先记录、再整理、最后优化使用”的顺序完成：
 

@@ -2,7 +2,7 @@
 
 This disposable MV3 extension checks whether `allFrames` injection can read
 `document.querySelector('video').currentTime` inside the Bilibili player iframe.
-It does not change the production LessonPilot extension.
+It does not change the production KnownMap extension.
 
 ## Run
 

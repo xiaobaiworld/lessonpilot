@@ -1,5 +1,9 @@
 # AI Learning Companion 全球品牌命名（Brand Naming Project）
 
+## 已选品牌
+
+项目已选定长期品牌为 **KnownMap**，正式域名为 `knownmap.com`。后续品牌视觉与产品文案以 D-014 和 KnownMap Logo 设计规范为准；本文件保留原始命名方法与筛选边界，作为历史研究资料。
+
 ## 项目背景
 
 当前产品第一阶段是一个 AI Learning Companion。

@@ -1,6 +1,9 @@
-# LessonPilot
+# KnownMap
 
-LessonPilot 把老师已有的 B 站录播课变成可在原视频页面运行的互动课程。老师在公网工作台导入一条 B 站视频链接和对应字幕，配置互动节点；学生在 PC Chrome 安装本机插件后，于 B 站原页面到点暂停、作答、查看反馈并继续播放。
+品牌域名：`knownmap.com`
+Logo 规范：[`docs/superpowers/specs/2026-08-18-knownmap-brand-update-design.md`](docs/superpowers/specs/2026-08-18-knownmap-brand-update-design.md)
+
+KnownMap 把老师已有的 B 站录播课变成可在原视频页面运行的互动课程。老师在公网工作台导入一条 B 站视频链接和对应字幕，配置互动节点；学生在 PC Chrome 安装本机插件后，于 B 站原页面到点暂停、作答、查看反馈并继续播放。
 
 当前不是成熟平台，而是第一阶段真实验证闭环。第一目标是验证老师是否愿意提供真实课程、安装插件并亲手配置，而不是继续补齐账号、AI、报告或规模化交付能力。
 
@@ -9,7 +12,7 @@ LessonPilot 把老师已有的 B 站录播课变成可在原视频页面运行�
 - 公网静态销售首页；
 - 公网真实教师工作台；
 - 一门当前课程，一条标准 B 站视频 URL；
-- 老师提供字幕，或 LessonPilot 人工协助取得字幕；
+- 老师提供字幕，或 KnownMap 人工协助取得字幕；
 - 重点标注、选择题、填空题、问答题四种节点；
 - 本机 Chrome 已解压插件；
 - B 站原页面学习运行时；
@@ -21,7 +24,7 @@ LessonPilot 把老师已有的 B 站录播课变成可在原视频页面运行�
 
 技术 spike 已证明插件可以在指定 B 站页面定位播放器、监听时间、暂停、seek 和卸载注入 UI，但完整产品闭环尚未实现。
 
-当前开发阶段是 **1A：数据契约、消息桥与公网部署**。代码已完成并通过 135 个自动化测试：共享课程契约、版本化消息协议、来源白名单、插件后台存储和白名单消息桥。真实 Chrome 与公网往返的人工验证记录在 [`tests/manual/stage-1a-bridge/README.md`](tests/manual/stage-1a-bridge/README.md)，尚待执行；1A 只有该记录填写完毕后才算完成。
+当前开发阶段是 **1A：数据契约、消息桥与公网部署**。代码已合并到 `main` 并通过 200 个自动化测试：共享课程契约、版本化消息协议、来源白名单、插件后台存储和白名单消息桥。公网发布已生效（见下），剩余真实 Chrome 往返的人工验证记录在 [`tests/manual/stage-1a-bridge/README.md`](tests/manual/stage-1a-bridge/README.md)；1A 只有该记录填写完毕后才算完成。
 
 从 [`next.md`](next.md) 开始，完整计划见 [`doc/dev-plan.md`](doc/dev-plan.md)。旧 W0/D0/D1 计划已经归档，不再是当前排期。
 
@@ -29,14 +32,17 @@ LessonPilot 把老师已有的 B 站录播课变成可在原视频页面运行�
 
 | 路径 | 第一阶段职责 | 当前实现状态 |
 | --- | --- | --- |
-| `/teacher-web/` | 默认公网销售首页 | 待由现有销售页迁入（1B） |
-| `/teacher-web/workspace.html` | 真实教师工作台 | 当前是 1A 连接诊断页；真实工作台在 1B 实现 |
-| `/teacher-web/forsales.html` | 旧销售链接兼容跳转 | 待迁移（1B） |
-| `/teacher-web/editor.html` | 旧原型，仅供迁移参考 | 停止扩展 |
+| `/teacher-web/` | 默认公网销售首页 | 待由现有销售页迁入（1B）；当前公网返回 404 |
+| `/teacher-web/workspace.html` | 真实教师工作台 | 已公网发布，当前是 1A 连接诊断页；真实工作台在 1B 实现 |
+| `/teacher-web/forsales.html` | 当前公网销售页 | 已公网发布，文案与试用入口已按 1B 修订计划改过 |
+| `/teacher-web/editor.html` | 旧原型，仅供迁移参考 | 停止扩展，不发布公网 |
 
-第一阶段默认部署目标是 [GitHub Pages](https://xiaobaiworld.github.io/lessonpilot/)。Pages 已于 2026-08-15 启用（source 为 GitHub Actions），公网可访问性待首次发布后验证。
+第一阶段默认部署目标是 GitHub Pages。Pages 已于 2026-08-15 启用（source 为 GitHub Actions），`pages` 工作流已在 2026-08-16 成功发布，公网路径实测可访问：
 
-公网只发布工作台页面和共享课程契约，`doc/` 与插件运行时代码不上公网，发布集在 `.github/workflows/pages.yml` 中以白名单方式列举（见 D-010）。
+- [销售页](https://xiaobaiworld.github.io/lessonpilot/teacher-web/forsales.html)
+- [1A 连接诊断页](https://xiaobaiworld.github.io/lessonpilot/teacher-web/workspace.html)
+
+公网只发布这两个页面、它们加载的脚本和两个共享契约文件，`doc/` 与插件运行时代码不上公网，发布集在 `.github/workflows/pages.yml` 中以白名单方式列举（见 D-010）。实测 `/doc/` 与 `/src/` 均返回 404。站点根目录也返回 404，因为发布集不含首页文件；1B 迁移销售首页时一并处理。
 
 ## 本地运行
 
@@ -84,6 +90,12 @@ node --test tests/*.test.js
 | [`doc/DECISIONS.md`](doc/DECISIONS.md) | 决策、假设、证据和重开条件 |
 | [`doc/dev-plan.md`](doc/dev-plan.md) | 三阶段实施顺序和门禁 |
 | [`next.md`](next.md) | 唯一当前执行步骤 |
+
+品牌资源：
+
+- `src/assets/knownmap-logo.svg`：唯一 Logo 源文件；
+- `src/assets/icon-16.png`、`icon-24.png`、`icon-48.png`、`icon-128.png`：扩展资源；
+- `teacher-web/assets/knownmap-icon.png`：网页导出资源。
 
 解释冲突时按：当前阶段需求 -> 需求总览 -> 数据规范 -> 已确认设计 -> 内容/窗口标准 -> 计划。远期平台、推广视频和旧 Demo 文档不得覆盖第一阶段范围。
 

@@ -53,6 +53,8 @@ jobs:
           cp teacher-web/forsales.html             site/teacher-web/
           cp teacher-web/subtitle-context.js       site/teacher-web/
           cp teacher-web/demo-captions.js          site/teacher-web/
+          mkdir -p site/teacher-web/assets
+          cp teacher-web/assets/knownmap-icon.png  site/teacher-web/assets/
 
           # The 1A diagnostics page and its page-side scripts.
           cp teacher-web/workspace.html            site/teacher-web/

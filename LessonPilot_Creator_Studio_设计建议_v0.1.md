@@ -1,5 +1,7 @@
 # LessonPilot Creator Studio 设计建议（v0.1）
 
+> 历史文档：项目当前品牌已于 2026-08-18 统一为 KnownMap，见 `doc/DECISIONS.md` 的 D-014。本文件保留旧名称和当时的设计上下文，不作为当前品牌规范。
+
 ## 核心定位
 
 不要把产品定位成**视频编辑器**，而要定位成**AI 教师工作台（AI Teacher

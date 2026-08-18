@@ -138,7 +138,7 @@
       this.root.dataset.state = 'idle';
       this.root.setAttribute('role', 'button');
       this.root.setAttribute('tabindex', '0');
-      this.root.setAttribute('aria-label', 'LessonPilot 学习助手，点击控制视频播放');
+      this.root.setAttribute('aria-label', 'KnownMap 学习助手，点击控制视频播放');
 
       this.canvas = document.createElement('canvas');
       this.canvas.width = 72;
@@ -155,7 +155,7 @@
       this.dialog.innerHTML = `
         <div id="lessonpilot-mascot-dialog-card" role="dialog" aria-modal="true" aria-labelledby="lessonpilot-mascot-dialog-title">
           <p id="lessonpilot-mascot-dialog-title">到达 35 秒</p>
-          <p id="lessonpilot-mascot-dialog-body">这里是 LessonPilot 的示例互动点，后续可替换为提问或练习。</p>
+          <p id="lessonpilot-mascot-dialog-body">这里是 KnownMap 的示例互动点，后续可替换为提问或练习。</p>
           <button type="button" id="lessonpilot-mascot-dialog-close">知道了</button>
         </div>
       `;

@@ -5,7 +5,7 @@
 
 ## 1. 产品判断
 
-LessonPilot 不需要先分析视频画面。老师只需要提供视频和带时间戳的字幕，系统就可以把字幕段落转成课程时间线，再在关键段落上编排课堂事件。
+KnownMap 不需要先分析视频画面。老师只需要提供视频和带时间戳的字幕，系统就可以把字幕段落转成课程时间线，再在关键段落上编排课堂事件。
 
 ```text
 视频 / 音频
@@ -25,9 +25,9 @@ LessonPilot 不需要先分析视频画面。老师只需要提供视频和带�
 | [OpenAI Whisper](https://github.com/openai/whisper) | 本地语音识别基线 | 从音频生成带时间信息的转写，支持多语言 | 适合第一版离线生成器；速度取决于模型和硬件 |
 | [faster-whisper](https://github.com/SYSTRAN/faster-whisper) | 高效本地生成 | Whisper 的更高效实现，适合本地批量转写 | 优先评估为桌面/服务端生成后端 |
 | [whisper.cpp](https://github.com/ggerganov/whisper.cpp) | 低依赖本地运行 | C/C++ 实现，适合将识别能力嵌入桌面工具 | 后续需要低安装成本时评估 |
-| [Subtitle Edit](https://github.com/SubtitleEdit/subtitleedit) | 人工校对与格式参考 | 离线字幕编辑器，支持字幕工作流与多种格式 | 不直接嵌入 LessonPilot；参考其校对、导出和隐私边界 |
+| [Subtitle Edit](https://github.com/SubtitleEdit/subtitleedit) | 人工校对与格式参考 | 离线字幕编辑器，支持字幕工作流与多种格式 | 不直接嵌入 KnownMap；参考其校对、导出和隐私边界 |
 
-这些项目解决的是“音频 → 带时间戳文字”，不是视频画面理解。这个边界与 LessonPilot 的教学产品定位一致。
+这些项目解决的是“音频 → 带时间戳文字”，不是视频画面理解。这个边界与 KnownMap 的教学产品定位一致。
 
 ## 3. 第一版输入与输出
 
