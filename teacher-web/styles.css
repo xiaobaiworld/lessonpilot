@@ -96,7 +96,16 @@ textarea:focus-visible {
 }
 
 .brand strong {
+  color: var(--ink);
   font-size: 16px;
+}
+
+.brand-letter-k {
+  color: #d9a51e;
+}
+
+.brand-letter-m {
+  color: #a9654e;
 }
 
 .brand small {

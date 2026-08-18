@@ -75,12 +75,12 @@ test('teacher editor loads auth, API, draft, publish and access-code controls', 
   assert.equal(page.includes('class="event-options"'), false);
 });
 
-test('teacher editor presents a production-like course design platform login', () => {
+test('teacher editor presents a production-like interactive course tool login', () => {
   const page = fs.readFileSync('teacher-web/editor.html', 'utf8');
   const app = fs.readFileSync('teacher-web/app.js', 'utf8');
 
   assert.ok(page.includes('id="login-name" name="login_name" value="teacher-test-01"'));
-  assert.ok(page.includes('KnownMap 课程设计平台'));
+  assert.ok(page.includes('KnownMap 互动课程工具'));
   assert.ok(page.includes('id="login-password" name="password" type="password"'));
   assert.equal(/id="login-password"[^>]*\svalue=/.test(page), false);
   assert.ok(page.includes('id="toggle-password"'));
@@ -101,10 +101,10 @@ test('teacher editor presents a production-like course design platform login', (
   assert.equal(page.includes('knownmap-local-2026'), false);
   assert.ok(app.includes('let captions = [];'));
   assert.equal(app.includes('Today we are going to talk about'), false);
-  assert.ok(page.includes('styles.css?v=course-platform-3'));
+  assert.ok(page.includes('styles.css?v=brand-lockup-1'));
+  assert.ok(page.includes('app.js?v=brand-lockup-1'));
   assert.ok(page.includes('src="timeline-model.js?v=course-platform-3"'));
   assert.ok(page.includes('src="visual-node-editor.js?v=course-platform-3"'));
-  assert.ok(page.includes('src="app.js?v=course-platform-3"'));
   assert.ok(app.includes('captions = [];'));
   assert.ok(app.includes('state.editor.setCaptions(captions)'));
   assert.ok(app.includes('state.nodes = state.editor?.getState().nodes'));

@@ -1,5 +1,5 @@
 /**
- * 教师销售页、工作台示例页与课程设计平台的信息架构护栏。
+ * 教师销售页、工作台示例页与互动课程工具的信息架构护栏。
  * 运行：node tests/page-information-architecture.test.js
  *
  * 2026-08-14：`student-web/` 已删除，学生宿主固定为装了插件的 B 站原页面，
@@ -74,7 +74,7 @@ const checks = [
   },
   {
     label: 'teacher platform centers the current course workflow without prototype framing',
-    run: () => editorPage.includes('KnownMap 课程设计平台')
+    run: () => editorPage.includes('KnownMap 互动课程工具')
       && editorPage.includes('id="home-title">我的课程')
       && editorPage.includes('id="course-workspace"')
       && editorPage.includes('id="course-materials"')

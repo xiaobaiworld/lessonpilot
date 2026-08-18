@@ -33,7 +33,23 @@ test('canonical KnownMap logo defines the approved map-window geometry', () => {
   assert.match(svg, /stroke-opacity=["']0\.48["']/i);
   assert.match(svg, /M85 34v158M160 53v159/);
   assert.match(svg, /M55 160l43-38 33 29 61-70/);
+  assert.match(svg, /transform=["']translate\(23\.4 23\.4\) scale\(0\.82\)["']/);
   assert.equal((svg.match(/stroke-opacity=/g) || []).length, 1, 'only the two weakened fold lines should use opacity');
+});
+
+test('all KnownMap logo variants share the reduced internal safe area', () => {
+  for (const relativePath of [
+    'src/assets/knownmap-logo.svg',
+    'src/assets/knownmap/knownmap-circle.svg',
+    'src/assets/knownmap/knownmap-square.svg',
+    'src/assets/knownmap/knownmap-transparent.svg'
+  ]) {
+    assert.match(
+      read(relativePath),
+      /transform=["']translate\(23\.4 23\.4\) scale\(0\.82\)["']/,
+      `${relativePath} must use the shared 82% internal geometry`
+    );
+  }
 });
 
 test('KnownMap logo exports exist at all required sizes', () => {
@@ -68,6 +84,20 @@ test('user-visible extension and pages use KnownMap and the logo asset', () => {
       .replace(/<!--[\s\S]*?-->/g, '');
     assert.doesNotMatch(visibleHtml, /LessonPilot|>LP</);
   }
+});
+
+test('teacher application uses the interactive-course-tool name and colored K/M wordmark', () => {
+  const html = read('teacher-web/editor.html');
+  const app = read('teacher-web/app.js');
+  const css = read('teacher-web/styles.css');
+
+  assert.match(html, /KnownMap 互动课程工具/);
+  assert.doesNotMatch(html, /课程设计平台/);
+  assert.doesNotMatch(app, /课程设计平台/);
+  assert.match(html, /class=["']brand-letter brand-letter-k["'][^>]*>K</);
+  assert.match(html, /class=["']brand-letter brand-letter-m["'][^>]*>M</);
+  assert.match(css, /\.brand-letter-k\s*\{[^}]*color:\s*#d9a51e/i);
+  assert.match(css, /\.brand-letter-m\s*\{[^}]*color:\s*#a9654e/i);
 });
 
 test('legacy protocol and storage identifiers remain compatible', () => {

@@ -100,8 +100,8 @@
     });
     window.history.replaceState(null, '', timeline ? '#timeline' : '#home');
     document.title = timeline
-      ? `${state.course?.title || '课程设计'} · KnownMap 课程设计平台`
-      : '我的课程 · KnownMap 课程设计平台';
+      ? `${state.course?.title || '课程设计'} · KnownMap 互动课程工具`
+      : '我的课程 · KnownMap 互动课程工具';
     window.scrollTo({ top: 0, behavior: 'auto' });
   };
   const resetPasswordVisibility = () => {
@@ -171,7 +171,7 @@
     timelineView.hidden = true;
     workspaceNav.hidden = true;
     workspaceAccount.hidden = true;
-    document.title = '登录 · KnownMap 课程设计平台';
+    document.title = '登录 · KnownMap 互动课程工具';
     const error = document.querySelector('#login-error');
     error.textContent = message;
     error.hidden = !message;
@@ -290,7 +290,7 @@
     if (!state.course) {
       state.course = await api.createCourse({
         title: courseTitleInput.value.trim(),
-        description: '由 KnownMap 课程设计平台创建'
+        description: '由 KnownMap 互动课程工具创建'
       });
     }
     if (!state.lesson) {

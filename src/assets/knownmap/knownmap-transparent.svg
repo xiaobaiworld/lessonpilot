@@ -1,12 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 260" role="img" aria-labelledby="title desc">
   <title id="title">KnownMap transparent icon</title>
   <desc id="desc">A transparent KnownMap map mark with a dark learning path and two colored knowledge nodes.</desc>
-  <path d="M31 51l54-20 75 20 61-22v166l-61 23-75-21-54 22z"
-        fill="none" stroke="#1D5C43" stroke-width="8" stroke-linejoin="round"/>
-  <path d="M85 34v158M160 53v159"
-        fill="none" stroke="#6E9180" stroke-opacity="0.72" stroke-width="8" stroke-linecap="round"/>
-  <path d="M55 160l43-38 33 29 61-70"
-        fill="none" stroke="#1D5C43" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="55" cy="160" r="10" fill="#D9A51E"/>
-  <circle cx="192" cy="81" r="10" fill="#A9654E"/>
+  <g transform="translate(23.4 23.4) scale(0.82)">
+    <path d="M31 51l54-20 75 20 61-22v166l-61 23-75-21-54 22z"
+          fill="none" stroke="#1D5C43" stroke-width="8" stroke-linejoin="round"/>
+    <path d="M85 34v158M160 53v159"
+          fill="none" stroke="#6E9180" stroke-opacity="0.72" stroke-width="8" stroke-linecap="round"/>
+    <path d="M55 160l43-38 33 29 61-70"
+          fill="none" stroke="#1D5C43" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="55" cy="160" r="10" fill="#D9A51E"/>
+    <circle cx="192" cy="81" r="10" fill="#A9654E"/>
+  </g>
 </svg>

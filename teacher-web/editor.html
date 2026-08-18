@@ -3,17 +3,20 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="KnownMap 课程设计平台">
-    <title>登录 · KnownMap 课程设计平台</title>
+    <meta name="description" content="KnownMap 互动课程工具">
+    <title>登录 · KnownMap 互动课程工具</title>
     <link rel="icon" type="image/png" href="assets/knownmap-icon.png">
-    <link rel="stylesheet" href="styles.css?v=course-platform-3">
+    <link rel="stylesheet" href="styles.css?v=brand-lockup-1">
   </head>
   <body>
     <div class="app-shell">
       <header class="topbar">
         <a class="brand" href="#home" aria-label="返回我的课程">
           <img class="brand-mark" src="assets/knownmap-icon.png" alt="">
-          <span><strong>KnownMap</strong><small>课程设计平台</small></span>
+          <span>
+            <strong class="brand-wordmark" aria-label="KnownMap"><span class="brand-letter brand-letter-k" aria-hidden="true">K</span><span aria-hidden="true">nown</span><span class="brand-letter brand-letter-m" aria-hidden="true">M</span><span aria-hidden="true">ap</span></strong>
+            <small>互动课程工具</small>
+          </span>
         </a>
         <nav class="topnav" id="workspace-nav" aria-label="主导航" hidden>
           <button class="nav-link" type="button" data-route="home">我的课程</button>
@@ -30,8 +33,8 @@
       <main>
         <section id="auth-view" class="view auth-view" aria-labelledby="auth-title" hidden>
           <div class="auth-panel">
-            <p class="eyebrow">KnownMap 课程设计平台</p>
-            <h1 id="auth-title">登录课程设计平台</h1>
+            <p class="eyebrow">KnownMap 互动课程工具</p>
+            <h1 id="auth-title">登录互动课程工具</h1>
             <p>使用教师账号继续设计和发布课程。</p>
             <form id="login-form">
               <label class="field-group"><span>登录账号</span><input id="login-name" name="login_name" value="teacher-test-01" autocomplete="username" required></label>
@@ -163,6 +166,6 @@
     <script src="visual-node-editor.js?v=course-platform-3"></script>
     <script src="api-client.js?v=local-api-1"></script>
     <script src="auth-session.js?v=local-api-1"></script>
-    <script src="app.js?v=course-platform-3"></script>
+    <script src="app.js?v=brand-lockup-1"></script>
   </body>
 </html>
