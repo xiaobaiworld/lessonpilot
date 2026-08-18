@@ -25,8 +25,8 @@
 | `doc/plans/teacher-platform-experience-polish.md` | 教师应用体验校正的测试、实现、浏览器验收和提交步骤 | 已完成 |
 | `doc/knownmap-brand-lockup-refinement-design.md` | Logo 内部留白、互动课程工具称呼和 K/M 字标配色 | 已实现并完成本地验证 |
 | `doc/plans/knownmap-brand-lockup-refinement.md` | 品牌组合标识修正的资源、页面、测试和验收步骤 | 已完成 |
-| `doc/web-production-release-design.md` | `knownmap.com` 的 GitHub SHA 固定、发布记录和回滚规则 | 已确认；待生产验证 |
-| `doc/plans/web-production-release-traceability.md` | Web 生产发布工具、记录、标签和回滚验收步骤 | 当前并行运维计划 |
+| `doc/web-production-release-design.md` | `knownmap.com` 的 GitHub SHA 固定、发布记录和回滚规则 | 已实现并完成生产验证 |
+| `doc/plans/web-production-release-traceability.md` | Web 生产发布工具、记录、标签和回滚验收步骤 | 已完成 |
 | `doc/requirements/stage-1a.md` | 公网路径、共享契约、插件存储和安全消息桥 | 历史原型阶段；代码已合并 |
 | `doc/requirements/stage-1b.md` | 销售首页、真实工作台、字幕和节点制作 | 历史原型阶段；部分已交付 |
 | `doc/requirements/stage-1c.md` | B 站运行时、四种节点和端到端预览 | 历史原型阶段；部分已交付 |

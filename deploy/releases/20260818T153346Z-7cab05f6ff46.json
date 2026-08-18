@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "releaseId": "20260818T153346Z-7cab05f6ff46",
+  "environment": "production",
+  "site": "https://knownmap.com",
+  "repository": "xiaobaiworld/lessonpilot",
+  "gitRemote": "git@github-2:xiaobaiworld/lessonpilot.git",
+  "gitCommit": "7cab05f6ff46394b86cf4bdcb8b380eb41cd3b78",
+  "gitShortCommit": "7cab05f6ff46",
+  "gitRemoteBranch": "origin/codex/course-design-platform-polish",
+  "gitCommitSubject": "fix: simplify teacher test login",
+  "gitCommitTime": "2026-08-18T22:41:15+08:00",
+  "gitTag": "web-prod/20260818T153346Z-7cab05f6ff46",
+  "publishProfile": "sales-static-v1",
+  "status": "verified",
+  "builtAt": "2026-08-18T15:33:50Z",
+  "deployedAt": "2026-08-18T15:33:54Z",
+  "previousReleaseId": "20260818-223056",
+  "files": [
+    {
+      "path": "index.html",
+      "sha256": "c6ab467016408595d4017a81af02a91b618b0dfb340f3f257c829c890671e8a0",
+      "bytes": 44640
+    },
+    {
+      "path": "subtitle-context.js",
+      "sha256": "a8d210826727de919976a4ac8cac78f90b7a1e8acf7d5d6b3ac6d02ff4d2e1bd",
+      "bytes": 6996
+    },
+    {
+      "path": "demo-captions.js",
+      "sha256": "a8d25c395d43b3a6d08205d96b909489f92287ea151e82c3bd6df514f905f2e3",
+      "bytes": 11914
+    },
+    {
+      "path": "assets/knownmap-icon.png",
+      "sha256": "8acae4dc406d44f31ed7b5a329c2d17a6e6d799197c51fdc4f8c2e806829d0b3",
+      "bytes": 3440
+    },
+    {
+      "path": "robots.txt",
+      "sha256": "331ea9090db0c9f6f597bd9840fd5b171830f6e0b3ba1cb24dfa91f0c95aedc1",
+      "bytes": 26
+    },
+    {
+      "path": "teacher-web/forsales.html",
+      "sha256": "c6ab467016408595d4017a81af02a91b618b0dfb340f3f257c829c890671e8a0",
+      "bytes": 44640
+    },
+    {
+      "path": "teacher-web/subtitle-context.js",
+      "sha256": "a8d210826727de919976a4ac8cac78f90b7a1e8acf7d5d6b3ac6d02ff4d2e1bd",
+      "bytes": 6996
+    },
+    {
+      "path": "teacher-web/demo-captions.js",
+      "sha256": "a8d25c395d43b3a6d08205d96b909489f92287ea151e82c3bd6df514f905f2e3",
+      "bytes": 11914
+    },
+    {
+      "path": "teacher-web/assets/knownmap-icon.png",
+      "sha256": "8acae4dc406d44f31ed7b5a329c2d17a6e6d799197c51fdc4f8c2e806829d0b3",
+      "bytes": 3440
+    }
+  ],
+  "verifiedAt": "2026-08-18T15:34:23Z",
+  "verification": {
+    "health": "passed",
+    "homepageSha256": "passed",
+    "privatePaths": "passed"
+  }
+}

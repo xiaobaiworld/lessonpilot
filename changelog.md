@@ -4,6 +4,15 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### Web 生产发布可追踪与回滚 — 2026-08-18
+
+- `knownmap.com` 的销售页发布改为绑定已推送到 GitHub 的精确 commit SHA，从 Git 对象白名单构建，不读取未提交工作区。
+- 每个版本保存不可变发布目录、`release.json`、`SHA256SUMS`、服务器追加历史、GitHub `web-prod/<release-id>` 标签和仓库 JSON 记录。
+- 新增 `build`、`deploy`、`status`、`list`、`verify`、`history` 和 `rollback` 命令；切换后验证失败会自动恢复前一版本。
+- 当前生产版本：`20260818T153530Z-f8e09e172bd3`，GitHub SHA `f8e09e172bd3be980b664c81f9e1c7535819ae77`。
+- 可回滚版本：`20260818T153346Z-7cab05f6ff46`，GitHub SHA `7cab05f6ff46394b86cf4bdcb8b380eb41cd3b78`。
+- 验证：全量 Node 240 pass；两个发布目录各 9 个公开文件哈希通过；线上首页哈希与 GitHub 源文件一致；健康检查通过；6 个私有路径均返回 404。
+
 ### 教师登录便捷性修正 — 2026-08-18
 
 - 本地预建测试账号 `teacher-test-01` 的 seed 密码统一为 `password`，页面继续保持密码输入为空。
