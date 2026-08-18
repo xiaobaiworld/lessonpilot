@@ -10,6 +10,8 @@
 | --- | --- | --- |
 | `README.md` | 项目入口、当前状态、运行命令 | 当前 |
 | `doc/requirements.md` | 第一阶段总目标、共同边界和阶段导航 | 当前需求总入口 |
+| `doc/AI_Learning_Companion_Product_Function_Spec_v0.2.md` | 教师中心平台化产品功能、授权码下载/更新语义和验收方向 | 已确认产品规格；尚未代表实现 |
+| `doc/decisions/2026-08-18-teacher-centered-product-v0.2.md` | v0.2 教师账号、工作空间、本地课程和授权码决策过程 | 已接受；尚待实现验证 |
 | `doc/requirements/stage-1a.md` | 公网路径、共享契约、插件存储和安全消息桥 | 当前实施需求权威 |
 | `doc/requirements/stage-1b.md` | 销售首页、真实工作台、字幕和节点制作 | 已确认；等待 1A |
 | `doc/requirements/stage-1c.md` | B 站运行时、四种节点和端到端预览 | 已确认；等待 1A/1B |
