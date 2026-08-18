@@ -2,7 +2,7 @@
 
 更新时间：2026-08-18
 
-状态：实施中
+状态：已完成
 
 关联设计：`doc/teacher-platform-experience-polish-design.md`
 
@@ -149,4 +149,18 @@ node --test tests/teacher-api-client.test.js tests/page-information-architecture
 
 当前分支：`codex/course-design-platform-polish`
 
-阶段完成后推送功能分支并准备 PR 描述；合并到 `main` 前等待用户看过界面并确认。
+实施提交：
+
+- `0ebc521 docs: plan course design platform polish`
+- `d34d8a0 feat: polish course design platform workspace`
+
+验证结果：
+
+- Node 234 pass；
+- 后端 37 pass；
+- Bandit 无发现，`pip-audit` 无已知漏洞；
+- JavaScript 语法与 `git diff --check` 通过；
+- 1440、900、375 三档浏览器无页面级横向溢出、console error 或 page error；
+- 独立对抗审查提出的有效问题已修复并专项复测。
+
+合并到 `main` 前等待用户看过界面并确认。
