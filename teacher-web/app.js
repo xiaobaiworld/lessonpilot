@@ -1,20 +1,7 @@
 (function initTeacherWorkspace() {
   const lessonUrl = 'https://www.bilibili.com/video/BV1WW4y1e7GL/';
   const fixedBvid = 'BV1WW4y1e7GL';
-  let captions = [
-    { id: 'caption-1', time: '00:00', end: '00:18', startSeconds: 0, endSeconds: 18, text: 'Today we are going to talk about strong interview answers.' },
-    { id: 'caption-2', time: '00:18', end: '00:35', startSeconds: 18, endSeconds: 35, text: 'Many candidates say: I am hardworking and I am a team player.' },
-    { id: 'caption-3', time: '00:35', end: '00:51', startSeconds: 35, endSeconds: 51, text: 'A strong answer needs a specific example.' },
-    { id: 'caption-4', time: '00:51', end: '01:08', startSeconds: 51, endSeconds: 68, text: 'The example should show what you did and what changed.' },
-    { id: 'caption-5', time: '01:08', end: '01:18', startSeconds: 68, endSeconds: 78, text: 'Listen to the structure one more time.' },
-    { id: 'caption-6', time: '01:18', end: '01:34', startSeconds: 78, endSeconds: 94, text: 'I noticed a problem, so I suggested a different approach.' },
-    { id: 'caption-7', time: '01:34', end: '01:49', startSeconds: 94, endSeconds: 109, text: 'This is much more memorable than a general adjective.' },
-    { id: 'caption-8', time: '01:49', end: '02:06', startSeconds: 109, endSeconds: 126, text: 'Now try to connect the structure to your own experience.' },
-    { id: 'caption-9', time: '02:06', end: '02:25', startSeconds: 126, endSeconds: 145, text: 'Think of one difficult situation you have solved.' },
-    { id: 'caption-10', time: '02:25', end: '02:48', startSeconds: 145, endSeconds: 168, text: 'Start with the situation, then explain your action.' },
-    { id: 'caption-11', time: '02:48', end: '03:12', startSeconds: 168, endSeconds: 192, text: 'Finally, tell us the result and what you learned.' },
-    { id: 'caption-12', time: '03:12', end: '03:42', startSeconds: 192, endSeconds: 222, text: 'That is how a recorded lesson becomes practice.' }
-  ];
+  let captions = [];
   const state = {
     course: null,
     lesson: null,
@@ -32,19 +19,64 @@
   const courseUrlInput = document.querySelector('#course-url-input');
   const courseUrlError = document.querySelector('#course-url-error');
   const subtitleFileInput = document.querySelector('#subtitle-file-input');
+  const chooseSubtitleFileButton = document.querySelector('#choose-subtitle-file');
   const subtitleFileName = document.querySelector('#subtitle-file-name');
   const subtitleFileError = document.querySelector('#subtitle-file-error');
   const timelineSourceSummary = document.querySelector('#timeline-source-summary');
   const captionImportStatus = document.querySelector('#caption-import-status');
+  const captionStatusIcon = document.querySelector('#caption-status-icon');
   const courseTitleInput = document.querySelector('#course-title-input');
   const lessonTitleInput = document.querySelector('#lesson-title-input');
   const apiStatusLabel = document.querySelector('#api-status-label');
   const apiStatusDot = document.querySelector('#api-status-dot');
   const saveLabel = document.querySelector('#save-label');
+  const workspaceNav = document.querySelector('#workspace-nav');
+  const workspaceAccount = document.querySelector('#workspace-account');
+  const workspaceOwner = document.querySelector('#workspace-owner');
+  const loginPassword = document.querySelector('#login-password');
+  const togglePassword = document.querySelector('#toggle-password');
+  const loginButton = document.querySelector('#login-button');
+  const continueCourseButton = document.querySelector('#continue-course');
+  const saveTimelineButton = document.querySelector('#save-timeline');
+  const publishCourseButton = document.querySelector('#publish-course');
+  const createAccessCodeButton = document.querySelector('#create-access-code');
+  const accessCodePanel = document.querySelector('#access-code-panel');
+  const accessCodeValue = document.querySelector('#access-code-value');
+  const copyAccessCodeButton = document.querySelector('#copy-access-code');
+  const publishVersionLabel = document.querySelector('#publish-version');
+  const courseRecordStatus = document.querySelector('#course-record-status');
+  const subtitleRecordStatus = document.querySelector('#subtitle-record-status');
+  const courseActionKicker = document.querySelector('#course-action-kicker');
+  const courseActionTitle = document.querySelector('#course-action-title');
+  const timelineTitle = document.querySelector('#timeline-title');
+  const timelineLessonTitle = document.querySelector('#timeline-lesson-title');
+  const timelineDurationLabel = document.querySelector('#timeline-duration-label');
+  const nodePluginBar = document.querySelector('#node-plugin-bar');
+  const timelineLayout = document.querySelector('.timeline-layout');
 
   let toastTimer = null;
+  let publishInProgress = false;
 
   const clone = (value) => JSON.parse(JSON.stringify(value));
+  const formatTime = (seconds) => {
+    const safeSeconds = Math.max(0, Math.round(Number(seconds) || 0));
+    const minutes = Math.floor(safeSeconds / 60);
+    return `${String(minutes).padStart(2, '0')}:${String(safeSeconds % 60).padStart(2, '0')}`;
+  };
+  const setButtonBusy = (button, busy, busyLabel, idleLabel) => {
+    button.disabled = busy;
+    button.textContent = busy ? busyLabel : idleLabel;
+  };
+  const syncEditorNodesToWorkspace = () => {
+    state.nodes = state.editor?.getState().nodes || state.nodes;
+    updateNodeCount();
+  };
+  const setEditorInteractionLocked = (locked) => {
+    nodePluginBar.inert = locked;
+    timelineLayout.inert = locked;
+    nodePluginBar.setAttribute('aria-busy', String(locked));
+    timelineLayout.setAttribute('aria-busy', String(locked));
+  };
   const showToast = (message) => {
     window.clearTimeout(toastTimer);
     toast.textContent = message;
@@ -67,22 +99,87 @@
       button.classList.toggle('is-active', button.dataset.route === route);
     });
     window.history.replaceState(null, '', timeline ? '#timeline' : '#home');
-    document.title = timeline ? '课堂设计 · KnownMap Studio' : 'KnownMap Studio · 我的课程';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.title = timeline
+      ? `${state.course?.title || '课程设计'} · KnownMap 课程设计平台`
+      : '我的课程 · KnownMap 课程设计平台';
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  };
+  const resetPasswordVisibility = () => {
+    loginPassword.type = 'password';
+    togglePassword.textContent = '显示';
+    togglePassword.setAttribute('aria-label', '显示密码');
+    togglePassword.setAttribute('aria-pressed', 'false');
+  };
+  const updateCourseWorkspace = () => {
+    const hasCourse = Boolean(state.course);
+    const hasLesson = Boolean(state.lesson);
+    courseRecordStatus.textContent = hasLesson ? '已创建' : '尚未创建';
+    courseRecordStatus.classList.toggle('is-ready', hasLesson);
+    courseActionKicker.textContent = hasLesson ? '课程资料已保存' : '课程尚未创建';
+    courseActionTitle.textContent = hasLesson
+      ? `${state.course.title} · ${state.lesson.title}`
+      : '准备好课程信息后开始设计';
+    continueCourseButton.textContent = hasLesson ? '继续设计课程' : '创建课程并开始设计';
+    courseTitleInput.readOnly = hasCourse;
+    lessonTitleInput.readOnly = hasLesson;
+    courseUrlInput.readOnly = hasLesson;
+    document.querySelector('#confirm-course-url').hidden = hasLesson;
+  };
+  const updateTimelineContext = () => {
+    const courseTitle = state.course?.title || courseTitleInput.value.trim();
+    const lessonTitle = state.lesson?.title || lessonTitleInput.value.trim();
+    timelineTitle.textContent = courseTitle || '课程设计';
+    timelineLessonTitle.textContent = lessonTitle || '课节';
+    document.querySelector('#timeline-course-title').textContent = courseTitle || '未命名课程';
+    const duration = state.editor?.getState().durationSeconds || 0;
+    timelineDurationLabel.textContent = formatTime(duration);
+  };
+  const resetWorkspaceSessionState = () => {
+    state.course = null;
+    state.lesson = null;
+    state.nodes = [];
+    state.publishVersion = null;
+    captions = [];
+    state.editor.setCaptions(captions);
+    state.editor.setNodes([]);
+    courseTitleInput.value = '';
+    lessonTitleInput.value = '';
+    courseUrlInput.value = lessonUrl;
+    courseUrlError.hidden = true;
+    timelineSourceSummary.textContent = '尚未创建课节';
+    timelineTitle.textContent = '课程设计';
+    timelineLessonTitle.textContent = '课节';
+    publishVersionLabel.textContent = '—';
+    accessCodePanel.hidden = true;
+    accessCodeValue.textContent = '尚未创建';
+    createAccessCodeButton.disabled = false;
+    createAccessCodeButton.textContent = '创建授权码';
+    copyAccessCodeButton.disabled = true;
+    subtitleFileInput.value = '';
+    subtitleFileName.textContent = '选择 SRT 或 VTT 字幕文件';
+    subtitleRecordStatus.textContent = '未导入';
+    subtitleRecordStatus.classList.remove('is-ready');
+    captionImportStatus.textContent = '尚未导入字幕';
+    captionStatusIcon.textContent = '—';
+    saveLabel.textContent = '草稿未保存';
+    updateCourseWorkspace();
+    updateTimelineContext();
   };
   const showAuth = (message = '') => {
     authView.hidden = false;
     homeView.hidden = true;
     timelineView.hidden = true;
-    document.querySelector('#logout-button').hidden = true;
-    setApiStatus('请先登录本地 API', false);
+    workspaceNav.hidden = true;
+    workspaceAccount.hidden = true;
+    document.title = '登录 · KnownMap 课程设计平台';
     const error = document.querySelector('#login-error');
     error.textContent = message;
     error.hidden = !message;
   };
   const showWorkspace = () => {
     authView.hidden = true;
-    document.querySelector('#logout-button').hidden = false;
+    workspaceNav.hidden = false;
+    workspaceAccount.hidden = false;
     setRoute(window.location.hash === '#timeline' ? 'timeline' : 'home');
   };
   const updateNodeCount = () => {
@@ -93,12 +190,14 @@
     state.editor.setCaptions(captions);
     state.editor.setNodes(state.nodes);
     updateNodeCount();
+    updateTimelineContext();
   };
 
   state.editor = window.KnownMapVisualNodeEditor.createEditor({
     document,
     captions,
     nodes: [],
+    minimumDurationSeconds: 222,
     logger: window.KnownMapEditorLogger.createEditorLogger(),
     onChange(nodes) {
       state.nodes = nodes;
@@ -121,14 +220,28 @@
   });
   const saveDraft = async (silent = false) => {
     if (!state.lesson) throw new Error('请先创建课程和课节。');
-    const saved = await api.saveDraft(state.lesson.id, buildDraftPayload());
-    state.nodes = saved.config.nodes;
-    state.lesson.has_draft = true;
-    state.editor.setNodes(state.nodes);
-    saveLabel.textContent = '草稿已保存';
-    updateNodeCount();
-    if (!silent) showToast(`草稿已保存，共 ${saved.node_count} 个节点。`);
-    return saved;
+    saveLabel.textContent = '正在保存…';
+    setButtonBusy(saveTimelineButton, true, '正在保存…', '保存草稿');
+    try {
+      const saved = await api.saveDraft(state.lesson.id, buildDraftPayload());
+      state.nodes = saved.config.nodes;
+      state.lesson.has_draft = true;
+      state.editor.setNodes(state.nodes);
+      saveLabel.textContent = '草稿已保存';
+      updateNodeCount();
+      if (!silent) showToast(`草稿已保存，共 ${saved.node_count} 个节点。`);
+      return saved;
+    } catch (error) {
+      saveLabel.textContent = '保存失败';
+      throw error;
+    } finally {
+      if (!publishInProgress) {
+        setButtonBusy(saveTimelineButton, false, '正在保存…', '保存草稿');
+      } else {
+        saveTimelineButton.disabled = true;
+        saveTimelineButton.textContent = '保存草稿';
+      }
+    }
   };
   const confirmCourseUrl = () => {
     let candidate;
@@ -137,11 +250,11 @@
       && candidate.pathname.replace(/\/$/, '') === `/video/${fixedBvid}`;
     courseUrlError.hidden = valid;
     if (!valid) {
-      courseUrlError.textContent = '当前阶段只接受固定 B 站测试视频。';
+      courseUrlError.textContent = '当前开发阶段仅支持指定课程视频 BV1WW4y1e7GL。';
       return false;
     }
     courseUrlInput.value = lessonUrl;
-    showToast('课程链接已确认。现在可以导入字幕并进入设计。');
+    showToast('视频链接验证通过。');
     return true;
   };
   const importSubtitleFile = async () => {
@@ -154,19 +267,30 @@
       return;
     }
     captions = result.captions;
-    subtitleFileName.textContent = `${file.name} · ${captions.length} 段已导入`;
-    timelineSourceSummary.textContent = `${fixedBvid} · ${captions.length} 段字幕已整理成可设计的课堂时间线`;
+    subtitleFileName.textContent = file.name;
+    subtitleRecordStatus.textContent = `${captions.length} 段字幕`;
+    subtitleRecordStatus.classList.add('is-ready');
+    timelineSourceSummary.textContent = `${fixedBvid} · ${state.lesson?.title || lessonTitleInput.value.trim()}`;
     captionImportStatus.textContent = `已导入 ${captions.length} 段字幕`;
+    captionStatusIcon.textContent = '✓';
     state.editor.setCaptions(captions);
-    setRoute('timeline');
-    showToast(`已导入 ${captions.length} 段字幕。选择上方组件开始放置。`);
+    syncEditorNodesToWorkspace();
+    saveLabel.textContent = '草稿未保存';
+    updateTimelineContext();
+    showToast(`已导入 ${captions.length} 段字幕。`);
   };
   const ensureCourse = async () => {
-    if (!confirmCourseUrl()) throw new Error('课程链接未通过校验。');
+    if (!state.course && !courseTitleInput.reportValidity()) {
+      throw new Error('请填写课程名称。');
+    }
+    if (!state.lesson && !lessonTitleInput.reportValidity()) {
+      throw new Error('请填写课节名称。');
+    }
+    if (!state.lesson && !confirmCourseUrl()) throw new Error('课程链接未通过校验。');
     if (!state.course) {
       state.course = await api.createCourse({
         title: courseTitleInput.value.trim(),
-        description: '由教师工作台创建的本地测试课程'
+        description: '由 KnownMap 课程设计平台创建'
       });
     }
     if (!state.lesson) {
@@ -175,7 +299,6 @@
         video_ref: { platform: 'bilibili', video_id: fixedBvid }
       });
     }
-    document.querySelector('#timeline-course-title').textContent = state.course.title;
     timelineSourceSummary.textContent = `${fixedBvid} · ${state.lesson.title}`;
     if (state.lesson.has_draft) {
       const draft = await api.getDraft(state.lesson.id);
@@ -186,13 +309,21 @@
       saveLabel.textContent = '草稿未保存';
     }
     syncEditor();
+    updateCourseWorkspace();
     setRoute('timeline');
   };
   const loadWorkspace = async () => {
     const result = await api.listCourses();
     const existing = result.items[0];
     if (!existing) {
-      setApiStatus('本地 API 已连接 · 创建第一门课程', true);
+      setApiStatus('服务正常', true);
+      workspaceOwner.textContent = session.current().display_name;
+      subtitleRecordStatus.textContent = '未导入';
+      subtitleRecordStatus.classList.remove('is-ready');
+      captionImportStatus.textContent = '尚未导入字幕';
+      captionStatusIcon.textContent = '—';
+      updateCourseWorkspace();
+      updateTimelineContext();
       return;
     }
     state.course = await api.getCourse(existing.id);
@@ -208,75 +339,124 @@
       state.nodes = [];
       saveLabel.textContent = '草稿未保存';
     }
-    document.querySelector('#timeline-course-title').textContent = state.course.title;
     timelineSourceSummary.textContent = state.lesson
       ? `${fixedBvid} · ${state.lesson.title}`
       : '尚未创建课节';
+    subtitleRecordStatus.textContent = '本次浏览器未导入';
+    subtitleRecordStatus.classList.remove('is-ready');
+    captionImportStatus.textContent = '尚未导入字幕';
+    captionStatusIcon.textContent = '—';
     syncEditor();
-    setApiStatus(`已登录 · ${session.current().display_name}`, true);
+    updateCourseWorkspace();
+    workspaceOwner.textContent = session.current().display_name;
+    setApiStatus(session.current().display_name, true);
   };
   const createAccessCode = async () => {
     if (!state.course) return;
-    const result = await api.createAccessCode(state.course.id);
-    document.querySelector('#access-code-value').textContent = result.access_code;
-    document.querySelector('#copy-access-code').disabled = false;
-    document.querySelector('#create-access-code').disabled = true;
-    showToast('授权码已创建，只在当前页面显示。');
+    setButtonBusy(createAccessCodeButton, true, '正在创建…', '创建授权码');
+    try {
+      const result = await api.createAccessCode(state.course.id);
+      accessCodeValue.textContent = result.access_code;
+      copyAccessCodeButton.disabled = false;
+      createAccessCodeButton.textContent = '已创建';
+      showToast('授权码已创建。');
+    } catch (error) {
+      setButtonBusy(createAccessCodeButton, false, '正在创建…', '创建授权码');
+      throw error;
+    }
   };
   const publishCourse = async () => {
-    await saveDraft(true);
-    const result = await api.publishCourse(state.course.id);
-    state.publishVersion = result.version;
-    document.querySelector('#publish-version').textContent = `v${result.version}`;
-    document.querySelector('#access-code-panel').hidden = false;
-    showToast(`课程已发布，版本 v${result.version}。现在可以创建授权码。`);
+    if (publishCourseButton.disabled) return;
+    const saveWasDisabled = saveTimelineButton.disabled;
+    publishInProgress = true;
+    setButtonBusy(publishCourseButton, true, '正在发布…', '发布课程');
+    saveTimelineButton.disabled = true;
+    setEditorInteractionLocked(true);
+    try {
+      await saveDraft(true);
+      const result = await api.publishCourse(state.course.id);
+      state.publishVersion = result.version;
+      publishVersionLabel.textContent = `v${result.version}`;
+      accessCodePanel.hidden = false;
+      showToast(`课程已发布，版本 v${result.version}。`);
+    } finally {
+      publishInProgress = false;
+      saveTimelineButton.disabled = saveWasDisabled;
+      setEditorInteractionLocked(false);
+      setButtonBusy(publishCourseButton, false, '正在发布…', '发布课程');
+    }
   };
   const login = async (event) => {
     event.preventDefault();
     const error = document.querySelector('#login-error');
     error.hidden = true;
+    loginButton.disabled = true;
+    loginButton.textContent = '正在登录…';
     try {
       await session.login(
         document.querySelector('#login-name').value.trim(),
-        document.querySelector('#login-password').value
+        loginPassword.value
       );
+      loginPassword.value = '';
+      resetPasswordVisibility();
       await loadWorkspace();
       showWorkspace();
     } catch (reason) {
-      error.textContent = reason.message || '登录失败，请确认本地 API 和测试账号。';
+      error.textContent = reason.message || '登录失败，请检查账号和密码。';
       error.hidden = false;
-      setApiStatus('本地 API 未完成登录', false);
+      loginPassword.focus();
+    } finally {
+      loginButton.disabled = false;
+      loginButton.textContent = '登录';
     }
   };
 
   document.querySelector('#login-form').addEventListener('submit', login);
+  togglePassword.addEventListener('click', () => {
+    loginPassword.type = loginPassword.type === 'password' ? 'text' : 'password';
+    const visible = loginPassword.type === 'text';
+    togglePassword.textContent = visible ? '隐藏' : '显示';
+    togglePassword.setAttribute('aria-label', visible ? '隐藏密码' : '显示密码');
+    togglePassword.setAttribute('aria-pressed', String(visible));
+    loginPassword.focus();
+  });
   document.querySelector('#logout-button').addEventListener('click', async () => {
     await session.logout().catch(() => {});
-    state.course = null;
-    state.lesson = null;
-    state.nodes = [];
-    state.editor.setNodes([]);
+    resetWorkspaceSessionState();
+    loginPassword.value = '';
+    resetPasswordVisibility();
+    window.history.replaceState(null, '', '#home');
     showAuth();
   });
   document.querySelectorAll('[data-route]').forEach((button) => {
     button.addEventListener('click', () => setRoute(button.dataset.route));
   });
   document.querySelector('#continue-course')?.addEventListener('click', async () => {
+    setButtonBusy(continueCourseButton, true, '正在准备课程…', state.lesson ? '继续设计课程' : '创建课程并开始设计');
     try {
       await ensureCourse();
     } catch (error) {
       showToast(error.message || '课程初始化失败。');
+    } finally {
+      setButtonBusy(continueCourseButton, false, '正在准备课程…', state.lesson ? '继续设计课程' : '创建课程并开始设计');
     }
   });
-  document.querySelector('#confirm-course-url').addEventListener('click', confirmCourseUrl);
+  document.querySelector('#confirm-course-url').addEventListener('click', () => {
+    if (!state.lesson) confirmCourseUrl();
+  });
+  chooseSubtitleFileButton.addEventListener('click', () => subtitleFileInput.click());
   subtitleFileInput.addEventListener('change', importSubtitleFile);
   document.querySelector('#preview-timeline').addEventListener('click', () => {
     window.open(lessonUrl, '_blank', 'noopener,noreferrer');
   });
   document.querySelector('#refresh-analysis').addEventListener('click', () => {
-    showToast('已根据当前字幕重新计算时间轴。');
+    state.editor.setCaptions(captions);
+    syncEditorNodesToWorkspace();
+    updateTimelineContext();
+    showToast('时间线已刷新。');
   });
   document.querySelector('#save-timeline').addEventListener('click', async () => {
+    if (saveTimelineButton.disabled) return;
     try { await saveDraft(); } catch (error) { showToast(error.message); }
   });
   document.querySelector('#publish-course').addEventListener('click', async () => {
@@ -288,12 +468,15 @@
   document.querySelector('#copy-access-code').addEventListener('click', async () => {
     const value = document.querySelector('#access-code-value').textContent;
     await navigator.clipboard?.writeText(value);
-    showToast('授权码已复制。');
+    showToast('已复制授权码。');
   });
   document.querySelector('#zoom-in').addEventListener('click', () => state.editor.adjustZoom(0.25));
   document.querySelector('#zoom-out').addEventListener('click', () => state.editor.adjustZoom(-0.25));
 
   updateNodeCount();
+  updateCourseWorkspace();
+  updateTimelineContext();
+  resetPasswordVisibility();
   showAuth();
   if (session.shouldRestore()) {
     session.restore()

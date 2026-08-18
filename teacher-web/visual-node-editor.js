@@ -27,11 +27,17 @@
       onDirty: options.onDirty || noop
     };
     const idFactory = options.idFactory;
+    const minimumDurationSeconds = Math.max(0, Number(options.minimumDurationSeconds) || 0);
     let dialogOpener = null;
     const state = {
       captions: clone(options.captions || []),
       nodes: timeline.sortNodes(clone(options.nodes || [])),
-      durationSeconds: timeline.durationFromCaptions(options.captions || []),
+      durationSeconds: timeline.durationFromContent(
+        options.captions || [],
+        options.nodes || [],
+        minimumDurationSeconds
+      ),
+      keyboardTimeSeconds: 0,
       zoom: 1,
       selectedNodeId: null,
       armedPluginId: null,
@@ -93,15 +99,16 @@
       state.armedPluginId = state.armedPluginId === pluginId ? null : pluginId;
       logger.debug('plugin.arm', { pluginId, result: state.armedPluginId ? 'success' : 'cancelled' });
       setStatus(state.armedPluginId
-        ? `已选择${registry.getPlugin(pluginId).label}，点击时间轴放置。`
-        : '选择一个节点组件，再点击时间轴；也可以直接拖到时间轴上。');
+        ? `已选择${registry.getPlugin(pluginId).label}。`
+        : '未选择节点');
       render();
+      if (state.armedPluginId) ui.track?.focus?.();
       return state.armedPluginId;
     }
 
     function cancelPlacement() {
       state.armedPluginId = null;
-      setStatus('选择一个节点组件，再点击时间轴；也可以直接拖到时间轴上。');
+      setStatus('未选择节点');
       render();
     }
 
@@ -280,7 +287,7 @@
         pluginId: registry.pluginIdForNode(draft),
         timeSeconds: draft.trigger.timeSeconds
       });
-      setStatus('节点已加入时间轴。保存草稿后写入本地 API。');
+      setStatus('节点已加入时间轴。');
       closeDialog();
       return true;
     }
@@ -295,7 +302,7 @@
       const mode = state.dialog.mode;
       state.dialog = { mode: null, nodeId: null, draft: null, source: null };
       logger.debug('node.dialog.cancel', { mode, result: 'cancelled' });
-      setStatus('选择一个节点组件，再点击时间轴；也可以直接拖到时间轴上。');
+      setStatus('未选择节点');
       render();
       closeDialog();
       return true;
@@ -315,7 +322,7 @@
         source: 'dialog'
       });
       logger.info('node.delete', { nodeId });
-      setStatus('节点已删除。保存草稿后写入本地 API。');
+      setStatus('节点已删除。');
       closeDialog();
       return true;
     }
@@ -341,25 +348,40 @@
 
     function setCaptions(captions) {
       state.captions = clone(captions || []);
-      state.durationSeconds = timeline.durationFromCaptions(state.captions);
-      state.nodes = state.nodes.map((node) => ({
-        ...node,
-        trigger: {
-          ...node.trigger,
-          captionId: timeline.nearestCaption(state.captions, node.trigger.timeSeconds)?.id ?? null
-        }
-      }));
+      state.durationSeconds = timeline.durationFromContent(
+        state.captions,
+        state.nodes,
+        minimumDurationSeconds
+      );
+      if (state.captions.length) {
+        state.nodes = state.nodes.map((node) => ({
+          ...node,
+          trigger: {
+            ...node.trigger,
+            captionId: timeline.nearestCaption(state.captions, node.trigger.timeSeconds)?.id ?? null
+          }
+        }));
+      }
       render();
     }
 
     function setNodes(nodes) {
-      state.nodes = timeline.sortNodes(clone(nodes || []).map((node) => ({
-        ...node,
-        trigger: {
-          ...node.trigger,
-          captionId: timeline.nearestCaption(state.captions, node.trigger.timeSeconds)?.id ?? null
-        }
-      })));
+      const incomingNodes = clone(nodes || []);
+      state.nodes = timeline.sortNodes(state.captions.length
+        ? incomingNodes.map((node) => ({
+            ...node,
+            trigger: {
+              ...node.trigger,
+              captionId: timeline.nearestCaption(state.captions, node.trigger.timeSeconds)?.id ?? null
+            }
+          }))
+        : incomingNodes);
+      state.durationSeconds = timeline.durationFromContent(
+        state.captions,
+        state.nodes,
+        minimumDurationSeconds
+      );
+      state.keyboardTimeSeconds = Math.min(state.keyboardTimeSeconds, state.durationSeconds);
       state.selectedNodeId = state.nodes[0]?.id || null;
       if (state.selectedNodeId) callbacks.onSelection(clone(currentNode()));
       render();
@@ -374,6 +396,41 @@
 
     function adjustZoom(delta) {
       return setZoom(state.zoom + Number(delta || 0));
+    }
+
+    function renderKeyboardCursor() {
+      if (!ui.dropIndicator) return;
+      ui.dropIndicator.hidden = !state.armedPluginId;
+      if (!state.armedPluginId) return;
+      ui.dropIndicator.style.left = `${timeline.percentFromSeconds(
+        state.keyboardTimeSeconds,
+        state.durationSeconds
+      )}%`;
+      const label = ui.dropIndicator.querySelector('b');
+      if (label) label.textContent = timeline.formatTime(state.keyboardTimeSeconds);
+    }
+
+    function handleTimelineKeydown(key) {
+      if (!state.armedPluginId) return false;
+      const step = Math.max(1, Math.round(state.durationSeconds / 20));
+      if (key === 'Home') state.keyboardTimeSeconds = 0;
+      else if (key === 'End') state.keyboardTimeSeconds = state.durationSeconds;
+      else if (key === 'ArrowLeft') {
+        state.keyboardTimeSeconds = Math.max(0, state.keyboardTimeSeconds - step);
+      } else if (key === 'ArrowRight') {
+        state.keyboardTimeSeconds = Math.min(
+          state.durationSeconds,
+          state.keyboardTimeSeconds + step
+        );
+      } else if (key === 'Enter' || key === ' ') {
+        createAtTime(state.armedPluginId, state.keyboardTimeSeconds, 'keyboard');
+        return true;
+      } else {
+        return false;
+      }
+      setStatus(`节点位置 ${timeline.formatTime(state.keyboardTimeSeconds)}`);
+      renderKeyboardCursor();
+      return true;
     }
 
     function getState() {
@@ -645,6 +702,10 @@
         const rect = ui.track.getBoundingClientRect();
         handleTimelineClick({ left: rect.left, width: rect.width, clientX: event.clientX });
       });
+      ui.track?.addEventListener('keydown', (event) => {
+        if (!handleTimelineKeydown(event.key)) return;
+        event.preventDefault();
+      });
       ui.track?.addEventListener('dragover', (event) => {
         event.preventDefault();
         if (ui.dropIndicator) {
@@ -693,7 +754,7 @@
       renderRuler();
       renderNodes();
       renderSubtitles();
-      if (ui.dropIndicator) ui.dropIndicator.hidden = true;
+      renderKeyboardCursor();
     }
 
     bindDomEvents();
@@ -710,6 +771,7 @@
       cancelPlacement,
       createAtTime,
       handleTimelineClick,
+      handleTimelineKeydown,
       handleDrop,
       selectNode,
       openEdit,

@@ -3,96 +3,129 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="KnownMap Studio · 字幕驱动课堂设计原型">
-    <title>课堂设计原型 · KnownMap Studio</title>
+    <meta name="description" content="KnownMap 课程设计平台">
+    <title>登录 · KnownMap 课程设计平台</title>
     <link rel="icon" type="image/png" href="assets/knownmap-icon.png">
-    <link rel="stylesheet" href="styles.css?v=visual-node-6">
+    <link rel="stylesheet" href="styles.css?v=course-platform-3">
   </head>
   <body>
     <div class="app-shell">
       <header class="topbar">
-        <a class="brand" href="./" aria-label="返回销售示例图">
+        <a class="brand" href="#home" aria-label="返回我的课程">
           <img class="brand-mark" src="assets/knownmap-icon.png" alt="">
-          <span><strong>KnownMap Studio</strong><small>功能原型 · 字幕导入与动作编辑</small></span>
+          <span><strong>KnownMap</strong><small>课程设计平台</small></span>
         </a>
-        <nav class="topnav" aria-label="主导航">
-          <button class="nav-link" type="button" data-route="timeline">设计课堂</button>
+        <nav class="topnav" id="workspace-nav" aria-label="主导航" hidden>
+          <button class="nav-link" type="button" data-route="home">我的课程</button>
+          <button class="nav-link" type="button" data-route="timeline">课程设计</button>
         </nav>
-        <div class="connection-status">
+        <div class="connection-status" id="workspace-account" hidden>
           <span class="status-dot" id="api-status-dot"></span>
-          <span id="api-status-label">正在连接本地 API</span>
+          <span id="api-status-label">正在连接服务</span>
           <span class="status-divider"></span>
-          <button class="topbar-action" id="logout-button" type="button" hidden>退出</button>
+          <button class="topbar-action" id="logout-button" type="button">退出登录</button>
         </div>
       </header>
 
       <main>
         <section id="auth-view" class="view auth-view" aria-labelledby="auth-title" hidden>
           <div class="auth-panel">
-            <p class="eyebrow">KnownMap Studio / 教师入口</p>
-            <h1 id="auth-title">登录教师工作台。</h1>
-            <p>使用预建的开发测试账号进入本地课程发布工作台。</p>
+            <p class="eyebrow">KnownMap 课程设计平台</p>
+            <h1 id="auth-title">登录课程设计平台</h1>
+            <p>使用教师账号继续设计和发布课程。</p>
             <form id="login-form">
-              <label class="field-group"><span>开发账号</span><input id="login-name" name="login_name" value="teacher-test-01" autocomplete="username" required></label>
-              <label class="field-group"><span>密码</span><input id="login-password" name="password" type="password" value="knownmap-local-2026" autocomplete="current-password" required></label>
-              <p class="auth-test-note">仅限本地开发测试，请勿用于公网或正式账号。</p>
-              <button class="dark-button" type="submit">登录工作台 <span>→</span></button>
+              <label class="field-group"><span>登录账号</span><input id="login-name" name="login_name" value="teacher-test-01" autocomplete="username" required></label>
+              <label class="field-group">
+                <span>密码</span>
+                <span class="password-input">
+                  <input id="login-password" name="password" type="password" autocomplete="current-password" required>
+                  <button id="toggle-password" class="password-toggle" type="button" aria-label="显示密码" aria-pressed="false">显示</button>
+                </span>
+              </label>
+              <button class="dark-button" id="login-button" type="submit">登录</button>
             </form>
             <p class="field-error" id="login-error" hidden></p>
           </div>
         </section>
 
         <section id="home-view" class="view workspace-home" aria-labelledby="home-title">
-          <div class="dashboard-head design-home-head">
+          <div class="workspace-page-head">
             <div>
-              <p class="eyebrow">KnownMap Studio / 课堂设计</p>
-              <h1 id="home-title">沿着字幕，设计学生真正需要的课堂动作。</h1>
-              <p class="lead">把教学判断放在具体一句话上：这里要不要提醒？要不要补充？还是让学生先练一次？</p>
+              <p class="eyebrow">课程</p>
+              <h1 id="home-title">我的课程</h1>
+              <p>管理当前课程资料，继续进入课节设计。</p>
             </div>
-            <p class="design-scope"><span>W0 当前范围</span>固定 B 站样例 + 教师提供的字幕文件</p>
+            <div class="workspace-summary">
+              <span>当前工作区</span>
+              <strong id="workspace-owner">教师课程空间</strong>
+            </div>
           </div>
 
-          <section class="design-entry" aria-labelledby="design-entry-title">
-            <aside class="design-setup" aria-labelledby="setup-title">
-              <p class="eyebrow">开始设计前</p><h2 id="setup-title">准备课程字幕</h2><p>确认课程链接，再导入你已取得的 SRT 或 VTT 字幕。课程内容保存在本地 API。</p><label class="field-label">课程名称<input id="course-title-input" type="text" value="英语面试表达：把答案说得具体"></label><label class="field-label">课节名称<input id="lesson-title-input" type="text" value="第一课 · 用具体经历回答"></label><label class="field-label">课程链接<input id="course-url-input" type="url" value="https://www.bilibili.com/video/BV1WW4y1e7GL/" inputmode="url"></label><button class="text-button" id="confirm-course-url" type="button">确认课程链接 →</button><p class="field-error" id="course-url-error" hidden></p><label class="text-button file-button" for="subtitle-file-input">导入字幕文件 →</label><input id="subtitle-file-input" type="file" accept=".srt,.vtt,text/plain,text/vtt" hidden><p class="file-name" id="subtitle-file-name">字幕只在当前浏览器解析，不上传到服务器</p><p class="field-error" id="subtitle-file-error" hidden></p>
-            </aside>
-            <div class="design-task">
-              <p class="eyebrow">主要任务</p><h2 id="design-entry-title">设计课堂</h2><p>选择一句字幕，在这个时间点加入老师真正想让学生做的事。</p>
-              <div class="design-action-types" aria-label="可设计的课堂动作"><span><b>01</b>重点提醒</span><span><b>02</b>选择题</span><span><b>03</b>填空题</span><span><b>04</b>问答题</span></div>
-              <p class="design-task-note">字幕负责定位，课堂动作负责把一节录播课变成学生会参与的学习。</p><button id="continue-course" class="dark-button" type="button">进入课堂设计 <span>→</span></button>
+          <section class="course-workspace" id="course-workspace" aria-labelledby="course-workspace-title">
+            <div class="course-panel course-details">
+              <div class="panel-heading">
+                <div><p class="eyebrow">课程信息</p><h2 id="course-workspace-title">课程与课节</h2></div>
+                <span class="panel-status" id="course-record-status">尚未创建</span>
+              </div>
+              <div class="course-field-grid">
+                <label class="field-label">课程名称<input id="course-title-input" type="text" required placeholder="输入课程名称"></label>
+                <label class="field-label">课节名称<input id="lesson-title-input" type="text" required placeholder="输入课节名称"></label>
+                <label class="field-label field-label-wide">B 站视频链接<input id="course-url-input" type="url" value="https://www.bilibili.com/video/BV1WW4y1e7GL/" inputmode="url"></label>
+              </div>
+              <div class="course-panel-actions">
+                <p class="field-error" id="course-url-error" hidden></p>
+                <button class="light-button" id="confirm-course-url" type="button">验证视频链接</button>
+              </div>
             </div>
-          </section>
-
-          <section class="learning-trace" aria-labelledby="learning-trace-title">
-            <div><p class="eyebrow">学生学习过程</p><h2 id="learning-trace-title">每一个课堂动作，都会让学生的学习过程更清楚。</h2></div>
-            <p>学生观看课程、在你设计的节点练习并获得反馈；后续这些过程会沉淀为学习证据，帮助你回看哪一段需要补讲或复练。当前 W0 不记录学习会话，也不生成报告。</p>
+            <div class="course-panel course-materials" id="course-materials">
+              <div class="panel-heading">
+                <div><p class="eyebrow">课程素材</p><h2>课节字幕</h2></div>
+                <span class="panel-status" id="subtitle-record-status">未导入</span>
+              </div>
+              <div class="subtitle-upload">
+                <span class="subtitle-upload-icon" aria-hidden="true">CC</span>
+                <div>
+                  <strong id="subtitle-file-name">选择 SRT 或 VTT 字幕文件</strong>
+                  <span>字幕仅用于当前浏览器中的时间定位。</span>
+                </div>
+                <button class="light-button file-button" id="choose-subtitle-file" type="button">选择文件</button>
+                <input class="visually-hidden" id="subtitle-file-input" type="file" accept=".srt,.vtt,text/plain,text/vtt">
+              </div>
+              <p class="field-error" id="subtitle-file-error" hidden></p>
+            </div>
+            <div class="course-workspace-footer">
+              <div>
+                <span id="course-action-kicker">课程尚未创建</span>
+                <strong id="course-action-title">准备好课程信息后开始设计</strong>
+              </div>
+              <button id="continue-course" class="dark-button" type="button">创建课程并开始设计</button>
+            </div>
           </section>
         </section>
 
         <section id="timeline-view" class="view timeline-view" aria-labelledby="timeline-title" hidden>
           <div class="timeline-head">
-            <div><button class="back-link" type="button" data-route="home">← 我的课程</button><p class="eyebrow">课堂设计 / 英语面试表达</p><h1 id="timeline-title">沿着时间线，设计这堂课的动作。</h1><p>选择一个节点组件，把重点标注、选择题、填空题或问答题放到最合适的讲解位置。</p></div>
+            <div><button class="back-link" type="button" data-route="home">← 我的课程</button><p class="eyebrow">课程设计</p><h1 id="timeline-title">课程设计</h1><p id="timeline-lesson-title">课节</p></div>
             <div class="timeline-actions"><span class="save-label" id="save-label">草稿未保存</span><button class="light-button" id="preview-timeline" type="button">打开视频 ↗</button><button class="light-button" id="publish-course" type="button">发布课程</button><button class="dark-button" id="save-timeline" type="button">保存草稿</button></div>
           </div>
 
           <section class="course-overview" aria-label="课程概览">
-            <div class="overview-video"><span class="overview-play">▶</span><span class="overview-progress"></span><b>03:42</b></div>
-            <div class="overview-info"><small>BILIBILI · 字幕驱动时间线</small><h2 id="timeline-course-title">英语面试表达：把答案说得具体</h2><p id="timeline-source-summary">BV1WW4y1e7GL · 当前课节还没有保存到本地 API</p><div class="analysis-status"><span class="status-check">✓</span><span id="caption-import-status">等待导入已取得的字幕文件</span><button class="text-button" id="refresh-analysis" type="button">重新分析</button></div></div>
+            <div class="overview-info"><small>BILIBILI 课程视频</small><h2 id="timeline-course-title">课程设计</h2><p id="timeline-source-summary">尚未创建课节</p><div class="analysis-status"><span class="status-check" id="caption-status-icon">—</span><span id="caption-import-status">尚未导入字幕</span><button class="text-button" id="refresh-analysis" type="button">刷新时间线</button></div></div>
             <div class="overview-stats"><div><strong id="node-count">00</strong><span>已设计节点</span></div><div><strong id="publish-version">—</strong><span>当前发布版本</span></div></div>
             <div class="overview-legend"><strong>课堂设计图例</strong><span><i class="dot dot-attention"></i>重点提醒</span><span><i class="dot dot-voice"></i>选择题</span><span><i class="dot dot-activity"></i>填空题</span><span><i class="dot dot-ai"></i>问答题</span></div>
           </section>
 
           <section class="node-plugin-bar" id="node-plugin-bar" aria-labelledby="node-plugin-title">
-            <div class="node-plugin-bar-head"><div><span class="eyebrow">交互节点</span><h2 id="node-plugin-title">把课堂动作放到具体时间点。</h2></div><p id="placement-status">选择一个节点组件，再点击时间轴；也可以直接拖到时间轴上。</p></div>
+            <div class="node-plugin-bar-head"><div><span class="eyebrow">交互节点</span><h2 id="node-plugin-title">添加节点</h2></div><p id="placement-status">未选择节点</p></div>
             <div class="node-plugin-list" id="node-plugin-list" role="toolbar" aria-label="交互节点组件"></div>
           </section>
 
           <div class="timeline-layout visual-editor-layout">
             <div class="timeline-canvas visual-timeline-canvas">
-              <div class="timeline-toolbar"><div><strong>课堂时间线</strong><span>节点会停在老师选定的讲解处</span></div><div><button class="toolbar-button" id="zoom-out" type="button" aria-label="缩小时间轴">−</button><span id="timeline-zoom-label">100%</span><button class="toolbar-button" id="zoom-in" type="button" aria-label="放大时间轴">＋</button></div></div>
+              <div class="timeline-toolbar"><div><strong>课节时间线</strong><span id="timeline-duration-label">03:42</span></div><div><button class="toolbar-button" id="zoom-out" type="button" aria-label="缩小时间轴">−</button><span id="timeline-zoom-label">100%</span><button class="toolbar-button" id="zoom-in" type="button" aria-label="放大时间轴">＋</button></div></div>
               <div class="timeline-ruler" id="timeline-ruler" aria-hidden="true"></div>
               <div class="visual-timeline-scroll">
-                <div class="visual-timeline-track" id="visual-timeline-track" tabindex="0" role="application" aria-label="课节时间轴，点击放置节点">
+                <div class="visual-timeline-track" id="visual-timeline-track" tabindex="0" role="group" aria-label="课节时间轴。选择节点后，可用方向键调整位置并按回车放置">
                   <div class="timeline-axis"></div>
                   <div class="timeline-progress"></div>
                   <span class="timeline-boundary timeline-boundary-start">开始</span>
@@ -101,16 +134,15 @@
                   <div class="timeline-drop-indicator" id="timeline-drop-indicator" hidden><span></span><b>00:00</b></div>
                 </div>
               </div>
-              <div class="timeline-empty" id="timeline-empty">导入字幕后，选择上方组件并把第一个节点放到时间线上。</div>
-              <p class="timeline-helper">点击节点可选中，双击或按 Enter 编辑；拖动节点可以调整触发时间。</p>
+              <div class="timeline-empty" id="timeline-empty">还没有课堂节点</div>
             </div>
             <aside class="subtitle-rail" aria-labelledby="subtitle-rail-title">
               <div class="subtitle-rail-head"><span id="subtitle-rail-title">节点处字幕</span><strong id="subtitle-rail-time">00:00</strong></div>
               <ol class="subtitle-list" id="timeline-subtitle-list" aria-live="polite"></ol>
-              <p class="subtitle-empty" id="timeline-subtitle-empty">选中一个节点后，这里显示它附近的字幕。</p>
+              <p class="subtitle-empty" id="timeline-subtitle-empty">尚未选择节点</p>
             </aside>
           </div>
-          <section class="access-code-panel" id="access-code-panel" hidden aria-live="polite"><div><p class="eyebrow">学生插件授权</p><h2>课程已发布，可以发给学生。</h2><p>授权码只在创建时显示。学生在 KnownMap 插件中输入后，会下载这门课的最新版本。</p></div><div class="access-code-value"><code id="access-code-value">尚未创建</code><button class="dark-button" id="create-access-code" type="button">创建授权码</button><button class="light-button" id="copy-access-code" type="button" disabled>复制授权码</button></div></section>
+          <section class="access-code-panel" id="access-code-panel" hidden aria-live="polite"><div><p class="eyebrow">课程授权</p><h2>学生访问授权码</h2><p>学生在 KnownMap 插件中输入授权码后，可以下载这门课程的最新发布版本。</p></div><div class="access-code-value"><code id="access-code-value">尚未创建</code><button class="dark-button" id="create-access-code" type="button">创建授权码</button><button class="light-button" id="copy-access-code" type="button" disabled>复制</button></div></section>
         </section>
       </main>
     </div>
@@ -126,11 +158,11 @@
     <script src="subtitle-parser.js?v=literal-ms-1"></script>
     <script src="subtitle-context.js?v=visual-node-5"></script>
     <script src="node-plugin-registry.js?v=visual-node-5"></script>
-    <script src="timeline-model.js?v=visual-node-5"></script>
+    <script src="timeline-model.js?v=course-platform-3"></script>
     <script src="editor-logger.js?v=visual-node-5"></script>
-    <script src="visual-node-editor.js?v=visual-node-5"></script>
+    <script src="visual-node-editor.js?v=course-platform-3"></script>
     <script src="api-client.js?v=local-api-1"></script>
     <script src="auth-session.js?v=local-api-1"></script>
-    <script src="app.js?v=visual-node-5"></script>
+    <script src="app.js?v=course-platform-3"></script>
   </body>
 </html>

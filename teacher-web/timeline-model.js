@@ -14,6 +14,19 @@
     return Math.max(1, values.length ? Math.max(...values) : 1);
   }
 
+  function durationFromContent(captions, nodes, minimumDurationSeconds = 0) {
+    const captionList = Array.isArray(captions) ? captions : [];
+    const nodeTimes = (Array.isArray(nodes) ? nodes : [])
+      .map((node) => Number(node?.trigger?.timeSeconds))
+      .filter((value) => Number.isFinite(value) && value >= 0);
+    const nodeDuration = nodeTimes.length ? Math.max(...nodeTimes) : 0;
+    const minimumDuration = Math.max(0, Number(minimumDurationSeconds) || 0);
+    if (captionList.length) {
+      return Math.max(durationFromCaptions(captionList), nodeDuration, minimumDuration);
+    }
+    return Math.max(60, Math.ceil(nodeDuration / 60) * 60, minimumDuration);
+  }
+
   function secondsFromClientX({ left, width, clientX, durationSeconds }) {
     const safeWidth = Number(width);
     const safeDuration = Math.max(1, Number(durationSeconds) || 1);
@@ -100,6 +113,7 @@
 
   return {
     durationFromCaptions,
+    durationFromContent,
     secondsFromClientX,
     percentFromSeconds,
     nearestCaption,

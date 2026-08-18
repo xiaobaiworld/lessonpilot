@@ -118,6 +118,48 @@ test('loaded nodes are rebound to the nearest current caption', () => {
   assert.equal(editor.getState().nodes[0].trigger.captionId, 'caption-3');
 });
 
+test('loaded nodes keep their saved timing and caption reference without subtitles', () => {
+  const node = registry.createNode('attention', {
+    timeSeconds: 173,
+    captionId: 'caption-saved',
+    idFactory: () => 'node-saved'
+  });
+  const editor = createEditor({
+    document: null,
+    registry,
+    timeline,
+    captions: [],
+    nodes: []
+  });
+
+  editor.setNodes([node]);
+
+  assert.equal(editor.getState().durationSeconds, 180);
+  assert.equal(editor.getState().nodes[0].trigger.timeSeconds, 173);
+  assert.equal(editor.getState().nodes[0].trigger.captionId, 'caption-saved');
+});
+
+test('keyboard placement moves a time cursor and creates the armed node', () => {
+  const editor = createEditor({
+    document: null,
+    registry,
+    timeline,
+    captions: [],
+    nodes: [],
+    minimumDurationSeconds: 222,
+    idFactory: () => 'node-keyboard'
+  });
+
+  editor.armPlugin('attention');
+  assert.equal(editor.handleTimelineKeydown('End'), true);
+  assert.equal(editor.getState().keyboardTimeSeconds, 222);
+  assert.equal(editor.handleTimelineKeydown('ArrowLeft'), true);
+  assert.ok(editor.getState().keyboardTimeSeconds < 222);
+  assert.equal(editor.handleTimelineKeydown('Enter'), true);
+  assert.equal(editor.getState().dialog.source, 'keyboard');
+  assert.equal(editor.getState().dialog.draft.trigger.timeSeconds, editor.getState().keyboardTimeSeconds);
+});
+
 test('zoom is bounded and exposed as editor state', () => {
   const editor = createEditor({
     document: null,

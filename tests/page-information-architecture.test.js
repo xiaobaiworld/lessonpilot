@@ -1,5 +1,5 @@
 /**
- * 教师销售页、工作台示例页与 W0 编辑器的信息架构护栏。
+ * 教师销售页、工作台示例页与课程设计平台的信息架构护栏。
  * 运行：node tests/page-information-architecture.test.js
  *
  * 2026-08-14：`student-web/` 已删除，学生宿主固定为装了插件的 B 站原页面，
@@ -73,23 +73,49 @@ const checks = [
     run: () => samplePage.includes('href="styles.css"') && /<link rel="stylesheet" href="sample\.css\?v=[^"]+">/.test(samplePage) && /src="sample\.js\?v=[^"]+"/.test(samplePage) && sampleCss.includes('.sample-timeline') && sampleCss.includes('.sample-add-rail') && !sharedCss.includes('.sample-timeline') && !sharedCss.includes('.sample-add-rail')
   },
   {
-    label: 'teacher W0 editor still centers the classroom-design task',
-    run: () => editorPage.includes('沿着字幕，设计学生真正需要的课堂动作') && editorPage.includes('主要任务') && editorPage.includes('id="continue-course"') && editorPage.includes('进入课堂设计')
+    label: 'teacher platform centers the current course workflow without prototype framing',
+    run: () => editorPage.includes('KnownMap 课程设计平台')
+      && editorPage.includes('id="home-title">我的课程')
+      && editorPage.includes('id="course-workspace"')
+      && editorPage.includes('id="course-materials"')
+      && editorPage.includes('id="continue-course"')
+      && !editorPage.includes('课堂设计原型')
+      && !editorPage.includes('功能原型')
+      && !editorPage.includes('W0 当前范围')
   },
   {
-    label: 'teacher W0 editor does not offer local video import',
+    label: 'teacher course platform does not offer local video import',
     run: () => editorPage.includes('BV1WW4y1e7GL') && !editorPage.includes('选择视频文件')
   },
   {
-    label: 'teacher W0 editor accepts a Bilibili link and a subtitle file',
+    label: 'teacher course platform accepts a Bilibili link and a subtitle file',
     run: () => editorPage.includes('id="course-url-input"') && editorPage.includes('id="subtitle-file-input"')
   },
   {
-    label: 'teacher W0 editor keeps learning results as a small honest process note',
-    run: () => editorPage.includes('学生学习过程') && editorPage.includes('不记录学习会话，也不生成报告') && !editorPage.includes('新建课程')
+    label: 'teacher platform keeps future capabilities and internal implementation notes out of the workspace',
+    run: () => !editorPage.includes('学生学习过程')
+      && !editorPage.includes('学习证据')
+      && !editorPage.includes('不记录学习会话')
+      && !editorPage.includes('本地 API')
+      && !editorPage.includes('开发测试账号')
   },
   {
-    label: 'teacher W0 editor script tolerates page-specific controls being absent',
+    label: 'teacher login protects the password while allowing a visibility toggle',
+    run: () => editorPage.includes('id="login-password"')
+      && editorPage.includes('id="toggle-password"')
+      && editorPage.includes('aria-pressed="false"')
+      && !/id="login-password"[^>]*\svalue=/.test(editorPage)
+      && editorApp.includes("loginPassword.type === 'password' ? 'text' : 'password'")
+  },
+  {
+    label: 'teacher course design view uses real course context and no fake player',
+    run: () => editorPage.includes('id="timeline-title"')
+      && editorPage.includes('id="timeline-lesson-title"')
+      && editorPage.includes('id="timeline-source-summary"')
+      && !editorPage.includes('class="overview-video"')
+  },
+  {
+    label: 'teacher course platform script tolerates page-specific controls being absent',
     run: () => editorApp.includes("document.querySelector('#continue-course')?.addEventListener") && editorPage.includes('src="app.js?v=')
   },
   {

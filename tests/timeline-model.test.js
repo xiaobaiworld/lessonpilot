@@ -15,6 +15,20 @@ test('derives a stable duration from subtitle end times', () => {
   assert.equal(timeline.durationFromCaptions([]), 1);
 });
 
+test('derives a usable duration from saved nodes when subtitles are unavailable', () => {
+  assert.equal(timeline.durationFromContent([], []), 60);
+  assert.equal(timeline.durationFromContent([], [
+    { id: 'node-a', trigger: { timeSeconds: 173 } }
+  ]), 180);
+  assert.equal(timeline.durationFromContent([], [], 222), 222);
+  assert.equal(timeline.durationFromContent([], [
+    { id: 'node-a', trigger: { timeSeconds: 173 } }
+  ], 222), 222);
+  assert.equal(timeline.durationFromContent(captions, [
+    { id: 'node-a', trigger: { timeSeconds: 173 } }
+  ]), 173);
+});
+
 test('converts timeline coordinates to bounded seconds and percentages', () => {
   assert.equal(timeline.secondsFromClientX({ left: 100, width: 500, clientX: 350, durationSeconds: 60 }), 30);
   assert.equal(timeline.secondsFromClientX({ left: 100, width: 500, clientX: 0, durationSeconds: 60 }), 0);
