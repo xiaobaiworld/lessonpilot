@@ -1,3 +1,6 @@
+// 定位: 验证静态销售站的精确提交构建、白名单、校验和与回滚元数据。
+// 入口参数: tools/web-release.sh 和临时 Git 仓库夹具。
+// 返回参数: Node test 通过/失败结果。
 const assert = require('node:assert/strict');
 const childProcess = require('node:child_process');
 const fs = require('node:fs');
@@ -71,6 +74,8 @@ test('build packages the exact commit with only the sales-site whitelist', (t) =
     'public/teacher-web/demo-captions.js',
     'public/teacher-web/forsales.html',
     'public/teacher-web/subtitle-context.js',
+    'public/teacher-web/trial-intake.js',
+    'public/trial-intake.js',
     'release.json'
   ]);
 
@@ -83,7 +88,7 @@ test('build packages the exact commit with only the sales-site whitelist', (t) =
   assert.equal(metadata.gitCommit, expectedCommit);
   assert.equal(metadata.publishProfile, 'sales-static-v1');
   assert.equal(metadata.site, 'https://knownmap.com');
-  assert.equal(metadata.files.length, 9);
+  assert.equal(metadata.files.length, 11);
 
   for (const forbidden of ['doc', 'src', 'tests', 'teacher-web/editor.html', '.git', '.env']) {
     assert.equal(fs.existsSync(path.join(output, 'public', forbidden)), false, `${forbidden} must stay private`);

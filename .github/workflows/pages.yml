@@ -53,6 +53,7 @@ jobs:
           cp teacher-web/forsales.html             site/teacher-web/
           cp teacher-web/subtitle-context.js       site/teacher-web/
           cp teacher-web/demo-captions.js          site/teacher-web/
+          cp teacher-web/trial-intake.js            site/teacher-web/
           mkdir -p site/teacher-web/assets
           cp teacher-web/assets/knownmap-icon.png  site/teacher-web/assets/
 

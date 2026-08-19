@@ -1,3 +1,6 @@
+// 定位: 验证销售页文案、试用入口和产品承诺边界。
+// 入口参数: 销售页 HTML、试用入口模块与页面数据脚本。
+// 返回参数: Node test 通过/失败结果。
 /**
  * 销售页文案与试用入口验收（WEB-05、WEB-06、D-012）。
  * 运行：node --test tests/sales-page-copy.test.js
@@ -10,6 +13,10 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const {
+  TRIAL_INTAKE,
+  isAllowedFormUrl
+} = require('../teacher-web/trial-intake.js');
 
 const page = fs.readFileSync('teacher-web/forsales.html', 'utf8');
 
@@ -103,7 +110,7 @@ test('不把插件、报告或多学生数据写成已上线能力', () => {
   }
 });
 
-test('没有飞书 URL 时不留死链接（计划第 24、102 行）', () => {
+test('飞书表单由独立模块提供真实 URL，页面不留占位链接', () => {
   const links = page.match(/href="(https?:[^"]*)"/g) || [];
   for (const link of links) {
     assert.ok(
@@ -111,13 +118,11 @@ test('没有飞书 URL 时不留死链接（计划第 24、102 行）', () => {
       `占位链接会变成死链：${link}`
     );
   }
-  // 表单入口要么带真实飞书 URL，要么整块不出现。
-  const mentionsForm = /飞书|填写 1 分钟试用信息/.test(visible);
-  const hasFeishuUrl = /href="https:\/\/[^"]*(feishu|larksuite)[^"]*"/.test(page);
-  assert.ok(
-    !mentionsForm || hasFeishuUrl,
-    '提到了表单但没有真实飞书 URL；按计划第 24 行应先不显示表单入口'
-  );
+  assert.match(page, /data-trial-intake/);
+  assert.match(page, /src="trial-intake\.js\?v=/);
+  assert.equal(isAllowedFormUrl(TRIAL_INTAKE.url), true, '模块必须保存已发布的飞书公开 URL');
+  assert.equal(TRIAL_INTAKE.buttonLabel, '填写 1 分钟试用信息');
+  assert.equal(TRIAL_INTAKE.note, '不方便私信？留下课程情况，我会联系你。');
 });
 
 /**

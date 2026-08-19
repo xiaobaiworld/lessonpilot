@@ -13,6 +13,7 @@ SOURCE_FILES=(
   "teacher-web/forsales.html"
   "teacher-web/subtitle-context.js"
   "teacher-web/demo-captions.js"
+  "teacher-web/trial-intake.js"
   "teacher-web/assets/knownmap-icon.png"
 )
 
@@ -20,11 +21,13 @@ PUBLIC_FILES=(
   "public/index.html"
   "public/subtitle-context.js"
   "public/demo-captions.js"
+  "public/trial-intake.js"
   "public/assets/knownmap-icon.png"
   "public/robots.txt"
   "public/teacher-web/forsales.html"
   "public/teacher-web/subtitle-context.js"
   "public/teacher-web/demo-captions.js"
+  "public/teacher-web/trial-intake.js"
   "public/teacher-web/assets/knownmap-icon.png"
 )
 
@@ -142,10 +145,12 @@ build_release() {
   cp "$source_dir/teacher-web/forsales.html" "$output/public/index.html"
   cp "$source_dir/teacher-web/subtitle-context.js" "$output/public/subtitle-context.js"
   cp "$source_dir/teacher-web/demo-captions.js" "$output/public/demo-captions.js"
+  cp "$source_dir/teacher-web/trial-intake.js" "$output/public/trial-intake.js"
   cp "$source_dir/teacher-web/assets/knownmap-icon.png" "$output/public/assets/knownmap-icon.png"
   cp "$source_dir/teacher-web/forsales.html" "$output/public/teacher-web/forsales.html"
   cp "$source_dir/teacher-web/subtitle-context.js" "$output/public/teacher-web/subtitle-context.js"
   cp "$source_dir/teacher-web/demo-captions.js" "$output/public/teacher-web/demo-captions.js"
+  cp "$source_dir/teacher-web/trial-intake.js" "$output/public/teacher-web/trial-intake.js"
   cp "$source_dir/teacher-web/assets/knownmap-icon.png" "$output/public/teacher-web/assets/knownmap-icon.png"
   printf 'User-agent: *\nDisallow: /\n' >"$output/public/robots.txt"
 

@@ -1,3 +1,6 @@
+// 定位: 验证教师销售页、工作台和学生宿主的信息架构边界。
+// 入口参数: teacher-web 下的页面、样式与脚本文件。
+// 返回参数: 断言结果与 Node 进程退出状态。
 /**
  * 教师销售页、工作台示例页与互动课程工具的信息架构护栏。
  * 运行：node tests/page-information-architecture.test.js
@@ -14,6 +17,7 @@ const sampleCss = fs.readFileSync('teacher-web/sample.css', 'utf8');
 const sharedCss = fs.readFileSync('teacher-web/styles.css', 'utf8');
 const editorPage = fs.readFileSync('teacher-web/editor.html', 'utf8');
 const editorApp = fs.readFileSync('teacher-web/app.js', 'utf8');
+const trialIntake = require('../teacher-web/trial-intake.js');
 
 const checks = [
   {
@@ -26,7 +30,11 @@ const checks = [
   },
   {
     label: 'forsales closes with one low-friction real-course conversion',
-    run: () => forSalesPage.includes('id="copy-request"') && forSalesPage.includes('做一次可以实际运行的智能互动课程试用') && !forSalesPage.includes('立即购买')
+    run: () => forSalesPage.includes('id="copy-request"')
+      && forSalesPage.includes('data-trial-intake')
+      && trialIntake.TRIAL_INTAKE.buttonLabel === '填写 1 分钟试用信息'
+      && forSalesPage.includes('做一次可以实际运行的智能互动课程试用')
+      && !forSalesPage.includes('立即购买')
   },
   {
     label: 'workspace sample stays separate from forsales positioning and conversion copy',
