@@ -2,6 +2,7 @@
 node_modules/
 backend/.venv/
 backend/.pytest_cache/
+backend/.coverage
 backend/**/__pycache__/
 *.py[cod]
 

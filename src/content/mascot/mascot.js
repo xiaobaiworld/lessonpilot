@@ -129,9 +129,7 @@
       this.controls.id = 'lessonpilot-mascot-controls';
 
       this.pauseButton = this.createControlButton('暂停', 'lessonpilot:pause');
-      this.seek30Button = this.createControlButton('30秒', 'lessonpilot:seek-30');
-      this.seek35Button = this.createControlButton('35秒', 'lessonpilot:seek-35');
-      this.controls.append(this.pauseButton, this.seek30Button, this.seek35Button);
+      this.controls.append(this.pauseButton);
 
       this.root = document.createElement('div');
       this.root.id = 'lessonpilot-mascot-root';
@@ -154,9 +152,10 @@
       this.dialog.hidden = true;
       this.dialog.innerHTML = `
         <div id="lessonpilot-mascot-dialog-card" role="dialog" aria-modal="true" aria-labelledby="lessonpilot-mascot-dialog-title">
-          <p id="lessonpilot-mascot-dialog-title">到达 35 秒</p>
-          <p id="lessonpilot-mascot-dialog-body">这里是 KnownMap 的示例互动点，后续可替换为提问或练习。</p>
-          <button type="button" id="lessonpilot-mascot-dialog-close">知道了</button>
+          <p id="lessonpilot-mascot-dialog-title">KnownMap 互动</p>
+          <div id="lessonpilot-mascot-dialog-body"></div>
+          <div id="lessonpilot-mascot-dialog-actions"></div>
+          <p id="lessonpilot-mascot-dialog-feedback" role="status"></p>
         </div>
       `;
 
@@ -202,21 +201,75 @@
       this.dialog.hidden = false;
     }
 
+    /** Render trusted, contract-validated node data with textContent only. */
+    showNode(node, onSubmit, onContinue) {
+      const title = this.dialog.querySelector('#lessonpilot-mascot-dialog-title');
+      const body = this.dialog.querySelector('#lessonpilot-mascot-dialog-body');
+      const actions = this.dialog.querySelector('#lessonpilot-mascot-dialog-actions');
+      const feedback = this.dialog.querySelector('#lessonpilot-mascot-dialog-feedback');
+      title.textContent = node.display.title;
+      body.replaceChildren();
+      actions.replaceChildren();
+      feedback.textContent = '';
+
+      const prompt = document.createElement('p');
+      prompt.textContent = node.interaction === 'notice' ? node.display.body : node.display.prompt;
+      body.appendChild(prompt);
+
+      let submitting = false;
+      const finish = async (answer) => {
+        if (submitting) return;
+        submitting = true;
+        for (const control of actions.querySelectorAll('button')) control.disabled = true;
+        let result;
+        try {
+          result = await onSubmit(answer);
+        } catch {
+          result = { accepted: false, correct: false, feedback: '学习进度保存失败，请重试。' };
+        }
+        feedback.textContent = result.feedback;
+        if (result.accepted !== false
+          && (result.correct || node.interaction === 'free_text' || node.interaction === 'notice')) {
+          actions.replaceChildren(this.createDialogButton('继续学习', async () => {
+            this.hideDialog();
+            await onContinue();
+          }));
+        } else {
+          for (const control of actions.querySelectorAll('button')) control.disabled = false;
+        }
+        submitting = false;
+      };
+
+      if (node.interaction === 'choice') {
+        for (const option of node.display.options) {
+          actions.appendChild(this.createDialogButton(option.label, () => finish(option.id)));
+        }
+      } else if (node.interaction === 'blank' || node.interaction === 'free_text') {
+        const input = document.createElement(node.interaction === 'free_text' ? 'textarea' : 'input');
+        input.className = 'lessonpilot-node-answer';
+        input.setAttribute('aria-label', node.display.prompt);
+        body.appendChild(input);
+        actions.appendChild(this.createDialogButton('提交', () => finish(input.value)));
+      } else {
+        actions.appendChild(this.createDialogButton('知道了', () => finish(null)));
+      }
+      this.showDialog();
+    }
+
+    createDialogButton(label, onClick) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'lessonpilot-dialog-action';
+      button.textContent = label;
+      button.addEventListener('click', onClick);
+      return button;
+    }
+
     hideDialog() {
       this.dialog.hidden = true;
     }
 
     bindEvents() {
-      this.dialog.querySelector('#lessonpilot-mascot-dialog-close')?.addEventListener('click', () => {
-        this.hideDialog();
-      });
-
-      this.dialog.addEventListener('click', (event) => {
-        if (event.target === this.dialog) {
-          this.hideDialog();
-        }
-      });
-
       this.root.addEventListener('pointerdown', (event) => {
         this.dragging = true;
         this.movedDuringDrag = false;

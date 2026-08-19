@@ -69,6 +69,22 @@
   }
 
   /**
+   * Resume idempotently after a completed interaction.
+   * @returns {Promise<'playing' | 'paused' | 'missing'>}
+   */
+  async function play() {
+    const video = getMainVideo();
+    if (!video) return 'missing';
+    if (!video.paused && !video.ended) return 'playing';
+    try {
+      await video.play();
+      return 'playing';
+    } catch {
+      return 'paused';
+    }
+  }
+
+  /**
    * @returns {'playing' | 'paused' | 'missing'}
    */
   function pause() {
@@ -199,6 +215,7 @@
     getMainVideo,
     getPlaybackState,
     togglePlayback,
+    play,
     pause,
     seekTo,
     watchPlayback,

@@ -13,7 +13,8 @@
     "storage"
   ],
   "host_permissions": [
-    "https://www.bilibili.com/*"
+    "https://www.bilibili.com/*",
+    "http://127.0.0.1:8000/*"
   ],
   "background": {
     "service_worker": "background/service-worker.js"
@@ -37,17 +38,15 @@
         "https://www.bilibili.com/video/*"
       ],
       "js": [
-        "content/config/demo-lesson.js",
-        "content/demo-config.js",
         "content/video/bili-player.js",
-        "content/subtitle/blocker-layout.js",
-        "content/subtitle/subtitle-blocker.js",
         "content/mascot/mascot.js",
+        "content/access-code/access-panel.js",
+        "content/course-runtime.js",
         "content/index.js"
       ],
       "css": [
         "content/mascot/mascot.css",
-        "content/subtitle/subtitle-blocker.css"
+        "content/access-code/access-panel.css"
       ],
       "run_at": "document_idle"
     }

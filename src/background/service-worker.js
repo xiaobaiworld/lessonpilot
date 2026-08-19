@@ -13,21 +13,57 @@
 importScripts(
   '../shared/course-contract.js',
   '../shared/bridge-protocol.js',
+  '../shared/api-config.js',
   './storage.js',
-  './operations.js'
+  './operations.js',
+  './course-downloader.js'
 );
 
 (function initServiceWorker(global) {
   const protocol = global.LessonPilotBridgeProtocol;
   const { createStorage } = global.LessonPilotBackgroundStorage;
   const { createOperationHandlers } = global.LessonPilotBackgroundOperations;
+  const { createCourseDownloader } = global.LessonPilotCourseDownloader;
 
+  const storage = createStorage(chrome.storage.local);
   const handlers = createOperationHandlers({
-    storage: createStorage(chrome.storage.local),
+    storage,
     extensionVersion: chrome.runtime.getManifest().version,
     createSessionId: () => `session-${crypto.randomUUID()}`,
     now: () => new Date().toISOString()
   });
+  const courseDownloader = createCourseDownloader({
+    fetchImpl: (...args) => fetch(...args),
+    storage,
+    contract: global.LessonPilotCourseContract,
+    endpoint: global.LessonPilotApiConfig.COURSE_DOWNLOAD_ENDPOINT,
+    now: () => new Date().toISOString()
+  });
+
+  const STUDENT_HANDLERS = {
+    GET_INSTALLED_STUDENT_COURSE: () => courseDownloader.getInstalledCourse(),
+    DOWNLOAD_STUDENT_COURSE: (payload) => courseDownloader.download(payload),
+    RECORD_STUDENT_NODE_ATTEMPT: (payload) => courseDownloader.recordNodeAttempt(payload)
+  };
+
+  function handleStudentMessage(message, sendResponse) {
+    const handler = Object.hasOwn(STUDENT_HANDLERS, message?.type)
+      ? STUDENT_HANDLERS[message.type]
+      : null;
+    if (handler === null) return false;
+    handler(message.payload ?? {})
+      .then((response) => {
+        console.debug('[KnownMap] student course', {
+          operation: message.type,
+          courseId: response.course?.courseId ?? response.installedCourse?.courseId ?? null,
+          result: response.ok ? 'success' : 'failure',
+          errorCode: response.ok ? null : response.error
+        });
+        sendResponse(response);
+      })
+      .catch(() => sendResponse({ ok: false, error: 'STORAGE_FAILURE' }));
+    return true;
+  }
 
   /**
    * Debug log for one bridge operation.
@@ -53,6 +89,8 @@ importScripts(
   }
 
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+    if (handleStudentMessage(message, sendResponse)) return true;
+
     // Re-validate the envelope. The content script already checked it, but it
     // forwards data that originated in a web page, so this layer does not treat
     // "arrived over chrome.runtime" as evidence of anything (A-BRIDGE-02).

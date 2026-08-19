@@ -16,6 +16,8 @@
 })(typeof self !== 'undefined' ? self : globalThis, function createBackgroundStorageModule() {
   const CURRENT_COURSE_KEY = 'currentCourse';
   const ACTIVE_PREVIEW_SESSION_KEY = 'activePreviewSession';
+  const INSTALLED_COURSE_KEY = 'installedCourse';
+  const LEARNING_STATE_KEY = 'learningState';
 
   /** Marks a chrome.storage failure so handlers can map it to STORAGE_FAILURE. */
   class StorageFailure extends Error {
@@ -49,6 +51,14 @@
       }
     }
 
+    async function writeKeys(values) {
+      try {
+        await area.set(values);
+      } catch {
+        throw new StorageFailure('set');
+      }
+    }
+
     async function removeKeys(keys) {
       try {
         await area.remove(keys);
@@ -62,11 +72,25 @@
       writeCurrentCourse: (course) => writeKey(CURRENT_COURSE_KEY, course),
       readPreviewSession: () => readKey(ACTIVE_PREVIEW_SESSION_KEY),
       writePreviewSession: (session) => writeKey(ACTIVE_PREVIEW_SESSION_KEY, session),
+      readInstalledCourse: () => readKey(INSTALLED_COURSE_KEY),
+      readLearningState: () => readKey(LEARNING_STATE_KEY),
+      /** One chrome.storage.local.set call is the student-side commit boundary. */
+      writeInstalledCourseAndState: (course, learningState) => writeKeys({
+        [INSTALLED_COURSE_KEY]: course,
+        [LEARNING_STATE_KEY]: learningState
+      }),
       /** Clearing a course always clears its session: a session without a course
        *  would reference something that is no longer there (A-STORAGE-02). */
       removeCourseAndSession: () => removeKeys([CURRENT_COURSE_KEY, ACTIVE_PREVIEW_SESSION_KEY])
     };
   }
 
-  return { createStorage, StorageFailure, CURRENT_COURSE_KEY, ACTIVE_PREVIEW_SESSION_KEY };
+  return {
+    createStorage,
+    StorageFailure,
+    CURRENT_COURSE_KEY,
+    ACTIVE_PREVIEW_SESSION_KEY,
+    INSTALLED_COURSE_KEY,
+    LEARNING_STATE_KEY
+  };
 });

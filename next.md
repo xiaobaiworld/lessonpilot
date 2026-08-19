@@ -4,7 +4,8 @@
 
 当前阶段：教师平台本地发布与插件授权下载闭环
 
-当前状态：本轮会话已收口。节点 1–7 已实现并验证；节点 8–9 尚未开始。
+当前状态：节点 1–7 已实现并验证；节点 8 已完成代码和自动化测试，真实 Chrome
+人工验收仍待重载解压版扩展后继续；节点 9 尚未开始。
 
 ## 下一步唯一目标
 
@@ -20,13 +21,59 @@
 
 已完成执行记录：`doc/archive/2026-08-18-teacher-platform-nodes-1-7/next.md`
 
+## 节点 8 当前执行切片
+
+### 已确认边界
+
+- 沿用已验证的本地 API：`POST /api/v1/public/course-download`，请求仅含
+  `access_code`，成功响应为 `{ "course": PluginCourseConfig }`；本节点不凭设计草案
+  臆造尚未实现的 content hash envelope。
+- 插件后台把 HTTP 响应视为不可信输入，写入前再次使用
+  `src/shared/course-contract.js` 校验；失败默认拒绝且不覆盖旧数据。
+- 学生安装课程使用独立的 `installedCourse` / `learningState` 键，不复用教师工作台
+  预览使用的 `currentCourse` / `activePreviewSession`。
+- 不同课程只在学生明确确认后替换；确认和第二次下载之间仍以当前课程 ID 做并发保护。
+- B 站运行时从 `installedCourse` 读取课程，只在当前 pathname 的 BVID 与
+  `course.videoRef.videoId` 完全相等时挂载；SPA 离开时销毁旧 UI 和监听器。
+- 本节点做四种现有节点的最小线性运行适配；不扩展字幕书包、学习报表、学生账号、
+  多课程或公网部署。
+
+### 测试先行
+
+1. `tests/access-code-panel.test.js`：授权码标准化、请求不携带课程 ID、错误文案、
+   覆盖确认取消路径、标准 B 站 URL。
+2. `tests/plugin-download-flow.test.js`：网络错误、401/404、畸形 JSON、课程契约失败、
+   同课程更新、不同课程确认、单次原子写入、旧课程和学习状态不被失败路径破坏。
+3. `tests/course-runtime.test.js`：BVID 精确匹配、时间跨越触发、SPA 进入/离开销毁、
+   重复初始化保护。
+4. `tests/manual/teacher-platform-local/README.md`：真实 Chrome 加载、有效/无效授权码、
+   刷新持久化、其它 BVID 静默、至少一个真实互动节点、控制台和后端日志脱敏。
+
+### 日志与安全证据
+
+- 自动化：Node 测试输出；后端 pytest 输出。
+- 人工：Chrome 扩展 service worker 控制台、B 站页面控制台、FastAPI 结构化日志。
+- 预期日志只包含操作名、课程 ID、节点数、结果和错误码；不得出现授权码原文、节点正文、
+  字幕正文、Cookie 或学生答案。
+- 若实际日志不足以定位失败，只补充固定字段的脱敏诊断日志，不打印请求体或响应正文。
+
+### 2026-08-19 当前验证证据
+
+- `node --test tests/*.test.js`：275 pass / 0 fail。
+- `cd backend && uv run pytest --cov=app --cov-report=term-missing`：37 pass，总代码覆盖率 87%。
+- JS 语法、`git diff --check` 和敏感原文扫描通过；扫描仅命中公开授权码占位符。
+- 真实 Chrome 已确认新书包入口注入、教师端创建四种节点、发布 v1 并创建授权码；课程下载
+  仍由浏览器中未重载的旧 service worker 持有，未产生下载 API 请求。必须在
+  `chrome://extensions` 手工重新加载 KnownMap 后，从有效授权码下载步骤继续；本记录不把该
+  环境阻塞写成功能验收通过。
+
 ## 开始前检查
 
-- [ ] 读取全局规范、`doc/INDEX.md`、当前需求、D-018 和学生插件设计；
-- [ ] 核对 `src/shared/course-contract.js`、`src/background/storage.js`、`src/background/operations.js` 和现有 B 站运行时；
-- [ ] 确认本地 FastAPI `/api/v1/public/course-download` 可用；
-- [ ] 先写节点 8 的失败测试和真实 Chrome 人工验收步骤；
-- [ ] 不改教师端节点 1–7 已验证的 API 与页面行为，除非失败测试证明存在必要依赖。
+- [x] 读取全局规范、`doc/INDEX.md`、当前需求、D-018 和学生插件设计；
+- [x] 核对 `src/shared/course-contract.js`、`src/background/storage.js`、`src/background/operations.js` 和现有 B 站运行时；
+- [x] 确认本地 FastAPI `/api/v1/public/course-download` 可用；
+- [x] 先写节点 8 的失败测试和真实 Chrome 人工验收步骤；
+- [x] 不改教师端节点 1–7 已验证的 API 与页面行为，除非失败测试证明存在必要依赖。
 
 ## 节点 8 完成门禁
 

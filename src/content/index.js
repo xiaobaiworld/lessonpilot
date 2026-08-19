@@ -1,123 +1,107 @@
-/**
- * LessonPilot content script entry.
- */
+/** KnownMap student runtime: bookbag on every Bilibili video, course only on matching BVID. */
 (function initContentScript() {
-  if (window.__lessonPilotBootstrap) {
-    return;
-  }
+  if (window.__lessonPilotBootstrap) return;
   window.__lessonPilotBootstrap = true;
 
-  const demo = window.LessonPilotDemoConfig;
   const player = window.LessonPilotBiliPlayer;
   const { MascotWidget } = window.LessonPilotMascot;
-  const { SubtitleBlocker } = window.LessonPilotSubtitleBlocker;
+  const { AccessPanel } = window.LessonPilotAccessPanel;
+  const runtime = window.LessonPilotCourseRuntime;
 
-  /** @type {InstanceType<typeof MascotWidget> | null} */
+  let course = null;
+  let learningState = null;
+  let pageWatcherStop = null;
+  let playbackStop = null;
+  let timeStop = null;
   let mascot = null;
-  /** @type {InstanceType<typeof SubtitleBlocker> | null} */
-  let subtitleBlocker = null;
-  /** @type {(() => void) | null} */
-  let stopWatchingPlayback = null;
-  /** @type {(() => void) | null} */
-  let stopWatchingTime = null;
-  let dialogShownAt35 = false;
 
-  /**
-   * @param {'playing' | 'paused' | 'missing'} state
-   */
-  function syncState(state) {
-    if (!mascot) {
-      return;
-    }
-
-    if (state === 'playing') {
-      mascot.setState('playing');
-    } else if (state === 'paused') {
-      mascot.setState('paused');
-    } else {
-      mascot.setState('idle');
-    }
-  }
-
-  /**
-   * @param {number} currentTime
-   */
-  function handleTimeUpdate(currentTime) {
-    subtitleBlocker?.update(currentTime);
-
-    if (currentTime < demo.DIALOG_AT_SECONDS - 0.5) {
-      dialogShownAt35 = false;
-      return;
-    }
-
-    if (currentTime >= demo.DIALOG_AT_SECONDS && !dialogShownAt35 && mascot) {
-      dialogShownAt35 = true;
-      mascot.showDialog();
-    }
-  }
-
-  function teardownDemoControls() {
-    stopWatchingPlayback?.();
-    stopWatchingTime?.();
+  function teardownCourseUi() {
+    playbackStop?.();
+    timeStop?.();
     mascot?.destroy();
-    subtitleBlocker?.destroy();
-
-    stopWatchingPlayback = null;
-    stopWatchingTime = null;
+    playbackStop = null;
+    timeStop = null;
     mascot = null;
-    subtitleBlocker = null;
-    dialogShownAt35 = false;
   }
 
-  function setupDemoControls() {
-    if (mascot) {
-      return;
-    }
-
+  function setupCourseUi() {
+    if (!course || mascot) return;
     mascot = new MascotWidget();
     mascot.mount();
-
-    subtitleBlocker = new SubtitleBlocker({
-      getVideo: () => player.getMainVideo(),
-      blockers: demo.SUBTITLE_BLOCKERS
-    });
-    subtitleBlocker.mount();
+    const completedNodeIds = Object.entries(learningState?.nodeStates ?? {})
+      .filter(([, state]) => state.status === 'completed')
+      .map(([nodeId]) => nodeId);
+    const timeline = runtime.createNodeTimeline(course, (node) => {
+      player.pause();
+      mascot.showNode(node, async (answer) => {
+        const evaluation = runtime.evaluateNodeAnswer(node, answer);
+        const saved = await chrome.runtime.sendMessage({
+          type: 'RECORD_STUDENT_NODE_ATTEMPT',
+          payload: { nodeId: node.id, correct: evaluation.correct, answer }
+        });
+        if (!saved?.ok) {
+          return {
+            accepted: false,
+            correct: false,
+            feedback: '学习进度保存失败，请重试。'
+          };
+        }
+        return { ...evaluation, accepted: true };
+      }, async () => {
+        timeline.complete(node.id);
+        mascot?.setState(await player.play());
+      });
+    }, { completedNodeIds });
 
     mascot.shell.addEventListener('lessonpilot:mascot-toggle', async () => {
-      syncState(await player.togglePlayback());
+      const state = await player.togglePlayback();
+      mascot?.setState(state === 'missing' ? 'idle' : state);
     });
+    mascot.shell.addEventListener('lessonpilot:pause', () => mascot?.setState(player.pause()));
+    playbackStop = player.watchPlayback((state) => mascot?.setState(state));
+    timeStop = player.watchTime((currentTime) => timeline.update(currentTime));
+  }
 
-    mascot.shell.addEventListener('lessonpilot:pause', () => {
-      syncState(player.pause());
-    });
-
-    mascot.shell.addEventListener('lessonpilot:seek-30', () => {
-      syncState(player.seekTo(demo.SEEK_30_SECONDS));
-    });
-
-    mascot.shell.addEventListener('lessonpilot:seek-35', () => {
-      syncState(player.seekTo(demo.DIALOG_AT_SECONDS));
-      dialogShownAt35 = true;
-      mascot.showDialog();
-    });
-
-    stopWatchingPlayback = player.watchPlayback((state) => {
-      syncState(state);
-    });
-
-    stopWatchingTime = player.watchTime((currentTime) => {
-      handleTimeUpdate(currentTime);
+  function activateCourse(nextCourse, nextLearningState = null) {
+    pageWatcherStop?.();
+    teardownCourseUi();
+    course = nextCourse;
+    learningState = nextLearningState;
+    if (!course) return;
+    pageWatcherStop = runtime.createCoursePageWatcher({
+      window,
+      course,
+      onEnter: setupCourseUi,
+      onLeave: teardownCourseUi
     });
   }
 
-  const stopWatchingUrl = demo.watchDemoPage(setupDemoControls, teardownDemoControls);
+  async function bootstrap() {
+    let installedCourse = null;
+    let installedLearningState = null;
+    try {
+      const response = await chrome.runtime.sendMessage({ type: 'GET_INSTALLED_STUDENT_COURSE' });
+      if (response?.ok) {
+        installedCourse = response.installedCourse;
+        installedLearningState = response.learningState;
+      }
+    } catch {
+      // The bookbag remains usable and will show a download error if the worker is unavailable.
+    }
+    const panel = new AccessPanel({
+      runtime: chrome.runtime,
+      installedCourse,
+      onCourseInstalled: activateCourse
+    });
+    panel.mount();
+    activateCourse(installedCourse?.course ?? null, installedLearningState);
 
-  if (demo.isDemoVideoPage()) {
-    setupDemoControls();
+    window.addEventListener('pagehide', () => {
+      pageWatcherStop?.();
+      teardownCourseUi();
+      panel.destroy();
+    }, { once: true });
   }
 
-  window.addEventListener('pagehide', () => {
-    stopWatchingUrl();
-    teardownDemoControls();
-  });
+  bootstrap();
 })();
