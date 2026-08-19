@@ -18,7 +18,7 @@
 - 生产域名是 `https://knownmap.com`，`www.knownmap.com` 跳转到同一站点；
 - 服务器通过本机 SSH 别名 `aliyun` 连接；
 - 当前公网首页是 `teacher-web/forsales.html`；
-- 公网只允许销售页、两个页面脚本、网页图标和 `robots.txt`；
+- 公网只允许销售页、三个页面脚本（含飞书试用入口模块）、网页图标和 `robots.txt`；
 - 教师编辑器、后端、测试、文档、插件源码和仓库元数据不得进入公网目录。
 
 ## 发布模型

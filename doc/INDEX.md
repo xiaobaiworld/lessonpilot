@@ -51,6 +51,7 @@
 | `doc/node-content-standard.md` | 节点内容完整标准 | 当前参考；第一阶段只实现四种节点子集 |
 | `doc/learning-window-standard.md` | 学习窗口展示和交互标准 | 当前参考；第一阶段只实现必要子集 |
 | `doc/teacher-sales-page-design.md` | 已验证销售叙事和 CTA | 当前视觉/内容参考；页面路径由新需求覆盖 |
+| `doc/trial-intake-form-design.md` | 飞书真实课程试用表单的字段、权限、网页模块和验收 | 当前表单设计权威；已发布并验收匿名访问 |
 | `doc/teacher-course-workspace-design.md` | 已确认工作台视觉和信息结构 | 当前视觉参考；示例/真实页面职责已被新需求替代 |
 | `doc/ui-design.md` | 颜色和基础 UI 规则 | 当前视觉参考；旧页面职责已被新需求替代 |
 | `doc/subtitle-pipeline.md` | 字幕来源与本地解析研究 | 当前参考 |
@@ -72,7 +73,7 @@
 | --- | --- | --- |
 | `doc/plans/stage-1a-contract-bridge-deploy.md` | 数据契约、存储、消息桥和公网部署可验证 | 已实施；历史阶段 |
 | `tests/manual/stage-1a-bridge/README.md` | 1A 真实 Chrome 与公网人工验证记录 | V1 与 V7 发布/路径已通过；V2–V6 待执行，是 1A 完成门禁 |
-| `doc/plans/stage-1b-sales-page-revision.md` | 销售页私信 CTA、飞书表单和真实试用承诺 | 已交付（飞书表单入口未实现，等真实 URL） |
+| `doc/plans/stage-1b-sales-page-revision.md` | 销售页私信 CTA、飞书表单和真实试用承诺 | 已完成二次交付；公开表单与入口模块已验收 |
 | `tests/manual/sales-page-revision-20260816.md` | 销售页修订的自动化与浏览器验证记录 | 剩剪贴板与 CTA 两项待本机确认 |
 | `doc/plans/stage-1b-sales-workspace.md` | 默认销售首页和真实教师工作台可保存课程 | 历史原型阶段；部分已交付 |
 | `doc/plans/stage-1c-runtime-e2e.md` | 四种节点在真实 B 站完成端到端预览 | 历史原型阶段；部分已交付 |

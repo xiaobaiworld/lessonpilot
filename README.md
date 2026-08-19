@@ -19,6 +19,7 @@ KnownMap 把老师已有的 B 站录播课变成可在原视频页面运行的�
 - 本地数据库已实现；插件已有本地存储适配器，下载后的课程配置接入待节点 8；
 - 教师 API 和教师编辑器公网部署作为后续阶段，不在当前实现范围；
 - 销售页已经作为 `knownmap.com` 的生产首页发布。
+- 销售页的飞书真实课程试用表单与独立入口模块已完成，公开链接已通过无登录态访问验收。
 
 问答题只保存学生原始回答，并展示老师预设的参考反馈；第一阶段不评分、不调用 AI。
 
@@ -143,6 +144,7 @@ node --test tests/*.test.js
 | [`doc/teacher-platform-api-spec.md`](doc/teacher-platform-api-spec.md) | 当前教师认证、课程、发布和下载 API |
 | [`doc/DECISIONS.md`](doc/DECISIONS.md) | 决策、假设、证据和重开条件 |
 | [`doc/teacher-platform-dev-plan.md`](doc/teacher-platform-dev-plan.md) | 当前节点 8–9 的开发步骤、测试和收口门禁 |
+| [`doc/trial-intake-form-design.md`](doc/trial-intake-form-design.md) | 飞书真实课程试用表单、销售页入口与数据边界 |
 | [`next.md`](next.md) | 唯一当前执行步骤 |
 
 品牌资源：

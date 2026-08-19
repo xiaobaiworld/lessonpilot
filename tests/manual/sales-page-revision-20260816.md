@@ -52,3 +52,11 @@
   所以页面只有私信主 CTA。测试已加断言：一旦页面提到表单却没有真实飞书 URL 就失败。
 - 提供 URL 后要做的事：加次 CTA 按钮「填写 1 分钟试用信息」、旁文
   「不方便私信？留下课程情况，我会联系你。」、`target="_blank"`，然后删掉该断言的豁免分支。
+
+## 2026-08-19 飞书表单补充实施
+
+- 已创建 `KnownMap 真实课程互动改造申请` 表单草稿，并按 D-012、D-013 配置基础联系字段和未来方向验证问题；完整定义见 `doc/trial-intake-form-design.md`。
+- 已新增独立模块 `teacher-web/trial-intake.js`，销售页只保留次 CTA 挂载点；无效或缺失 URL 时继续失败关闭。
+- 已把模块纳入 GitHub Pages 与生产发布白名单，并补充自动化测试。
+- 公开地址：`https://my.feishu.cn/share/base/form/shrcnGpoiVzLw8v5sD5K2TV8sFb`。
+- 匿名验收：无飞书 Cookie 的干净 Chromium 访问返回 HTTP 200；标题、8 个问题、必填标识、固定选项和提交按钮均可见，没有登录前置页。为避免污染真实线索，本次未创建测试提交。

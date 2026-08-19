@@ -209,3 +209,9 @@ For W0, show the fixed source course honestly and link to its original page. Kee
 The teacher workflow needs timestamped text before it can support meaningful action editing. A manual SRT/VTT import gives the workflow a real, inspectable input without requiring the product to claim that it can scrape Bilibili subtitles across login, copyright, or platform changes.
 
 The safe first contract is: fixed supported Bilibili link, teacher-provided UTF-8 SRT/VTT file, local parsing, then caption-anchored actions. Reject invalid files without replacing the existing timeline; obtain and manually check the real course subtitle file before treating any imported timestamps as teaching facts.
+
+## 2026-08-19 — Isolate External Intake Links and Fail Closed
+
+An external form URL is operational configuration, not page copy. Keeping the URL, visible label, allowlist and mount behavior in one small module makes the release boundary testable and prevents an internal editor link from being scattered across HTML and deployment scripts.
+
+The verified decision is to hide the whole secondary CTA until a published HTTPS Feishu/Lark URL exists. A placeholder or authenticated editor URL creates a worse failure than temporarily showing only the private-message CTA. Next time, create and anonymously verify the external form before changing the page test from “hidden without URL” to “visible with a public URL.”
