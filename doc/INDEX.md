@@ -1,6 +1,6 @@
 # KnownMap 文档索引
 
-最近审计：2026-08-18
+最近审计：2026-08-19
 
 当前阶段：教师平台本地发布与插件授权下载闭环。教师侧节点 1–7 已验证，插件侧节点 8 和完整闭环节点 9 尚未完成。第一阶段销售页和原型 Demo 已归档。其它 Agent 开始工作时，先读本文件，再按“当前权威”顺序阅读。
 
@@ -89,7 +89,10 @@
 | `doc/student-runtime.md` | 广义学生工具和数据归属 | 第一阶段外参考 |
 | `doc/multi-creator-platform.md` | 多创作者、授权、计费预案 | 远期预案 |
 | `doc/promo-video.md` | 完整产品推广视频脚本 | 第二阶段以后 |
+| `doc/AI_Learning_Companion_Product_Function_Spec_v0.1.md` | 教师中心调整前的产品功能规格 | 历史基线；已由 v0.2 替代 |
 | `doc/Digital_Learning_Platforms_竞争情报与定价研究_v0.1.md` | 竞品与定价研究 | 研究资料 |
+| `AI_Brand_Naming_Project.md` | KnownMap 命名研究过程 | 历史品牌研究 |
+| `AI_Brand_Domain_Selection_Report_v0.1.md` | 品牌域名筛选报告 | 历史品牌研究 |
 | `LessonPilot_Creator_Studio_设计建议_v0.1.md` | 旧文件名保留的早期设计建议 | 历史参考；品牌已由 D-014 替代 |
 
 ## 完整历史归档
@@ -127,6 +130,7 @@
 | `tools/assemble-workspace.js` | 把 `src/shared/` 复制到 `teacher-web/shared/`，本地与公网加载同一路径 |
 | `tools/web-release.sh` | 从精确 GitHub 提交发布销售站，查询历史并原子回滚 |
 | `deploy/releases/` | 每次成功 Web 生产发布的一文件一记录 |
+| `deploy/releases/README.md` | 生产发布记录的字段、命名和维护说明 |
 | `tests/` | Node 自动化测试 |
 | `tests/manual/` | 依赖真实浏览器和 B 站的人工探针 |
 | `tests/manual/teacher-platform-experience-polish/README.md` | 互动课程工具登录、状态隔离、键盘、字幕、发布锁和三档响应式验收 |
