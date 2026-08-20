@@ -14,7 +14,7 @@
 | `doc/decisions/2026-08-18-teacher-centered-product-v0.2.md` | v0.2 教师账号、工作空间、本地课程和授权码决策过程 | 已接受；当前只实现本地最小切片 |
 | `doc/decisions/2026-08-18-teacher-platform-local-slice.md` | 当前本地教师发布、授权码下载切片的范围决策 | 已接受；教师侧已验证，插件侧待完整人工验收 |
 | `doc/teacher-platform-architecture.md` | FastAPI、SQLite、教师端、插件和数据边界 | 当前架构；节点 1–8 已实现 |
-| `doc/teacher-platform-data-spec.md` | 教师、课程、课节、脚本、发布版本、授权码和插件本地状态字段 | 当前数据实现 |
+| `doc/teacher-platform-data-spec.md` | 教师、课程、课节、脚本、发布版本、授权码、授权范围和插件本地状态字段 | 当前实现 + 已接受扩展 |
 | `doc/teacher-platform-api-spec.md` | 教师认证、课程发布、授权码和插件下载 API | 当前 API 与插件客户端实现 |
 | `doc/student-plugin-course-delivery-design.md` | 单课程授权领取、工具栏首页、本地学习状态和打开 B 站课程页 | `0.9.1` 已实现核心路径；边界验收待收口 |
 | `doc/student-plugin-release-design.md` | 学生插件固定 ZIP 下载地址、发布、手动更新和回滚 | 已接受；代码已实现，生产部署待验证 |

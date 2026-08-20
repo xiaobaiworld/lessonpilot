@@ -4,7 +4,7 @@
 
 更新时间：2026-08-20
 
-状态：当前数据实现说明；教师、会话、工作空间、课程、单课节、脚本草稿、发布版本、授权码、操作日志，以及插件单课程 `installedCourse` 与本地 `learningState` 已实现。完整真实 Chrome 边界验收待收口。
+状态：当前数据实现说明，并记录已接受的多课程、多课节和授权范围扩展；教师、会话、工作空间、课程、单课节、脚本草稿、发布版本、授权码、操作日志，以及插件单课程 `installedCourse` 与本地 `learningState` 已实现。扩展模型待实施，完整真实 Chrome 边界验收待收口。
 
 ## 1. 数据分层
 
@@ -84,7 +84,7 @@ output    = API response、PluginCourseConfig、插件本地存储
 | `created_at` | UTC datetime | 是 | 服务端生成 | internal |
 | `updated_at` | UTC datetime | 是 | 服务端生成 | internal |
 
-当前每门课程只有一个课节；`sort_order` 为后续多课节保留。
+当前实现每门课程只有一个课节；`sort_order` 为后续多课节保留。目标模型允许一门课程包含多个课节，每个课节有独立 UUID，并绑定一个 B 站视频。
 
 数据库将 `video_ref` 拆为 `platform` 和 `video_id` 两列，API 使用 `{platform, video_id}` 对象；两层映射由 `LessonPublic` schema 固定。
 
@@ -116,15 +116,16 @@ output    = API response、PluginCourseConfig、插件本地存储
 
 草稿修改不得覆盖已发布 JSON。插件下载只读取最新已发布版本。
 
-发布时由 adapter 生成并再次校验 `PluginCourseConfig`，其中 `courseId` 从平台和 BVID
-派生，`updatedAt` 固定为 UTC 毫秒格式。每次发布新增一行，不覆盖旧版本。
+发布时由 adapter 生成并再次校验 `PluginCourseConfig`。当前实现中的 `courseId` 仍从平台和
+BVID 派生；目标模型改为使用后台生成的 `Course.id`，并在课程包中聚合多个课节。
+`updatedAt` 固定为 UTC 毫秒格式。每次发布新增一行，不覆盖旧版本。
 
 ### 2.8 AccessCode
 
 | 字段 | 类型 | 必填 | 规则 | 敏感级别 |
 | --- | --- | --- | --- | --- |
 | `id` | UUID | 是 | 服务端生成 | internal |
-| `course_id` | UUID | 是 | 绑定课程 | internal |
+| `course_id` | UUID | 是（当前） | 当前实现直接绑定一门课程；目标模型迁移到 `AccessGrant` 后由授权关系表表达 | internal |
 | `code_digest` | string | 是 | HMAC-SHA256，唯一索引 | secret |
 | `code_hint` | string | 是 | 仅用于教师确认，不可还原原文 | internal |
 | `code_type` | string | 是 | `short_term` / `long_term` | internal |
@@ -135,6 +136,59 @@ output    = API response、PluginCourseConfig、插件本地存储
 
 授权码格式为 `KM-XXXXX-XXXXX-XXXXX-XXXXX`，字符集为 Base32 大写字母和数字 2–7。
 查找时对规范化后的授权码计算 HMAC-SHA256；授权码原文不写数据库和日志。
+
+### 2.8.1 AccessGrant（已接受，待实施）
+
+`AccessCode` 是凭证，`AccessGrant` 是凭证授予的内容范围。一个授权码可以有多条
+`AccessGrant`，因此可以同时授权多个课程、多个课节和多个互动节点。
+
+| 字段 | 类型 | 必填 | 规则 | 敏感级别 |
+| --- | --- | --- | --- | --- |
+| `id` | UUID | 是 | 服务端生成，稳定不变 | internal |
+| `access_code_id` | UUID | 是 | 关联 `AccessCode` | internal |
+| `course_id` | UUID | 是 | 关联课程 | internal |
+| `lesson_id` | UUID/null | 否 | 为空表示课程下全部课节；非空时必须属于 `course_id` | internal |
+| `node_id` | string/null | 否 | 为空表示课节下全部节点；非空时必须属于 `lesson_id` 的已发布配置 | internal |
+| `valid_from` | UTC datetime/null | 否 | 授权生效时间；为空表示立即生效 | internal |
+| `valid_until` | UTC datetime/null | 否 | 授权失效时间；为空表示不单独设置范围 | internal |
+| `created_at` | UTC datetime | 是 | 服务端生成 | internal |
+
+范围语义：
+
+```text
+course_id = A, lesson_id = null, node_id = null
+→ 课程 A 的全部课节和节点
+
+course_id = A, lesson_id = B, node_id = null
+→ 课程 A 的课节 B 的全部节点
+
+course_id = A, lesson_id = B, node_id = N
+→ 课程 A 的课节 B 中的节点 N
+```
+
+`node_id` 指向节点的稳定 ID，而不是直接保存 `timeSeconds`。节点在视频中的播放时间点
+由已发布课程配置决定；授权范围只引用节点身份，避免因时间轴微调而让授权记录失去明确目标。
+
+`valid_from` / `valid_until` 表示现实时间中的授权有效期，和节点的
+`trigger.timeSeconds` 完全不同：
+
+```text
+授权有效期：2026-08-20T00:00:00Z → 2026-08-30T00:00:00Z
+视频节点时间：第 2 节视频的 135 秒处
+```
+
+约束：
+
+- `node_id` 非空时 `lesson_id` 必须非空；
+- `lesson_id` 必须属于 `course_id`；
+- `node_id` 必须属于指定课节当前授权所读取的已发布版本；
+- `valid_until` 不能早于 `valid_from`；
+- 同一授权码不得重复插入完全相同的授权范围；
+- 授权码撤销、过期或范围不匹配时，插件不得下载对应课程内容；
+- 当前实现暂时继续使用 `AccessCode.course_id`，迁移后由 `AccessGrant` 取代直接课程绑定。
+
+授权码的课程/课节/节点范围和授权码本身的有效期是两个维度。未来如果需要教师按
+不同发布版本授权，可以在 `AccessGrant` 增加 `release_id`，但当前不提前引入。
 
 ### 2.9 OperationLog
 
@@ -213,7 +267,7 @@ followup  + free_text
 
 ## 4. 插件下载输出
 
-授权码下载成功时返回：
+当前实现中，授权码下载成功时返回一门课程：
 
 ```json
 {
@@ -231,6 +285,33 @@ followup  + free_text
 ```
 
 插件最终接收的字段必须符合现有共享课程契约。`password_hash`、`workspace_id`、授权码摘要、数据库 ID 映射信息和草稿状态不得进入输出。
+
+目标授权模型下，一个授权码可能返回多个课程和多个课节：
+
+```json
+{
+  "courses": [
+    {
+      "courseId": "course-uuid-1",
+      "title": "英语面试表达",
+      "lessons": [
+        {
+          "lessonId": "lesson-uuid-1",
+          "title": "第一节：自我介绍",
+          "videoRef": {
+            "platform": "bilibili",
+            "videoId": "BV1Example01"
+          },
+          "nodes": []
+        }
+      ]
+    }
+  ]
+}
+```
+
+插件下载器应按 `courseId` 合并或新增课程，按 `lessonId` 保存课节，并按授权范围过滤
+允许使用的内容。该响应形状属于目标模型，当前 API 和插件实现仍保持单课程兼容。
 
 ## 5. 数据流校验
 
@@ -252,6 +333,7 @@ flowchart LR
 - 草稿为空或没有节点：不能发布；
 - 发布配置不符合插件契约：发布事务回滚；
 - 授权码不存在或已经过期：返回统一 `INVALID_ACCESS_CODE`；
+- 目标授权模型中，授权码存在但没有覆盖请求课程、课节或节点：返回 `ACCESS_SCOPE_DENIED`；
 - 课程未发布：返回 `COURSE_NOT_AVAILABLE`；
 - 数据库错误：事务回滚并返回 `INTERNAL_ERROR`，详细异常只写日志。
 
