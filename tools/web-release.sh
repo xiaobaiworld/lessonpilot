@@ -46,6 +46,10 @@ TEACHER_SOURCE_FILES=(
   "teacher-web/assets/knownmap-icon.png"
 )
 
+ADMIN_SOURCE_FILES=(
+  "teacher-web/admin.html"
+)
+
 TEACHER_PUBLIC_FILES=(
   "public/teacher-web/editor.html"
   "public/teacher-web/styles.css"
@@ -61,6 +65,10 @@ TEACHER_PUBLIC_FILES=(
   "public/teacher-web/assets/knownmap-icon.png"
 )
 
+ADMIN_PUBLIC_FILES=(
+  "public/admin.html"
+)
+
 log() {
   printf '[web-release] %s\n' "$*"
 }
@@ -71,8 +79,16 @@ fail() {
 }
 
 if [[ "$PUBLISH_PROFILE" == "teacher-platform-v1" ]]; then
-  SOURCE_FILES=("${SALES_SOURCE_FILES[@]}" "${TEACHER_SOURCE_FILES[@]}")
-  PUBLIC_FILES=("${SALES_PUBLIC_FILES[@]}" "${TEACHER_PUBLIC_FILES[@]}")
+  SOURCE_FILES=(
+    "${SALES_SOURCE_FILES[@]}"
+    "${ADMIN_SOURCE_FILES[@]}"
+    "${TEACHER_SOURCE_FILES[@]}"
+  )
+  PUBLIC_FILES=(
+    "${SALES_PUBLIC_FILES[@]}"
+    "${ADMIN_PUBLIC_FILES[@]}"
+    "${TEACHER_PUBLIC_FILES[@]}"
+  )
 elif [[ "$PUBLISH_PROFILE" == "sales-static-v1" ]]; then
   SOURCE_FILES=("${SALES_SOURCE_FILES[@]}")
   PUBLIC_FILES=("${SALES_PUBLIC_FILES[@]}")
@@ -193,6 +209,7 @@ build_release() {
   cp "$source_dir/teacher-web/trial-intake.js" "$output/public/teacher-web/trial-intake.js"
   cp "$source_dir/teacher-web/assets/knownmap-icon.png" "$output/public/teacher-web/assets/knownmap-icon.png"
   if [[ "$PUBLISH_PROFILE" == "teacher-platform-v1" ]]; then
+    cp "$source_dir/teacher-web/admin.html" "$output/public/admin.html"
     for relative_path in "${TEACHER_SOURCE_FILES[@]}"; do
       source_file="$source_dir/$relative_path"
       public_file="$output/public/$relative_path"
@@ -324,6 +341,8 @@ verify_public_site() {
   [[ "$actual_index_sha" == "$expected_index_sha" ]] || return 1
 
   if [[ "$PUBLISH_PROFILE" == "teacher-platform-v1" ]]; then
+    status="$(curl -sS -o /dev/null -w '%{http_code}' "$SITE_URL/admin.html")"
+    [[ "$status" == "200" ]] || return 1
     status="$(curl -sS -o /dev/null -w '%{http_code}' "$SITE_URL/teacher-web/editor.html")"
     [[ "$status" == "200" ]] || return 1
     api_status="$(curl -fsS "$SITE_URL/health")"

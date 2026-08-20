@@ -3,6 +3,7 @@
 这套部署把教师工作台和 FastAPI 放到同一台阿里云 ECS：
 
 - 静态工作台：`https://knownmap.com/teacher-web/editor.html`
+- 站点索引：`https://knownmap.com/admin.html`
 - API：`https://knownmap.com/api/v1/`
 - API 进程：仅监听服务器本机 `127.0.0.1:8000`
 - 数据库：`/var/lib/knownmap/knownmap.db`

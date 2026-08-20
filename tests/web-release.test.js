@@ -111,11 +111,25 @@ test('teacher platform profile packages the editor without publishing the reposi
 
   const metadata = JSON.parse(fs.readFileSync(path.join(output, 'release.json'), 'utf8'));
   assert.equal(metadata.publishProfile, 'teacher-platform-v1');
+  assert.ok(fs.existsSync(path.join(output, 'public/admin.html')));
   assert.ok(fs.existsSync(path.join(output, 'public/teacher-web/editor.html')));
   assert.ok(fs.existsSync(path.join(output, 'public/teacher-web/api-client.js')));
   assert.ok(fs.existsSync(path.join(output, 'public/teacher-web/app.js')));
   assert.equal(fs.existsSync(path.join(output, 'public/backend')), false);
   assert.equal(fs.existsSync(path.join(output, 'public/.git')), false);
+});
+
+test('admin index exposes only the approved production entry points', () => {
+  const adminPage = path.join(root, 'teacher-web/admin.html');
+  assert.equal(fs.existsSync(adminPage), true, 'teacher-web/admin.html must exist');
+
+  const source = fs.readFileSync(adminPage, 'utf8');
+  assert.match(source, /<meta name="robots" content="noindex, noarchive">/);
+  assert.match(source, /href="\/"/);
+  assert.match(source, /href="\/teacher-web\/editor\.html"/);
+  assert.match(source, /href="\/health"/);
+  assert.doesNotMatch(source, /\/api\/v1\//);
+  assert.doesNotMatch(source, /43\.110\.33\.202/);
 });
 
 test('release documentation binds publish phrases to deploy, record, and rollback steps', () => {

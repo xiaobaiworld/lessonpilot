@@ -436,6 +436,7 @@ verify_remote() {
   trap 'rm -f "$body"' RETURN
   /usr/bin/curl -fsS "$SITE_URL/health" -o "$body"
   jq -e '.status == "ok"' "$body" >/dev/null || return 1
+  /usr/bin/curl -fsS "$SITE_URL/admin.html" >/dev/null
   /usr/bin/curl -fsS "$SITE_URL/teacher-web/editor.html" >/dev/null
   /usr/bin/curl -fsS "$SITE_URL/" >/dev/null
 
