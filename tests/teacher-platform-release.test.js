@@ -58,6 +58,7 @@ test('teacher platform release never prints or implicitly rotates production cre
     /KNOWNMAP_PRODUCTION_TEACHER_PASSWORD:-\$\(openssl rand/
   );
   assert.match(source, /seed_password="\$\{KNOWNMAP_PRODUCTION_TEACHER_PASSWORD:-\}"/);
+  assert.match(source, /local seed_password_file="-"/);
   assert.match(source, /seed_password_file/);
   assert.match(source, /install -m 600 \/dev\/null "\$seed_password_file"/);
   assert.match(source, /CREDENTIAL_ROTATION=/);
@@ -79,6 +80,10 @@ test('backend deploy uses a checksum-pinned uv and a frozen per-release environm
   assert.match(
     source,
     /ln -s "\$app_root\/venv" "\$previous_target\/backend\/\.venv"/
+  );
+  assert.match(
+    source,
+    /ln -s "\$app_root\/venv" "\$target\/backend\/\.venv"/
   );
 });
 

@@ -174,6 +174,10 @@ app_root="$1"
 target="$2"
 service_name="$3"
 test -d "$target/backend"
+if [[ ! -e "$target/backend/.venv" &&
+      -x "$app_root/venv/bin/uvicorn" ]]; then
+  ln -s "$app_root/venv" "$target/backend/.venv"
+fi
 test -x "$target/backend/.venv/bin/uvicorn"
 temporary_link="$app_root/.current-restore"
 ln -s "$target" "$temporary_link"
@@ -188,7 +192,7 @@ install_remote_backend() {
   local seed_password="$2"
   local previous_target="$3"
   local remote_env_file
-  local seed_password_file=""
+  local seed_password_file="-"
   local install_status=0
 
   remote_env_file="/etc/knownmap/teacher-platform.env"
@@ -230,7 +234,7 @@ uv_tmp=""
 
 cleanup() {
   [[ -z "$uv_tmp" ]] || rm -rf "$uv_tmp"
-  [[ -z "$seed_password_file" ]] || rm -f "$seed_password_file"
+  [[ "$seed_password_file" == "-" ]] || rm -f "$seed_password_file"
 }
 trap cleanup EXIT
 
@@ -290,14 +294,14 @@ find "$release" -type f -exec chmod 644 {} +
 find "$release/backend/.venv/bin" -type f -exec chmod 755 {} +
 
 if [[ ! -f /var/lib/knownmap/knownmap.db ]]; then
-  [[ -n "$seed_password_file" ]] ||
+  [[ "$seed_password_file" != "-" ]] ||
     {
       echo "first production deploy requires KNOWNMAP_PRODUCTION_TEACHER_PASSWORD" >&2
       exit 1
     }
   seed_password="$(cat "$seed_password_file")"
   rm -f "$seed_password_file"
-  seed_password_file=""
+  seed_password_file="-"
   "$release/backend/.venv/bin/alembic" -c "$release/backend/alembic.ini" upgrade head
   SEED_TEACHER_LOGIN_NAME=teacher-test-01 \
   SEED_TEACHER_PASSWORD="$seed_password" \
@@ -305,10 +309,10 @@ if [[ ! -f /var/lib/knownmap/knownmap.db ]]; then
     "$release/backend/.venv/bin/python" -m app.seed
 else
   "$release/backend/.venv/bin/alembic" -c "$release/backend/alembic.ini" upgrade head
-  if [[ -n "$seed_password_file" ]]; then
+  if [[ "$seed_password_file" != "-" ]]; then
     seed_password="$(cat "$seed_password_file")"
     rm -f "$seed_password_file"
-    seed_password_file=""
+    seed_password_file="-"
     SEED_TEACHER_LOGIN_NAME=teacher-test-01 \
     SEED_TEACHER_PASSWORD="$seed_password" \
     SEED_TEACHER_DISPLAY_NAME='KnownMap 教师' \
@@ -332,7 +336,7 @@ mv -Tf "$temporary_link" "$app_root/current"
 chown -h root:root "$app_root/current"
 REMOTE
 
-  if [[ -n "$seed_password_file" ]]; then
+  if [[ "$seed_password_file" != "-" ]]; then
     ssh -o BatchMode=yes "$SSH_HOST" "rm -f '$seed_password_file'" || true
   fi
   return "$install_status"
