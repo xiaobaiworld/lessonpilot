@@ -120,7 +120,8 @@ test('teacher editor presents a production-like interactive course tool login', 
   const app = fs.readFileSync('teacher-web/app.js', 'utf8');
   const envExample = fs.readFileSync('backend/.env.example', 'utf8');
 
-  assert.ok(page.includes('id="login-name" name="login_name" value="teacher-test-01"'));
+  assert.ok(page.includes('id="login-name" name="login_name" autocomplete="username"'));
+  assert.ok(!page.includes('value="teacher-test-01"'));
   assert.ok(page.includes('KnownMap 互动课程工具'));
   assert.ok(page.includes('<span>用户名</span>'));
   assert.equal(page.includes('登录账号'), false);
