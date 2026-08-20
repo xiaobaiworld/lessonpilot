@@ -423,7 +423,7 @@ deploy_release() {
 
   commit="$(resolve_commit "$ref")"
   require_github_commit "$commit"
-  release_id="$(release_id_for_commit "$commit")"
+  release_id="${KNOWNMAP_RELEASE_ID:-$(release_id_for_commit "$commit")}"
   tag="web-prod/$release_id"
   ensure_tag_available "$tag"
   validate_release_in_worktree "$commit"

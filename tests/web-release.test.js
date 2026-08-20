@@ -53,6 +53,7 @@ test('web release script has valid shell syntax and traceability guards', () => 
   assert.match(source, /mv -Tf/);
   assert.match(source, /teacher-web\/editor\.html/);
   assert.match(source, /SITE_URL\/health/);
+  assert.match(source, /KNOWNMAP_RELEASE_ID:-\$\(release_id_for_commit/);
   assert.match(source, /verify\)\s*$/m);
 });
 
