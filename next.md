@@ -2,6 +2,49 @@
 
 更新时间：2026-08-20
 
+## 当前执行切片：超级管理员与教师账号管理
+
+设计入口：`docs/superpowers/specs/2026-08-20-teacher-account-admin-design.md`
+
+实施计划：`docs/superpowers/plans/2026-08-20-teacher-account-admin.md`
+
+当前步骤：实现独立管理员认证、初始化与会话服务。
+
+涉及文件：
+
+- `backend/app/repositories/admin_repository.py`
+- `backend/app/repositories/admin_session_repository.py`
+- `backend/app/services/admin_auth_service.py`
+- `backend/app/api/deps.py`
+- `backend/app/config.py`
+- `backend/app/seed.py`
+- `backend/tests/unit/test_admin_auth_service.py`
+
+验证方式：
+
+```text
+cd backend
+uv run pytest tests/unit/test_admin_auth_service.py -q
+uv run pytest -q
+git diff --check
+```
+
+已完成的持久化修正：
+
+- SQLite 项目引擎对每个连接启用外键检查；
+- 保留已进入远程仓库的 `0010_admin_auth`，新增可逆 `0011` 修复迁移；
+- 管理员登录名和会话摘要统一为具名唯一索引；
+- 清除旧结构中无法归属有效管理员的孤立会话；
+- 升级、降级、数据保持和外键执行均有自动化验证；
+- 聚焦测试 `4 passed`，后端全量 `57 passed`，Alembic 保持单一 head。
+
+安全边界：
+
+- 管理员与教师使用独立会话表、Cookie 和 API 权限边界；
+- 管理员与教师密码只保存 Argon2 哈希；
+- 创建或重置教师密码时，明文只存在于当次 HTTPS 响应和页面内存；
+- 不在日志、浏览器存储、发布记录、环境文件或数据库中保存明文密码。
+
 当前阶段：多课程 v2 数据链路实施；旧单课程测试结构直接舍弃
 
 当前版本：插件 `0.9.1`
