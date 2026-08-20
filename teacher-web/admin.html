@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, noarchive">
+    <meta name="description" content="KnownMap 站点入口">
+    <title>站点入口 · KnownMap</title>
+    <link rel="icon" type="image/png" href="assets/knownmap-icon.png">
+    <style>
+      :root {
+        color: #16251f;
+        background: #f5f1e7;
+        font-family: "Avenir Next", "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        margin: 0;
+        background: #f5f1e7;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .topbar {
+        display: flex;
+        min-height: 72px;
+        padding: 12px clamp(20px, 4vw, 64px);
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        border-bottom: 1px solid #d7d5cb;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+      }
+
+      .brand img {
+        display: block;
+        width: 42px;
+        height: 42px;
+        object-fit: contain;
+      }
+
+      .brand strong,
+      .brand small {
+        display: block;
+        letter-spacing: 0;
+      }
+
+      .brand strong {
+        font-size: 16px;
+      }
+
+      .brand small {
+        margin-top: 2px;
+        color: #52635b;
+        font-size: 12px;
+      }
+
+      .home-link {
+        color: #1d5c43;
+        font-size: 14px;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      main {
+        width: min(980px, calc(100% - 40px));
+        margin: 0 auto;
+        padding: clamp(54px, 8vw, 96px) 0 80px;
+      }
+
+      .eyebrow {
+        margin: 0;
+        color: #1d5c43;
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      h1 {
+        max-width: 720px;
+        margin: 10px 0 0;
+        font-size: 56px;
+        font-weight: 680;
+        letter-spacing: 0;
+        line-height: 1.08;
+      }
+
+      .lead {
+        max-width: 620px;
+        margin: 18px 0 0;
+        color: #52635b;
+        font-size: 16px;
+        line-height: 1.7;
+      }
+
+      .entry-list {
+        display: grid;
+        margin-top: clamp(42px, 7vw, 72px);
+        border-top: 1px solid #aebbb3;
+      }
+
+      .entry {
+        display: grid;
+        grid-template-columns: 58px minmax(0, 1fr) auto;
+        min-height: 126px;
+        padding: 24px 18px;
+        align-items: center;
+        gap: 22px;
+        border-bottom: 1px solid #c6cec8;
+        text-decoration: none;
+        transition: background-color 160ms ease, padding 160ms ease;
+      }
+
+      .entry:hover,
+      .entry:focus-visible {
+        background: #fffdf8;
+        outline: none;
+      }
+
+      .entry-index {
+        display: grid;
+        width: 46px;
+        height: 46px;
+        place-items: center;
+        border: 1px solid currentColor;
+        border-radius: 6px;
+        color: #1d5c43;
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .entry:nth-child(2) .entry-index {
+        color: #a9654e;
+      }
+
+      .entry:nth-child(3) .entry-index {
+        color: #8c6a08;
+      }
+
+      .entry-copy {
+        min-width: 0;
+      }
+
+      .entry-copy strong {
+        display: block;
+        font-size: 22px;
+        letter-spacing: 0;
+      }
+
+      .entry-copy span {
+        display: block;
+        margin-top: 7px;
+        overflow-wrap: anywhere;
+        color: #52635b;
+        font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+        font-size: 13px;
+      }
+
+      .entry-arrow {
+        color: #1d5c43;
+        font-size: 28px;
+        line-height: 1;
+      }
+
+      footer {
+        margin-top: 34px;
+        color: #69786f;
+        font-size: 12px;
+      }
+
+      @media (max-width: 620px) {
+        .topbar {
+          min-height: 66px;
+        }
+
+        .brand img {
+          width: 36px;
+          height: 36px;
+        }
+
+        main {
+          width: min(100% - 32px, 980px);
+          padding-top: 48px;
+        }
+
+        h1 {
+          font-size: 40px;
+        }
+
+        .entry {
+          grid-template-columns: 44px minmax(0, 1fr) 20px;
+          min-height: 112px;
+          gap: 14px;
+        }
+
+        .entry-index {
+          width: 40px;
+          height: 40px;
+        }
+
+        .entry-copy strong {
+          font-size: 18px;
+        }
+
+        .entry-arrow {
+          font-size: 22px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/">
+        <img src="assets/knownmap-icon.png" alt="">
+        <span>
+          <strong>KnownMap</strong>
+          <small>互动课程工具</small>
+        </span>
+      </a>
+      <a class="home-link" href="/">返回首页</a>
+    </header>
+
+    <main>
+      <p class="eyebrow">KNOWNMAP</p>
+      <h1>站点入口</h1>
+      <p class="lead">进入公开销售页、教师课程工作台，或查看当前服务状态。</p>
+
+      <nav class="entry-list" aria-label="KnownMap 页面入口">
+        <a class="entry" href="/">
+          <span class="entry-index">01</span>
+          <span class="entry-copy">
+            <strong>销售首页</strong>
+            <span>knownmap.com/</span>
+          </span>
+          <span class="entry-arrow" aria-hidden="true">→</span>
+        </a>
+
+        <a class="entry" href="/teacher-web/editor.html">
+          <span class="entry-index">02</span>
+          <span class="entry-copy">
+            <strong>教师工作台</strong>
+            <span>knownmap.com/teacher-web/editor.html</span>
+          </span>
+          <span class="entry-arrow" aria-hidden="true">→</span>
+        </a>
+
+        <a class="entry" href="/health">
+          <span class="entry-index">03</span>
+          <span class="entry-copy">
+            <strong>服务状态</strong>
+            <span>knownmap.com/health</span>
+          </span>
+          <span class="entry-arrow" aria-hidden="true">→</span>
+        </a>
+      </nav>
+
+      <footer>KnownMap · Production</footer>
+    </main>
+  </body>
+</html>

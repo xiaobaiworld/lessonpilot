@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 1,
+  "releaseId": "20260820T153701Z-130b5ac22581",
+  "environment": "production",
+  "site": "https://knownmap.com",
+  "repository": "xiaobaiworld/lessonpilot",
+  "gitRemote": "git@github-2:xiaobaiworld/lessonpilot.git",
+  "gitCommit": "130b5ac225817dcb124bae89257da4efd1444e99",
+  "gitShortCommit": "130b5ac22581",
+  "gitRemoteBranch": "origin/codex/security-hardening",
+  "gitCommitSubject": "fix: preserve empty deploy arguments",
+  "gitCommitTime": "2026-08-20T23:35:50+08:00",
+  "gitTag": "web-prod/20260820T153701Z-130b5ac22581",
+  "publishProfile": "teacher-platform-v1",
+  "status": "verified",
+  "builtAt": "2026-08-20T15:38:28Z",
+  "deployedAt": "2026-08-20T15:38:30Z",
+  "previousReleaseId": "20260820T142243Z-ec1454ed2f31",
+  "files": [
+    {
+      "path": "index.html",
+      "sha256": "a1f9d97655279e185aed5cdc96d8e027862e1c2e3f74a5d4563752c1e284d1f0",
+      "bytes": 45166
+    },
+    {
+      "path": "subtitle-context.js",
+      "sha256": "a8d210826727de919976a4ac8cac78f90b7a1e8acf7d5d6b3ac6d02ff4d2e1bd",
+      "bytes": 6996
+    },
+    {
+      "path": "demo-captions.js",
+      "sha256": "a8d25c395d43b3a6d08205d96b909489f92287ea151e82c3bd6df514f905f2e3",
+      "bytes": 11914
+    },
+    {
+      "path": "trial-intake.js",
+      "sha256": "d46c5bd01b037e041229505c849675b7dfe0c6d3ecdfa8c92459a0cffaa3fca7",
+      "bytes": 2535
+    },
+    {
+      "path": "assets/knownmap-icon.png",
+      "sha256": "8acae4dc406d44f31ed7b5a329c2d17a6e6d799197c51fdc4f8c2e806829d0b3",
+      "bytes": 3440
+    },
+    {
+      "path": "robots.txt",
+      "sha256": "331ea9090db0c9f6f597bd9840fd5b171830f6e0b3ba1cb24dfa91f0c95aedc1",
+      "bytes": 26
+    },
+    {
+      "path": "teacher-web/forsales.html",
+      "sha256": "a1f9d97655279e185aed5cdc96d8e027862e1c2e3f74a5d4563752c1e284d1f0",
+      "bytes": 45166
+    },
+    {
+      "path": "teacher-web/subtitle-context.js",
+      "sha256": "a8d210826727de919976a4ac8cac78f90b7a1e8acf7d5d6b3ac6d02ff4d2e1bd",
+      "bytes": 6996
+    },
+    {
+      "path": "teacher-web/demo-captions.js",
+      "sha256": "a8d25c395d43b3a6d08205d96b909489f92287ea151e82c3bd6df514f905f2e3",
+      "bytes": 11914
+    },
+    {
+      "path": "teacher-web/trial-intake.js",
+      "sha256": "d46c5bd01b037e041229505c849675b7dfe0c6d3ecdfa8c92459a0cffaa3fca7",
+      "bytes": 2535
+    },
+    {
+      "path": "teacher-web/assets/knownmap-icon.png",
+      "sha256": "8acae4dc406d44f31ed7b5a329c2d17a6e6d799197c51fdc4f8c2e806829d0b3",
+      "bytes": 3440
+    },
+    {
+      "path": "teacher-web/editor.html",
+      "sha256": "7364e6c972c47c8aabf3d879dd1ec03fb2491efc9bf7f883ba4817b0febab95f",
+      "bytes": 14051
+    },
+    {
+      "path": "teacher-web/styles.css",
+      "sha256": "6323da5c147662fc1610bbf72356cf0f584c22f56b8bfe799b1766e0b4ad5912",
+      "bytes": 69190
+    },
+    {
+      "path": "teacher-web/subtitle-parser.js",
+      "sha256": "65c8f2e4c1c7d1aef8f1a66d5f9661c9252a374437691df378d097a8f6b9767b",
+      "bytes": 2894
+    },
+    {
+      "path": "teacher-web/subtitle-context.js",
+      "sha256": "a8d210826727de919976a4ac8cac78f90b7a1e8acf7d5d6b3ac6d02ff4d2e1bd",
+      "bytes": 6996
+    },
+    {
+      "path": "teacher-web/node-plugin-registry.js",
+      "sha256": "3f00c42fdce58bb241aad0048b069e996fa98b95bc7295deabddda3b22004b9b",
+      "bytes": 7593
+    },
+    {
+      "path": "teacher-web/timeline-model.js",
+      "sha256": "94ca37a1ea14ba20c646ff5a6fd4c14b010669d3d717c66df312167f4d1817eb",
+      "bytes": 4867
+    },
+    {
+      "path": "teacher-web/editor-logger.js",
+      "sha256": "60900cdc8627028d9054a6d37d08a6344e6a6120f36c244590756d5625dc966d",
+      "bytes": 2180
+    },
+    {
+      "path": "teacher-web/visual-node-editor.js",
+      "sha256": "b05fd7346fa1d0d169fc3765d33d2ef29fd42e194076408421e21fe3e5d989fa",
+      "bytes": 30421
+    },
+    {
+      "path": "teacher-web/api-client.js",
+      "sha256": "a05021d5524eef076895739cfadbc7612def6ab57ac0dbacb4ed949f9d26ab86",
+      "bytes": 2547
+    },
+    {
+      "path": "teacher-web/auth-session.js",
+      "sha256": "a4a744cfe91f8a783db156dca6213d0a065a80b9aacec941071629c56030806b",
+      "bytes": 1044
+    },
+    {
+      "path": "teacher-web/app.js",
+      "sha256": "ef0d7e02466c2a8091353e576012b1eecc16d6e08e285051a6e61f71f34c7bc2",
+      "bytes": 26084
+    },
+    {
+      "path": "teacher-web/assets/knownmap-icon.png",
+      "sha256": "8acae4dc406d44f31ed7b5a329c2d17a6e6d799197c51fdc4f8c2e806829d0b3",
+      "bytes": 3440
+    }
+  ],
+  "verifiedAt": "2026-08-20T15:39:31Z",
+  "verification": {
+    "health": "passed",
+    "homepageSha256": "passed",
+    "privatePaths": "passed",
+    "apiHealth": "passed",
+    "teacherEditor": "passed",
+    "databaseBackup": "passed"
+  },
+  "components": {
+    "backend": {
+      "schemaVersion": 1,
+      "releaseId": "20260820T153701Z-130b5ac22581",
+      "environment": "production",
+      "site": "https://knownmap.com",
+      "repository": "xiaobaiworld/lessonpilot",
+      "gitRemote": "git@github-2:xiaobaiworld/lessonpilot.git",
+      "gitCommit": "130b5ac225817dcb124bae89257da4efd1444e99",
+      "gitShortCommit": "130b5ac22581",
+      "gitRemoteBranch": "origin/codex/security-hardening",
+      "gitCommitSubject": "fix: preserve empty deploy arguments",
+      "gitCommitTime": "2026-08-20T23:35:50+08:00",
+      "gitTag": "web-prod/20260820T153701Z-130b5ac22581",
+      "publishProfile": "teacher-platform-v1",
+      "component": "fastapi",
+      "status": "verified",
+      "builtAt": "2026-08-20T15:37:14Z",
+      "deployedAt": "2026-08-20T15:39:31Z",
+      "previousReleaseId": null
+    }
+  }
+}

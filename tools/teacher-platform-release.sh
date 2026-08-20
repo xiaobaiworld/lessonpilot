@@ -8,8 +8,10 @@ APP_ROOT="${KNOWNMAP_APP_ROOT:-/opt/knownmap}"
 DATA_ROOT="${KNOWNMAP_DATA_ROOT:-/var/lib/knownmap}"
 SITE_URL="${KNOWNMAP_SITE_URL:-https://knownmap.com}"
 REPOSITORY="${KNOWNMAP_REPOSITORY:-xiaobaiworld/lessonpilot}"
+ALLOWED_REMOTE_BRANCH="${KNOWNMAP_ALLOWED_REMOTE_BRANCH:-origin/main}"
 SERVICE_NAME="knownmap-teacher-api.service"
-SERVICE_FILE="$ROOT_DIR/deploy/teacher-platform/knownmap-teacher-api.service"
+UV_VERSION="0.11.12"
+UV_SHA256="9acdecddacba550ee616c02bb4616d894352022550c5977524556fd5077ce1d4"
 
 log() {
   printf '[teacher-platform-release] %s\n' "$*"
@@ -29,29 +31,44 @@ validate_settings() {
   [[ "$APP_ROOT" =~ ^/[A-Za-z0-9._/-]+$ ]] || fail "unsafe app root: $APP_ROOT"
   [[ "$DATA_ROOT" =~ ^/[A-Za-z0-9._/-]+$ ]] || fail "unsafe data root: $DATA_ROOT"
   [[ "$SITE_URL" =~ ^https://[A-Za-z0-9._:-]+$ ]] || fail "site URL must be an HTTPS origin"
+  [[ "$ALLOWED_REMOTE_BRANCH" =~ ^origin/[A-Za-z0-9._/-]+$ ]] ||
+    fail "unsafe allowed remote branch: $ALLOWED_REMOTE_BRANCH"
 }
 
 resolve_commit() {
   git -C "$ROOT_DIR" rev-parse --verify "$1^{commit}"
 }
 
-remote_branch_for_commit() {
-  git -C "$ROOT_DIR" for-each-ref \
-    --format='%(refname:short)' \
-    --contains "$1" \
-    refs/remotes/origin |
-    grep -v '^origin/HEAD$' |
-    head -n 1 || true
-}
-
 require_github_commit() {
   local commit="$1"
-  local remote_branch
 
   git -C "$ROOT_DIR" fetch origin --prune
-  remote_branch="$(remote_branch_for_commit "$commit")"
-  [[ -n "$remote_branch" ]] ||
-    fail "commit $commit is not contained in refs/remotes/origin; push it to GitHub first"
+  git -C "$ROOT_DIR" rev-parse --verify "$ALLOWED_REMOTE_BRANCH^{commit}" >/dev/null
+  git -C "$ROOT_DIR" merge-base --is-ancestor "$commit" "$ALLOWED_REMOTE_BRANCH" ||
+    fail "commit $commit is not contained in allowed branch $ALLOWED_REMOTE_BRANCH"
+}
+
+require_ci_success() {
+  local commit="$1"
+  local payload
+  local check
+  local conclusion
+  local required_checks=("node-test" "backend-test")
+
+  payload="$(
+    gh api \
+      -H 'Accept: application/vnd.github+json' \
+      "repos/$REPOSITORY/commits/$commit/check-runs?per_page=100"
+  )"
+  for check in "${required_checks[@]}"; do
+    conclusion="$(
+      jq -r --arg check "$check" \
+        '[.check_runs[] | select(.name == $check)] | sort_by(.completed_at) | last | .conclusion // empty' \
+        <<<"$payload"
+    )"
+    [[ "$conclusion" == "success" ]] ||
+      fail "required CI check $check is not successful for $commit"
+  done
 }
 
 release_id_for_commit() {
@@ -90,8 +107,10 @@ build_backend_package() {
   source_dir="$(mktemp -d "${TMPDIR:-/tmp}/knownmap-backend-source.XXXXXX")"
   trap 'rm -rf "$source_dir"' RETURN
   mkdir -p "$output"
-  git -C "$ROOT_DIR" archive "$commit" -- backend | tar -x -C "$source_dir"
+  git -C "$ROOT_DIR" archive "$commit" -- backend deploy/teacher-platform |
+    tar -x -C "$source_dir"
   cp -a "$source_dir/backend" "$output/backend"
+  cp -a "$source_dir/deploy" "$output/deploy"
   trap - RETURN
   rm -rf "$source_dir"
 }
@@ -155,6 +174,11 @@ app_root="$1"
 target="$2"
 service_name="$3"
 test -d "$target/backend"
+if [[ ! -e "$target/backend/.venv" &&
+      -x "$app_root/venv/bin/uvicorn" ]]; then
+  ln -s "$app_root/venv" "$target/backend/.venv"
+fi
+test -x "$target/backend/.venv/bin/uvicorn"
 temporary_link="$app_root/.current-restore"
 ln -s "$target" "$temporary_link"
 mv -Tf "$temporary_link" "$app_root/current"
@@ -165,40 +189,74 @@ REMOTE
 
 install_remote_backend() {
   local release_id="$1"
-  local build_dir="$2"
+  local seed_password="$2"
   local previous_target="$3"
-  local password="$4"
   local remote_env_file
+  local seed_password_file="-"
+  local install_status=0
 
   remote_env_file="/etc/knownmap/teacher-platform.env"
-  ssh -o BatchMode=yes "$SSH_HOST" bash -s -- "$APP_ROOT" "$DATA_ROOT" "$release_id" "$SERVICE_NAME" "$remote_env_file" "$password" <<'REMOTE'
+  if [[ -n "$seed_password" ]]; then
+    seed_password_file="/root/.knownmap-seed-$release_id"
+    ssh -o BatchMode=yes "$SSH_HOST" bash -s -- "$seed_password_file" <<'REMOTE'
+set -euo pipefail
+seed_password_file="$1"
+install -m 600 /dev/null "$seed_password_file"
+REMOTE
+    printf '%s' "$seed_password" |
+      ssh -o BatchMode=yes "$SSH_HOST" "cat > '$seed_password_file'"
+  fi
+
+  ssh -o BatchMode=yes "$SSH_HOST" bash -s -- \
+    "$APP_ROOT" \
+    "$DATA_ROOT" \
+    "$release_id" \
+    "$SERVICE_NAME" \
+    "$remote_env_file" \
+    "$previous_target" \
+    "$seed_password_file" \
+    "$UV_VERSION" \
+    "$UV_SHA256" <<'REMOTE' || install_status=$?
 set -euo pipefail
 app_root="$1"
 data_root="$2"
 release_id="$3"
 service_name="$4"
 env_file="$5"
-seed_password="$6"
+previous_target="$6"
+seed_password_file="$7"
+uv_version="$8"
+uv_sha256="$9"
 release="$app_root/releases/$release_id"
+uv_root="$app_root/tools/uv/$uv_version"
+uv_bin="$uv_root/uv"
+uv_tmp=""
+
+cleanup() {
+  [[ -z "$uv_tmp" ]] || rm -rf "$uv_tmp"
+  [[ "$seed_password_file" == "-" ]] || rm -f "$seed_password_file"
+}
+trap cleanup EXIT
 
 getent group knownmap >/dev/null || groupadd --system knownmap
 id -u knownmap >/dev/null 2>&1 || useradd --system --gid knownmap --home-dir /nonexistent --shell /usr/sbin/nologin knownmap
-install -d -m 755 "$app_root/releases" /etc/knownmap
+install -d -m 755 "$app_root/releases" "$app_root/tools" /etc/knownmap
 install -d -o knownmap -g knownmap -m 750 "$data_root"
 test -d "$release/backend"
 
-if ! command -v uv >/dev/null 2>&1; then
-  curl -LsSf https://astral.sh/uv/install.sh | sh
-fi
-uv_bin="$(command -v uv || true)"
-if [[ -z "$uv_bin" && -x /root/.local/bin/uv ]]; then
-  uv_bin=/root/.local/bin/uv
+if [[ ! -x "$uv_bin" ]]; then
+  uv_tmp="$(mktemp -d /tmp/knownmap-uv.XXXXXX)"
+  uv_archive="$uv_tmp/uv.tar.gz"
+  curl -fsSL \
+    "https://github.com/astral-sh/uv/releases/download/$uv_version/uv-x86_64-unknown-linux-gnu.tar.gz" \
+    -o "$uv_archive"
+  printf '%s  %s\n' "$uv_sha256" "$uv_archive" | sha256sum -c -
+  tar -xzf "$uv_archive" -C "$uv_tmp"
+  install -d -m 755 "$uv_root"
+  install -m 755 "$uv_tmp/uv-x86_64-unknown-linux-gnu/uv" "$uv_bin"
 fi
 test -x "$uv_bin"
-
-if [[ ! -x "$app_root/venv/bin/python" ]]; then
-  "$uv_bin" venv --python python3 "$app_root/venv"
-fi
+[[ "$("$uv_bin" --version)" == "uv $uv_version "* ]]
 
 env_tmp="$env_file.next"
 if [[ ! -f "$env_file" ]]; then
@@ -220,11 +278,8 @@ fi
 
 test -d "$release/backend"
 cd "$release/backend"
-"$uv_bin" pip install --python "$app_root/venv/bin/python" .
-chown -R root:knownmap "$app_root/venv"
-find "$app_root/venv" -type d -exec chmod 755 {} +
-find "$app_root/venv" -type f -exec chmod 644 {} +
-find "$app_root/venv/bin" -type f -exec chmod 755 {} +
+UV_PROJECT_ENVIRONMENT="$release/backend/.venv" \
+  "$uv_bin" sync --frozen --no-dev --no-editable
 
 set -a
 . "$env_file"
@@ -236,19 +291,43 @@ fi
 chown -R root:knownmap "$release"
 find "$release" -type d -exec chmod 755 {} +
 find "$release" -type f -exec chmod 644 {} +
+find "$release/backend/.venv/bin" -type f -exec chmod 755 {} +
 
 if [[ ! -f /var/lib/knownmap/knownmap.db ]]; then
-  "$app_root/venv/bin/alembic" -c "$release/backend/alembic.ini" upgrade head
+  [[ "$seed_password_file" != "-" ]] ||
+    {
+      echo "first production deploy requires KNOWNMAP_PRODUCTION_TEACHER_PASSWORD" >&2
+      exit 1
+    }
+  seed_password="$(cat "$seed_password_file")"
+  rm -f "$seed_password_file"
+  seed_password_file="-"
+  "$release/backend/.venv/bin/alembic" -c "$release/backend/alembic.ini" upgrade head
   SEED_TEACHER_LOGIN_NAME=teacher-test-01 \
   SEED_TEACHER_PASSWORD="$seed_password" \
   SEED_TEACHER_DISPLAY_NAME='KnownMap 教师' \
-    "$app_root/venv/bin/python" -m app.seed
+    "$release/backend/.venv/bin/python" -m app.seed
 else
-  "$app_root/venv/bin/alembic" -c "$release/backend/alembic.ini" upgrade head
+  "$release/backend/.venv/bin/alembic" -c "$release/backend/alembic.ini" upgrade head
+  if [[ "$seed_password_file" != "-" ]]; then
+    seed_password="$(cat "$seed_password_file")"
+    rm -f "$seed_password_file"
+    seed_password_file="-"
+    SEED_TEACHER_LOGIN_NAME=teacher-test-01 \
+    SEED_TEACHER_PASSWORD="$seed_password" \
+    SEED_TEACHER_DISPLAY_NAME='KnownMap 教师' \
+      "$release/backend/.venv/bin/python" -m app.seed
+  fi
 fi
 if [[ -f "/$database_path" ]]; then
   chown knownmap:knownmap "/$database_path"
   chmod 660 "/$database_path"
+fi
+
+if [[ -n "$previous_target" && -d "$previous_target/backend" &&
+      ! -e "$previous_target/backend/.venv" &&
+      -x "$app_root/venv/bin/uvicorn" ]]; then
+  ln -s "$app_root/venv" "$previous_target/backend/.venv"
 fi
 
 temporary_link="$app_root/.current-$release_id"
@@ -257,6 +336,10 @@ mv -Tf "$temporary_link" "$app_root/current"
 chown -h root:root "$app_root/current"
 REMOTE
 
+  if [[ "$seed_password_file" != "-" ]]; then
+    ssh -o BatchMode=yes "$SSH_HOST" "rm -f '$seed_password_file'" || true
+  fi
+  return "$install_status"
 }
 
 prepare_remote_backend() {
@@ -276,12 +359,14 @@ REMOTE
 }
 
 install_systemd_service() {
-  scp -q "$SERVICE_FILE" "$SSH_HOST:/etc/systemd/system/$SERVICE_NAME"
+  local service_file="$1"
+
+  scp -q "$service_file" "$SSH_HOST:/etc/systemd/system/$SERVICE_NAME"
   ssh -o BatchMode=yes "$SSH_HOST" bash -s -- "$APP_ROOT" "$SERVICE_NAME" <<'REMOTE'
 set -euo pipefail
 app_root="$1"
 service_name="$2"
-test -x "$app_root/venv/bin/uvicorn"
+test -x "$app_root/current/backend/.venv/bin/uvicorn"
 systemctl daemon-reload
 systemctl enable "$service_name" >/dev/null
 systemctl restart "$service_name"
@@ -289,11 +374,57 @@ systemctl is-active --quiet "$service_name"
 REMOTE
 }
 
+install_backup_service() {
+  local backup_script="$1"
+  local backup_service_file="$2"
+  local backup_timer_file="$3"
+  local remote_script="/root/.knownmap-backup.py.next"
+
+  scp -q "$backup_script" "$SSH_HOST:$remote_script"
+  scp -q "$backup_service_file" "$SSH_HOST:/etc/systemd/system/knownmap-backup.service"
+  scp -q "$backup_timer_file" "$SSH_HOST:/etc/systemd/system/knownmap-backup.timer"
+  ssh -o BatchMode=yes "$SSH_HOST" bash -s -- "$remote_script" <<'REMOTE'
+set -euo pipefail
+remote_script="$1"
+install -d -o root -g root -m 755 /usr/local/lib/knownmap
+install -d -o knownmap -g knownmap -m 700 /var/backups/knownmap
+install -o root -g root -m 755 "$remote_script" /usr/local/lib/knownmap/knownmap-backup.py
+rm -f "$remote_script"
+systemctl daemon-reload
+systemctl enable --now knownmap-backup.timer >/dev/null
+systemctl start knownmap-backup.service
+systemctl is-active --quiet knownmap-backup.timer
+find /var/backups/knownmap -maxdepth 1 -type f -name 'knownmap-*.db' -size +0c | grep -q .
+REMOTE
+}
+
 configure_nginx() {
-  scp -q "$ROOT_DIR/deploy/teacher-platform/knownmap-nginx.conf" \
-    "$SSH_HOST:/etc/nginx/sites-available/knownmap"
-  ssh -o BatchMode=yes "$SSH_HOST" \
-    'nginx -t && systemctl reload nginx'
+  local nginx_file="$1"
+
+  scp -q "$nginx_file" "$SSH_HOST:/etc/nginx/sites-available/knownmap.next"
+  ssh -o BatchMode=yes "$SSH_HOST" bash -s <<'REMOTE'
+set -euo pipefail
+target=/etc/nginx/sites-available/knownmap
+incoming=/etc/nginx/sites-available/knownmap.next
+previous=/etc/nginx/sites-available/knownmap.previous
+
+if [[ -f "$target" ]]; then
+  cp -a "$target" "$previous"
+fi
+install -o root -g root -m 644 "$incoming" "$target"
+rm -f "$incoming"
+if ! nginx -t; then
+  if [[ -f "$previous" ]]; then
+    mv -f "$previous" "$target"
+  else
+    rm -f "$target"
+  fi
+  nginx -t
+  exit 1
+fi
+rm -f "$previous"
+systemctl reload nginx
+REMOTE
 }
 
 verify_remote() {
@@ -305,6 +436,7 @@ verify_remote() {
   trap 'rm -f "$body"' RETURN
   /usr/bin/curl -fsS "$SITE_URL/health" -o "$body"
   jq -e '.status == "ok"' "$body" >/dev/null || return 1
+  /usr/bin/curl -fsS "$SITE_URL/admin.html" >/dev/null
   /usr/bin/curl -fsS "$SITE_URL/teacher-web/editor.html" >/dev/null
   /usr/bin/curl -fsS "$SITE_URL/" >/dev/null
 
@@ -318,6 +450,8 @@ verify_remote() {
       "jq -r .gitCommit '$APP_ROOT/current/backend-release.json'"
   )"
   [[ "$remote_commit" == "$expected_commit" ]] || return 1
+  ssh -o BatchMode=yes "$SSH_HOST" \
+    "find /var/backups/knownmap -maxdepth 1 -type f -name 'knownmap-*.db' -size +0c | grep -q ."
 
   trap - RETURN
   rm -f "$body"
@@ -338,9 +472,11 @@ deploy_release() {
   local subject
   local commit_time
   local record_file
+  local credential_rotation
 
   validate_settings
   require_command git
+  require_command gh
   require_command jq
   require_command rsync
   require_command scp
@@ -350,10 +486,13 @@ deploy_release() {
 
   commit="$(resolve_commit "$ref")"
   require_github_commit "$commit"
-  remote_branch="$(remote_branch_for_commit "$commit")"
+  require_ci_success "$commit"
+  remote_branch="$ALLOWED_REMOTE_BRANCH"
   release_id="${KNOWNMAP_RELEASE_ID:-$(release_id_for_commit "$commit")}"
   [[ "$release_id" =~ ^[A-Za-z0-9._-]+$ ]] || fail "unsafe release ID: $release_id"
-  seed_password="${KNOWNMAP_PRODUCTION_TEACHER_PASSWORD:-$(openssl rand -hex 18)}"
+  seed_password="${KNOWNMAP_PRODUCTION_TEACHER_PASSWORD:-}"
+  credential_rotation="skipped"
+  [[ -z "$seed_password" ]] || credential_rotation="requested"
   run_commit_tests "$commit"
 
   temporary="$(mktemp -d "${TMPDIR:-/tmp}/knownmap-teacher-release.XXXXXX")"
@@ -372,16 +511,26 @@ deploy_release() {
   rsync -az --delete "$backend_build/backend/" "$SSH_HOST:$APP_ROOT/releases/$release_id/backend/"
   scp -q "$backend_build/backend-release.json" \
     "$SSH_HOST:$APP_ROOT/releases/$release_id/backend-release.json"
-  if ! install_remote_backend "$release_id" "$backend_build" "$previous_target" "$seed_password"; then
+  if ! install_remote_backend "$release_id" "$seed_password" "$previous_target"; then
     remote_restore_backend "$previous_target"
     fail "backend deployment failed; restored previous backend"
   fi
-  if ! install_systemd_service; then
+  if ! install_systemd_service \
+    "$backend_build/deploy/teacher-platform/knownmap-teacher-api.service"; then
     remote_restore_backend "$previous_target"
     fail "systemd service failed; restored previous backend"
   fi
 
-  if ! configure_nginx; then
+  if ! install_backup_service \
+    "$backend_build/deploy/teacher-platform/knownmap-backup.py" \
+    "$backend_build/deploy/teacher-platform/knownmap-backup.service" \
+    "$backend_build/deploy/teacher-platform/knownmap-backup.timer"; then
+    remote_restore_backend "$previous_target"
+    fail "database backup setup failed; restored previous backend"
+  fi
+
+  if ! configure_nginx \
+    "$backend_build/deploy/teacher-platform/knownmap-nginx.conf"; then
     remote_restore_backend "$previous_target"
     fail "nginx configuration failed; restored previous backend"
   fi
@@ -406,6 +555,7 @@ deploy_release() {
       | .verifiedAt = $deployedAt
       | .verification.apiHealth = "passed"
       | .verification.teacherEditor = "passed"
+      | .verification.databaseBackup = "passed"
       | .components.backend = $backend[0]
       | .components.backend.status = "verified"
       | .components.backend.deployedAt = $deployedAt' \
@@ -424,8 +574,7 @@ deploy_release() {
   log "teacher platform production release succeeded"
   printf 'RELEASE_ID=%s\nGIT_COMMIT=%s\nGIT_TAG=web-prod/%s\n' \
     "$release_id" "$commit" "$release_id"
-  printf 'TEACHER_LOGIN=teacher-test-01\nTEACHER_PASSWORD=%s\n' "$seed_password"
-  log "save the one-time production password; it is not stored in the repository"
+  printf 'CREDENTIAL_ROTATION=%s\n' "$credential_rotation"
 }
 
 show_status() {

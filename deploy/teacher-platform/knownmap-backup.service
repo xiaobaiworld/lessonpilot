@@ -1,0 +1,24 @@
+[Unit]
+Description=KnownMap SQLite backup
+After=knownmap-teacher-api.service
+
+[Service]
+Type=oneshot
+User=knownmap
+Group=knownmap
+ExecStart=/usr/local/lib/knownmap/knownmap-backup.py --database /var/lib/knownmap/knownmap.db --output /var/backups/knownmap --retention-days 14
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/backups/knownmap
+CapabilityBoundingSet=
+ProtectControlGroups=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+RestrictAddressFamilies=AF_UNIX
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
