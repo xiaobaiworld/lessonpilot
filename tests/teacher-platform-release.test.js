@@ -35,6 +35,7 @@ test('teacher platform release orchestration has valid shell syntax and traceabi
     'systemctl enable',
     'KNOWNMAP_PUBLISH_PROFILE=teacher-platform-v1',
     'web-prod/$release_id',
+    'chown knownmap:knownmap "/$database_path"',
     'verification.apiHealth',
     'TEACHER_PASSWORD='
   ]) {
@@ -58,6 +59,8 @@ test('nginx exposes the same-origin API and keeps the site root static', () => {
   const nginx = fs.readFileSync(nginxFile, 'utf8');
 
   assert.match(nginx, /root \/var\/www\/knownmap\/current/);
+  assert.match(nginx, /location = \/health \{/);
+  assert.match(nginx, /proxy_pass http:\/\/127\.0\.0\.1:8000\/health;/);
   assert.match(nginx, /location \^~ \/api\/ \{/);
   assert.match(nginx, /proxy_pass http:\/\/127\.0\.0\.1:8000;/);
   assert.match(nginx, /proxy_set_header X-Forwarded-Proto \$scheme;/);

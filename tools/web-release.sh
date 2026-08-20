@@ -326,7 +326,7 @@ verify_public_site() {
   if [[ "$PUBLISH_PROFILE" == "teacher-platform-v1" ]]; then
     status="$(curl -sS -o /dev/null -w '%{http_code}' "$SITE_URL/teacher-web/editor.html")"
     [[ "$status" == "200" ]] || return 1
-    api_status="$(curl -fsS "$SITE_URL/api/v1/health")"
+    api_status="$(curl -fsS "$SITE_URL/health")"
     jq -e '.status == "ok"' <<<"$api_status" >/dev/null || return 1
   else
     private_paths+=("/teacher-web/editor.html")

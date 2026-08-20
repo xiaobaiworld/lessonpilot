@@ -24,6 +24,5 @@ tools/teacher-platform-release.sh deploy <git-ref>
 
 ```bash
 tools/teacher-platform-release.sh status
-curl -fsS https://knownmap.com/api/v1/health
+curl -fsS https://knownmap.com/health
 ```
-

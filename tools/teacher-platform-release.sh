@@ -221,6 +221,10 @@ fi
 test -d "$release/backend"
 cd "$release/backend"
 "$uv_bin" pip install --python "$app_root/venv/bin/python" .
+chown -R root:knownmap "$app_root/venv"
+find "$app_root/venv" -type d -exec chmod 755 {} +
+find "$app_root/venv" -type f -exec chmod 644 {} +
+find "$app_root/venv/bin" -type f -exec chmod 755 {} +
 
 set -a
 . "$env_file"
@@ -241,6 +245,10 @@ if [[ ! -f /var/lib/knownmap/knownmap.db ]]; then
     "$app_root/venv/bin/python" -m app.seed
 else
   "$app_root/venv/bin/alembic" -c "$release/backend/alembic.ini" upgrade head
+fi
+if [[ -f "/$database_path" ]]; then
+  chown knownmap:knownmap "/$database_path"
+  chmod 660 "/$database_path"
 fi
 
 temporary_link="$app_root/.current-$release_id"
@@ -295,7 +303,7 @@ verify_remote() {
 
   body="$(mktemp "${TMPDIR:-/tmp}/knownmap-api-health.XXXXXX")"
   trap 'rm -f "$body"' RETURN
-  /usr/bin/curl -fsS "$SITE_URL/api/v1/health" -o "$body"
+  /usr/bin/curl -fsS "$SITE_URL/health" -o "$body"
   jq -e '.status == "ok"' "$body" >/dev/null || return 1
   /usr/bin/curl -fsS "$SITE_URL/teacher-web/editor.html" >/dev/null
   /usr/bin/curl -fsS "$SITE_URL/" >/dev/null

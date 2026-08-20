@@ -52,7 +52,7 @@ test('web release script has valid shell syntax and traceability guards', () => 
   assert.match(source, /release-history\.jsonl/);
   assert.match(source, /mv -Tf/);
   assert.match(source, /teacher-web\/editor\.html/);
-  assert.match(source, /private_paths\+=\("\/teacher-web\/editor\.html"\)/);
+  assert.match(source, /SITE_URL\/health/);
   assert.match(source, /verify\)\s*$/m);
 });
 
