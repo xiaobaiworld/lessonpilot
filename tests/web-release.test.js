@@ -52,6 +52,7 @@ test('web release script has valid shell syntax and traceability guards', () => 
   assert.match(source, /release-history\.jsonl/);
   assert.match(source, /mv -Tf/);
   assert.match(source, /teacher-web\/editor\.html/);
+  assert.match(source, /private_paths\+=\("\/teacher-web\/editor\.html"\)/);
   assert.match(source, /verify\)\s*$/m);
 });
 
@@ -93,6 +94,25 @@ test('build packages the exact commit with only the sales-site whitelist', (t) =
   for (const forbidden of ['doc', 'src', 'tests', 'teacher-web/editor.html', '.git', '.env']) {
     assert.equal(fs.existsSync(path.join(output, 'public', forbidden)), false, `${forbidden} must stay private`);
   }
+});
+
+test('teacher platform profile packages the editor without publishing the repository', (t) => {
+  const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'knownmap-teacher-release-'));
+  t.after(() => fs.rmSync(temporary, { recursive: true, force: true }));
+
+  const output = path.join(temporary, 'release');
+  const result = run('bash', [script, 'build', 'HEAD', output], {
+    env: { ...process.env, KNOWNMAP_PUBLISH_PROFILE: 'teacher-platform-v1' }
+  });
+  assert.equal(result.status, 0, result.stderr);
+
+  const metadata = JSON.parse(fs.readFileSync(path.join(output, 'release.json'), 'utf8'));
+  assert.equal(metadata.publishProfile, 'teacher-platform-v1');
+  assert.ok(fs.existsSync(path.join(output, 'public/teacher-web/editor.html')));
+  assert.ok(fs.existsSync(path.join(output, 'public/teacher-web/api-client.js')));
+  assert.ok(fs.existsSync(path.join(output, 'public/teacher-web/app.js')));
+  assert.equal(fs.existsSync(path.join(output, 'public/backend')), false);
+  assert.equal(fs.existsSync(path.join(output, 'public/.git')), false);
 });
 
 test('release documentation binds publish phrases to deploy, record, and rollback steps', () => {

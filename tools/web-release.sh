@@ -7,9 +7,9 @@ SSH_HOST="${KNOWNMAP_SSH_HOST:-aliyun}"
 DEPLOY_ROOT="${KNOWNMAP_DEPLOY_ROOT:-/var/www/knownmap}"
 SITE_URL="${KNOWNMAP_SITE_URL:-https://knownmap.com}"
 REPOSITORY="${KNOWNMAP_REPOSITORY:-xiaobaiworld/lessonpilot}"
-PUBLISH_PROFILE="sales-static-v1"
+PUBLISH_PROFILE="${KNOWNMAP_PUBLISH_PROFILE:-sales-static-v1}"
 
-SOURCE_FILES=(
+SALES_SOURCE_FILES=(
   "teacher-web/forsales.html"
   "teacher-web/subtitle-context.js"
   "teacher-web/demo-captions.js"
@@ -17,7 +17,7 @@ SOURCE_FILES=(
   "teacher-web/assets/knownmap-icon.png"
 )
 
-PUBLIC_FILES=(
+SALES_PUBLIC_FILES=(
   "public/index.html"
   "public/subtitle-context.js"
   "public/demo-captions.js"
@@ -31,6 +31,36 @@ PUBLIC_FILES=(
   "public/teacher-web/assets/knownmap-icon.png"
 )
 
+TEACHER_SOURCE_FILES=(
+  "teacher-web/editor.html"
+  "teacher-web/styles.css"
+  "teacher-web/subtitle-parser.js"
+  "teacher-web/subtitle-context.js"
+  "teacher-web/node-plugin-registry.js"
+  "teacher-web/timeline-model.js"
+  "teacher-web/editor-logger.js"
+  "teacher-web/visual-node-editor.js"
+  "teacher-web/api-client.js"
+  "teacher-web/auth-session.js"
+  "teacher-web/app.js"
+  "teacher-web/assets/knownmap-icon.png"
+)
+
+TEACHER_PUBLIC_FILES=(
+  "public/teacher-web/editor.html"
+  "public/teacher-web/styles.css"
+  "public/teacher-web/subtitle-parser.js"
+  "public/teacher-web/subtitle-context.js"
+  "public/teacher-web/node-plugin-registry.js"
+  "public/teacher-web/timeline-model.js"
+  "public/teacher-web/editor-logger.js"
+  "public/teacher-web/visual-node-editor.js"
+  "public/teacher-web/api-client.js"
+  "public/teacher-web/auth-session.js"
+  "public/teacher-web/app.js"
+  "public/teacher-web/assets/knownmap-icon.png"
+)
+
 log() {
   printf '[web-release] %s\n' "$*"
 }
@@ -39,6 +69,16 @@ fail() {
   printf '[web-release] ERROR: %s\n' "$*" >&2
   exit 1
 }
+
+if [[ "$PUBLISH_PROFILE" == "teacher-platform-v1" ]]; then
+  SOURCE_FILES=("${SALES_SOURCE_FILES[@]}" "${TEACHER_SOURCE_FILES[@]}")
+  PUBLIC_FILES=("${SALES_PUBLIC_FILES[@]}" "${TEACHER_PUBLIC_FILES[@]}")
+elif [[ "$PUBLISH_PROFILE" == "sales-static-v1" ]]; then
+  SOURCE_FILES=("${SALES_SOURCE_FILES[@]}")
+  PUBLIC_FILES=("${SALES_PUBLIC_FILES[@]}")
+else
+  fail "unsupported publish profile: $PUBLISH_PROFILE"
+fi
 
 require_command() {
   command -v "$1" >/dev/null 2>&1 || fail "missing required command: $1"
@@ -152,6 +192,14 @@ build_release() {
   cp "$source_dir/teacher-web/demo-captions.js" "$output/public/teacher-web/demo-captions.js"
   cp "$source_dir/teacher-web/trial-intake.js" "$output/public/teacher-web/trial-intake.js"
   cp "$source_dir/teacher-web/assets/knownmap-icon.png" "$output/public/teacher-web/assets/knownmap-icon.png"
+  if [[ "$PUBLISH_PROFILE" == "teacher-platform-v1" ]]; then
+    for relative_path in "${TEACHER_SOURCE_FILES[@]}"; do
+      source_file="$source_dir/$relative_path"
+      public_file="$output/public/$relative_path"
+      mkdir -p "$(dirname "$public_file")"
+      cp "$source_file" "$public_file"
+    done
+  fi
   printf 'User-agent: *\nDisallow: /\n' >"$output/public/robots.txt"
 
   write_checksums "$output"
@@ -258,6 +306,14 @@ verify_public_site() {
   local actual_index_sha
   local path
   local status
+  local api_status
+  local private_paths=(
+    "/doc/"
+    "/src/"
+    "/tests/"
+    "/.git/config"
+    "/.env"
+  )
 
   body="$(mktemp "${TMPDIR:-/tmp}/knownmap-index.XXXXXX")"
   trap 'rm -f "$body"' RETURN
@@ -267,13 +323,16 @@ verify_public_site() {
   actual_index_sha="$(shasum -a 256 "$body" | awk '{print $1}')"
   [[ "$actual_index_sha" == "$expected_index_sha" ]] || return 1
 
-  for path in \
-    "/doc/" \
-    "/src/" \
-    "/tests/" \
-    "/teacher-web/editor.html" \
-    "/.git/config" \
-    "/.env"; do
+  if [[ "$PUBLISH_PROFILE" == "teacher-platform-v1" ]]; then
+    status="$(curl -sS -o /dev/null -w '%{http_code}' "$SITE_URL/teacher-web/editor.html")"
+    [[ "$status" == "200" ]] || return 1
+    api_status="$(curl -fsS "$SITE_URL/api/v1/health")"
+    jq -e '.status == "ok"' <<<"$api_status" >/dev/null || return 1
+  else
+    private_paths+=("/teacher-web/editor.html")
+  fi
+
+  for path in "${private_paths[@]}"; do
     status="$(curl -sS -o /dev/null -w '%{http_code}' "$SITE_URL$path")"
     [[ "$status" == "404" ]] || return 1
   done

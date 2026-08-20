@@ -46,6 +46,27 @@ test('teacher API client keeps localhost pages and API cookies on the same host'
   assert.equal(capturedUrl, 'http://localhost:8000/api/v1/auth/login');
 });
 
+test('teacher API client uses the same-origin API on the production website', async () => {
+  let capturedUrl;
+  const context = {
+    fetch: async (url) => {
+      capturedUrl = url;
+      return { ok: true, json: async () => ({}) };
+    },
+    window: {
+      location: {
+        hostname: 'knownmap.com',
+        origin: 'https://knownmap.com'
+      }
+    }
+  };
+  vm.runInNewContext(fs.readFileSync('teacher-web/api-client.js', 'utf8'), context);
+
+  await context.window.KnownMapApi.login('teacher-test-01', 'password');
+
+  assert.equal(capturedUrl, 'https://knownmap.com/api/v1/auth/login');
+});
+
 test('teacher API client exposes stable backend error codes to the workspace', async () => {
   const originalFetch = global.fetch;
   global.fetch = async () => ({
