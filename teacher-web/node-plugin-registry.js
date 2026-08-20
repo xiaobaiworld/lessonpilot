@@ -12,7 +12,7 @@
     attention: Object.freeze({
       id: 'attention',
       label: '重点标注',
-      icon: '✦',
+      iconId: 'attention',
       tone: 'attention',
       family: 'attention',
       interaction: 'notice',
@@ -30,7 +30,7 @@
     choice: Object.freeze({
       id: 'choice',
       label: '选择题',
-      icon: '◉',
+      iconId: 'choice',
       tone: 'choice',
       family: 'practice',
       interaction: 'choice',
@@ -62,7 +62,7 @@
     blank: Object.freeze({
       id: 'blank',
       label: '填空题',
-      icon: '□',
+      iconId: 'blank',
       tone: 'blank',
       family: 'practice',
       interaction: 'blank',
@@ -89,7 +89,7 @@
     qa: Object.freeze({
       id: 'qa',
       label: '问答题',
-      icon: '⌁',
+      iconId: 'qa',
       tone: 'qa',
       family: 'followup',
       interaction: 'free_text',

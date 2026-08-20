@@ -24,6 +24,7 @@
 | `doc/plans/teacher-visual-node-editor.md` | 节点 7 可视化编辑器修正的任务、测试、日志和收口步骤 | 已完成 |
 | `doc/teacher-platform-experience-polish-design.md` | “KnownMap 互动课程工具”命名、登录、课程首页和编辑工作面体验校正 | 已实现并完成本地验证 |
 | `doc/teacher-editor-completion-design.md` | 真实 08:33 时间线、右下快捷操作和授权码分类历史 | 已实现并完成本地验证 |
+| `doc/teacher-timeline-reference-parity-design.md` | 官网示例时间线、固定课程字幕、节点连线与 SVG 小图标对齐 | 已实现；自动化通过，浏览器刷新后视觉复核待完成 |
 | `doc/plans/teacher-platform-experience-polish.md` | 教师应用体验校正的测试、实现、浏览器验收和提交步骤 | 已完成 |
 | `doc/knownmap-brand-lockup-refinement-design.md` | Logo 内部留白、互动课程工具称呼和 K/M 字标配色 | 已实现并完成本地验证 |
 | `doc/plans/knownmap-brand-lockup-refinement.md` | 品牌组合标识修正的资源、页面、测试和验收步骤 | 已完成 |

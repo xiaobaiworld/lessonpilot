@@ -54,7 +54,6 @@
       empty: find('#timeline-empty'),
       placementStatus: find('#placement-status'),
       dropIndicator: find('#timeline-drop-indicator'),
-      endLabel: find('#timeline-end-label'),
       zoomLabel: find('#timeline-zoom-label'),
       subtitleList: find('#timeline-subtitle-list'),
       subtitleEmpty: find('#timeline-subtitle-empty'),
@@ -477,10 +476,9 @@
         button.dataset.pluginId = plugin.id;
         button.draggable = true;
         button.setAttribute('aria-pressed', String(state.armedPluginId === plugin.id));
-        button.append(
-          Object.assign(doc.createElement('span'), { className: 'node-plugin-icon', textContent: plugin.icon }),
-          Object.assign(doc.createElement('span'), { className: 'node-plugin-copy' })
-        );
+        const icon = Object.assign(doc.createElement('span'), { className: 'node-plugin-icon' });
+        icon.append(createPluginIcon(plugin.iconId, 'node-icon'));
+        button.append(icon, Object.assign(doc.createElement('span'), { className: 'node-plugin-copy' }));
         button.querySelector('.node-plugin-copy').append(
           Object.assign(doc.createElement('strong'), { textContent: plugin.label }),
           Object.assign(doc.createElement('small'), { textContent: '加入时间轴' })
@@ -510,7 +508,17 @@
         span.textContent = timeline.formatTime((state.durationSeconds / steps) * index);
         ui.ruler.append(span);
       }
-      if (ui.endLabel) ui.endLabel.textContent = timeline.formatTime(state.durationSeconds);
+    }
+
+    function createPluginIcon(iconId, className) {
+      const svg = doc.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('class', className);
+      svg.setAttribute('viewBox', '0 0 20 20');
+      svg.setAttribute('aria-hidden', 'true');
+      const use = doc.createElementNS('http://www.w3.org/2000/svg', 'use');
+      use.setAttribute('href', `#node-icon-${iconId}`);
+      svg.append(use);
+      return svg;
     }
 
     function renderNodes() {
@@ -529,8 +537,10 @@
         marker.dataset.nodeId = node.id;
         marker.dataset.lane = String(node.lane);
         marker.setAttribute('aria-label', `${plugin.label}，${timeline.formatTime(node.trigger.timeSeconds)}，${node.display.title}`);
+        const markerIcon = Object.assign(doc.createElement('span'), { className: 'timeline-marker-icon' });
+        markerIcon.append(createPluginIcon(plugin.iconId, 'node-icon'));
         marker.append(
-          Object.assign(doc.createElement('span'), { className: 'timeline-marker-icon', textContent: plugin.icon }),
+          markerIcon,
           Object.assign(doc.createElement('small'), { textContent: timeline.formatTime(node.trigger.timeSeconds) })
         );
         marker.addEventListener('click', (event) => {
