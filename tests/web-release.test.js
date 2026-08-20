@@ -61,7 +61,9 @@ test('build packages the exact commit with only the sales-site whitelist', (t) =
   t.after(() => fs.rmSync(temporary, { recursive: true, force: true }));
 
   const output = path.join(temporary, 'release');
-  const result = run('bash', [script, 'build', 'HEAD', output]);
+  const result = run('bash', [script, 'build', 'HEAD', output], {
+    env: { ...process.env, KNOWNMAP_PUBLISH_PROFILE: 'sales-static-v1' }
+  });
   assert.equal(result.status, 0, result.stderr);
 
   assert.deepEqual(listFiles(output), [
