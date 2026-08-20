@@ -8,26 +8,33 @@
 
 实施计划：`docs/superpowers/plans/2026-08-20-teacher-account-admin.md`
 
-当前步骤：实现独立管理员认证、初始化与会话服务。
+当前步骤：实现受保护的管理员认证 API。
 
 涉及文件：
 
-- `backend/app/repositories/admin_repository.py`
-- `backend/app/repositories/admin_session_repository.py`
-- `backend/app/services/admin_auth_service.py`
-- `backend/app/api/deps.py`
-- `backend/app/config.py`
-- `backend/app/seed.py`
-- `backend/tests/unit/test_admin_auth_service.py`
+- `backend/app/schemas/admin.py`
+- `backend/app/api/v1/admin_auth.py`
+- `backend/app/main.py`
+- `backend/tests/integration/test_admin_api.py`
 
 验证方式：
 
 ```text
 cd backend
-uv run pytest tests/unit/test_admin_auth_service.py -q
+uv run pytest tests/integration/test_admin_api.py -q
 uv run pytest -q
 git diff --check
 ```
+
+已完成的管理员认证服务：
+
+- 管理员密码使用 Argon2 哈希，损坏或不支持的哈希统一按认证失败处理；
+- 缺失、禁用和错误密码路径均执行密码校验，减少登录名时序枚举；
+- 管理员会话只持久化 HMAC-SHA256 摘要，支持 TTL、撤销和过期过滤；
+- 管理员 Cookie、会话表和认证依赖与教师完全隔离；
+- 管理员 seed 只能通过显式 `python -m app.seed admin` 路径执行，并且不会覆盖已有管理员密码、名称或状态；
+- 管理员初始密码不进入 Settings、`.env.example` 或数据库明文；
+- 聚焦测试 `28 passed`，后端全量 `78 passed`，`git diff --check` 通过。
 
 已完成的持久化修正：
 

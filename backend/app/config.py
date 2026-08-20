@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     log_level: str | None = None
     session_ttl_seconds: int = 86400
     session_cookie_name: str = "knownmap_session"
+    admin_session_cookie_name: str = "knownmap_admin_session"
+    admin_login_name: str = "admin"
+    admin_display_name: str = "KnownMap 管理员"
     cors_origins: str = "http://127.0.0.1:4173,http://localhost:4173"
 
     model_config = SettingsConfigDict(

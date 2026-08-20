@@ -1,10 +1,10 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import create_engine, inspect, text
+from sqlalchemy import create_engine, inspect, select, text
 from sqlalchemy.exc import IntegrityError
 
 from app.config import Settings
@@ -483,3 +483,320 @@ def test_admin_auth_schema_fix_migrates_existing_data_and_is_reversible(
     downgraded_engine.dispose()
 
     _assert_project_engine_rejects_orphan_session(database_url, "a" * 64)
+
+
+def test_admin_password_helpers_normalize_and_use_argon2() -> None:
+    from app.services.admin_auth_service import (
+        hash_admin_password,
+        normalize_admin_login_name,
+        verify_admin_password,
+    )
+
+    stored_hash = hash_admin_password("correct horse battery staple")
+
+    assert normalize_admin_login_name("  admin  ") == "admin"
+    assert stored_hash.startswith("$argon2")
+    assert verify_admin_password("correct horse battery staple", stored_hash) is True
+    assert verify_admin_password("wrong password", stored_hash) is False
+
+
+def test_seed_admin_is_bootstrap_only_and_stores_only_a_hash(database_session) -> None:
+    from app.seed import seed_admin_account
+    from app.services.admin_auth_service import verify_admin_password
+
+    first = seed_admin_account(
+        database_session,
+        login_name="  admin  ",
+        password="first-password",
+        display_name="  KnownMap 管理员  ",
+    )
+    database_session.flush()
+    original_hash = first.password_hash
+    first.status = "disabled"
+    first.display_name = "已修改的管理员"
+    database_session.flush()
+
+    second = seed_admin_account(
+        database_session,
+        login_name="admin",
+        password="replacement-password",
+        display_name="不应覆盖的名称",
+    )
+    database_session.flush()
+
+    admins = database_session.scalars(select(Admin)).all()
+    assert second.id == first.id
+    assert len(admins) == 1
+    assert second.password_hash == original_hash
+    assert second.password_hash != "first-password"
+    assert "first-password" not in second.password_hash
+    assert verify_admin_password("first-password", second.password_hash) is True
+    assert verify_admin_password("replacement-password", second.password_hash) is False
+    assert second.status == "disabled"
+    assert second.display_name == "已修改的管理员"
+
+
+@pytest.mark.parametrize(
+    ("login_name", "password", "display_name"),
+    [
+        ("", "password", "Administrator"),
+        ("   ", "password", "Administrator"),
+        ("admin", "", "Administrator"),
+        ("admin", "   ", "Administrator"),
+        ("admin", "password", ""),
+        ("admin", "password", "   "),
+    ],
+)
+def test_seed_admin_rejects_blank_bootstrap_values(
+    database_session,
+    login_name,
+    password,
+    display_name,
+) -> None:
+    from app.seed import seed_admin_account
+
+    with pytest.raises(ValueError):
+        seed_admin_account(
+            database_session,
+            login_name=login_name,
+            password=password,
+            display_name=display_name,
+        )
+
+
+def test_authenticate_admin_accepts_normalized_login_and_rejects_invalid_admins(
+    database_session,
+) -> None:
+    from app.seed import seed_admin_account
+    from app.services.admin_auth_service import authenticate_admin
+
+    admin = seed_admin_account(
+        database_session,
+        login_name="admin",
+        password="correct-password",
+        display_name="KnownMap 管理员",
+    )
+    database_session.flush()
+
+    assert authenticate_admin(database_session, "  admin  ", "correct-password") == admin
+    assert authenticate_admin(database_session, "admin", "wrong-password") is None
+    assert authenticate_admin(database_session, "missing", "correct-password") is None
+
+    admin.status = "disabled"
+    database_session.flush()
+    assert authenticate_admin(database_session, "admin", "correct-password") is None
+
+
+def test_authenticate_admin_treats_an_invalid_stored_hash_as_invalid_credentials(
+    database_session,
+) -> None:
+    from app.seed import seed_admin_account
+    from app.services.admin_auth_service import authenticate_admin
+
+    admin = seed_admin_account(
+        database_session,
+        login_name="admin",
+        password="correct-password",
+        display_name="KnownMap 管理员",
+    )
+    admin.password_hash = "corrupted-password-hash"
+    database_session.flush()
+
+    assert authenticate_admin(database_session, "admin", "correct-password") is None
+
+
+def test_authenticate_admin_performs_password_verification_for_missing_and_disabled_admins(
+    database_session,
+    monkeypatch,
+) -> None:
+    import app.services.admin_auth_service as auth_service
+    from app.seed import seed_admin_account
+
+    disabled_admin = seed_admin_account(
+        database_session,
+        login_name="disabled-admin",
+        password="correct-password",
+        display_name="Disabled Admin",
+    )
+    disabled_admin.status = "disabled"
+    database_session.flush()
+    verified_hashes = []
+
+    def record_verification(raw_password: str, stored_hash: str) -> bool:
+        verified_hashes.append(stored_hash)
+        return False
+
+    monkeypatch.setattr(auth_service, "verify_admin_password", record_verification)
+
+    assert auth_service.authenticate_admin(database_session, "missing", "password") is None
+    assert auth_service.authenticate_admin(
+        database_session,
+        "disabled-admin",
+        "password",
+    ) is None
+    assert len(verified_hashes) == 2
+    assert verified_hashes[0] == auth_service.DUMMY_ADMIN_PASSWORD_HASH
+    assert verified_hashes[1] == disabled_admin.password_hash
+
+
+def test_admin_session_stores_hmac_digest_and_obeys_ttl(database_session) -> None:
+    from app.repositories.admin_session_repository import get_active_admin_session
+    from app.seed import seed_admin_account
+    from app.services.admin_auth_service import (
+        create_admin_session,
+        digest_admin_session_token,
+    )
+
+    admin = seed_admin_account(
+        database_session,
+        login_name="admin",
+        password="correct-password",
+        display_name="KnownMap 管理员",
+    )
+    database_session.flush()
+    before_creation = datetime.now(UTC)
+
+    raw_token, created_session = create_admin_session(
+        database_session,
+        admin,
+        session_secret="test-admin-session-secret",
+        ttl_seconds=60,
+    )
+    database_session.flush()
+
+    stored_session = database_session.scalar(select(AdminSession))
+    assert stored_session is created_session
+    assert raw_token
+    assert stored_session.token_digest == digest_admin_session_token(
+        raw_token,
+        "test-admin-session-secret",
+    )
+    assert stored_session.token_digest != raw_token
+    assert len(stored_session.token_digest) == 64
+    expires_at = stored_session.expires_at
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=UTC)
+    assert expires_at >= before_creation + timedelta(seconds=59)
+    assert get_active_admin_session(
+        database_session,
+        stored_session.token_digest,
+        now=before_creation,
+    ) == stored_session
+    assert get_active_admin_session(
+        database_session,
+        stored_session.token_digest,
+        now=expires_at,
+    ) is None
+
+
+def test_revoked_admin_session_is_not_active(database_session) -> None:
+    from app.repositories.admin_session_repository import get_active_admin_session
+    from app.seed import seed_admin_account
+    from app.services.admin_auth_service import create_admin_session, revoke_admin_session
+
+    admin = seed_admin_account(
+        database_session,
+        login_name="admin",
+        password="correct-password",
+        display_name="KnownMap 管理员",
+    )
+    database_session.flush()
+    _, admin_session = create_admin_session(
+        database_session,
+        admin,
+        session_secret="test-admin-session-secret",
+        ttl_seconds=60,
+    )
+    database_session.flush()
+
+    revoke_admin_session(admin_session)
+    database_session.flush()
+
+    assert admin_session.revoked_at is not None
+    assert get_active_admin_session(database_session, admin_session.token_digest) is None
+
+
+def test_admin_settings_exclude_bootstrap_password() -> None:
+    settings = Settings()
+
+    assert settings.admin_session_cookie_name == "knownmap_admin_session"
+    assert settings.admin_login_name == "admin"
+    assert settings.admin_display_name == "KnownMap 管理员"
+    assert "admin_password" not in Settings.model_fields
+    assert "admin_initial_password" not in Settings.model_fields
+    assert "seed_admin_password" not in Settings.model_fields
+
+
+def test_seed_main_routes_admin_only_when_explicit(monkeypatch) -> None:
+    import app.seed as seed_module
+
+    calls = []
+
+    class FakeSession:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            return False
+
+        def commit(self):
+            calls.append("commit")
+
+    fake_session = FakeSession()
+    monkeypatch.setattr(seed_module, "Settings", lambda: object())
+    monkeypatch.setattr(seed_module, "create_database_engine", lambda settings: object())
+    monkeypatch.setattr(seed_module, "create_session_factory", lambda engine: lambda: fake_session)
+    monkeypatch.setattr(
+        seed_module,
+        "seed_teacher_from_environment",
+        lambda session: calls.append("teacher"),
+        raising=False,
+    )
+    monkeypatch.setattr(
+        seed_module,
+        "seed_admin_from_environment",
+        lambda session: calls.append("admin"),
+        raising=False,
+    )
+
+    seed_module.main([])
+    assert calls == ["teacher", "commit"]
+
+    calls.clear()
+    seed_module.main(["teacher"])
+    assert calls == ["teacher", "commit"]
+
+    calls.clear()
+    seed_module.main(["admin"])
+    assert calls == ["admin", "commit"]
+
+    with pytest.raises(ValueError):
+        seed_module.main(["unknown"])
+
+
+def test_admin_seed_environment_is_read_only_on_explicit_path(
+    database_session,
+    monkeypatch,
+) -> None:
+    from app.seed import seed_admin_from_environment, seed_teacher_from_environment
+
+    monkeypatch.setenv("SEED_TEACHER_LOGIN_NAME", "teacher-env")
+    monkeypatch.setenv("SEED_TEACHER_PASSWORD", "teacher-password")
+    monkeypatch.setenv("SEED_TEACHER_DISPLAY_NAME", "Environment Teacher")
+    monkeypatch.delenv("SEED_ADMIN_LOGIN_NAME", raising=False)
+    monkeypatch.delenv("SEED_ADMIN_PASSWORD", raising=False)
+    monkeypatch.delenv("SEED_ADMIN_DISPLAY_NAME", raising=False)
+
+    seed_teacher_from_environment(database_session)
+    database_session.flush()
+    assert database_session.scalars(select(Admin)).all() == []
+
+    monkeypatch.setenv("SEED_ADMIN_LOGIN_NAME", "admin-env")
+    monkeypatch.setenv("SEED_ADMIN_PASSWORD", "admin-password")
+    monkeypatch.setenv("SEED_ADMIN_DISPLAY_NAME", "Environment Admin")
+    admin = seed_admin_from_environment(database_session)
+    database_session.flush()
+
+    assert admin.login_name == "admin-env"
+    assert admin.display_name == "Environment Admin"
+    assert admin.password_hash != "admin-password"

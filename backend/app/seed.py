@@ -1,9 +1,11 @@
 import os
+import sys
 
 from app.config import Settings
 from app.db import create_database_engine, create_session_factory
 from app.models.teacher import Teacher
 from app.repositories.teacher_repository import add_teacher, get_teacher_by_login_name
+from app.services.admin_auth_service import seed_admin_account
 from app.services.auth_service import hash_password, normalize_login_name
 from app.services.course_service import ensure_teacher_workspace
 
@@ -36,20 +38,43 @@ def seed_teacher_account(
     return teacher
 
 
-def main() -> None:
-    settings = Settings()
-    engine = create_database_engine(settings)
-    session_factory = create_session_factory(engine)
+def seed_teacher_from_environment(session) -> Teacher:
     login_name = os.environ["SEED_TEACHER_LOGIN_NAME"]
     password = os.environ["SEED_TEACHER_PASSWORD"]
     display_name = os.environ["SEED_TEACHER_DISPLAY_NAME"]
+    return seed_teacher_account(
+        session,
+        login_name=login_name,
+        password=password,
+        display_name=display_name,
+    )
+
+
+def seed_admin_from_environment(session):
+    return seed_admin_account(
+        session,
+        login_name=os.environ["SEED_ADMIN_LOGIN_NAME"],
+        password=os.environ["SEED_ADMIN_PASSWORD"],
+        display_name=os.environ["SEED_ADMIN_DISPLAY_NAME"],
+    )
+
+
+def main(argv: list[str] | None = None) -> None:
+    arguments = sys.argv[1:] if argv is None else argv
+    if len(arguments) > 1:
+        raise ValueError("Usage: python -m app.seed [teacher|admin]")
+    command = arguments[0] if arguments else "teacher"
+    if command not in {"teacher", "admin"}:
+        raise ValueError("Usage: python -m app.seed [teacher|admin]")
+
+    settings = Settings()
+    engine = create_database_engine(settings)
+    session_factory = create_session_factory(engine)
     with session_factory() as session:
-        seed_teacher_account(
-            session,
-            login_name=login_name,
-            password=password,
-            display_name=display_name,
-        )
+        if command == "admin":
+            seed_admin_from_environment(session)
+        else:
+            seed_teacher_from_environment(session)
         session.commit()
 
 
