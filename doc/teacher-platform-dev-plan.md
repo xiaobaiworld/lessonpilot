@@ -85,17 +85,24 @@
 
 让学生在 B 站原页面通过 KnownMap 解压版插件输入授权码，下载、校验并保存最新课程，然后在匹配视频页面运行课程。
 
+实现状态（2026-08-20）：插件 `0.9.1` 已完成代码、284 项 Node 自动化测试和基本可行性确认；工具栏首页与页面书包共用单课程存储。完整真实 Chrome 边界矩阵仍按本节“人工验收”执行，未完成前不进入节点 9 收口。
+
 ### 预期文件范围
 
 - 创建：`src/content/access-code/access-panel.js`
 - 创建：`src/content/access-code/access-panel.css`
 - 创建：`src/shared/api-config.js`
+- 创建：`src/popup/popup.html`
+- 创建：`src/popup/popup.css`
+- 创建：`src/popup/popup.js`
 - 修改：`src/manifest.json`
 - 修改：`src/content/index.js`
 - 修改：`src/background/storage.js`
 - 修改：`src/background/operations.js`
 - 创建：`tests/access-code-panel.test.js`
 - 创建：`tests/plugin-download-flow.test.js`
+- 创建：`tests/access-code-runtime-regression.test.js`
+- 创建：`tests/extension-popup.test.js`
 - 创建或更新：`tests/manual/teacher-platform-local/README.md`
 
 实际实现前必须重新审计现有插件文件；文件名可以按现有模块边界调整，但不能另建第二份课程契约。

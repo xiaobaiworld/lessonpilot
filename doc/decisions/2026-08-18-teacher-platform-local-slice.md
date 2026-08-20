@@ -1,7 +1,7 @@
 # 教师平台本地开发切片决策
 
 - 日期：2026-08-18
-- 状态：已接受，部分验证。教师侧节点 1–7 已验证；插件侧节点 8 和完整闭环节点 9 待实现
+- 状态：已接受，部分验证。教师侧节点 1–7 已验证；插件侧节点 8 已实现并确认基本可行，完整人工验收和节点 9 待完成
 - 依据：`doc/AI_Learning_Companion_Product_Function_Spec_v0.2.md`
 - 关联需求：`doc/requirements/teacher-platform-local-stage.md`
 

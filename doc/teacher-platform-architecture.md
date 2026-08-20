@@ -1,10 +1,10 @@
 # KnownMap 教师平台本地阶段架构
 
-版本：0.1
+版本：0.2
 
-更新时间：2026-08-18
+更新时间：2026-08-20
 
-状态：当前开发架构。后端和教师端节点 1–7 已验证；插件授权码下载和课程运行尚未实现。
+状态：当前开发架构。后端和教师端节点 1–7 已验证；插件 `0.9.1` 已实现授权码下载、单课程存储、匹配 BVID 运行和工具栏首页，完整真实 Chrome 边界验收待收口。
 
 ## 1. 架构目标
 
@@ -23,10 +23,10 @@ backend/app/
   └─ SQLite
        ↑
 Chrome 插件
-  ├─ B 站页面授权码输入（节点 8 待实现）
-  ├─ 下载课程配置（节点 8 待实现）
-  ├─ chrome.storage.local（已有课程存储适配器，待接下载流程）
-  └─ 现有固定 Demo 运行时（待改为读取下载课程）
+  ├─ 工具栏首页与 B 站页面书包授权码输入
+  ├─ 后台下载并重新校验课程配置
+  ├─ chrome.storage.local 单课程与本地学习状态
+  └─ 只在匹配 BVID 页面启动的课程运行时
 ```
 
 前端只负责页面、交互和请求编排。后端负责认证、课程归属、草稿/发布状态、授权码校验、配置转换和数据访问。插件只接收已经通过服务端校验的插件课程配置，不直接读取教师数据库。
@@ -124,8 +124,9 @@ backend/
 - `teacher-web/`：教师界面。当前可视化节点编辑器由 `node-plugin-registry.js`、`timeline-model.js`、
   `visual-node-editor.js` 和 `editor-logger.js` 分别承担组件注册、纯时间轴计算、DOM 交互和前端诊断日志；
 - `src/shared/`：插件课程配置和既有消息契约；
-- `src/background/`：插件本地存储；
-- `src/content/`：现有 B 站固定 Demo 运行时；插件内授权码入口和下载课程运行由节点 8 实现。
+- `src/background/`：插件课程下载、契约复验、单课程与学习状态原子存储；
+- `src/content/`：B 站页面书包、匹配 BVID 的课程运行时和学习交互；
+- `src/popup/`：Chrome 工具栏学生入口、当前课程记录和教师登录入口。
 
 ## 4. 后端模块职责
 
@@ -300,7 +301,7 @@ uv run alembic upgrade head
 uv run uvicorn app.main:app --reload --port 8000
 ```
 
-教师网页会按页面主机名选择 `http://localhost:8000` 或 `http://127.0.0.1:8000`，保证 SameSite 会话 Cookie 主机一致。插件 API Base URL 将在节点 8 通过配置模块接入；插件仍按现有 MV3 方式加载解压目录。
+教师网页会按页面主机名选择 `http://localhost:8000` 或 `http://127.0.0.1:8000`，保证 SameSite 会话 Cookie 主机一致。插件通过 `src/shared/api-config.js` 固定连接 `http://127.0.0.1:8000` 的公开下载端点，仍按现有 MV3 方式加载解压目录；代码更新后必须在扩展管理页重新加载 service worker。
 
 日志配置：
 
