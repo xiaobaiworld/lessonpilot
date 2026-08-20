@@ -2,7 +2,11 @@
   const lessonUrl = 'https://www.bilibili.com/video/BV1WW4y1e7GL/';
   const fixedBvid = 'BV1WW4y1e7GL';
   const fixedVideoDurationSeconds = 513;
+  const fixedCourseCaptions = Array.isArray(window.LessonPilotDemoCaptions?.captions)
+    ? window.LessonPilotDemoCaptions.captions.map((caption) => ({ ...caption }))
+    : [];
   let captions = [];
+  captions = fixedCourseCaptions.map((caption) => ({ ...caption }));
   const state = {
     course: null,
     lesson: null,
@@ -161,6 +165,13 @@
     const duration = state.editor?.getState().durationSeconds || 0;
     timelineDurationLabel.textContent = formatTime(duration);
   };
+  const showBundledCaptionStatus = () => {
+    subtitleFileName.textContent = '内置课程字幕 · 可选择文件覆盖';
+    subtitleRecordStatus.textContent = `${captions.length} 段字幕`;
+    subtitleRecordStatus.classList.add('is-ready');
+    captionImportStatus.textContent = `内置课程字幕 ${captions.length} 段`;
+    captionStatusIcon.textContent = '✓';
+  };
   const resetWorkspaceSessionState = () => {
     state.course = null;
     state.lesson = null;
@@ -168,7 +179,7 @@
     state.publishVersion = null;
     state.accessCodes = [];
     state.accessCodeFilter = 'all';
-    captions = [];
+    captions = fixedCourseCaptions.map((caption) => ({ ...caption }));
     state.editor.setCaptions(captions);
     state.editor.setNodes([]);
     courseTitleInput.value = '';
@@ -187,11 +198,7 @@
     copyAccessCodeButton.disabled = true;
     accessCodeList.replaceChildren();
     subtitleFileInput.value = '';
-    subtitleFileName.textContent = '选择 SRT 或 VTT 字幕文件';
-    subtitleRecordStatus.textContent = '未导入';
-    subtitleRecordStatus.classList.remove('is-ready');
-    captionImportStatus.textContent = '尚未导入字幕';
-    captionStatusIcon.textContent = '—';
+    showBundledCaptionStatus();
     saveLabel.textContent = '草稿未保存';
     updateCourseWorkspace();
     updateTimelineContext();
@@ -408,10 +415,7 @@
     if (!existing) {
       setApiStatus('服务正常', true);
       workspaceOwner.textContent = session.current().display_name;
-      subtitleRecordStatus.textContent = '未导入';
-      subtitleRecordStatus.classList.remove('is-ready');
-      captionImportStatus.textContent = '尚未导入字幕';
-      captionStatusIcon.textContent = '—';
+      showBundledCaptionStatus();
       updateCourseWorkspace();
       updateTimelineContext();
       return;
@@ -432,10 +436,7 @@
     timelineSourceSummary.textContent = state.lesson
       ? `${fixedBvid} · ${state.lesson.title}`
       : '尚未创建课节';
-    subtitleRecordStatus.textContent = '本次浏览器未导入';
-    subtitleRecordStatus.classList.remove('is-ready');
-    captionImportStatus.textContent = '尚未导入字幕';
-    captionStatusIcon.textContent = '—';
+    showBundledCaptionStatus();
     syncEditor();
     updateCourseWorkspace();
     await loadAccessCodes();

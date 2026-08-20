@@ -2131,9 +2131,12 @@ a.brand {
 }
 
 .visual-timeline-track {
+  --timeline-axis-y: 50%;
+  --timeline-safe-edge: 58px;
+  --timeline-summary-connector: 68px;
   position: relative;
   min-width: 760px;
-  height: 360px;
+  height: 280px;
   margin-top: 16px;
   border-bottom: 1px solid var(--line-dark);
   background:
@@ -2150,10 +2153,10 @@ a.brand {
 .timeline-axis,
 .timeline-progress {
   position: absolute;
-  top: 50%;
-  right: 2%;
-  left: 2%;
-  height: 2px;
+  top: var(--timeline-axis-y);
+  right: var(--timeline-safe-edge);
+  left: var(--timeline-safe-edge);
+  height: 3px;
 }
 
 .timeline-axis {
@@ -2168,24 +2171,33 @@ a.brand {
 
 .timeline-boundary {
   position: absolute;
-  top: calc(50% + 13px);
+  top: calc(var(--timeline-axis-y) + 1px);
+  z-index: 4;
+  min-width: 42px;
+  padding: 5px 9px;
+  border: 1px solid #9fb0a7;
+  border-radius: 999px;
+  background: var(--paper-bright);
   color: var(--ink-soft);
-  font-size: 10px;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
 }
 
 .timeline-boundary-start {
-  left: 2%;
-  transform: translateX(-50%);
+  left: var(--timeline-safe-edge);
+  transform: translate(-50%, -50%);
 }
 
 .timeline-boundary-end {
-  right: 2%;
-  transform: translateX(50%);
+  right: var(--timeline-safe-edge);
+  transform: translate(50%, -50%);
 }
 
 .timeline-ruler {
   grid-template-columns: repeat(8, 1fr);
-  padding: 12px calc(20px + 2%) 0;
+  padding: 12px 78px 0;
 }
 
 .timeline-ruler span:last-child {
@@ -2194,7 +2206,7 @@ a.brand {
 
 .timeline-node-layer {
   position: absolute;
-  inset: 0 2%;
+  inset: 0 var(--timeline-safe-edge);
 }
 
 .timeline-marker,
@@ -2209,7 +2221,7 @@ a.brand {
   grid-template-columns: 34px;
   justify-items: center;
   gap: 5px;
-  top: calc(50% - 20px);
+  top: calc(var(--timeline-axis-y) - 20px);
   width: 58px;
   min-height: 70px;
   padding: 0;
@@ -2227,10 +2239,29 @@ a.brand {
   width: 34px;
   height: 34px;
   place-items: center;
-  border: 2px solid var(--paper-bright);
-  border-radius: 50%;
-  box-shadow: 0 0 0 1px currentColor;
-  font-size: 15px;
+  border: 2px solid currentColor;
+  border-radius: 6px;
+  background: var(--paper-bright);
+  box-shadow: 0 0 0 3px var(--paper-bright);
+}
+
+.node-icon-symbols {
+  position: absolute;
+}
+
+.node-icon {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.timeline-marker-icon svg {
+  width: 18px;
+  height: 18px;
 }
 
 .timeline-marker small {
@@ -2241,19 +2272,16 @@ a.brand {
 }
 
 .timeline-marker.is-selected .timeline-marker-icon {
-  box-shadow: 0 0 0 2px var(--ink), 0 0 0 5px rgba(29, 92, 67, 0.13);
-}
-
-.timeline-marker[data-lane="1"],
-.timeline-marker[data-lane="3"] {
-  top: calc(50% + 18px);
+  background: var(--green);
+  color: var(--paper-bright);
+  box-shadow: 0 0 0 3px var(--paper-bright), 0 0 0 7px rgba(29, 92, 67, 0.17);
 }
 
 .timeline-node-summary {
-  top: calc(50% - 126px);
-  max-width: 128px;
-  min-width: 78px;
-  padding: 8px 9px;
+  top: calc(var(--timeline-axis-y) - 122px);
+  width: clamp(104px, 15%, 158px);
+  min-height: 36px;
+  padding: 8px 10px;
   overflow: hidden;
   border: 1px solid currentColor;
   border-radius: 3px;
@@ -2267,7 +2295,7 @@ a.brand {
 
 .timeline-node-summary[data-lane="1"],
 .timeline-node-summary[data-lane="3"] {
-  top: calc(50% + 83px);
+  top: calc(var(--timeline-axis-y) + 78px);
 }
 
 .timeline-node-summary.is-selected {
@@ -2278,18 +2306,20 @@ a.brand {
 
 .timeline-node-summary::after {
   position: absolute;
-  right: 50%;
-  bottom: -43px;
+  top: 100%;
+  left: 50%;
   width: 1px;
-  height: 42px;
+  height: var(--timeline-summary-connector);
   background: currentColor;
   content: "";
+  opacity: 0.52;
+  transform: translateX(-50%);
 }
 
 .timeline-node-summary[data-lane="1"]::after,
 .timeline-node-summary[data-lane="3"]::after {
-  top: -43px;
-  bottom: auto;
+  top: auto;
+  bottom: 100%;
 }
 
 .timeline-drop-indicator {
