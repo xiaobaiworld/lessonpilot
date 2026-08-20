@@ -19,6 +19,8 @@ class AccessCode(Base):
     )
     code_digest: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
     code_hint: Mapped[str] = mapped_column(String(5), nullable=False)
+    code_type: Mapped[str] = mapped_column(String(20), default="long_term", nullable=False)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),

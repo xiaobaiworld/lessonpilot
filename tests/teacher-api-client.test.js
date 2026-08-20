@@ -127,9 +127,9 @@ test('teacher editor presents a production-like interactive course tool login', 
   assert.equal(page.includes('knownmap-local-2026'), false);
   assert.ok(app.includes('let captions = [];'));
   assert.equal(app.includes('Today we are going to talk about'), false);
-  assert.ok(page.includes('styles.css?v=brand-lockup-1'));
-  assert.ok(page.includes('api-client.js?v=local-api-2'));
-  assert.ok(page.includes('app.js?v=login-copy-1'));
+  assert.ok(page.includes('styles.css?v=editor-completion-1'));
+  assert.ok(page.includes('api-client.js?v=access-history-1'));
+  assert.ok(page.includes('app.js?v=editor-completion-1'));
   assert.ok(page.includes('src="timeline-model.js?v=course-platform-3"'));
   assert.ok(page.includes('src="visual-node-editor.js?v=course-platform-3"'));
   assert.ok(app.includes('captions = [];'));

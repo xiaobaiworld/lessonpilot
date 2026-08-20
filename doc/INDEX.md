@@ -1,6 +1,6 @@
 # KnownMap 文档索引
 
-最近审计：2026-08-19
+最近审计：2026-08-20
 
 当前阶段：教师平台本地发布与插件授权下载闭环。教师侧节点 1–7 已验证，插件侧节点 8 和完整闭环节点 9 尚未完成。第一阶段销售页和原型 Demo 已归档。其它 Agent 开始工作时，先读本文件，再按“当前权威”顺序阅读。
 
@@ -22,6 +22,7 @@
 | `doc/teacher-visual-node-editor-design.md` | 教师组件注册、横向时间轴、点击/拖放添加和字幕上下文设计 | 已实现并完成本地验证 |
 | `doc/plans/teacher-visual-node-editor.md` | 节点 7 可视化编辑器修正的任务、测试、日志和收口步骤 | 已完成 |
 | `doc/teacher-platform-experience-polish-design.md` | “KnownMap 互动课程工具”命名、登录、课程首页和编辑工作面体验校正 | 已实现并完成本地验证 |
+| `doc/teacher-editor-completion-design.md` | 真实 08:33 时间线、右下快捷操作和授权码分类历史 | 已实现并完成本地验证 |
 | `doc/plans/teacher-platform-experience-polish.md` | 教师应用体验校正的测试、实现、浏览器验收和提交步骤 | 已完成 |
 | `doc/knownmap-brand-lockup-refinement-design.md` | Logo 内部留白、互动课程工具称呼和 K/M 字标配色 | 已实现并完成本地验证 |
 | `doc/plans/knownmap-brand-lockup-refinement.md` | 品牌组合标识修正的资源、页面、测试和验收步骤 | 已完成 |

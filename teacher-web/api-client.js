@@ -55,9 +55,10 @@
       `/teacher/courses/${courseId}/publish`,
       { method: 'POST' }
     ),
-    createAccessCode: (courseId) => request(
+    listAccessCodes: (courseId) => request(`/teacher/courses/${courseId}/access-codes`),
+    createAccessCode: (courseId, codeType = 'long_term') => request(
       `/teacher/courses/${courseId}/access-codes`,
-      { method: 'POST' }
+      json('POST', { code_type: codeType })
     )
   };
 });

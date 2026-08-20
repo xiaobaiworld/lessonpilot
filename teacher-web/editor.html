@@ -6,7 +6,7 @@
     <meta name="description" content="KnownMap 互动课程工具">
     <title>登录 · KnownMap 互动课程工具</title>
     <link rel="icon" type="image/png" href="assets/knownmap-icon.png">
-    <link rel="stylesheet" href="styles.css?v=brand-lockup-1">
+    <link rel="stylesheet" href="styles.css?v=editor-completion-1">
   </head>
   <body>
     <div class="app-shell">
@@ -124,7 +124,7 @@
 
           <div class="timeline-layout visual-editor-layout">
             <div class="timeline-canvas visual-timeline-canvas">
-              <div class="timeline-toolbar"><div><strong>课节时间线</strong><span id="timeline-duration-label">03:42</span></div><div><button class="toolbar-button" id="zoom-out" type="button" aria-label="缩小时间轴">−</button><span id="timeline-zoom-label">100%</span><button class="toolbar-button" id="zoom-in" type="button" aria-label="放大时间轴">＋</button></div></div>
+              <div class="timeline-toolbar"><div><strong>课节时间线</strong><span id="timeline-duration-label">08:33</span></div><div><button class="toolbar-button" id="zoom-out" type="button" aria-label="缩小时间轴">−</button><span id="timeline-zoom-label">100%</span><button class="toolbar-button" id="zoom-in" type="button" aria-label="放大时间轴">＋</button></div></div>
               <div class="timeline-ruler" id="timeline-ruler" aria-hidden="true"></div>
               <div class="visual-timeline-scroll">
                 <div class="visual-timeline-track" id="visual-timeline-track" tabindex="0" role="group" aria-label="课节时间轴。选择节点后，可用方向键调整位置并按回车放置">
@@ -144,7 +144,31 @@
               <p class="subtitle-empty" id="timeline-subtitle-empty">尚未选择节点</p>
             </aside>
           </div>
-          <section class="access-code-panel" id="access-code-panel" hidden aria-live="polite"><div><p class="eyebrow">课程授权</p><h2>学生访问授权码</h2><p>学生在 KnownMap 插件中输入授权码后，可以下载这门课程的最新发布版本。</p></div><div class="access-code-value"><code id="access-code-value">尚未创建</code><button class="dark-button" id="create-access-code" type="button">创建授权码</button><button class="light-button" id="copy-access-code" type="button" disabled>复制</button></div></section>
+          <section class="access-code-panel" id="access-code-panel" hidden aria-live="polite">
+            <div class="access-code-head">
+              <div><p class="eyebrow">课程授权</p><h2>学生访问授权码</h2><p>当前课程已创建 <strong id="access-code-total">0</strong> 个授权码。历史记录只显示尾号；完整授权码仅在创建时显示一次。</p></div>
+              <div class="access-code-create">
+                <label for="access-code-type">授权类型</label>
+                <select id="access-code-type"><option value="short_term">短期 · 7 天</option><option value="long_term">长期 · 不过期</option></select>
+                <button class="dark-button" id="create-access-code" type="button">创建授权码</button>
+              </div>
+            </div>
+            <div class="access-code-created" id="access-code-created" hidden>
+              <span>本次新建</span><code id="access-code-value">尚未创建</code><button class="light-button" id="copy-access-code" type="button" disabled>复制</button>
+            </div>
+            <div class="access-code-tabs" role="tablist" aria-label="授权码类型">
+              <button class="access-code-tab is-active" type="button" role="tab" aria-selected="true" data-code-filter="all">全部 <span id="access-code-count-all">0</span></button>
+              <button class="access-code-tab" type="button" role="tab" aria-selected="false" data-code-filter="short_term">短期 <span id="access-code-count-short">0</span></button>
+              <button class="access-code-tab" type="button" role="tab" aria-selected="false" data-code-filter="long_term">长期 <span id="access-code-count-long">0</span></button>
+            </div>
+            <ol class="access-code-list" id="access-code-list"></ol>
+            <p class="access-code-empty" id="access-code-empty">当前分类还没有授权码。</p>
+          </section>
+          <div class="editor-quick-actions" id="editor-quick-actions" aria-label="课程快捷操作">
+            <button class="light-button" id="quick-open-video" type="button">打开视频 ↗</button>
+            <button class="light-button" id="quick-publish-course" type="button">发布课程</button>
+            <button class="dark-button" id="complete-editor" type="button">完成</button>
+          </div>
         </section>
       </main>
     </div>
@@ -163,8 +187,8 @@
     <script src="timeline-model.js?v=course-platform-3"></script>
     <script src="editor-logger.js?v=visual-node-5"></script>
     <script src="visual-node-editor.js?v=course-platform-3"></script>
-    <script src="api-client.js?v=local-api-2"></script>
+    <script src="api-client.js?v=access-history-1"></script>
     <script src="auth-session.js?v=local-api-1"></script>
-    <script src="app.js?v=login-copy-1"></script>
+    <script src="app.js?v=editor-completion-1"></script>
   </body>
 </html>

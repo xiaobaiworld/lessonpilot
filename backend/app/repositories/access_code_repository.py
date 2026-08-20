@@ -11,3 +11,13 @@ def get_access_code_by_digest(session: Session, digest: str) -> AccessCode | Non
 def add_access_code(session: Session, code: AccessCode) -> AccessCode:
     session.add(code)
     return code
+
+
+def list_access_codes_by_course(session: Session, course_id: str) -> list[AccessCode]:
+    return list(
+        session.scalars(
+            select(AccessCode)
+            .where(AccessCode.course_id == course_id)
+            .order_by(AccessCode.created_at.desc(), AccessCode.id.desc())
+        ).all()
+    )

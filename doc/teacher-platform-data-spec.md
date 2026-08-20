@@ -127,9 +127,11 @@ output    = API response、PluginCourseConfig、插件本地存储
 | `course_id` | UUID | 是 | 绑定课程 | internal |
 | `code_digest` | string | 是 | HMAC-SHA256，唯一索引 | secret |
 | `code_hint` | string | 是 | 仅用于教师确认，不可还原原文 | internal |
+| `code_type` | string | 是 | `short_term` / `long_term` | internal |
+| `expires_at` | UTC datetime/null | 否 | 短期为创建后 7 天；长期为空 | internal |
 | `created_at` | UTC datetime | 是 | 服务端生成 | internal |
 
-当前没有 `revoked_at`、`expires_at`、`max_redemptions` 或学生关联字段。
+当前没有 `revoked_at`、`max_redemptions` 或学生关联字段。已有迁移前记录按长期授权码处理。
 
 授权码格式为 `KM-XXXXX-XXXXX-XXXXX-XXXXX`，字符集为 Base32 大写字母和数字 2–7。
 查找时对规范化后的授权码计算 HMAC-SHA256；授权码原文不写数据库和日志。
@@ -249,7 +251,7 @@ flowchart LR
 - 课程或课节不属于当前教师：返回 `RESOURCE_NOT_FOUND`，避免泄露资源存在性；
 - 草稿为空或没有节点：不能发布；
 - 发布配置不符合插件契约：发布事务回滚；
-- 授权码不存在：返回统一 `INVALID_ACCESS_CODE`；
+- 授权码不存在或已经过期：返回统一 `INVALID_ACCESS_CODE`；
 - 课程未发布：返回 `COURSE_NOT_AVAILABLE`；
 - 数据库错误：事务回滚并返回 `INTERNAL_ERROR`，详细异常只写日志。
 

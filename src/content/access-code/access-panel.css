@@ -10,6 +10,12 @@
 #lessonpilot-access-panel input { box-sizing:border-box; width:100%; padding:10px 12px; border:1px solid #c9ccd0; border-radius:8px; font:14px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace; text-transform:uppercase; }
 #lessonpilot-access-panel form button,#lessonpilot-access-panel .lessonpilot-open-course { all:unset; box-sizing:border-box; padding:9px 14px; border-radius:8px; background:#00aeec; color:#fff; text-align:center; cursor:pointer; font-size:14px; }
 #lessonpilot-access-panel form button:disabled { opacity:.55; cursor:wait; }
-#lessonpilot-access-panel .lessonpilot-current-course,#lessonpilot-access-panel .lessonpilot-access-status { margin:8px 0 12px; color:#61666d; font-size:13px; line-height:1.5; overflow-wrap:anywhere; }
-#lessonpilot-access-panel .lessonpilot-open-course { display:block; margin-top:10px; }
-#lessonpilot-access-panel .lessonpilot-open-course[hidden] { display:none !important; }
+#lessonpilot-access-panel .lessonpilot-access-status { margin:8px 0 12px; color:#61666d; font-size:13px; line-height:1.5; overflow-wrap:anywhere; }
+#lessonpilot-access-panel .lessonpilot-course-list { display:grid; gap:8px; margin:0 0 14px; }
+#lessonpilot-access-panel .lessonpilot-course-list>strong { font-size:14px; color:#18191c; }
+#lessonpilot-access-panel .lessonpilot-course-empty { margin:0; padding:12px; border:1px dashed #c9ccd0; border-radius:10px; color:#9499a0; font-size:13px; }
+#lessonpilot-access-panel .lessonpilot-course-empty[hidden],#lessonpilot-access-panel .lessonpilot-course-record[hidden] { display:none !important; }
+#lessonpilot-access-panel .lessonpilot-course-record { display:grid; gap:7px; padding:12px; border:1px solid #e3e5e7; border-radius:10px; background:#f6f7f8; font-size:13px; line-height:1.5; }
+#lessonpilot-access-panel .lessonpilot-course-record-title { color:#18191c; font-weight:600; }
+#lessonpilot-access-panel .lessonpilot-course-url { color:#008ac5; text-decoration:underline; overflow-wrap:anywhere; cursor:pointer; }
+#lessonpilot-access-panel .lessonpilot-open-course { display:block; margin-top:2px; }

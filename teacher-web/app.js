@@ -1,13 +1,16 @@
 (function initTeacherWorkspace() {
   const lessonUrl = 'https://www.bilibili.com/video/BV1WW4y1e7GL/';
   const fixedBvid = 'BV1WW4y1e7GL';
+  const fixedVideoDurationSeconds = 513;
   let captions = [];
   const state = {
     course: null,
     lesson: null,
     nodes: [],
     publishVersion: null,
-    editor: null
+    editor: null,
+    accessCodes: [],
+    accessCodeFilter: 'all'
   };
 
   const api = window.KnownMapApi;
@@ -41,8 +44,14 @@
   const publishCourseButton = document.querySelector('#publish-course');
   const createAccessCodeButton = document.querySelector('#create-access-code');
   const accessCodePanel = document.querySelector('#access-code-panel');
+  const accessCodeCreated = document.querySelector('#access-code-created');
   const accessCodeValue = document.querySelector('#access-code-value');
   const copyAccessCodeButton = document.querySelector('#copy-access-code');
+  const accessCodeType = document.querySelector('#access-code-type');
+  const accessCodeList = document.querySelector('#access-code-list');
+  const accessCodeEmpty = document.querySelector('#access-code-empty');
+  const quickPublishCourseButton = document.querySelector('#quick-publish-course');
+  const completeEditorButton = document.querySelector('#complete-editor');
   const publishVersionLabel = document.querySelector('#publish-version');
   const courseRecordStatus = document.querySelector('#course-record-status');
   const subtitleRecordStatus = document.querySelector('#subtitle-record-status');
@@ -63,6 +72,19 @@
     const minutes = Math.floor(safeSeconds / 60);
     return `${String(minutes).padStart(2, '0')}:${String(safeSeconds % 60).padStart(2, '0')}`;
   };
+  const formatDateTime = (value) => {
+    if (!value) return '不过期';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '—';
+    return new Intl.DateTimeFormat('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    }).format(date);
+  };
   const setButtonBusy = (button, busy, busyLabel, idleLabel) => {
     button.disabled = busy;
     button.textContent = busy ? busyLabel : idleLabel;
@@ -76,6 +98,11 @@
     timelineLayout.inert = locked;
     nodePluginBar.setAttribute('aria-busy', String(locked));
     timelineLayout.setAttribute('aria-busy', String(locked));
+  };
+  const setPublishBusy = (busy) => {
+    setButtonBusy(publishCourseButton, busy, '正在发布…', '发布课程');
+    setButtonBusy(quickPublishCourseButton, busy, '正在发布…', '发布课程');
+    completeEditorButton.disabled = busy;
   };
   const showToast = (message) => {
     window.clearTimeout(toastTimer);
@@ -139,6 +166,8 @@
     state.lesson = null;
     state.nodes = [];
     state.publishVersion = null;
+    state.accessCodes = [];
+    state.accessCodeFilter = 'all';
     captions = [];
     state.editor.setCaptions(captions);
     state.editor.setNodes([]);
@@ -151,10 +180,12 @@
     timelineLessonTitle.textContent = '课节';
     publishVersionLabel.textContent = '—';
     accessCodePanel.hidden = true;
+    accessCodeCreated.hidden = true;
     accessCodeValue.textContent = '尚未创建';
     createAccessCodeButton.disabled = false;
     createAccessCodeButton.textContent = '创建授权码';
     copyAccessCodeButton.disabled = true;
+    accessCodeList.replaceChildren();
     subtitleFileInput.value = '';
     subtitleFileName.textContent = '选择 SRT 或 VTT 字幕文件';
     subtitleRecordStatus.textContent = '未导入';
@@ -185,6 +216,65 @@
   const updateNodeCount = () => {
     document.querySelector('#node-count').textContent = String(state.nodes.length).padStart(2, '0');
   };
+  const renderAccessCodes = () => {
+    const counts = state.accessCodes.reduce((result, item) => {
+      result[item.code_type] += 1;
+      return result;
+    }, { short_term: 0, long_term: 0 });
+    document.querySelector('#access-code-total').textContent = String(state.accessCodes.length);
+    document.querySelector('#access-code-count-all').textContent = String(state.accessCodes.length);
+    document.querySelector('#access-code-count-short').textContent = String(counts.short_term);
+    document.querySelector('#access-code-count-long').textContent = String(counts.long_term);
+
+    document.querySelectorAll('[data-code-filter]').forEach((button) => {
+      const active = button.dataset.codeFilter === state.accessCodeFilter;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-selected', String(active));
+    });
+
+    const visible = state.accessCodes.filter((item) => (
+      state.accessCodeFilter === 'all' || item.code_type === state.accessCodeFilter
+    ));
+    accessCodeList.replaceChildren(...visible.map((item) => {
+      const row = document.createElement('li');
+      row.className = 'access-code-record';
+
+      const identity = document.createElement('div');
+      const identityLabel = document.createElement('small');
+      identityLabel.textContent = item.code_type === 'short_term' ? '短期授权码' : '长期授权码';
+      const hint = document.createElement('strong');
+      hint.textContent = `尾号 ${item.code_hint}`;
+      identity.append(identityLabel, hint);
+
+      const created = document.createElement('div');
+      const createdLabel = document.createElement('small');
+      createdLabel.textContent = '创建时间';
+      const createdValue = document.createElement('span');
+      createdValue.textContent = formatDateTime(item.created_at);
+      created.append(createdLabel, createdValue);
+
+      const expiry = document.createElement('div');
+      const expiryLabel = document.createElement('small');
+      expiryLabel.textContent = '有效期';
+      const expiryValue = document.createElement('span');
+      expiryValue.textContent = formatDateTime(item.expires_at);
+      expiry.append(expiryLabel, expiryValue);
+
+      const status = document.createElement('span');
+      status.className = `access-code-status${item.status === 'expired' ? ' is-expired' : ''}`;
+      status.textContent = item.status === 'expired' ? '已过期' : '有效';
+      row.append(identity, created, expiry, status);
+      return row;
+    }));
+    accessCodeEmpty.hidden = visible.length > 0;
+  };
+  const loadAccessCodes = async () => {
+    if (!state.course) return;
+    const result = await api.listAccessCodes(state.course.id);
+    state.accessCodes = result.items;
+    renderAccessCodes();
+    accessCodePanel.hidden = false;
+  };
   const syncEditor = () => {
     if (!state.editor) return;
     state.editor.setCaptions(captions);
@@ -197,7 +287,7 @@
     document,
     captions,
     nodes: [],
-    minimumDurationSeconds: 222,
+    minimumDurationSeconds: fixedVideoDurationSeconds,
     logger: window.KnownMapEditorLogger.createEditorLogger(),
     onChange(nodes) {
       state.nodes = nodes;
@@ -348,6 +438,7 @@
     captionStatusIcon.textContent = '—';
     syncEditor();
     updateCourseWorkspace();
+    await loadAccessCodes();
     workspaceOwner.textContent = session.current().display_name;
     setApiStatus(session.current().display_name, true);
   };
@@ -355,21 +446,23 @@
     if (!state.course) return;
     setButtonBusy(createAccessCodeButton, true, '正在创建…', '创建授权码');
     try {
-      const result = await api.createAccessCode(state.course.id);
+      const result = await api.createAccessCode(state.course.id, accessCodeType.value);
       accessCodeValue.textContent = result.access_code;
+      accessCodeCreated.hidden = false;
       copyAccessCodeButton.disabled = false;
-      createAccessCodeButton.textContent = '已创建';
+      await loadAccessCodes();
       showToast('授权码已创建。');
     } catch (error) {
-      setButtonBusy(createAccessCodeButton, false, '正在创建…', '创建授权码');
       throw error;
+    } finally {
+      setButtonBusy(createAccessCodeButton, false, '正在创建…', '创建授权码');
     }
   };
   const publishCourse = async () => {
-    if (publishCourseButton.disabled) return;
+    if (publishInProgress) return;
     const saveWasDisabled = saveTimelineButton.disabled;
     publishInProgress = true;
-    setButtonBusy(publishCourseButton, true, '正在发布…', '发布课程');
+    setPublishBusy(true);
     saveTimelineButton.disabled = true;
     setEditorInteractionLocked(true);
     try {
@@ -378,12 +471,13 @@
       state.publishVersion = result.version;
       publishVersionLabel.textContent = `v${result.version}`;
       accessCodePanel.hidden = false;
+      await loadAccessCodes();
       showToast(`课程已发布，版本 v${result.version}。`);
     } finally {
       publishInProgress = false;
       saveTimelineButton.disabled = saveWasDisabled;
       setEditorInteractionLocked(false);
-      setButtonBusy(publishCourseButton, false, '正在发布…', '发布课程');
+      setPublishBusy(false);
     }
   };
   const login = async (event) => {
@@ -448,9 +542,11 @@
   });
   chooseSubtitleFileButton.addEventListener('click', () => subtitleFileInput.click());
   subtitleFileInput.addEventListener('change', importSubtitleFile);
-  document.querySelector('#preview-timeline').addEventListener('click', () => {
+  const openLessonVideo = () => {
     window.open(lessonUrl, '_blank', 'noopener,noreferrer');
-  });
+  };
+  document.querySelector('#preview-timeline').addEventListener('click', openLessonVideo);
+  document.querySelector('#quick-open-video').addEventListener('click', openLessonVideo);
   document.querySelector('#refresh-analysis').addEventListener('click', () => {
     state.editor.setCaptions(captions);
     syncEditorNodesToWorkspace();
@@ -464,6 +560,22 @@
   document.querySelector('#publish-course').addEventListener('click', async () => {
     try { await publishCourse(); } catch (error) { showToast(error.message); }
   });
+  quickPublishCourseButton.addEventListener('click', async () => {
+    try { await publishCourse(); } catch (error) { showToast(error.message); }
+  });
+  completeEditorButton.addEventListener('click', async () => {
+    if (completeEditorButton.disabled) return;
+    setButtonBusy(completeEditorButton, true, '正在完成…', '完成');
+    try {
+      await saveDraft(true);
+      setRoute('home');
+      showToast('草稿已保存，课程设计已完成。');
+    } catch (error) {
+      showToast(error.message || '保存失败，请重试。');
+    } finally {
+      setButtonBusy(completeEditorButton, false, '正在完成…', '完成');
+    }
+  });
   document.querySelector('#create-access-code').addEventListener('click', async () => {
     try { await createAccessCode(); } catch (error) { showToast(error.message); }
   });
@@ -471,6 +583,12 @@
     const value = document.querySelector('#access-code-value').textContent;
     await navigator.clipboard?.writeText(value);
     showToast('已复制授权码。');
+  });
+  document.querySelectorAll('[data-code-filter]').forEach((button) => {
+    button.addEventListener('click', () => {
+      state.accessCodeFilter = button.dataset.codeFilter;
+      renderAccessCodes();
+    });
   });
   document.querySelector('#zoom-in').addEventListener('click', () => state.editor.adjustZoom(0.25));
   document.querySelector('#zoom-out').addEventListener('click', () => state.editor.adjustZoom(-0.25));

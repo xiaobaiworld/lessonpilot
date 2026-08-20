@@ -190,7 +190,13 @@ Base path：
 
 ### `POST /teacher/courses/{course_id}/access-codes`
 
-用途：创建一个绑定课程的授权码。
+用途：创建一个绑定课程的短期或长期授权码。请求体可选；缺省保持兼容并创建长期授权码。
+
+```json
+{
+  "code_type": "short_term"
+}
+```
 
 前置条件：
 
@@ -203,16 +209,25 @@ Base path：
 {
   "access_code": "KM-ABC123-DEF456",
   "course_id": "uuid",
-  "course_title": "面试英语第一课"
+  "course_title": "面试英语第一课",
+  "code_type": "short_term",
+  "created_at": "2026-08-20T10:00:00Z",
+  "expires_at": "2026-08-27T10:00:00Z"
 }
 ```
 
 服务端存储 `code_digest`，不存储 `access_code` 原文。
 
-当前阶段不提供授权码列表、复制、停用、过期和领取统计端点。
+短期授权码在创建 7 天后失效；长期授权码的 `expires_at` 为 `null`。当前阶段不提供停用、人数限制和领取统计端点。
 
 授权码使用高熵 Base32 随机值，数据库只保存基于服务端 secret 的 HMAC-SHA256 摘要和
 末五位提示。授权码原文只在创建响应中出现一次。
+
+### `GET /teacher/courses/{course_id}/access-codes`
+
+用途：读取当前教师所属课程的授权码统计和历史记录。
+
+返回总数、`short_term` / `long_term` 分类计数，以及只包含尾号提示、类型、创建时间、到期时间和状态的记录。不得返回授权码原文或摘要。
 
 ## 6. 插件课程下载端点
 
@@ -249,7 +264,7 @@ Base path：
 
 | 错误码 | HTTP | 语义 |
 | --- | ---: | --- |
-| `INVALID_ACCESS_CODE` | 401 | 授权码不存在或格式不合法 |
+| `INVALID_ACCESS_CODE` | 401 | 授权码不存在、格式不合法或已经过期 |
 | `COURSE_NOT_AVAILABLE` | 404 | 授权码对应课程当前没有可下载的已发布配置 |
 
 下载接口不接收 `course_id` 作为授权依据，不创建学生账号或领取记录。
@@ -269,6 +284,7 @@ Base path：
 | `PUT /teacher/lessons/{id}/draft` | Script | 节点配置 | 草稿摘要 | schema 错误、越权 | schema/服务测试 |
 | `POST /teacher/courses/{id}/publish` | Publish | 课程 ID | 课程和课节发布版本 | 无草稿、配置错误 | 事务集成测试 |
 | `POST /teacher/courses/{id}/access-codes` | AccessCode | 课程 ID | 一次性授权码 | 未发布、越权 | 安全/服务测试 |
+| `GET /teacher/courses/{id}/access-codes` | AccessCode | 课程 ID | 分类统计、脱敏历史 | 越权 | API 集成测试 |
 | `POST /public/course-download` | Download | 授权码 | 插件课程配置 | 无效码、未发布 | API/E2E 测试 |
 
 ## 8. 文档和联调要求

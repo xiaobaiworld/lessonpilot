@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const {
   normalizeAccessCode,
   buildBilibiliCourseUrl,
+  buildCourseRecord,
   createAccessCodeController
 } = require('../src/content/access-code/access-panel.js');
 
@@ -21,6 +22,30 @@ test('builds a fixed Bilibili URL only from a validated course video reference',
   );
   assert.equal(buildBilibiliCourseUrl({ platform: 'other', videoId: 'BV1WW4y1e7GL' }), null);
   assert.equal(buildBilibiliCourseUrl({ platform: 'bilibili', videoId: 'javascript:alert(1)' }), null);
+});
+
+test('builds one visible course record from an installed course', () => {
+  assert.deepEqual(buildCourseRecord({
+    courseId: 'bilibili:BV1WW4y1e7GL',
+    videoRef: { platform: 'bilibili', videoId: 'BV1WW4y1e7GL' }
+  }), {
+    courseId: 'bilibili:BV1WW4y1e7GL',
+    label: 'B 站课程 · BV1WW4y1e7GL',
+    url: 'https://www.bilibili.com/video/BV1WW4y1e7GL/'
+  });
+  assert.equal(buildCourseRecord(null), null);
+  assert.equal(buildCourseRecord({
+    courseId: 'invalid',
+    videoRef: { platform: 'other', videoId: 'BV1WW4y1e7GL' }
+  }), null);
+
+  const fs = require('node:fs');
+  const source = fs.readFileSync('src/content/access-code/access-panel.js', 'utf8');
+
+  assert.match(source, /class="lessonpilot-course-record" hidden/);
+  assert.match(source, /class="lessonpilot-course-url"/);
+  assert.match(source, /this\.courseRecord\.hidden = !record/);
+  assert.match(source, /this\.courseEmpty\.hidden = Boolean\(record\)/);
 });
 
 test('download request contains the access code but never a client-selected course id', async () => {

@@ -16,6 +16,16 @@
     return `https://www.bilibili.com/video/${videoRef.videoId}/`;
   }
 
+  function buildCourseRecord(course) {
+    const url = course ? buildBilibiliCourseUrl(course.videoRef) : null;
+    if (!url || typeof course.courseId !== 'string') return null;
+    return {
+      courseId: course.courseId,
+      label: `B 站课程 · ${course.videoRef.videoId}`,
+      url
+    };
+  }
+
   function createAccessCodeController({ download, confirmReplace }) {
     async function submit(value) {
       const authorizationCode = normalizeAccessCode(value);
@@ -70,17 +80,27 @@
         <button type="button" class="lessonpilot-access-launcher" aria-label="打开 KnownMap 书包">书包</button>
         <div class="lessonpilot-access-card" role="dialog" aria-modal="false" aria-labelledby="lessonpilot-access-title" hidden>
           <header><strong id="lessonpilot-access-title">KnownMap 书包</strong><button type="button" data-action="close" aria-label="关闭">×</button></header>
-          <p class="lessonpilot-current-course"></p>
+          <section class="lessonpilot-course-list" aria-labelledby="lessonpilot-course-list-title">
+            <strong id="lessonpilot-course-list-title">课程</strong>
+            <p class="lessonpilot-course-empty">还没有课程，输入授权码领取。</p>
+            <article class="lessonpilot-course-record" hidden>
+              <span class="lessonpilot-course-record-title"></span>
+              <a class="lessonpilot-course-url"></a>
+              <a class="lessonpilot-open-course">打开课程视频</a>
+            </article>
+          </section>
           <form>
             <label for="lessonpilot-access-code">课程授权码</label>
             <input id="lessonpilot-access-code" name="access-code" autocomplete="off" spellcheck="false" maxlength="28" placeholder="KM-XXXXX-XXXXX-XXXXX-XXXXX">
             <button type="submit">下载课程</button>
           </form>
           <p class="lessonpilot-access-status" role="status"></p>
-          <a class="lessonpilot-open-course" hidden>打开课程视频</a>
         </div>`;
       this.status = this.root.querySelector('.lessonpilot-access-status');
-      this.courseLabel = this.root.querySelector('.lessonpilot-current-course');
+      this.courseEmpty = this.root.querySelector('.lessonpilot-course-empty');
+      this.courseRecord = this.root.querySelector('.lessonpilot-course-record');
+      this.courseRecordTitle = this.root.querySelector('.lessonpilot-course-record-title');
+      this.courseUrl = this.root.querySelector('.lessonpilot-course-url');
       this.openLink = this.root.querySelector('.lessonpilot-open-course');
       this.input = this.root.querySelector('input');
       this.submitButton = this.root.querySelector('button[type="submit"]');
@@ -114,14 +134,22 @@
     }
 
     renderCourse(course) {
-      this.courseLabel.textContent = course ? `当前课程：${course.courseId}` : '当前还没有课程';
-      const url = course ? buildBilibiliCourseUrl(course.videoRef) : null;
-      this.openLink.hidden = !url;
-      if (url) {
-        this.openLink.href = url;
+      const record = buildCourseRecord(course);
+      this.courseRecord.hidden = !record;
+      this.courseEmpty.hidden = Boolean(record);
+      if (record) {
+        this.courseRecordTitle.textContent = record.label;
+        this.courseUrl.textContent = record.url;
+        this.courseUrl.href = record.url;
+        this.courseUrl.target = '_self';
+        this.courseUrl.rel = 'noopener';
+        this.openLink.href = record.url;
         this.openLink.target = '_self';
         this.openLink.rel = 'noopener';
       } else {
+        this.courseRecordTitle.textContent = '';
+        this.courseUrl.textContent = '';
+        this.courseUrl.removeAttribute('href');
         this.openLink.removeAttribute('href');
       }
     }
@@ -134,5 +162,11 @@
     destroy() { this.root.remove(); }
   }
 
-  return { normalizeAccessCode, buildBilibiliCourseUrl, createAccessCodeController, AccessPanel };
+  return {
+    normalizeAccessCode,
+    buildBilibiliCourseUrl,
+    buildCourseRecord,
+    createAccessCodeController,
+    AccessPanel
+  };
 });

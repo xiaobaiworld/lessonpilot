@@ -1,4 +1,5 @@
 import re
+from datetime import datetime, timedelta, timezone
 
 from fastapi.testclient import TestClient
 from sqlalchemy import select
@@ -94,6 +95,85 @@ def test_teacher_creates_code_and_database_stores_only_digest() -> None:
     assert stored.code_digest != raw_code
     assert raw_code not in stored.code_digest
     assert stored.code_hint == raw_code[-5:]
+    assert stored.code_type == "long_term"
+    assert stored.expires_at is None
+
+
+def test_teacher_lists_access_codes_by_type_without_secrets() -> None:
+    app = make_app()
+    with TestClient(app) as client:
+        login(client)
+        course_id, lesson_id = create_course_and_lesson(client)
+        save_and_publish(client, course_id, lesson_id)
+
+        short = client.post(
+            f"/api/v1/teacher/courses/{course_id}/access-codes",
+            json={"code_type": "short_term"},
+        )
+        long = client.post(
+            f"/api/v1/teacher/courses/{course_id}/access-codes",
+            json={"code_type": "long_term"},
+        )
+        listing = client.get(f"/api/v1/teacher/courses/{course_id}/access-codes")
+
+    assert short.status_code == 201
+    assert short.json()["code_type"] == "short_term"
+    assert short.json()["expires_at"] is not None
+    assert long.status_code == 201
+    assert long.json()["code_type"] == "long_term"
+    assert long.json()["expires_at"] is None
+    assert listing.status_code == 200
+    payload = listing.json()
+    assert payload["total"] == 2
+    assert payload["counts"] == {"short_term": 1, "long_term": 1}
+    assert {item["code_type"] for item in payload["items"]} == {"short_term", "long_term"}
+    assert all(item["status"] == "active" for item in payload["items"])
+    serialized = listing.text
+    assert short.json()["access_code"] not in serialized
+    assert long.json()["access_code"] not in serialized
+    assert "code_digest" not in serialized
+
+
+def test_expired_short_code_is_rejected_without_status_disclosure() -> None:
+    app = make_app()
+    with TestClient(app) as client:
+        login(client)
+        course_id, lesson_id = create_course_and_lesson(client)
+        save_and_publish(client, course_id, lesson_id)
+        raw_code = client.post(
+            f"/api/v1/teacher/courses/{course_id}/access-codes",
+            json={"code_type": "short_term"},
+        ).json()["access_code"]
+
+        with app.state.session_factory() as session:
+            row = session.scalar(select(AccessCode))
+            row.expires_at = datetime.now(timezone.utc) - timedelta(seconds=1)
+            session.commit()
+
+        download = client.post(
+            "/api/v1/public/course-download",
+            json={"access_code": raw_code},
+        )
+        listing = client.get(f"/api/v1/teacher/courses/{course_id}/access-codes")
+
+    assert download.status_code == 401
+    assert download.json()["error"]["code"] == "INVALID_ACCESS_CODE"
+    assert listing.json()["items"][0]["status"] == "expired"
+
+
+def test_other_teacher_cannot_list_course_access_codes() -> None:
+    app = make_app()
+    with TestClient(app) as owner:
+        login(owner)
+        course_id, lesson_id = create_course_and_lesson(owner)
+        save_and_publish(owner, course_id, lesson_id)
+
+    with TestClient(app) as other:
+        login(other, "code-other", "other-password")
+        response = other.get(f"/api/v1/teacher/courses/{course_id}/access-codes")
+
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == "RESOURCE_NOT_FOUND"
 
 
 def test_plugin_downloads_latest_published_course_with_existing_code() -> None:
