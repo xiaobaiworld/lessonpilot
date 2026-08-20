@@ -4,11 +4,23 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### 生产安全加固与可恢复发布 — 2026-08-20
+
+- 生产发布只接受明确允许的远程分支和 GitHub `node-test`、`backend-test` 均成功的精确提交；systemd、Nginx 和备份配置也从同一提交归档部署。
+- `uv` 固定版本与 SHA-256，后端按 `uv.lock` 为每个 release 安装独立 `.venv`；旧生产 release 已补齐共享环境回滚兼容。
+- 发布不再生成、重置或输出教师密码；明确轮换时密码只通过 SSH 标准输入进入 root `0600` 临时文件，seed 后删除。
+- Nginx 新增登录与课程下载限速、HSTS、CSP、点击劫持和权限策略；教师登录页不再预填生产用户名。
+- 新增每日 SQLite 在线备份、完整性检查与 14 天保留；systemd 服务清空 capability 并收紧设备、内核和地址族访问。
+- GitHub Actions 固定到完整 SHA，Dependabot 安全更新与每周 Python/Actions 检查已启用。
+- 当前生产版本：`20260820T153701Z-130b5ac22581`，GitHub SHA `130b5ac225817dcb124bae89257da4efd1444e99`。
+- 线上验证：真实教师登录与会话恢复 200；连续错误登录第 7 次开始返回 429；私有路径 404；备份权限 `0600` 且 `integrity_check=ok`。
+- 验证：Node 298 pass / 0 fail；FastAPI 40 pass / 0 fail（1 条上游弃用警告）；Bandit 无发现；`pip-audit` 无已知漏洞；Nginx 与 Shell 语法通过。
+
 ### 教师工作台与 FastAPI 发布到阿里云 ECS — 2026-08-20
 
 - `knownmap.com` 现在同时提供销售首页、教师工作台和同源 FastAPI；教师页面在生产环境自动请求 `https://knownmap.com/api/v1`，本地开发仍使用 8000 端口。
 - 新增教师平台生产发布入口、systemd 服务、Nginx 反代、独立 SQLite 数据目录和同一 release ID 的网页/后端/GitHub 标签/仓库记录。
-- 当前生产版本：`20260820T142243Z-ec1454ed2f31`，GitHub SHA `ec1454ed2f31512049069122406e8fbd387868b3`。
+- 初始生产版本：`20260820T142243Z-ec1454ed2f31`，GitHub SHA `ec1454ed2f31512049069122406e8fbd387868b3`；当前版本见上方安全加固记录。
 - 生产验收：教师登录、创建课程和课节、保存 4 个节点、发布 `v1`、创建短期授权码、公开下载课程全部通过；`/health`、首页和教师工作台返回 200，私有路径保持 404。
 - 发布提交验证：Node 289 pass / 0 fail；FastAPI 40 pass / 0 fail（1 条上游弃用警告）；Shell 语法和 `git diff --check` 通过。
 
