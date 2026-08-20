@@ -2,11 +2,12 @@
 
 日期：2026-08-20
 
-状态：已接受，待实施
+状态：已接受并实施。后端多课节、v2 课程包、范围授权、v2-only 插件存储、下载器、运行时、
+内置示例课程和课程名称 UI 已完成。
 
 ## 目标
 
-为未来多课程、多课节领取和本地保存建立稳定的课程身份规则：
+为多课程、多课节领取和本地保存建立稳定的课程身份规则：
 
 - 每门课程由后台生成一个独立 UUID；
 - 每个课节由后台生成一个独立 UUID；
@@ -15,17 +16,23 @@
 - 未来课程文件、目录和学习状态都按 `courseId` 隔离；
 - 当前只确定身份和边界，不提前实现图片、音频或大文件存储。
 
-当前内置示例课程使用固定的示例课程 ID，示例课程可以先包含一个课节，不占用学生真实课程存储位置。
+内置示例课程使用固定课程 UUID 和课节 UUID，当前包含一个真实示例课节；它以只读来源写入
+同一个多课程仓库，不占用或覆盖学生通过授权码领取的课程。
 
 ## 当前事实与约束
 
 ### 后台
 
-`backend/app/models/course.py` 当前已经使用 `uuid4()` 作为 `Course.id` 的默认值，但当前 `Course.lesson` 是单课节关系，`create_lesson()` 也通过 `LessonLimitReached` 限制每门课程只能有一个课节。这是当前阶段限制，不是长期课程模型。
+`backend/app/models/course.py` 使用 `uuid4()` 作为 `Course.id` 的默认值。
+`0008_multi_lesson_courses` 已移除 `lessons.course_id` 唯一约束，`Course.lessons` 和
+`create_lesson()` 已支持多个有序课节。发布与授权服务必须读取 `Course.lessons`，不得再把
+第一课节当作整门课程。
 
 ### 插件课程契约
 
-当前 `PluginCourseConfig` 仍以 `platform:videoId` 推导 `courseId`，并直接把一个 `videoRef` 和一组节点放在顶层。这适合当前单课程、单课节、单视频切片，但不能表达一门课程包含多个 B 站视频。
+插件只接受 `CoursePackage` v2：UUID `courseId`、UUID `lessonId` 和 `lessons[]`。下载响应
+只能是 `{ "courses": [...] }`，本地只使用 `studentCourseStore`；旧 `{ "course": ... }`、
+`installedCourse` 和 `learningState` 不提供适配或迁移。
 
 ### 课程显示
 
@@ -64,7 +71,27 @@ assetId     未来单个图片、音频或附件的身份
         "platform": "bilibili",
         "videoId": "BV1WW4y1e7GL"
       },
-      "nodes": []
+      "nodes": [
+        {
+          "id": "node-1",
+          "enabled": true,
+          "family": "attention",
+          "interaction": "notice",
+          "trigger": {
+            "kind": "time_cross",
+            "timeSeconds": 39,
+            "captionId": null
+          },
+          "display": {
+            "title": "回答要具体",
+            "body": "用一个真实例子支撑你的回答。"
+          },
+          "evaluation": null,
+          "effects": {
+            "pause": true
+          }
+        }
+      ]
     }
   ]
 }
@@ -203,12 +230,12 @@ courses/
 - 不实现音频上传；
 - 不申请额外的大容量存储权限；
 - 不实现用户可见的真实课程目录；
-- 不实现完整多课程 UI；
-- 不修改当前插件运行代码。
+- 不实现图片/音频驱动的完整多课程资源 UI；
+- 本设计本身不定义插件运行时交互细节，运行时接入由实施计划负责。
 
 ## 与现有系统的关系
 
-未来多课程实现时，需要替换当前“从 `platform:videoId` 推导 `courseId`”的插件契约边界：
+当前实现已经用以下边界替换“从 `platform:videoId` 推导 `courseId`”：
 
 ```text
 courseId  ← 后台 Course.id
@@ -217,15 +244,16 @@ videoRef  ← 课节用于 B 站页面匹配
 nodes     ← 课节的互动节点
 ```
 
-旧版单课程数据迁移时，现有 `bilibili:<BVID>` 只能作为迁移期间的旧标识，不能继续作为新课程的永久身份。迁移方案需在多课程实现计划中单独定义。
+测试期内没有正式发布的旧版课程，因此不保留旧标识、不读取旧 key、不转换旧响应。发现
+旧单课程结构时直接拒绝，由测试数据重新生成 v2 课程包。
 
-后端需要从一对一课程课节关系升级为一对多：
+后端一对多底层已经完成：
 
-- `Course.lesson` 改为 `Course.lessons`；
-- 移除当前阶段的 `LessonLimitReached` 长期限制；
-- 发布和草稿仍然按课节保存，但课程发布包聚合多个课节；
+- `Course.lessons` 为正式关系；新发布和授权代码不得读取 `Course.lesson`；
+- 已移除 `LessonLimitReached` 和数据库唯一约束；
+- 草稿仍按课节保存；课程发布包聚合并发布全部课节；
 - 授权码继续绑定课程，而不是绑定单独的 BVID；
-- 示例课程先使用一门课节验证流程，数据结构不能因此退化为课程直连视频。
+- 示例课程使用一门课节验证流程，但数据结构保持 `course -> lessons[]`。
 
 ## 方案比较
 

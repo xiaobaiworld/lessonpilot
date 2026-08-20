@@ -4,23 +4,35 @@
 
 **Goal:** Upgrade the course data path so one UUID-identified course can contain multiple Bilibili lessons, one authorization code can grant multiple course/lesson/node scopes, and the student plugin can retain those course packages alongside a bundled example course.
 
-**Architecture:** Keep `courseId`, `lessonId`, and node IDs as separate identities. The backend owns course and lesson UUIDs and stores authorization scope rows in `AccessGrant`; the public download response becomes a course-package envelope containing multiple courses and lessons. The plugin preserves a compatibility read path for the current single-course response while writing new packages into a per-course/per-lesson local store, with the bundled example course handled as a read-only package.
+**Architecture:** Keep `courseId`, `lessonId`, and node IDs as separate identities. The backend owns course and lesson UUIDs and stores authorization scope rows in `AccessGrant`; the public download response is a v2-only course-package envelope containing multiple courses and lessons. The plugin has one per-course/per-lesson local store, with the bundled example course handled as a read-only package.
 
 **Tech Stack:** FastAPI, SQLAlchemy, Alembic, Pydantic, vanilla JavaScript, Chrome MV3 storage, Node test runner, pytest.
 
 ---
 
-## Scope and compatibility
+## Scope and cutover
 
 The repository currently contains user changes unrelated to this feature. Workers must touch only the files listed in their task and must not revert unrelated work.
 
-The implementation must preserve current `0.9.1` behavior while introducing the new package shape:
+The single-course build was never released as a course-data compatibility contract. This work performs a direct test-stage cutover:
 
-- Existing single-course download responses remain readable by the plugin during migration.
-- New backend responses use `{ "courses": [...] }`.
-- Existing `installedCourse` / `learningState` data migrates on first access into the new course store.
+- Backend responses use only `{ "courses": [...] }`.
+- Plugin storage uses only `studentCourseStore`.
+- `{ "course": ... }`, `installedCourse`, `learningState`, BVID-derived IDs, and replacement confirmation are removed.
 - The example course is read-only bundled data and is never written over a teacher-authorized course.
 - No image/audio upload or physical Finder directory is implemented in this plan.
+
+## Current implementation status
+
+Documentation audit on 2026-08-20 found:
+
+- Task 1 is committed as `62f17c1` with migration `0008_multi_lesson_courses`.
+- Task 2 is committed as `0cd94cd` with scoped grants and v2-only public download.
+- Task 3 is committed across `1d73660` and `8e99b9f`.
+- Task 4 is implemented as v2-only storage, downloader, runtime, bundled example course, and title UI.
+- Task 5 automated verification passes; real Chrome extension reload remains a manual release check.
+
+The backend and plugin now share only the v2 `{ "courses": [...] }` path.
 
 ## Planned file ownership
 
@@ -135,7 +147,7 @@ cd backend
 uv run pytest tests/unit/test_course_service.py tests/integration/test_course_api.py -q
 ```
 
-Expected: all focused course tests pass, including legacy tests updated to read `lessons[0]`.
+Expected: all focused course tests pass and the API exposes `lessons[]`.
 
 - [ ] **Step 7: Commit the isolated backend course change**
 
@@ -218,7 +230,7 @@ Extend access-code creation with an optional scope list while preserving the cur
 
 - [ ] **Step 6: Update public download**
 
-Return a package envelope with `courses: list[...]`. For each grant, include the course title and only the authorized lessons/nodes. Keep a compatibility `course` response path only if the existing client contract requires it; the new response must be deterministic and contain no duplicate course or lesson entries.
+Return only a package envelope with `courses: list[...]`. For each grant, include the course title and only the authorized lessons/nodes. The response must be deterministic and contain no duplicate course or lesson entries.
 
 - [ ] **Step 7: Run focused authorization tests**
 
@@ -244,7 +256,7 @@ git commit -m "feat: add scoped course authorization grants"
 
 - [ ] **Step 1: Add failing package contract tests**
 
-Test a valid package with two lessons, reject duplicate `courseId`/`lessonId`, reject a lesson without a valid BVID, reject empty lesson nodes, reject unknown top-level fields, and accept the current single-course response through a legacy adapter.
+Test a valid package with two lessons, reject duplicate `courseId`/`lessonId`, reject a lesson without a valid BVID, reject empty lesson nodes, reject unknown top-level fields, and reject the removed single-course response.
 
 - [ ] **Step 2: Run the package tests and confirm failure**
 
@@ -298,7 +310,7 @@ cd backend
 uv run pytest tests/unit/test_plugin_course_config.py tests/integration/test_publish_api.py -q
 ```
 
-Expected: package and publish tests pass while legacy node contract tests remain green.
+Expected: package and publish tests pass while shared node validation tests remain green.
 
 - [ ] **Step 7: Commit the package contract change**
 
@@ -316,7 +328,6 @@ git commit -m "feat: add multi-lesson course package contract"
 Cover:
 
 ```js
-test('migrates legacy installedCourse into installedCourses by courseId', ...);
 test('stores two course packages without replacement', ...);
 test('updates one lesson while preserving other course state', ...);
 test('filters package lessons by authorized scope', ...);
@@ -331,7 +342,7 @@ Run:
 node --test tests/plugin-course-storage.test.js tests/plugin-download-flow.test.js
 ```
 
-Expected: failure because storage currently exposes only `installedCourse` and downloader expects `{ course }`.
+Expected: failure before the v2 course store and `{ courses }` downloader exist.
 
 - [ ] **Step 3: Implement versioned local course storage**
 
@@ -358,11 +369,11 @@ Introduce a versioned store with:
 }
 ```
 
-Migrate legacy `installedCourse` and `learningState` exactly once, preserve data, and never replace a different course because another course was downloaded.
+Use `studentCourseStore` as the only student course key and never replace a different course because another course was downloaded.
 
 - [ ] **Step 4: Update downloader and service worker**
 
-Accept both legacy `{ course }` and new `{ courses }` responses, validate before writing, merge by `courseId`, preserve same-course lesson state where node IDs remain valid, and return a summary with installed course IDs and titles.
+Accept only `{ courses }`, validate before writing, merge by `courseId`, preserve same-course lesson state where node IDs remain valid, and return a summary with installed course IDs and titles.
 
 - [ ] **Step 5: Add the bundled example course**
 
@@ -380,7 +391,7 @@ Run:
 node --test tests/plugin-course-storage.test.js tests/plugin-download-flow.test.js tests/access-code-panel.test.js tests/course-runtime.test.js tests/extension-popup.test.js
 ```
 
-Expected: legacy migration, multiple course storage, example fallback, title display, and BVID lesson matching all pass.
+Expected: multiple course storage, example fallback, title display, and BVID lesson matching all pass.
 
 - [ ] **Step 8: Commit the plugin change**
 
@@ -417,7 +428,7 @@ Verify that:
 - one course with two lessons does not lose either lesson;
 - a code scoped to one lesson cannot download another lesson;
 - code wall-clock expiry is not confused with video node time;
-- a legacy installed course is not deleted during migration;
+- the removed single-course response and keys are rejected rather than silently adapted;
 - example content cannot overwrite a teacher-authorized course;
 - no access code, node prose, captions, or answers enter logs.
 
@@ -444,6 +455,6 @@ git commit -m "docs: synchronize multi-course delivery model"
 - Course identity: Task 3 changes the package identity from BVID-derived course IDs to backend UUIDs.
 - Multiple lessons: Tasks 1 and 3 cover one-to-many persistence and aggregated package output.
 - Scoped authorization: Task 2 covers course, lesson, node, and wall-clock scope.
-- Local course isolation: Task 4 covers migration, merge, per-course/per-lesson state, and example fallback.
-- Current compatibility: Tasks 2–4 explicitly preserve legacy reads while new writes use the target model.
+- Local course isolation: Task 4 covers one canonical store, merge, per-course/per-lesson state, and example fallback.
+- Cutover: Tasks 2–4 remove legacy reads and writes because no old course data was formally released.
 - Asset storage: no implementation is included; only the already-documented future boundary remains.
