@@ -102,3 +102,37 @@ def test_v2_course_package_rejects_nonexistent_utc_date() -> None:
 
     with pytest.raises(ValidationError):
         PublishedCoursePackage.model_validate(package)
+
+
+def test_v2_course_package_rejects_duplicate_bvids() -> None:
+    package = {
+        "schemaVersion": 2,
+        "courseId": "d2045bc7-4ba2-4aff-8f27-3bc336be4f55",
+        "title": "英语面试表达",
+        "lessons": [
+            {
+                "lessonId": "a1cc724e-19f4-4f12-9377-8ff71753e8c4",
+                "title": "第一课",
+                "videoRef": {
+                    "platform": "bilibili",
+                    "videoId": "BV1WW4y1e7GL",
+                },
+                "nodes": four_node_request()["config"]["nodes"],
+                "updatedAt": "2026-08-18T00:00:00.000Z",
+            },
+            {
+                "lessonId": "b75456bb-870c-49cd-94dd-0fe09bc725af",
+                "title": "第二课",
+                "videoRef": {
+                    "platform": "bilibili",
+                    "videoId": "BV1WW4y1e7GL",
+                },
+                "nodes": four_node_request()["config"]["nodes"],
+                "updatedAt": "2026-08-18T00:00:00.000Z",
+            },
+        ],
+        "updatedAt": "2026-08-18T00:00:00.000Z",
+    }
+
+    with pytest.raises(ValidationError, match="不能绑定重复 BVID"):
+        PublishedCoursePackage.model_validate(package)

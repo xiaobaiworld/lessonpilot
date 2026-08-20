@@ -62,6 +62,45 @@ test('finds the matching lesson inside a multi-course library', () => {
   );
 });
 
+test('authorized courses take priority over the bundled example for the same BVID', () => {
+  const example = {
+    source: 'example',
+    installedAt: '2026-08-18T00:00:00.000Z',
+    course: {
+      courseId: '1dfaf2f0-f826-46e8-afdb-89e2d0468a22',
+      title: '示例课程',
+      lessons: [{
+        lessonId: 'a9a6f97e-475f-47e0-8412-993cc0f14ad8',
+        title: '示例课节',
+        videoRef: { platform: 'bilibili', videoId: 'BV1WW4y1e7GL' },
+        nodes: []
+      }]
+    }
+  };
+  const authorized = {
+    source: 'authorization',
+    installedAt: '2026-08-20T00:00:00.000Z',
+    course: {
+      courseId: 'd2045bc7-4ba2-4aff-8f27-3bc336be4f55',
+      title: '真实授权课程',
+      lessons: [{
+        lessonId: 'a1cc724e-19f4-4f12-9377-8ff71753e8c4',
+        title: '真实课节',
+        videoRef: { platform: 'bilibili', videoId: 'BV1WW4y1e7GL' },
+        nodes: []
+      }]
+    }
+  };
+
+  const match = findLessonForLocation(
+    [example, authorized],
+    {},
+    { pathname: '/video/BV1WW4y1e7GL/' }
+  );
+
+  assert.equal(match.course.title, '真实授权课程');
+});
+
 test('timeline triggers each enabled node once when playback crosses its time', () => {
   const seen = [];
   const timeline = createNodeTimeline(course, (node) => seen.push(node.id));

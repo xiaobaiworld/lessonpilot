@@ -1,10 +1,13 @@
-# KnownMap 教师平台本地阶段 API 说明
+# KnownMap 教师平台当前 API 说明
 
-版本：0.2
+版本：0.4
 
 更新时间：2026-08-20
 
-状态：当前 API 实现说明；健康检查、教师认证、课程、单课节、脚本草稿、发布、授权码、公开下载和 CORS 已实现验证。插件 `0.9.1` 已接入公开下载端点并在写入前复验课程契约。
+状态：当前工作区 API 实现说明；健康检查、教师认证、课程、多课节持久化、脚本草稿、
+第一课节兼容发布、授权码、公开单课程下载和 CORS 已实现。插件 `0.9.1` 已接入 v1 公开
+下载协议，但当前插件 Base URL 仍固定为本机 `127.0.0.1:8000`。v2 课程包契约已实现，
+API 尚未输出；多课节改动尚未部署生产。
 
 ## 1. 通用约定
 
@@ -13,6 +16,16 @@ Base path：
 ```text
 /api/v1
 ```
+
+环境入口：
+
+| 环境 | Base URL |
+| --- | --- |
+| 本地教师网页 | `http://localhost:8000/api/v1` 或同主机 `127.0.0.1` |
+| 生产教师网页和人工 API 探针 | `https://knownmap.com/api/v1` |
+| 当前学生插件课程下载 | `http://127.0.0.1:8000/api/v1` |
+
+生产公开下载端点已经验证可用，但当前插件尚未自动选择生产 API。
 
 请求和响应使用 JSON。成功响应统一使用业务数据对象，失败响应统一为：
 
@@ -114,7 +127,8 @@ Base path：
 
 ### `GET /teacher/courses/{course_id}`
 
-返回课程、课节摘要、当前发布状态和授权码创建入口所需信息。
+返回课程、`lessons[]`、当前发布状态和授权码创建入口所需信息。课节按
+`sort_order, created_at` 排序。
 
 资源不属于当前教师时统一返回 `RESOURCE_NOT_FOUND`。
 
@@ -125,9 +139,9 @@ Base path：
 前置条件：
 
 - 课程存在且归属于当前教师；
-- 存在一个课节；
-- 课节视频定位合法；
-- 课节草稿通过四种节点 schema；
+- 至少存在一个课节；当前发布服务选择排序后的第一课节；
+- 被选择课节的视频定位合法；
+- 被选择课节的草稿通过四种节点 schema；
 - 节点数量至少为 1；
 - 课程和课节标题非空。
 
@@ -154,7 +168,8 @@ Base path：
 }
 ```
 
-当前一个课程只允许一个课节；第二次创建返回 `LESSON_LIMIT_REACHED`。数据模型保留未来扩展。
+同一课程可以重复调用创建多个课节。服务端按当前最大 `sort_order + 1` 分配顺序；BVID
+错误或课程越权时拒绝，不再返回 `LESSON_LIMIT_REACHED`。
 
 ### `GET /teacher/lessons/{lesson_id}`
 
@@ -254,7 +269,27 @@ Base path：
       "platform": "bilibili",
       "videoId": "BV1WW4y1e7GL"
     },
-    "nodes": [],
+    "nodes": [
+      {
+        "id": "node-1",
+        "enabled": true,
+        "family": "attention",
+        "interaction": "notice",
+        "trigger": {
+          "kind": "time_cross",
+          "timeSeconds": 39,
+          "captionId": null
+        },
+        "display": {
+          "title": "回答要具体",
+          "body": "用一个真实例子支撑你的回答。"
+        },
+        "evaluation": null,
+        "effects": {
+          "pause": true
+        }
+      }
+    ],
     "updatedAt": "2026-08-18T00:00:00.000Z"
   }
 }
@@ -273,6 +308,10 @@ Base path：
 
 当前实现没有单独返回 `CONFIG_INVALID` 或 `RATE_LIMITED`。配置合法性由发布前 schema 和适配器保证；限流属于未来公网部署阶段，不得作为当前已实现 API 宣称。
 
+当前响应中的 `course.courseId` 仍由 `platform:videoId` 派生，不等于后端 `Course.id` UUID；
+下载响应也只返回一门课程。独立的 v2 JavaScript 契约已经支持 UUID 和 `lessons[]`，但
+后端发布/下载、`AccessGrant` 和多范围响应尚未实施。
+
 ## 7. API 节点工作单元
 
 | 节点 | 所属模块 | 输入 | 输出 | 失败条件 | 验证 |
@@ -280,7 +319,7 @@ Base path：
 | `POST /auth/login` | Auth | 登录名、密码 | 会话、教师摘要 | 密码错误、账号停用 | API 集成测试 |
 | `GET /teacher/courses` | Course | 教师会话 | 课程摘要列表 | 未登录 | API 集成测试 |
 | `POST /teacher/courses` | Course | 课程标题、描述 | 课程 | 空标题、未登录 | 服务/数据库测试 |
-| `POST /teacher/courses/{id}/lessons` | Lesson | 标题、BVID | 课节 | 越权、重复课节、BVID 错误 | 服务/数据库测试 |
+| `POST /teacher/courses/{id}/lessons` | Lesson | 标题、BVID | 有序课节 | 越权、BVID 错误 | 服务/数据库/migration 测试 |
 | `PUT /teacher/lessons/{id}/draft` | Script | 节点配置 | 草稿摘要 | schema 错误、越权 | schema/服务测试 |
 | `POST /teacher/courses/{id}/publish` | Publish | 课程 ID | 课程和课节发布版本 | 无草稿、配置错误 | 事务集成测试 |
 | `POST /teacher/courses/{id}/access-codes` | AccessCode | 课程 ID | 一次性授权码 | 未发布、越权 | 安全/服务测试 |
@@ -295,3 +334,6 @@ Base path：
 - 插件只使用下载响应，不访问教师端 API；
 - API 错误码和 `src/shared/course-contract.js` 的节点错误必须在测试中固定；
 - Base URL 通过前端和插件配置注入，不写死在业务模块。
+- 教师网页已按 origin 选择本地/生产 API；插件 Base URL 当前仍是固定常量，完成公网学生
+  闭环前必须补齐环境策略和真实 Chrome 验收。
+- 数据字段、当前/目标模型和本地存储结构见 `doc/data-spec.md`。

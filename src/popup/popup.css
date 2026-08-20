@@ -35,3 +35,8 @@ button:disabled { opacity: .55; cursor: wait; }
 .teacher-entry .eyebrow { color: #9499a0; }
 .teacher-entry a { flex: none; padding: 8px 10px; border-radius: 8px; color: #18191c; background: #eef0f2; font-size: 12px; font-weight: 800; text-decoration: none; }
 .teacher-entry a:hover { background: #e3e5e7; }
+.plugin-update { display: grid; grid-template-columns: 1fr auto; gap: 8px 14px; align-items: center; margin-top: 12px; padding: 13px; border: 1px solid #e3e5e7; border-radius: 12px; background: #fff; }
+.plugin-update .eyebrow { color: #9499a0; }
+.plugin-update h2 { margin: 0; font-size: 15px; }
+.plugin-update button { padding: 9px 11px; font-size: 12px; }
+.plugin-update-status { grid-column: 1 / -1; min-height: 18px; margin: 0; color: #61666d; font-size: 11px; line-height: 1.5; }

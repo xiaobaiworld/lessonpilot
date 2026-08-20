@@ -5,6 +5,7 @@ const {
   normalizeAccessCode,
   buildBilibiliCourseUrl,
   buildCourseRecord,
+  buildCourseRecords,
   createAccessCodeController
 } = require('../src/content/access-code/access-panel.js');
 
@@ -45,10 +46,34 @@ test('multi-lesson course records display the course name instead of an internal
     }]
   }), {
     courseId: 'd2045bc7-4ba2-4aff-8f27-3bc336be4f55',
+    lessonId: 'a1cc724e-19f4-4f12-9377-8ff71753e8c4',
     label: '英语面试表达：把答案说得具体',
     url: 'https://www.bilibili.com/video/BV1WW4y1e7GL/'
   });
   assert.equal(buildCourseRecord(null), null);
+});
+
+test('builds one visible link for every lesson in a course', () => {
+  const records = buildCourseRecords([{
+    course: {
+      courseId: 'd2045bc7-4ba2-4aff-8f27-3bc336be4f55',
+      title: '英语面试表达',
+      lessons: [{
+        lessonId: 'a1cc724e-19f4-4f12-9377-8ff71753e8c4',
+        title: '第一课',
+        videoRef: { platform: 'bilibili', videoId: 'BV1WW4y1e7GL' }
+      }, {
+        lessonId: '0eb6fdbf-0ba6-4a1c-9fc4-96fe637129a2',
+        title: '第二课',
+        videoRef: { platform: 'bilibili', videoId: 'BV1xx411c7mD' }
+      }]
+    }
+  }]);
+
+  assert.deepEqual(records.map((record) => record.label), [
+    '英语面试表达 · 第一课',
+    '英语面试表达 · 第二课'
+  ]);
 });
 
 test('download request contains the access code but never a client-selected course id', async () => {

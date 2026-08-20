@@ -2,14 +2,14 @@
  * The schema version 2 multi-lesson course package contract.
  *
  * Package identity is independent from video identity. Node semantics are
- * delegated to the existing node-schema validator through a temporary lesson
+ * delegated to the shared node-schema validator through a temporary lesson
  * envelope whose synthetic courseId never leaves this module.
  */
 (function initCoursePackageContract(global, factory) {
-  const legacyContract = typeof module !== 'undefined' && module.exports
+  const nodeContract = typeof module !== 'undefined' && module.exports
     ? require('./course-contract.js')
     : global.LessonPilotCourseContract;
-  const api = factory(legacyContract);
+  const api = factory(nodeContract);
   global.LessonPilotCoursePackageContract = api;
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = api;
@@ -72,7 +72,7 @@
     }
   }
 
-  function validateNodesWithLegacyContract(lesson, path, out) {
+  function validateNodesWithSharedContract(lesson, path, out) {
     const syntheticCourseId = nodeContract.deriveCourseId(lesson.videoRef);
     const result = nodeContract.validateCourse({
       schemaVersion: nodeContract.SCHEMA_VERSION,
@@ -89,7 +89,7 @@
     }
   }
 
-  function validateLesson(lesson, path, usedIds, out) {
+  function validateLesson(lesson, path, usedIds, usedVideoIds, out) {
     if (!checkShape(lesson, path, LESSON_FIELDS, LESSON_FIELDS, out)) return;
 
     if (!isUuid(lesson.lessonId)) {
@@ -108,7 +108,16 @@
     }
 
     validateVideoRef(lesson.videoRef, `${path}.videoRef`, out);
-    validateNodesWithLegacyContract(lesson, path, out);
+    if (lesson.videoRef?.platform === PLATFORM
+      && typeof lesson.videoRef.videoId === 'string'
+      && BVID_PATTERN.test(lesson.videoRef.videoId)) {
+      if (usedVideoIds.has(lesson.videoRef.videoId)) {
+        out.add(ERROR_CODES.DUPLICATE_ID, `${path}.videoRef.videoId`);
+      } else {
+        usedVideoIds.add(lesson.videoRef.videoId);
+      }
+    }
+    validateNodesWithSharedContract(lesson, path, out);
   }
 
   function validateCoursePackage(coursePackage) {
@@ -135,6 +144,7 @@
     }
 
     const usedIds = new Set();
+    const usedVideoIds = new Set();
     if (!isUuid(coursePackage.courseId)) {
       out.add(ERROR_CODES.INVALID_VALUE, 'coursePackage.courseId', 'uuid');
     } else {
@@ -147,7 +157,13 @@
       out.add(ERROR_CODES.EMPTY_COLLECTION, 'coursePackage.lessons', 'min1');
     } else {
       coursePackage.lessons.forEach((lesson, index) => {
-        validateLesson(lesson, `coursePackage.lessons[${index}]`, usedIds, out);
+        validateLesson(
+          lesson,
+          `coursePackage.lessons[${index}]`,
+          usedIds,
+          usedVideoIds,
+          out
+        );
       });
     }
 

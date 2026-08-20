@@ -156,6 +156,8 @@ test('nginx exposes the same-origin API and keeps the site root static', () => {
   assert.match(nginx, /location \^~ \/api\/ \{/);
   assert.match(nginx, /proxy_pass http:\/\/127\.0\.0\.1:8000;/);
   assert.match(nginx, /proxy_set_header X-Forwarded-Proto \$scheme;/);
+  assert.match(nginx, /location = \/downloads\/student-plugin\/knownmapplugin\.zip/);
+  assert.match(nginx, /downloads\/student-plugin\/knownmapplugin\.zip/);
   assert.match(nginx, /location \/ \{\s+try_files \$uri \$uri\/ =404;/);
   assert.match(nginx, /ssl_certificate \/etc\/letsencrypt\/live\/knownmap\.com\/fullchain\.pem/);
 });

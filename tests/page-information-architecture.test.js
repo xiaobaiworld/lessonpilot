@@ -37,6 +37,11 @@ const checks = [
       && !forSalesPage.includes('立即购买')
   },
   {
+    label: 'forsales provides the fixed student plugin download path',
+    run: () => forSalesPage.includes('href="/downloads/student-plugin/knownmapplugin.zip"')
+      && forSalesPage.includes('学生插件下载')
+  },
+  {
     label: 'workspace sample stays separate from forsales positioning and conversion copy',
     run: () => !samplePage.includes('我是 KnownMap 的开发者') && !samplePage.includes('回复我，试一节真实课') && !samplePage.includes('复制试用话术')
   },

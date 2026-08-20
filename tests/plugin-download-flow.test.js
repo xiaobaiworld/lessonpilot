@@ -14,7 +14,8 @@ function coursePackage({
   courseId = '4c93245a-c981-4cab-b8fb-ff8f49cc9ee8',
   lessonId = '0eb6fdbf-0ba6-4a1c-9fc4-96fe637129a2',
   title = '授权课程',
-  updatedAt = NOW
+  updatedAt = NOW,
+  nodeIds = ['node-1']
 } = {}) {
   return {
     schemaVersion: 2,
@@ -24,16 +25,16 @@ function coursePackage({
       lessonId,
       title: '第一节',
       videoRef: { platform: 'bilibili', videoId: 'BV1xx411c7mD' },
-      nodes: [{
-        id: 'node-1',
+      nodes: nodeIds.map((nodeId, index) => ({
+        id: nodeId,
         enabled: true,
         family: 'attention',
         interaction: 'notice',
-        trigger: { kind: 'time_cross', timeSeconds: 10, captionId: null },
+        trigger: { kind: 'time_cross', timeSeconds: 10 + index, captionId: null },
         display: { title: '重点', body: '正文' },
         evaluation: null,
         effects: { pause: true }
-      }],
+      })),
       updatedAt
     }],
     updatedAt
@@ -190,6 +191,46 @@ test('same-course update preserves valid matching node progress and drops remove
     result.learningStates[updated.courseId][updated.lessons[0].lessonId].nodeStates,
     { 'node-1': { status: 'completed', attempts: 1, lastAnswer: 'kept' } }
   );
+});
+
+test('same timestamp with a different authorized node scope replaces the stored package', async () => {
+  const narrow = coursePackage({ nodeIds: ['node-1'] });
+  const wide = coursePackage({ nodeIds: ['node-1', 'node-2'] });
+  const firstSetup = setup({
+    ok: true,
+    status: 200,
+    async json() { return { courses: [narrow] }; }
+  });
+  await firstSetup.downloader.download({
+    authorizationCode: 'KM-ABCDE-FGHIJ-KLMNO-PQRST'
+  });
+  const stored = await firstSetup.downloader.getInstalledCourses();
+
+  const secondSetup = setup({
+    ok: true,
+    status: 200,
+    async json() { return { courses: [wide] }; }
+  });
+  await secondSetup.chromeStorage.local.set({
+    studentCourseStore: {
+      storageVersion: 2,
+      installedCourses: Object.fromEntries(
+        stored.installedCourses.map((item) => [item.courseId, item])
+      ),
+      learningStates: stored.learningStates
+    }
+  });
+
+  const result = await secondSetup.downloader.download({
+    authorizationCode: 'KM-ABCDE-FGHIJ-KLMNO-PQRST'
+  });
+
+  assert.equal(result.status, 'updated');
+  const authorized = result.installedCourses.find((item) => item.courseId === wide.courseId);
+  assert.deepEqual(authorized.course.lessons[0].nodes.map((node) => node.id), [
+    'node-1',
+    'node-2'
+  ]);
 });
 
 test('recording an attempt requires course and lesson identity and omits the answer from response', async () => {

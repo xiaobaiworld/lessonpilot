@@ -1,16 +1,16 @@
 from datetime import datetime, timezone
-from uuid import uuid4
 
 from sqlalchemy import DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db_base import Base
+from app.identifiers import generate_uuid
 
 
 class Lesson(Base):
     __tablename__ = "lessons"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
     course_id: Mapped[str] = mapped_column(
         String(36),
         ForeignKey("courses.id"),

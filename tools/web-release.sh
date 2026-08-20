@@ -23,6 +23,7 @@ SALES_PUBLIC_FILES=(
   "public/demo-captions.js"
   "public/trial-intake.js"
   "public/assets/knownmap-icon.png"
+  "public/downloads/student-plugin/knownmapplugin.zip"
   "public/robots.txt"
   "public/teacher-web/forsales.html"
   "public/teacher-web/subtitle-context.js"
@@ -98,6 +99,17 @@ fi
 
 require_command() {
   command -v "$1" >/dev/null 2>&1 || fail "missing required command: $1"
+}
+
+build_student_plugin_package() {
+  local source_dir="$1"
+  local output="$2"
+
+  [[ -d "$source_dir/src" ]] || fail "student plugin source directory is missing"
+  (
+    cd "$source_dir/src"
+    zip -q -r -X "$output" .
+  )
 }
 
 validate_settings() {
@@ -186,6 +198,7 @@ build_release() {
   require_command jq
   require_command shasum
   require_command tar
+  require_command zip
 
   commit="$(resolve_commit "$ref")"
   release_id="${KNOWNMAP_RELEASE_ID:-$(basename "$output")}"
@@ -195,8 +208,8 @@ build_release() {
   source_dir="$(mktemp -d "${TMPDIR:-/tmp}/knownmap-source.XXXXXX")"
   trap 'rm -rf "$source_dir"' RETURN
 
-  mkdir -p "$source_dir" "$output/public/assets" "$output/public/teacher-web/assets"
-  git -C "$ROOT_DIR" archive "$commit" -- "${SOURCE_FILES[@]}" | tar -x -C "$source_dir"
+  mkdir -p "$source_dir" "$output/public/assets" "$output/public/teacher-web/assets" "$output/public/downloads/student-plugin"
+  git -C "$ROOT_DIR" archive "$commit" -- "${SOURCE_FILES[@]}" src | tar -x -C "$source_dir"
 
   cp "$source_dir/teacher-web/forsales.html" "$output/public/index.html"
   cp "$source_dir/teacher-web/subtitle-context.js" "$output/public/subtitle-context.js"
@@ -208,6 +221,7 @@ build_release() {
   cp "$source_dir/teacher-web/demo-captions.js" "$output/public/teacher-web/demo-captions.js"
   cp "$source_dir/teacher-web/trial-intake.js" "$output/public/teacher-web/trial-intake.js"
   cp "$source_dir/teacher-web/assets/knownmap-icon.png" "$output/public/teacher-web/assets/knownmap-icon.png"
+  build_student_plugin_package "$source_dir" "$output/public/downloads/student-plugin/knownmapplugin.zip"
   if [[ "$PUBLISH_PROFILE" == "teacher-platform-v1" ]]; then
     cp "$source_dir/teacher-web/admin.html" "$output/public/admin.html"
     for relative_path in "${TEACHER_SOURCE_FILES[@]}"; do
@@ -339,6 +353,9 @@ verify_public_site() {
   curl -fsS -H 'Cache-Control: no-cache' "$SITE_URL/?release=$release_id" -o "$body"
   actual_index_sha="$(shasum -a 256 "$body" | awk '{print $1}')"
   [[ "$actual_index_sha" == "$expected_index_sha" ]] || return 1
+
+  status="$(curl -sS -o /dev/null -w '%{http_code}' "$SITE_URL/downloads/student-plugin/knownmapplugin.zip?release=$release_id")"
+  [[ "$status" == "200" ]] || return 1
 
   if [[ "$PUBLISH_PROFILE" == "teacher-platform-v1" ]]; then
     status="$(curl -sS -o /dev/null -w '%{http_code}' "$SITE_URL/admin.html")"

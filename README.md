@@ -2,28 +2,34 @@
 
 当前插件版本：`0.9.1`
 
-学生插件固定下载地址：`https://knownmap.com/downloads/student-plugin/knownmapplugin.zip`
+学生插件固定下载地址（代码已实现，待下一次生产发布验证）：
+`https://knownmap.com/downloads/student-plugin/knownmapplugin.zip`
 
 品牌域名：`knownmap.com`
 Logo 规范：[`docs/superpowers/specs/2026-08-18-knownmap-brand-update-design.md`](docs/superpowers/specs/2026-08-18-knownmap-brand-update-design.md)
 
 KnownMap 把老师已有的 B 站录播课变成可在原视频页面运行的互动课程。老师在公网工作台导入一条 B 站视频链接和对应字幕，配置互动节点；学生在 PC Chrome 安装本机插件后，于 B 站原页面到点暂停、作答、查看反馈并继续播放。
 
-第一阶段销售页和原型 Demo 已完成并归档。教师平台已部署到阿里云 ECS，公网工作台可以登录、创建课程、保存草稿、发布课程和创建授权码；插件 `0.9.1` 已接入授权码下载、单课程本地保存、匹配 BVID 运行和工具栏课程首页。下一步是完成节点 8 的真实 Chrome 边界验收，再执行节点 9 的完整公网闭环。
+第一阶段销售页和原型 Demo 已完成并归档。教师平台已部署到阿里云 ECS，公网工作台可以
+登录、创建课程、保存草稿、发布课程和创建授权码；插件 `0.9.1` 已接入 v2 多课程下载、
+按课程与课节保存学习状态、匹配 BVID 运行和工具栏课程首页。当前没有正式发布的旧课程
+数据，学生插件只支持新的多课程格式。
 
 ## 当前范围
 
 - 本地与阿里云生产环境均运行 FastAPI + SQLite 教师平台；
 - 预建教师测试账号，登录名加密码；
-- 一门课程和一个课节；
+- 教师界面当前操作一门课程中的一个课节；后端数据和课程 API 已支持一门课程多个有序课节；
 - B 站视频绑定和课程发布；
 - 重点标注、选择题、填空题、问答题四种节点；
 - 教师创建课程授权码；
 - 学生使用 KnownMap `0.9.1` 解压版 Chrome 插件，通过工具栏首页或 B 站页面书包输入授权码并下载课程；
-- 插件只保存一门当前课程及其本地学习状态，并只在匹配的 BVID 页面启动；
+- 插件使用唯一的 `studentCourseStore` 保存多门课程，并按 `courseId + lessonId` 隔离学习状态；
+- 插件默认带一门只读示例课程；领取授权课程后与示例课程并存，界面显示课程名称和课节名称；
+- v2 UUID 多课节课程包、范围授权、公开多课程下载、下载器、运行时和课程列表 UI 已接通；
 - 教师 API 和教师编辑器已部署到 `knownmap.com`；
 - 销售页已经作为 `knownmap.com` 的生产首页发布。
-- 学生插件包随 Web 发布从精确 commit 组装为 `knownmapplugin.zip`，销售页和插件工具栏首页共用固定下载地址；学生下载后替换本地解压目录并手动刷新扩展。
+- 学生插件包发布代码会从精确 commit 组装 `knownmapplugin.zip`，销售页和插件工具栏首页共用固定下载地址；当前生产 release 尚未包含该 ZIP，需在下一次发布后验证。
 - 销售页的飞书真实课程试用表单与独立入口模块已完成，公开链接已通过无登录态访问验收。
 
 问答题只保存学生原始回答，并展示老师预设的参考反馈；第一阶段不评分、不调用 AI。
@@ -32,9 +38,18 @@ KnownMap 把老师已有的 B 站录播课变成可在原视频页面运行的�
 
 插件已经能够在指定 B 站页面定位播放器、监听时间、暂停、seek、卸载注入 UI，并通过授权码下载和保存课程。工具栏左键首页展示学生授权码入口、当前课程和教师登录入口；空消息、异常返回和超时会恢复表单并提示重新加载。完整边界验收和从空数据库开始的端到端闭环仍未完成。
 
-当前开发阶段是 **教师平台本地发布与插件授权下载闭环**。节点 1–7 已完成并验证；节点 8 已完成代码、自动化测试和基本可行性确认，完整人工验收尚未收口；节点 9 尚未开始。根目录 [`next.md`](next.md) 记录唯一剩余验收路径。
+当前开发阶段是 **多课程数据底座验证**。后端多课节持久化、v2 课程包、`AccessGrant`、
+公开 `{ "courses": [...] }` 下载响应、`studentCourseStore`、示例课程、运行时和课程列表
+UI 已接通；下一步仍需完成真实 Chrome 边界验收和公网插件闭环。
 
-从 [`next.md`](next.md) 开始，完整计划见 [`doc/teacher-platform-dev-plan.md`](doc/teacher-platform-dev-plan.md)。第一阶段计划已归档，不再是当前排期。
+教师工作台和 FastAPI 已在 `knownmap.com` 生产运行；当前插件课程 API 仍固定指向本机
+`127.0.0.1:8000`，真实 Chrome 边界验收和公网插件闭环尚未收口。根目录
+[`next.md`](next.md) 记录当前步骤和遗留门禁。
+
+从 [`next.md`](next.md) 开始，多课程计划见
+[`docs/superpowers/plans/2026-08-20-multi-course-authorization-and-example-course.md`](docs/superpowers/plans/2026-08-20-multi-course-authorization-and-example-course.md)；
+单课程公网闭环门禁见 [`doc/teacher-platform-dev-plan.md`](doc/teacher-platform-dev-plan.md)。
+第一阶段计划已归档，不再是当前排期。
 
 ## 目标页面
 
@@ -90,6 +105,7 @@ tools/teacher-platform-release.sh status
 `ec1454ed2f31512049069122406e8fbd387868b3` 和标签
 `web-prod/20260820T142243Z-ec1454ed2f31`。服务器上的网页、FastAPI 和仓库发布记录使用
 同一个 release ID；SQLite 数据保存在 `/var/lib/knownmap/knownmap.db`，不随代码版本切换。
+该 release 已验证教师平台和公开课程下载 API，但不包含学生插件 ZIP。
 
 ## 本地运行
 
@@ -105,7 +121,10 @@ uv run uvicorn app.main:app --reload --port 8000
 
 API 文档位于 `http://127.0.0.1:8000/docs`，健康检查位于 `http://127.0.0.1:8000/health`。开发环境默认使用 DEBUG 级别和可读控制台日志；正常运行环境使用 INFO 级别和结构化 JSON 日志。业务操作摘要写入 SQLite 的 `operation_logs` 表。
 
-当前教师页面已作为“KnownMap 互动课程工具”接入本地 API 和可视化节点时间轴；插件运行时读取授权码下载后写入的 `installedCourse`，不再依赖固定 Demo 配置。
+当前教师页面已作为“KnownMap 互动课程工具”接入本地或同源生产 API 和可视化节点时间轴。
+插件运行时只读取 `studentCourseStore`。首次读取会自动加入内置只读示例课程；授权码领取
+的课程按 UUID 合并保存，不替换其他课程。当前插件下载课程仍连接本机
+`http://127.0.0.1:8000`，尚未切到生产 API。
 
 预建本地测试教师账号：
 
@@ -156,14 +175,15 @@ node --test tests/*.test.js
 
 | 文档 | 职责 |
 | --- | --- |
-| [`doc/requirements/teacher-platform-local-stage.md`](doc/requirements/teacher-platform-local-stage.md) | 当前教师平台本地阶段范围和验收 |
-| [`doc/teacher-platform-architecture.md`](doc/teacher-platform-architecture.md) | FastAPI、SQLite、教师端和插件边界 |
-| [`doc/teacher-platform-data-spec.md`](doc/teacher-platform-data-spec.md) | 当前教师平台数据模型和插件输出 |
+| [`doc/requirements/teacher-platform-local-stage.md`](doc/requirements/teacher-platform-local-stage.md) | 当前教师平台生产与学生插件验收范围 |
+| [`doc/teacher-platform-architecture.md`](doc/teacher-platform-architecture.md) | 生产 FastAPI、SQLite、教师端和插件边界 |
+| [`doc/data-spec.md`](doc/data-spec.md) | 数据规范总入口，覆盖模型、字典、数据流和质量 |
 | [`doc/teacher-platform-api-spec.md`](doc/teacher-platform-api-spec.md) | 当前教师认证、课程、发布和下载 API |
 | [`doc/DECISIONS.md`](doc/DECISIONS.md) | 决策、假设、证据和重开条件 |
-| [`doc/teacher-platform-dev-plan.md`](doc/teacher-platform-dev-plan.md) | 当前节点 8–9 的开发步骤、测试和收口门禁 |
+| [`docs/superpowers/plans/2026-08-20-multi-course-authorization-and-example-course.md`](docs/superpowers/plans/2026-08-20-multi-course-authorization-and-example-course.md) | 当前多课程数据底座实施计划 |
+| [`doc/teacher-platform-dev-plan.md`](doc/teacher-platform-dev-plan.md) | 单课程节点 8–9 的遗留验收和生产收口门禁 |
 | [`doc/trial-intake-form-design.md`](doc/trial-intake-form-design.md) | 飞书真实课程试用表单、销售页入口与数据边界 |
-| [`next.md`](next.md) | 唯一当前执行步骤 |
+| [`next.md`](next.md) | 当前执行步骤与遗留门禁 |
 
 品牌资源：
 

@@ -10,7 +10,8 @@
     "128": "assets/icon-128.png"
   },
   "permissions": [
-    "storage"
+    "storage",
+    "downloads"
   ],
   "action": {
     "default_title": "打开 KnownMap",

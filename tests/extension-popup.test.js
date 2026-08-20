@@ -15,8 +15,24 @@ test('manifest exposes a toolbar popup with student and teacher entry points', (
   assert.match(html, /课程授权码/);
   assert.match(html, /我的课程/);
   assert.match(html, /教师登录/);
-  assert.match(script, /GET_INSTALLED_STUDENT_COURSE/);
+  assert.match(script, /GET_INSTALLED_STUDENT_COURSES/);
+  assert.match(script, /installedCourses/);
   assert.match(script, /DOWNLOAD_STUDENT_COURSE/);
-  assert.match(script, /buildCourseRecord/);
+  assert.match(script, /buildCourseRecords/);
+  assert.match(script, /course\.title/);
   assert.match(html, /teacher-web\/editor\.html/);
+});
+
+test('popup exposes a manual online plugin update download', () => {
+  const manifest = JSON.parse(fs.readFileSync('src/manifest.json', 'utf8'));
+  const html = fs.readFileSync('src/popup/popup.html', 'utf8');
+  const script = fs.readFileSync('src/popup/popup.js', 'utf8');
+
+  assert.ok(manifest.permissions.includes('downloads'));
+  assert.match(html, /在线更新/);
+  assert.match(html, /plugin-update-button/);
+  assert.match(script, /STUDENT_PLUGIN_DOWNLOAD_URL/);
+  assert.match(script, /chrome\.downloads\.download/);
+  assert.match(script, /knownmapplugin\.zip/);
+  assert.match(script, /替换插件目录/);
 });

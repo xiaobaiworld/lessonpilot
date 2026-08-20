@@ -177,6 +177,18 @@ test('accepts only bilibili video references with a canonical BVID', () => {
   }
 });
 
+test('rejects duplicate BVIDs inside one course because runtime cannot distinguish the lessons', () => {
+  expectRejected(coursePackage({
+    lessons: [
+      lesson(),
+      lesson({
+        lessonId: LESSON_TWO_ID,
+        title: '重复视频课节'
+      })
+    ]
+  }), 'duplicate lesson BVID');
+});
+
 test('reuses the shared node rules without applying a derived courseId rule', () => {
   expectAccepted(coursePackage({ courseId: '2d67a6c8-7f24-4fb5-9127-09c79fc31bf8' }));
   expectRejected(coursePackage({ lessons: [lesson({ nodes: [] })] }), 'empty nodes');

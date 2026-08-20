@@ -18,25 +18,40 @@
     return `https://www.bilibili.com/video/${videoRef.videoId}/`;
   }
 
-  function buildCourseRecord(course) {
+  function buildLessonRecord(course, lesson, { includeLessonTitle = false } = {}) {
     if (!Array.isArray(course?.lessons) || course.lessons.length === 0
       || typeof course.title !== 'string' || !course.title.trim()) {
       return null;
     }
-    const lesson = course.lessons[0];
     const url = lesson ? buildBilibiliCourseUrl(lesson.videoRef) : null;
     if (!url || typeof course.courseId !== 'string') return null;
     return {
       courseId: course.courseId,
-      label: course.title.trim(),
+      lessonId: lesson.lessonId,
+      label: includeLessonTitle && typeof lesson.title === 'string' && lesson.title.trim()
+        ? `${course.title.trim()} · ${lesson.title.trim()}`
+        : course.title.trim(),
       url
     };
   }
 
+  function buildCourseRecord(course) {
+    return buildLessonRecord(course, course?.lessons?.[0]);
+  }
+
   function buildCourseRecords(installedCourses) {
-    return (installedCourses ?? [])
-      .map((item) => buildCourseRecord(item?.course ?? item))
-      .filter(Boolean);
+    const records = [];
+    for (const item of installedCourses ?? []) {
+      const course = item?.course ?? item;
+      if (!Array.isArray(course?.lessons)) continue;
+      for (const lesson of course.lessons) {
+        const record = buildLessonRecord(course, lesson, {
+          includeLessonTitle: course.lessons.length > 1
+        });
+        if (record) records.push(record);
+      }
+    }
+    return records;
   }
 
   function createAccessCodeController({ download, timeoutMs = 10000 }) {
@@ -76,7 +91,7 @@
     COURSE_NOT_AVAILABLE: '这门课程当前不可下载，请联系老师。',
     NETWORK_FAILURE: '无法连接本地课程服务，请确认服务已启动。',
     INVALID_RESPONSE: '课程服务返回了无法识别的数据。',
-    INVALID_COURSE: '课程配置未通过安全校验，旧课程未被替换。',
+    INVALID_COURSE: '课程配置未通过安全校验，未保存本次课程。',
     STORAGE_FAILURE: '课程无法保存到插件本地存储。',
     SERVICE_UNAVAILABLE: '课程服务暂时不可用。',
     EXTENSION_UNAVAILABLE: '插件后台暂时不可用，请重新加载插件和页面。'
@@ -138,7 +153,7 @@
         this.input.value = '';
         this.submitButton.disabled = false;
         if (!result.ok) {
-          this.status.textContent = ERROR_MESSAGES[result.error] ?? '课程下载失败，旧课程未被替换。';
+          this.status.textContent = ERROR_MESSAGES[result.error] ?? '课程下载失败，未保存本次课程。';
           return;
         }
         this.status.textContent = result.status === 'current' ? '课程已经是最新版本。' : '课程已安全保存。';
@@ -150,7 +165,7 @@
     renderCourses(installedCourses) {
       const records = buildCourseRecords(installedCourses);
       if (records.length <= 1) {
-        this.renderCourse(records.length === 1 ? (installedCourses[0]?.course ?? installedCourses[0]) : null);
+        this.renderRecord(records[0] ?? null);
         return;
       }
       this.courseRecords.replaceChildren();
@@ -179,10 +194,13 @@
     }
 
     renderCourse(course) {
+      this.renderRecord(buildCourseRecord(course));
+    }
+
+    renderRecord(record) {
       if (!this.courseRecord.isConnected) {
         this.courseRecords.replaceChildren(this.courseRecord);
       }
-      const record = buildCourseRecord(course);
       this.courseRecord.hidden = !record;
       this.courseEmpty.hidden = Boolean(record);
       if (record) {

@@ -55,6 +55,8 @@ test('web release script has valid shell syntax and traceability guards', () => 
   assert.match(source, /SITE_URL\/health/);
   assert.match(source, /KNOWNMAP_RELEASE_ID:-\$\(release_id_for_commit/);
   assert.match(source, /verify\)\s*$/m);
+  assert.match(source, /knownmapplugin\.zip/);
+  assert.match(source, /downloads\/student-plugin/);
 });
 
 test('build packages the exact commit with only the sales-site whitelist', (t) => {
@@ -71,6 +73,7 @@ test('build packages the exact commit with only the sales-site whitelist', (t) =
     'SHA256SUMS',
     'public/assets/knownmap-icon.png',
     'public/demo-captions.js',
+    'public/downloads/student-plugin/knownmapplugin.zip',
     'public/index.html',
     'public/robots.txt',
     'public/subtitle-context.js',
@@ -92,7 +95,14 @@ test('build packages the exact commit with only the sales-site whitelist', (t) =
   assert.equal(metadata.gitCommit, expectedCommit);
   assert.equal(metadata.publishProfile, 'sales-static-v1');
   assert.equal(metadata.site, 'https://knownmap.com');
-  assert.equal(metadata.files.length, 11);
+  assert.equal(metadata.files.length, 12);
+
+  const pluginZip = path.join(output, 'public/downloads/student-plugin/knownmapplugin.zip');
+  const zipListing = run('unzip', ['-Z1', pluginZip]);
+  assert.equal(zipListing.status, 0, zipListing.stderr);
+  assert.match(zipListing.stdout, /(^|\n)manifest\.json\n/);
+  assert.doesNotMatch(zipListing.stdout, /(^|\n)src\/manifest\.json\n/);
+  assert.match(zipListing.stdout, /(^|\n)background\/service-worker\.js\n/);
 
   for (const forbidden of ['doc', 'src', 'tests', 'teacher-web/editor.html', '.git', '.env']) {
     assert.equal(fs.existsSync(path.join(output, 'public', forbidden)), false, `${forbidden} must stay private`);

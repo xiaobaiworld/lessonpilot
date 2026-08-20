@@ -12,7 +12,7 @@
 - 当前总计划：`doc/teacher-platform-dev-plan.md`
 - 实施计划：`doc/plans/teacher-visual-node-editor.md`
 - 架构：`doc/teacher-platform-architecture.md`
-- 数据：`doc/teacher-platform-data-spec.md`
+- 数据：`doc/data-spec.md`
 - 决策：`doc/DECISIONS.md#d-016-教师编辑器采用组件注册和可视化时间轴`
 - 视觉参照：`teacher-web/forsales.html`
 

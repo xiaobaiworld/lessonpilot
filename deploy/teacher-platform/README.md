@@ -4,6 +4,7 @@
 
 - 静态工作台：`https://knownmap.com/teacher-web/editor.html`
 - 站点索引：`https://knownmap.com/admin.html`
+- 学生插件下载：`https://knownmap.com/downloads/student-plugin/knownmapplugin.zip`
 - API：`https://knownmap.com/api/v1/`
 - API 进程：仅监听服务器本机 `127.0.0.1:8000`
 - 数据库：`/var/lib/knownmap/knownmap.db`
@@ -49,6 +50,11 @@ unset KNOWNMAP_PRODUCTION_TEACHER_PASSWORD
 - FastAPI 以 `knownmap` 用户运行，systemd 清空 capability 并限制可写目录。
 - `uv` 下载固定为仓库声明的版本和 SHA-256；依赖安装必须通过 `uv sync --frozen`。
 - 每次部署都会立即执行一次 SQLite 在线备份，并启用每日备份 timer。
+
+同一次网页发布也会从 `src/` 组装学生插件压缩包。压缩包固定使用
+`knownmapplugin.zip`，放在静态发布目录的
+`downloads/student-plugin/knownmapplugin.zip`；学生点击插件内的在线更新按钮或销售页链接
+下载后，替换本地解压目录，再在 Chrome 扩展管理页手动刷新。
 
 常用检查：
 

@@ -36,11 +36,13 @@
         <span id="course-count">当前 0 门</span>
       </div>
       <p id="course-empty" class="empty">还没有课程，输入授权码后会显示在这里。</p>
-      <article id="course-record" class="course-card" hidden>
-        <span id="course-title" class="course-title"></span>
-        <a id="course-url" class="course-url" target="_blank" rel="noopener"></a>
-        <a id="open-course" class="primary-link" target="_blank" rel="noopener">打开课程视频</a>
-      </article>
+      <div id="course-list">
+        <article id="course-record" class="course-card" hidden>
+          <span id="course-title" class="course-title"></span>
+          <a id="course-url" class="course-url" target="_blank" rel="noopener"></a>
+          <a id="open-course" class="primary-link" target="_blank" rel="noopener">打开课程视频</a>
+        </article>
+      </div>
     </section>
 
     <section class="teacher-entry" aria-labelledby="teacher-title">
@@ -50,7 +52,17 @@
       </div>
       <a href="http://localhost:4173/teacher-web/editor.html" target="_blank" rel="noopener">教师登录</a>
     </section>
+
+    <section class="plugin-update" aria-labelledby="plugin-update-title">
+      <div>
+        <p class="eyebrow">插件维护</p>
+        <h2 id="plugin-update-title">在线更新学生插件</h2>
+      </div>
+      <button id="plugin-update-button" type="button">在线更新</button>
+      <p id="plugin-update-status" class="plugin-update-status" role="status"></p>
+    </section>
   </main>
+  <script src="../shared/api-config.js"></script>
   <script src="../content/access-code/access-panel.js"></script>
   <script src="popup.js"></script>
 </body>

@@ -1,16 +1,16 @@
 from datetime import datetime, timezone
-from uuid import uuid4
 
 from sqlalchemy import DateTime, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db_base import Base
+from app.identifiers import generate_uuid
 
 
 class Course(Base):
     __tablename__ = "courses"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
     workspace_id: Mapped[str] = mapped_column(
         String(36),
         ForeignKey("workspaces.id"),
@@ -37,7 +37,3 @@ class Course(Base):
         back_populates="course",
         order_by="Lesson.sort_order, Lesson.created_at",
     )
-
-    @property
-    def lesson(self) -> "Lesson | None":
-        return self.lessons[0] if self.lessons else None

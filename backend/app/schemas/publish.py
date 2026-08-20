@@ -60,6 +60,9 @@ class PublishedCoursePackage(PublishedModel):
         ids = [self.course_id, *(lesson.lesson_id for lesson in self.lessons)]
         if len(ids) != len(set(ids)):
             raise ValueError("课程与课节 UUID 必须唯一。")
+        video_ids = [lesson.video_ref.video_id for lesson in self.lessons]
+        if len(video_ids) != len(set(video_ids)):
+            raise ValueError("同一课程中的课节不能绑定重复 BVID。")
         return self
 
 

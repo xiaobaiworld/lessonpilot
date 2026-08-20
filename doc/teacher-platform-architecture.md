@@ -1,14 +1,18 @@
-# KnownMap 教师平台本地阶段架构
+# KnownMap 教师平台与学生插件当前架构
 
-版本：0.2
+版本：0.4
 
 更新时间：2026-08-20
 
-状态：当前开发架构。后端和教师端节点 1–7 已验证；插件 `0.9.1` 已实现授权码下载、单课程存储、匹配 BVID 运行和工具栏首页，完整真实 Chrome 边界验收待收口。
+状态：当前实现架构。教师工作台、FastAPI 和 SQLite 已部署到阿里云 ECS 并完成生产探针；
+当前工作区的后端多课节持久化、v2 课程包契约和 v2 插件 store adapter 已实现并通过聚焦
+测试，但尚未串入同一发布/下载/运行链路，也尚未部署生产。插件 `0.9.1` 的生效路径仍是
+单课程，下载地址仍固定为本机 API，完整真实 Chrome 和公网闭环待收口。
 
 ## 1. 架构目标
 
-本阶段把现有教师界面和 Chrome 插件连接到一个本地 FastAPI 服务，完成教师发布课程、创建授权码、插件按授权码下载课程配置的闭环。
+当前架构把教师工作台和 FastAPI 部署为同源生产服务，同时保留本地开发入口；Chrome 插件
+负责授权码领取、本地课程和学习状态，以及 B 站页面运行。
 
 ```text
 teacher-web/
@@ -25,7 +29,8 @@ backend/app/
 Chrome 插件
   ├─ 工具栏首页与 B 站页面书包授权码输入
   ├─ 后台下载并重新校验课程配置
-  ├─ chrome.storage.local 单课程与本地学习状态
+  ├─ chrome.storage.local 旧单课程主链路
+  ├─ studentCourseStore v2 迁移/合并 adapter（待接入）
   └─ 只在匹配 BVID 页面启动的课程运行时
 ```
 
@@ -33,7 +38,7 @@ Chrome 插件
 
 ## 2. 技术选型
 
-### 2.1 当前本地环境
+### 2.1 应用技术栈
 
 - Python 3；
 - FastAPI；
@@ -47,21 +52,23 @@ Chrome 插件
 
 采用 SQLAlchemy 和 Alembic 的原因是保持 SQLite 与未来 PostgreSQL 的迁移边界，不把数据库访问写成只能在本机文件上工作的实现。
 
-### 2.2 未来公网约束
+### 2.2 当前运行环境
 
-本阶段不配置公网服务器、域名、TLS 或生产监控，但代码必须满足：
+| 环境 | 教师网页 | FastAPI | SQLite |
+| --- | --- | --- | --- |
+| 本地 | 仓库根目录 `4173` 端口 | `127.0.0.1:8000` | `backend/knownmap.db`，Git 忽略 |
+| 生产 | `https://knownmap.com/teacher-web/editor.html` | Nginx 同源代理 `/api/` 和 `/health` | `/var/lib/knownmap/knownmap.db` |
 
-- 数据库 URL 从环境变量读取；
-- CORS 来源从环境变量读取；
-- 会话密钥和授权码摘要密钥从环境变量读取；
-- 不依赖 `localhost` 写死的业务逻辑；
-- 迁移命令可以在空数据库上重建 schema；
-- API 路径和响应结构不依赖静态文件目录；
-- 日志可以切换为 JSON 输出。
+生产 FastAPI 由 systemd 运行，只监听服务器本机 `127.0.0.1:8000`。代码位于不可变发布
+目录，数据库独立于代码版本。数据库 URL、CORS、会话密钥、授权码摘要密钥和日志级别都从
+环境变量读取。
+
+当前教师网页会按页面 origin 选择本地或生产 API。学生插件的课程下载端点仍在
+`src/shared/api-config.js` 中固定为本机 `127.0.0.1:8000`，这是公网学生闭环的未完成边界。
 
 ## 3. 目录边界
 
-计划新增以下目录：
+当前后端目录：
 
 ```text
 backend/
@@ -79,15 +86,17 @@ backend/
       teacher_session.py
       course.py
       lesson.py
+      operation_log.py
+      script_draft.py
       published_script.py
       access_code.py
+      workspace.py
     schemas/
       auth.py
       course.py
       lesson.py
       script.py
       access_code.py
-      public_download.py
     api/
       deps.py
       v1/
@@ -95,14 +104,15 @@ backend/
         teacher_courses.py
         teacher_lessons.py
         teacher_scripts.py
-        teacher_access_codes.py
-        public_download.py
+        access_codes.py
+        public_courses.py
     services/
       auth_service.py
       course_service.py
       script_service.py
       access_code_service.py
-      download_service.py
+      operation_log_service.py
+      publish_service.py
     repositories/
       teacher_repository.py
       teacher_session_repository.py
@@ -110,23 +120,28 @@ backend/
       lesson_repository.py
       script_repository.py
       access_code_repository.py
+      published_script_repository.py
+      workspace_repository.py
     adapters/
       plugin_course_config.py
-    migrations/
+    migrations/versions/
   tests/
     unit/
     integration/
-    e2e/
 ```
 
 现有目录继续承担：
 
 - `teacher-web/`：教师界面。当前可视化节点编辑器由 `node-plugin-registry.js`、`timeline-model.js`、
   `visual-node-editor.js` 和 `editor-logger.js` 分别承担组件注册、纯时间轴计算、DOM 交互和前端诊断日志；
-- `src/shared/`：插件课程配置和既有消息契约；
-- `src/background/`：插件课程下载、契约复验、单课程与学习状态原子存储；
+- `src/shared/`：v1 单课节契约、v2 UUID 多课节课程包契约和消息协议；
+- `src/background/`：插件课程下载、契约复验、旧单课程存储，以及待接入的 v2 store adapter；
 - `src/content/`：B 站页面书包、匹配 BVID 的课程运行时和学习交互；
 - `src/popup/`：Chrome 工具栏学生入口、当前课程记录和教师登录入口。
+- `deploy/teacher-platform/`：生产 Nginx、systemd 和部署说明；
+- `deploy/releases/`：已验证生产 release JSON；
+- `tools/teacher-platform-release.sh`：同一 Git commit 的网页和后端发布；
+- `tools/web-release.sh`：静态白名单、插件 ZIP、release JSON 和回滚。
 
 ## 4. 后端模块职责
 
@@ -174,7 +189,7 @@ Repository 只负责所属实体的查询、写入和事务边界：
 Teacher
   └─ Workspace（当前每个教师自动拥有一个）
        └─ Course
-            └─ Lesson
+            └─ Lesson[]
                  ├─ Draft Script
                  └─ Published Script
 
@@ -231,7 +246,7 @@ flowchart LR
 关键规则：
 
 1. 草稿保存不改变已发布内容。
-2. 当前外部只提供课程发布端点；该端点在事务中发布课程下唯一课节的草稿，成功后才返回发布结果。
+2. 当前外部只提供课程发布端点；该端点仍通过兼容属性发布课程排序后的第一课节草稿。
 3. 未发布脚本不能通过下载端点返回。
 4. 插件配置适配器删除数据库内部字段，只输出运行所需结构。
 5. 节点结构先通过服务端 schema 校验，再转换为插件契约。
@@ -289,9 +304,9 @@ flowchart LR
 - 不记录字幕正文、节点正文、密码、cookie、会话 token 或授权码原文；
 - 前端诊断日志不替代后端 `OperationLog`，也不新增每次临时拖动的持久化审计端点。
 
-## 9. 本地运行形态
+## 9. 运行和部署形态
 
-计划提供：
+本地：
 
 ```bash
 cd backend
@@ -301,7 +316,20 @@ uv run alembic upgrade head
 uv run uvicorn app.main:app --reload --port 8000
 ```
 
-教师网页会按页面主机名选择 `http://localhost:8000` 或 `http://127.0.0.1:8000`，保证 SameSite 会话 Cookie 主机一致。插件通过 `src/shared/api-config.js` 固定连接 `http://127.0.0.1:8000` 的公开下载端点，仍按现有 MV3 方式加载解压目录；代码更新后必须在扩展管理页重新加载 service worker。
+教师网页会按页面主机名选择 `http://localhost:8000` 或 `http://127.0.0.1:8000`，保证
+SameSite 会话 Cookie 主机一致。插件通过 `src/shared/api-config.js` 固定连接本机公开下载
+端点，仍按 MV3 方式加载解压目录；代码更新后必须在扩展管理页重新加载 service worker。
+
+生产：
+
+```bash
+tools/teacher-platform-release.sh deploy <git-ref>
+tools/teacher-platform-release.sh status
+```
+
+生产发布绑定已推送的精确 Git commit，并用同一 release ID 关联网页目录、后端目录、
+GitHub 标签和仓库 release JSON。学生插件 ZIP 打包代码已进入工作区，但当前生产 release
+`20260820T142243Z-ec1454ed2f31` 尚未验证包含该文件。
 
 日志配置：
 
@@ -316,9 +344,13 @@ production:       LOG_LEVEL=INFO，结构化 JSON 格式
 
 | 风险 | 处理 |
 | --- | --- |
-| 现有教师页仍是固定 Demo 状态 | 先建立 API 合约和 adapter，再逐步替换静态状态 |
-| 现有插件课程契约只表达单课程 | 服务器领域模型与插件输出模型分离，保持 adapter |
+| 当前插件课程 API 写死本机地址 | 公网闭环前必须决定并验证环境选择方式 |
+| v2 课程包契约未接入发布/下载 | 保留 v1 主链路，完成聚合、兼容响应和端到端测试后再切换 |
 | 授权码是敏感凭证 | 只存摘要，原文只在创建响应中返回 |
 | 本地 cookie 跨端口联调 | 明确 CORS、SameSite 和本地 origin；集成测试覆盖 |
-| 后续扩展多课节/学生数据 | 现在保留 Course/Lesson/PublishedScript 边界，不提前增加学生表 |
-| 本地 SQLite 与未来 PostgreSQL 差异 | 使用 SQLAlchemy、Alembic、参数化查询和集成测试 |
+| 本机 SQLite migration 状态可能漂移 | 使用 Alembic 作为升级入口，不依赖 `create_all()` 修改已有表 |
+| 生产 SQLite 与代码回滚分离 | schema 变更前补充备份、恢复和数据库迁移回滚计划 |
+| 教师 API 已返回 `lessons[]`，页面仍读 `lesson` | 接入前补前端多课节选择或显式第一课节兼容 |
+| 授权范围仍是单课程 | 按 D-025 实现 `AccessGrant` migration、服务校验和响应过滤 |
+
+详细数据结构、数据流和已知漂移见 [`data-spec.md`](data-spec.md)。

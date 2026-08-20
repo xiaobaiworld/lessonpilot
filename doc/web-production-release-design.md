@@ -2,7 +2,7 @@
 
 日期：2026-08-18
 
-状态：已实现并完成生产验证
+状态：基础 Web/教师平台发布已完成生产验证；学生插件 ZIP 扩展代码已实现，待生产发布验证
 
 ## 目标
 
@@ -19,8 +19,8 @@
 - 服务器通过本机 SSH 别名 `aliyun` 连接；
 - 当前公网首页是 `teacher-web/forsales.html`；
 - 静态公网目录允许销售页、教师编辑器及其白名单资源、网页图标和 `robots.txt`；
-- 静态公网目录同时允许固定学生插件包
-  `downloads/student-plugin/knownmapplugin.zip`；
+- 当前工作区发布代码允许固定学生插件包
+  `downloads/student-plugin/knownmapplugin.zip`；现网 release 尚未包含该文件；
 - FastAPI 由 systemd 在 `127.0.0.1:8000` 运行，Nginx 只代理 `/api/` 和 `/health`；
 - 后端源码不进入静态目录，测试、文档、插件源码和仓库元数据不得进入公网目录。
 
@@ -127,6 +127,8 @@ tools/teacher-platform-release.sh status
 - GitHub 标签：`web-prod/20260820T142243Z-ec1454ed2f31`；
 - 仓库记录：`deploy/releases/20260820T142243Z-ec1454ed2f31.json`；
 - 已验证教师登录、创建课程和课节、保存四节点草稿、发布 `v1`、创建短期授权码和公开下载。
+- 该 release 的 `release.json` 不包含学生插件 ZIP；固定下载地址需要由后续精确 Git commit
+  发布并重新验证。
 
 ## 边界
 

@@ -1,7 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const legacyContract = require('../src/shared/course-contract.js');
 const packageContract = require('../src/shared/course-package-contract.js');
 const {
   EXAMPLE_COURSE_ID,
@@ -37,15 +36,20 @@ function fakeChromeStorage() {
   };
 }
 
-function authorizedCourse() {
+function authorizedCourse({
+  courseId = '4c93245a-c981-4cab-b8fb-ff8f49cc9ee8',
+  lessonId = '0eb6fdbf-0ba6-4a1c-9fc4-96fe637129a2',
+  title = '第二门授权课程',
+  videoId = 'BV1xx411c7mD'
+} = {}) {
   return {
     schemaVersion: 2,
-    courseId: '4c93245a-c981-4cab-b8fb-ff8f49cc9ee8',
-    title: '第二门授权课程',
+    courseId,
+    title,
     lessons: [{
-      lessonId: '0eb6fdbf-0ba6-4a1c-9fc4-96fe637129a2',
+      lessonId,
       title: '授权课第一节',
-      videoRef: { platform: 'bilibili', videoId: 'BV1xx411c7mD' },
+      videoRef: { platform: 'bilibili', videoId },
       nodes: [{
         id: 'authorized-node',
         enabled: true,
@@ -72,7 +76,6 @@ function setup(responseBody) {
       async json() { return responseBody; }
     }),
     storage,
-    contract: legacyContract,
     packageContract,
     exampleCoursePackage: EXAMPLE_COURSE_PACKAGE,
     endpoint: 'http://127.0.0.1:8000/api/v1/public/course-download',
@@ -149,3 +152,59 @@ test('node attempts are isolated by course id and lesson id', async () => {
   );
 });
 
+test('concurrent downloads are serialized so neither course is lost', async () => {
+  const first = authorizedCourse();
+  const second = authorizedCourse({
+    courseId: '61e94964-e72b-47b8-b8bf-7b9369d2f886',
+    lessonId: '6bedbccc-e6d7-4db1-896d-01f1b86647ac',
+    title: '第三门授权课程',
+    videoId: 'BV1mK4y1C7Bz'
+  });
+  const chromeStorage = fakeChromeStorage();
+  const baseStorage = createStorage(chromeStorage.local);
+  let activeReads = 0;
+  let maxActiveReads = 0;
+  const storage = {
+    ...baseStorage,
+    async readStudentCourseStore() {
+      activeReads += 1;
+      maxActiveReads = Math.max(maxActiveReads, activeReads);
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      try {
+        return await baseStorage.readStudentCourseStore();
+      } finally {
+        activeReads -= 1;
+      }
+    }
+  };
+  const downloader = createCourseDownloader({
+    fetchImpl: async (_url, options) => {
+      const code = JSON.parse(options.body).access_code;
+      await new Promise((resolve) => setTimeout(resolve, code.includes('ABCDE') ? 5 : 0));
+      return {
+        ok: true,
+        status: 200,
+        async json() {
+          return { courses: [code.includes('ABCDE') ? first : second] };
+        }
+      };
+    },
+    storage,
+    packageContract,
+    exampleCoursePackage: EXAMPLE_COURSE_PACKAGE,
+    endpoint: 'http://127.0.0.1:8000/api/v1/public/course-download',
+    now: () => NOW
+  });
+
+  await Promise.all([
+    downloader.download({ authorizationCode: 'KM-ABCDE-FGHIJ-KLMNO-PQRST' }),
+    downloader.download({ authorizationCode: 'KM-ZYXWV-TSRQP-NMLKJ-HGFED' })
+  ]);
+  const library = await downloader.getInstalledCourses();
+
+  assert.deepEqual(
+    new Set(library.installedCourses.map((item) => item.courseId)),
+    new Set([EXAMPLE_COURSE_ID, first.courseId, second.courseId])
+  );
+  assert.equal(maxActiveReads, 1);
+});

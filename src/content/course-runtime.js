@@ -17,7 +17,13 @@
   function findLessonForLocation(installedCourses, learningStates, location) {
     const bvid = getBvidFromLocation(location);
     if (!bvid) return null;
-    for (const installedCourse of installedCourses ?? []) {
+    const prioritizedCourses = [...(installedCourses ?? [])].sort((left, right) => {
+      const leftPriority = left?.source === 'example' ? 1 : 0;
+      const rightPriority = right?.source === 'example' ? 1 : 0;
+      if (leftPriority !== rightPriority) return leftPriority - rightPriority;
+      return String(right?.installedAt ?? '').localeCompare(String(left?.installedAt ?? ''));
+    });
+    for (const installedCourse of prioritizedCourses) {
       const course = installedCourse?.course;
       if (!Array.isArray(course?.lessons)) continue;
       const lesson = course.lessons.find((item) => (

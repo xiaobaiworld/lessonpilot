@@ -88,6 +88,14 @@
     endpoint,
     now
   }) {
+    let courseStoreQueue = Promise.resolve();
+
+    function withCourseStoreLock(operation) {
+      const pending = courseStoreQueue.then(operation, operation);
+      courseStoreQueue = pending.catch(() => {});
+      return pending;
+    }
+
     function installedPackage(coursePackage, source) {
       return {
         schemaVersion: 2,
@@ -157,7 +165,8 @@
           next.learningStates[coursePackage.courseId],
           coursePackage
         );
-        const courseChanged = current?.course?.updatedAt !== coursePackage.updatedAt;
+        const courseChanged = JSON.stringify(current?.course ?? null)
+          !== JSON.stringify(coursePackage);
         const stateChanged = JSON.stringify(next.learningStates[coursePackage.courseId] ?? null)
           !== JSON.stringify(migratedStates);
         if (!current) added = true;
@@ -213,63 +222,67 @@
       }
 
       try {
-        return await installCoursePackages(body.courses);
+        return await withCourseStoreLock(() => installCoursePackages(body.courses));
       } catch {
         return { ok: false, error: 'STORAGE_FAILURE' };
       }
     }
 
     async function getInstalledCourses() {
-      try {
-        const store = await ensureExampleCourse();
-        const installedCourses = Object.values(store.installedCourses);
-        if (!installedCourses.every(validInstalledPackage)) {
-          return { ok: false, error: 'INVALID_COURSE' };
+      return withCourseStoreLock(async () => {
+        try {
+          const store = await ensureExampleCourse();
+          const installedCourses = Object.values(store.installedCourses);
+          if (!installedCourses.every(validInstalledPackage)) {
+            return { ok: false, error: 'INVALID_COURSE' };
+          }
+          return {
+            ok: true,
+            installedCourses: structuredClone(installedCourses),
+            learningStates: structuredClone(store.learningStates)
+          };
+        } catch {
+          return { ok: false, error: 'STORAGE_FAILURE' };
         }
-        return {
-          ok: true,
-          installedCourses: structuredClone(installedCourses),
-          learningStates: structuredClone(store.learningStates)
-        };
-      } catch {
-        return { ok: false, error: 'STORAGE_FAILURE' };
-      }
+      });
     }
 
     async function recordNodeAttempt(payload) {
-      try {
-        const store = await ensureExampleCourse();
-        const installedCourse = store.installedCourses[payload?.courseId];
-        if (!validInstalledPackage(installedCourse)) {
-          return { ok: false, error: 'INVALID_COURSE' };
+      return withCourseStoreLock(async () => {
+        try {
+          const store = await ensureExampleCourse();
+          const installedCourse = store.installedCourses[payload?.courseId];
+          if (!validInstalledPackage(installedCourse)) {
+            return { ok: false, error: 'INVALID_COURSE' };
+          }
+          const coursePackage = installedCourse.course;
+          const lesson = coursePackage.lessons.find((item) => item.lessonId === payload.lessonId);
+          const node = lesson?.nodes.find((item) => item.id === payload.nodeId);
+          const answer = payload.answer ?? null;
+          if (!node || typeof payload.correct !== 'boolean'
+            || (answer !== null && typeof answer !== 'string')
+            || (typeof answer === 'string' && answer.length > MAX_STUDENT_ANSWER_LENGTH)) {
+            return { ok: false, error: 'INVALID_REQUEST' };
+          }
+          const learningState = migrateLessonLearningState(
+            store.learningStates[payload.courseId]?.[payload.lessonId],
+            coursePackage,
+            lesson
+          );
+          const prior = learningState.nodeStates[node.id];
+          learningState.nodeStates[node.id] = {
+            status: payload.correct ? 'completed' : 'retry',
+            attempts: (prior?.attempts ?? 0) + 1,
+            lastAnswer: answer
+          };
+          const next = structuredClone(store);
+          next.learningStates[payload.courseId][payload.lessonId] = learningState;
+          await storage.writeStudentCourseStore(next);
+          return { ok: true, nodeId: node.id, status: learningState.nodeStates[node.id].status };
+        } catch {
+          return { ok: false, error: 'STORAGE_FAILURE' };
         }
-        const coursePackage = installedCourse.course;
-        const lesson = coursePackage.lessons.find((item) => item.lessonId === payload.lessonId);
-        const node = lesson?.nodes.find((item) => item.id === payload.nodeId);
-        const answer = payload.answer ?? null;
-        if (!node || typeof payload.correct !== 'boolean'
-          || (answer !== null && typeof answer !== 'string')
-          || (typeof answer === 'string' && answer.length > MAX_STUDENT_ANSWER_LENGTH)) {
-          return { ok: false, error: 'INVALID_REQUEST' };
-        }
-        const learningState = migrateLessonLearningState(
-          store.learningStates[payload.courseId]?.[payload.lessonId],
-          coursePackage,
-          lesson
-        );
-        const prior = learningState.nodeStates[node.id];
-        learningState.nodeStates[node.id] = {
-          status: payload.correct ? 'completed' : 'retry',
-          attempts: (prior?.attempts ?? 0) + 1,
-          lastAnswer: answer
-        };
-        const next = structuredClone(store);
-        next.learningStates[payload.courseId][payload.lessonId] = learningState;
-        await storage.writeStudentCourseStore(next);
-        return { ok: true, nodeId: node.id, status: learningState.nodeStates[node.id].status };
-      } catch {
-        return { ok: false, error: 'STORAGE_FAILURE' };
-      }
+      });
     }
 
     return { download, getInstalledCourses, recordNodeAttempt };
