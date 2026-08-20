@@ -4,6 +4,15 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### 生产站点索引页 — 2026-08-20
+
+- 新增 `https://knownmap.com/admin.html`，集中提供销售首页、教师工作台和服务状态入口。
+- 索引页不包含账号、服务器地址、写操作 API 或管理控制，并通过页面元数据与 Nginx 响应头禁止搜索引擎索引和存档。
+- 教师平台精确提交发布白名单、发布包校验和、线上探针和部署说明已包含 `admin.html`。
+- 当前生产版本：`20260820T162253Z-220dffbd4cfd`，GitHub SHA `220dffbd4cfd5a0b3f34ffebed147289cf7aa617`。
+- 线上验证：首页、索引页、教师工作台、健康检查和 `www` 别名均返回 200；私有路径保持 404；SQLite `integrity_check=ok`。
+- 验证：Node 299 pass / 0 fail；FastAPI 40 pass / 0 fail（1 条上游弃用警告）；GitHub `node-test` 与 `backend-test` 通过；浏览器无横向溢出和控制台错误。
+
 ### 生产安全加固与可恢复发布 — 2026-08-20
 
 - 生产发布只接受明确允许的远程分支和 GitHub `node-test`、`backend-test` 均成功的精确提交；systemd、Nginx 和备份配置也从同一提交归档部署。
@@ -12,7 +21,7 @@ Only record verified changes.
 - Nginx 新增登录与课程下载限速、HSTS、CSP、点击劫持和权限策略；教师登录页不再预填生产用户名。
 - 新增每日 SQLite 在线备份、完整性检查与 14 天保留；systemd 服务清空 capability 并收紧设备、内核和地址族访问。
 - GitHub Actions 固定到完整 SHA，Dependabot 安全更新与每周 Python/Actions 检查已启用。
-- 当前生产版本：`20260820T153701Z-130b5ac22581`，GitHub SHA `130b5ac225817dcb124bae89257da4efd1444e99`。
+- 安全加固基线版本：`20260820T153701Z-130b5ac22581`，GitHub SHA `130b5ac225817dcb124bae89257da4efd1444e99`；当前生产版本见上方索引页记录。
 - 线上验证：真实教师登录与会话恢复 200；连续错误登录第 7 次开始返回 429；私有路径 404；备份权限 `0600` 且 `integrity_check=ok`。
 - 验证：Node 298 pass / 0 fail；FastAPI 40 pass / 0 fail（1 条上游弃用警告）；Bandit 无发现；`pip-audit` 无已知漏洞；Nginx 与 Shell 语法通过。
 
