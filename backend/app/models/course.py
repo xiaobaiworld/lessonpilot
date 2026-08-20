@@ -33,4 +33,11 @@ class Course(Base):
     )
 
     workspace: Mapped["Workspace"] = relationship(back_populates="courses")
-    lesson: Mapped["Lesson | None"] = relationship(back_populates="course", uselist=False)
+    lessons: Mapped[list["Lesson"]] = relationship(
+        back_populates="course",
+        order_by="Lesson.sort_order, Lesson.created_at",
+    )
+
+    @property
+    def lesson(self) -> "Lesson | None":
+        return self.lessons[0] if self.lessons else None

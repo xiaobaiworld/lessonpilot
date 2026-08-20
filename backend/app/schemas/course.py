@@ -22,7 +22,7 @@ class CourseSummary(BaseModel):
 
 
 class CourseDetail(CourseSummary):
-    lesson: LessonPublic | None
+    lessons: list[LessonPublic]
 
 
 class CourseListResponse(BaseModel):

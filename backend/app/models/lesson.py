@@ -14,7 +14,6 @@ class Lesson(Base):
     course_id: Mapped[str] = mapped_column(
         String(36),
         ForeignKey("courses.id"),
-        unique=True,
         index=True,
         nullable=False,
     )
@@ -35,7 +34,7 @@ class Lesson(Base):
         nullable=False,
     )
 
-    course: Mapped["Course"] = relationship(back_populates="lesson")
+    course: Mapped["Course"] = relationship(back_populates="lessons")
     script_draft: Mapped["ScriptDraft | None"] = relationship(
         back_populates="lesson",
         uselist=False,

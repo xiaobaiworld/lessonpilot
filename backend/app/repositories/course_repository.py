@@ -11,7 +11,7 @@ def list_courses_by_teacher(session: Session, teacher_id: str) -> list[Course]:
             select(Course)
             .join(Workspace)
             .where(Workspace.owner_teacher_id == teacher_id)
-            .options(selectinload(Course.lesson))
+            .options(selectinload(Course.lessons))
             .order_by(Course.created_at.asc())
         ).all()
     )
@@ -22,7 +22,7 @@ def get_course_by_teacher(session: Session, teacher_id: str, course_id: str) -> 
         select(Course)
         .join(Workspace)
         .where(Course.id == course_id, Workspace.owner_teacher_id == teacher_id)
-        .options(joinedload(Course.workspace), selectinload(Course.lesson))
+        .options(joinedload(Course.workspace), selectinload(Course.lessons))
     )
 
 

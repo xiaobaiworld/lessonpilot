@@ -12,7 +12,6 @@ from app.schemas.course import CourseCreate, CourseDetail, CourseListResponse, C
 from app.schemas.lesson import LessonCreate, LessonPublic
 from app.schemas.publish import PublishResponse
 from app.services.course_service import (
-    LessonLimitReached,
     ResourceNotFound,
     create_course,
     create_lesson,
@@ -196,22 +195,6 @@ def create_course_lesson(
         )
         db.commit()
         raise ApiError(404, "RESOURCE_NOT_FOUND", "课程不存在或不可访问。") from None
-    except LessonLimitReached:
-        duration_ms = round((perf_counter() - started_at) * 1000)
-        write_operation(
-            db,
-            request,
-            teacher,
-            module="lesson",
-            action="lesson.create.failure",
-            result="failure",
-            duration_ms=duration_ms,
-            target_type="course",
-            target_id=course_id,
-            error_code="LESSON_LIMIT_REACHED",
-        )
-        db.commit()
-        raise ApiError(409, "LESSON_LIMIT_REACHED", "当前每门课程只能创建一个课节。") from None
 
     duration_ms = round((perf_counter() - started_at) * 1000)
     write_operation(

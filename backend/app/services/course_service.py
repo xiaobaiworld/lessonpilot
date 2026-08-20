@@ -11,17 +11,13 @@ from app.repositories.course_repository import (
 )
 from app.repositories.lesson_repository import (
     add_lesson,
-    get_lesson_by_course,
     get_lesson_by_teacher,
+    get_next_lesson_sort_order,
 )
 from app.repositories.workspace_repository import add_workspace, get_workspace_by_owner
 
 
 class ResourceNotFound(Exception):
-    pass
-
-
-class LessonLimitReached(Exception):
     pass
 
 
@@ -80,12 +76,10 @@ def create_lesson(
     video_id: str,
 ) -> Lesson:
     course = get_teacher_course(session, teacher, course_id)
-    if get_lesson_by_course(session, course.id) is not None:
-        raise LessonLimitReached
     lesson = Lesson(
         course=course,
         title=title.strip(),
-        sort_order=0,
+        sort_order=get_next_lesson_sort_order(session, course.id),
         platform=platform,
         video_id=video_id,
         status="draft",
