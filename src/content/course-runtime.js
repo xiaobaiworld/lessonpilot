@@ -14,6 +14,26 @@
       && getBvidFromLocation(location) === course.videoRef.videoId;
   }
 
+  function findLessonForLocation(installedCourses, learningStates, location) {
+    const bvid = getBvidFromLocation(location);
+    if (!bvid) return null;
+    for (const installedCourse of installedCourses ?? []) {
+      const course = installedCourse?.course;
+      if (!Array.isArray(course?.lessons)) continue;
+      const lesson = course.lessons.find((item) => (
+        item.videoRef?.platform === 'bilibili' && item.videoRef.videoId === bvid
+      ));
+      if (!lesson) continue;
+      return {
+        installedCourse,
+        course,
+        lesson,
+        learningState: learningStates?.[course.courseId]?.[lesson.lessonId] ?? null
+      };
+    }
+    return null;
+  }
+
   function createNodeTimeline(course, onNode, { completedNodeIds = [] } = {}) {
     const completed = new Set(completedNodeIds);
     const triggered = new Set(completed);
@@ -98,11 +118,47 @@
     };
   }
 
+  function createCourseLibraryWatcher({
+    window: win,
+    installedCourses,
+    learningStates,
+    onChange
+  }) {
+    let activeKey = null;
+    function sync() {
+      const match = findLessonForLocation(installedCourses, learningStates, win.location);
+      const nextKey = match ? `${match.course.courseId}:${match.lesson.lessonId}` : null;
+      if (nextKey === activeKey) return;
+      activeKey = nextKey;
+      onChange(match);
+    }
+    const originals = {};
+    for (const method of ['pushState', 'replaceState']) {
+      originals[method] = win.history[method];
+      win.history[method] = function wrapped(...args) {
+        const result = originals[method].apply(this, args);
+        sync();
+        return result;
+      };
+    }
+    win.addEventListener('popstate', sync);
+    const intervalId = win.setInterval(sync, 1000);
+    sync();
+    return () => {
+      win.removeEventListener('popstate', sync);
+      win.clearInterval(intervalId);
+      for (const method of ['pushState', 'replaceState']) win.history[method] = originals[method];
+      activeKey = null;
+    };
+  }
+
   return {
     getBvidFromLocation,
     courseMatchesLocation,
+    findLessonForLocation,
     createNodeTimeline,
     evaluateNodeAnswer,
-    createCoursePageWatcher
+    createCoursePageWatcher,
+    createCourseLibraryWatcher
   };
 });

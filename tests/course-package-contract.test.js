@@ -60,17 +60,6 @@ function coursePackage(overrides = {}) {
   };
 }
 
-function legacyCourse(overrides = {}) {
-  return {
-    schemaVersion: 1,
-    courseId: 'bilibili:BV1WW4y1e7GL',
-    videoRef: { platform: 'bilibili', videoId: 'BV1WW4y1e7GL' },
-    nodes: [noticeNode()],
-    updatedAt: UPDATED_AT,
-    ...overrides
-  };
-}
-
 function expectAccepted(value, label = 'course package') {
   const result = contract.validateCoursePackage(value);
   assert.equal(result.ok, true, `${label}: ${JSON.stringify(result.errors)}`);
@@ -84,11 +73,11 @@ function expectRejected(value, label = 'course package') {
   return result.errors;
 }
 
-test('exports the version 2 package API separately from the legacy course contract', () => {
+test('exports only the version 2 course package API', () => {
   assert.equal(contract.SCHEMA_VERSION, 2);
   assert.equal(typeof contract.validateCoursePackage, 'function');
   assert.equal(typeof contract.normalizeCoursePackage, 'function');
-  assert.equal(typeof contract.legacyAdapter.fromSingleCourseEnvelope, 'function');
+  assert.equal(Object.hasOwn(contract, 'legacyAdapter'), false);
 });
 
 test('accepts a multi-lesson package with independent UUID identity', () => {
@@ -111,7 +100,7 @@ test('rejects unknown fields at every package-owned layer', () => {
     coursePackage({
       lessons: [lesson({ nodes: [noticeNode({ sourceUrl: 'https://example.com' })] })]
     }),
-    'node field delegated to the old contract'
+    'node field delegated to the shared node validator'
   );
 });
 
@@ -188,7 +177,7 @@ test('accepts only bilibili video references with a canonical BVID', () => {
   }
 });
 
-test('reuses the old node rules without applying its derived courseId rule', () => {
+test('reuses the shared node rules without applying a derived courseId rule', () => {
   expectAccepted(coursePackage({ courseId: '2d67a6c8-7f24-4fb5-9127-09c79fc31bf8' }));
   expectRejected(coursePackage({ lessons: [lesson({ nodes: [] })] }), 'empty nodes');
   expectRejected(
@@ -197,7 +186,7 @@ test('reuses the old node rules without applying its derived courseId rule', () 
         nodes: [noticeNode({ effects: { pause: false } })]
       })]
     }),
-    'invalid old node semantics'
+    'invalid node semantics'
   );
 });
 
@@ -242,62 +231,6 @@ test('normalizes node order inside each lesson without mutating identities or in
   expectAccepted(normalized, 'normalized package');
 });
 
-test('does not let the package validator silently accept a legacy {course} envelope', () => {
-  expectRejected({ course: legacyCourse() }, 'legacy envelope');
-});
-
-test('converts a valid legacy {course} envelope only through the explicit adapter', () => {
-  const envelope = { course: legacyCourse() };
-  const snapshot = structuredClone(envelope);
-
-  const result = contract.legacyAdapter.fromSingleCourseEnvelope(envelope, {
-    courseId: COURSE_ID,
-    title: '英语面试表达',
-    lessonId: LESSON_ONE_ID,
-    lessonTitle: '第一节'
-  });
-
-  assert.equal(result.ok, true, JSON.stringify(result.errors));
-  assert.deepEqual(result.errors, []);
-  assert.deepEqual(envelope, snapshot, 'adapter must not mutate legacy input');
-  assert.equal(result.coursePackage.schemaVersion, 2);
-  assert.equal(result.coursePackage.courseId, COURSE_ID);
-  assert.equal(result.coursePackage.lessons[0].lessonId, LESSON_ONE_ID);
-  assert.deepEqual(result.coursePackage.lessons[0].videoRef, envelope.course.videoRef);
-  assert.deepEqual(result.coursePackage.lessons[0].nodes, envelope.course.nodes);
-  expectAccepted(result.coursePackage, 'adapted legacy package');
-});
-
-test('legacy adapter rejects malformed envelopes, legacy courses, and replacement identity', () => {
-  for (const [envelope, identity] of [
-    [{}, {
-      courseId: COURSE_ID,
-      title: '课程',
-      lessonId: LESSON_ONE_ID,
-      lessonTitle: '课节'
-    }],
-    [{ course: legacyCourse(), extra: true }, {
-      courseId: COURSE_ID,
-      title: '课程',
-      lessonId: LESSON_ONE_ID,
-      lessonTitle: '课节'
-    }],
-    [{ course: legacyCourse({ nodes: [] }) }, {
-      courseId: COURSE_ID,
-      title: '课程',
-      lessonId: LESSON_ONE_ID,
-      lessonTitle: '课节'
-    }],
-    [{ course: legacyCourse() }, {
-      courseId: 'bilibili:BV1WW4y1e7GL',
-      title: '课程',
-      lessonId: LESSON_ONE_ID,
-      lessonTitle: '课节'
-    }]
-  ]) {
-    const result = contract.legacyAdapter.fromSingleCourseEnvelope(envelope, identity);
-    assert.equal(result.ok, false);
-    assert.ok(result.errors.length > 0);
-    assert.equal(Object.hasOwn(result, 'coursePackage'), false);
-  }
+test('rejects the removed single-course envelope without an adapter path', () => {
+  expectRejected({ course: {} }, 'single-course envelope');
 });

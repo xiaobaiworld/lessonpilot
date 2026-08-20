@@ -1,70 +1,102 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const { createCourseDownloader } = require('../src/background/course-downloader.js');
+const packageContract = require('../src/shared/course-package-contract.js');
 const {
-  createStorage,
-  INSTALLED_COURSE_KEY,
-  LEARNING_STATE_KEY
-} = require('../src/background/storage.js');
-const contract = require('../src/shared/course-contract.js');
+  EXAMPLE_COURSE_PACKAGE
+} = require('../src/content/config/example-course.js');
+const { createStorage } = require('../src/background/storage.js');
+const { createCourseDownloader } = require('../src/background/course-downloader.js');
 
-const UPDATED_AT = '2026-08-19T00:00:00.000Z';
+const NOW = '2026-08-20T12:00:00.000Z';
 
-function course(videoId = 'BV1WW4y1e7GL', updatedAt = UPDATED_AT) {
+function coursePackage({
+  courseId = '4c93245a-c981-4cab-b8fb-ff8f49cc9ee8',
+  lessonId = '0eb6fdbf-0ba6-4a1c-9fc4-96fe637129a2',
+  title = '授权课程',
+  updatedAt = NOW
+} = {}) {
   return {
-    schemaVersion: 1,
-    courseId: `bilibili:${videoId}`,
-    videoRef: { platform: 'bilibili', videoId },
-    nodes: [{
-      id: 'node-1', enabled: true, family: 'attention', interaction: 'notice',
-      trigger: { kind: 'time_cross', timeSeconds: 10, captionId: null },
-      display: { title: '重点', body: '正文' }, evaluation: null, effects: { pause: true }
+    schemaVersion: 2,
+    courseId,
+    title,
+    lessons: [{
+      lessonId,
+      title: '第一节',
+      videoRef: { platform: 'bilibili', videoId: 'BV1xx411c7mD' },
+      nodes: [{
+        id: 'node-1',
+        enabled: true,
+        family: 'attention',
+        interaction: 'notice',
+        trigger: { kind: 'time_cross', timeSeconds: 10, captionId: null },
+        display: { title: '重点', body: '正文' },
+        evaluation: null,
+        effects: { pause: true }
+      }],
+      updatedAt
     }],
     updatedAt
   };
 }
 
-function setup({ response, installedCourse = null, learningState = null } = {}) {
-  const calls = [];
-  let installed = structuredClone(installedCourse);
-  let learning = structuredClone(learningState);
+function fakeChromeStorage() {
+  let backing = {};
   let writes = 0;
-  const storage = {
-    async readInstalledCourse() { return structuredClone(installed); },
-    async readLearningState() { return structuredClone(learning); },
-    async writeInstalledCourseAndState(nextInstalled, nextLearning) {
-      writes += 1;
-      installed = structuredClone(nextInstalled);
-      learning = structuredClone(nextLearning);
-    }
+  return {
+    local: {
+      async get(keys) {
+        const result = {};
+        for (const key of keys) {
+          if (Object.hasOwn(backing, key)) result[key] = structuredClone(backing[key]);
+        }
+        return result;
+      },
+      async set(values) {
+        writes += 1;
+        Object.assign(backing, structuredClone(values));
+      },
+      async remove(keys) {
+        for (const key of keys) delete backing[key];
+      }
+    },
+    peek: () => structuredClone(backing),
+    writes: () => writes
   };
+}
+
+function setup(response = null) {
+  const calls = [];
+  const chromeStorage = fakeChromeStorage();
+  const storage = createStorage(chromeStorage.local);
   const fetchImpl = async (url, options) => {
     calls.push({ url, options });
     if (response instanceof Error) throw response;
     return response ?? {
       ok: true,
       status: 200,
-      async json() { return { course: course() }; }
+      async json() { return { courses: [coursePackage()] }; }
     };
   };
   const downloader = createCourseDownloader({
     fetchImpl,
     storage,
-    contract,
+    packageContract,
+    exampleCoursePackage: EXAMPLE_COURSE_PACKAGE,
     endpoint: 'http://127.0.0.1:8000/api/v1/public/course-download',
-    now: () => UPDATED_AT
+    now: () => NOW
   });
-  return { downloader, calls, peek: () => ({ installed, learning, writes }) };
+  return { calls, chromeStorage, downloader };
 }
 
-test('posts only the normalized access code to the fixed download endpoint', async () => {
-  const { downloader, calls } = setup();
-  const result = await downloader.download({ authorizationCode: 'KM-ABCDE-FGHIJ-KLMNO-PQRST' });
+test('posts only the normalized access code to the fixed endpoint', async () => {
+  const { calls, downloader } = setup();
+  const result = await downloader.download({
+    authorizationCode: '  km-abcde-fghij-klmno-pqrst  '
+  });
 
   assert.equal(result.ok, true);
   assert.equal(calls.length, 1);
-  assert.equal(calls[0].url, 'http://127.0.0.1:8000/api/v1/public/course-download');
   assert.deepEqual(JSON.parse(calls[0].options.body), {
     access_code: 'KM-ABCDE-FGHIJ-KLMNO-PQRST'
   });
@@ -74,202 +106,129 @@ test('posts only the normalized access code to the fixed download endpoint', asy
 
 for (const [label, response, expected] of [
   ['network failure', new Error('offline'), 'NETWORK_FAILURE'],
-  ['invalid code', { ok: false, status: 401, async json() { return { error: { code: 'INVALID_ACCESS_CODE' } }; } }, 'INVALID_ACCESS_CODE'],
-  ['missing course', { ok: false, status: 404, async json() { return { error: { code: 'COURSE_NOT_AVAILABLE' } }; } }, 'COURSE_NOT_AVAILABLE'],
-  ['malformed json', { ok: true, status: 200, async json() { throw new SyntaxError('bad json'); } }, 'INVALID_RESPONSE'],
-  ['invalid contract', { ok: true, status: 200, async json() { return { course: { schemaVersion: 99 } }; } }, 'INVALID_COURSE']
+  ['invalid code', {
+    ok: false,
+    status: 401,
+    async json() { return { error: { code: 'INVALID_ACCESS_CODE' } }; }
+  }, 'INVALID_ACCESS_CODE'],
+  ['missing course', {
+    ok: false,
+    status: 404,
+    async json() { return { error: { code: 'COURSE_NOT_AVAILABLE' } }; }
+  }, 'COURSE_NOT_AVAILABLE'],
+  ['malformed json', {
+    ok: true,
+    status: 200,
+    async json() { throw new SyntaxError('bad json'); }
+  }, 'INVALID_RESPONSE'],
+  ['old single-course envelope', {
+    ok: true,
+    status: 200,
+    async json() { return { course: coursePackage() }; }
+  }, 'INVALID_RESPONSE'],
+  ['invalid v2 course', {
+    ok: true,
+    status: 200,
+    async json() { return { courses: [{ schemaVersion: 1 }] }; }
+  }, 'INVALID_COURSE']
 ]) {
-  test(`${label} never overwrites the installed course or learning state`, async () => {
-    const old = { schemaVersion: 1, courseId: course().courseId, installedAt: UPDATED_AT, course: course() };
-    const state = { schemaVersion: 1, courseId: course().courseId, courseUpdatedAt: UPDATED_AT, nodeStates: { 'node-1': { status: 'completed', attempts: 1 } } };
-    const { downloader, peek } = setup({ response, installedCourse: old, learningState: state });
+  test(`${label} never overwrites the canonical course library`, async () => {
+    const { chromeStorage, downloader } = setup(response);
+    const before = await downloader.getInstalledCourses();
+    const writesBefore = chromeStorage.writes();
 
-    const result = await downloader.download({ authorizationCode: 'KM-ABCDE-FGHIJ-KLMNO-PQRST' });
+    const result = await downloader.download({
+      authorizationCode: 'KM-ABCDE-FGHIJ-KLMNO-PQRST'
+    });
 
     assert.equal(result.ok, false);
     assert.equal(result.error, expected);
-    assert.deepEqual(peek(), { installed: old, learning: state, writes: 0 });
+    assert.equal(chromeStorage.writes(), writesBefore);
+    assert.deepEqual(await downloader.getInstalledCourses(), before);
   });
 }
 
-test('an unreadable server error remains service unavailable rather than invalid course data', async () => {
-  const response = {
-    ok: false,
-    status: 500,
-    async text() { return '<html>internal server error</html>'; }
-  };
-  const { downloader, peek } = setup({ response });
-
-  const result = await downloader.download({ authorizationCode: 'KM-ABCDE-FGHIJ-KLMNO-PQRST' });
-
-  assert.deepEqual(result, { ok: false, error: 'SERVICE_UNAVAILABLE' });
-  assert.equal(peek().writes, 0);
-});
-
-test('same-course update atomically writes the course and preserves matching node state', async () => {
-  const oldCourse = course('BV1WW4y1e7GL', '2026-08-18T00:00:00.000Z');
-  const old = { schemaVersion: 1, courseId: oldCourse.courseId, installedAt: oldCourse.updatedAt, course: oldCourse };
-  const state = {
-    schemaVersion: 1,
-    courseId: oldCourse.courseId,
-    courseUpdatedAt: oldCourse.updatedAt,
-    nodeStates: {
-      'node-1': { status: 'completed', attempts: 1 },
-      removed: { status: 'completed', attempts: 2 }
-    }
-  };
-  const { downloader, peek } = setup({ installedCourse: old, learningState: state });
-
-  const result = await downloader.download({ authorizationCode: 'KM-ABCDE-FGHIJ-KLMNO-PQRST' });
-
-  assert.equal(result.status, 'updated');
-  assert.equal(peek().writes, 1);
-  assert.deepEqual(peek().learning.nodeStates, { 'node-1': { status: 'completed', attempts: 1 } });
-});
-
-test('same-course migration drops unknown or malformed local node-state fields', async () => {
-  const oldCourse = course('BV1WW4y1e7GL', '2026-08-18T00:00:00.000Z');
-  const old = { schemaVersion: 1, courseId: oldCourse.courseId, installedAt: oldCourse.updatedAt, course: oldCourse };
-  const state = {
-    schemaVersion: 1,
-    courseId: oldCourse.courseId,
-    courseUpdatedAt: oldCourse.updatedAt,
-    nodeStates: {
-      'node-1': {
-        status: 'completed',
-        attempts: 2,
-        lastAnswer: 'kept locally',
-        injected: 'must not survive'
-      }
-    }
-  };
-  const { downloader, peek } = setup({ installedCourse: old, learningState: state });
-
-  const result = await downloader.download({ authorizationCode: 'KM-ABCDE-FGHIJ-KLMNO-PQRST' });
-
-  assert.equal(result.status, 'updated');
-  assert.deepEqual(peek().learning.nodeStates['node-1'], {
-    status: 'completed',
-    attempts: 2,
-    lastAnswer: 'kept locally'
+test('same-course update preserves valid matching node progress and drops removed nodes', async () => {
+  const original = coursePackage({ updatedAt: '2026-08-19T00:00:00.000Z' });
+  const { downloader } = setup({
+    ok: true,
+    status: 200,
+    async json() { return { courses: [original] }; }
   });
-});
-
-test('different course requires confirmation and cancellation performs no write', async () => {
-  const oldCourse = course('BVold123');
-  const old = { schemaVersion: 1, courseId: oldCourse.courseId, installedAt: UPDATED_AT, course: oldCourse };
-  const state = { schemaVersion: 1, courseId: oldCourse.courseId, courseUpdatedAt: UPDATED_AT, nodeStates: {} };
-  const incoming = course('BVnew123');
-  const response = { ok: true, status: 200, async json() { return { course: incoming }; } };
-  const { downloader, peek } = setup({ response, installedCourse: old, learningState: state });
-
-  const result = await downloader.download({ authorizationCode: 'KM-ABCDE-FGHIJ-KLMNO-PQRST' });
-
-  assert.equal(result.error, 'COURSE_REPLACEMENT_REQUIRED');
-  assert.deepEqual(peek(), { installed: old, learning: state, writes: 0 });
-});
-
-test('confirmed different course resets state only when expected current course still matches', async () => {
-  const oldCourse = course('BVold123');
-  const old = { schemaVersion: 1, courseId: oldCourse.courseId, installedAt: UPDATED_AT, course: oldCourse };
-  const state = { schemaVersion: 1, courseId: oldCourse.courseId, courseUpdatedAt: UPDATED_AT, nodeStates: { old: { status: 'completed', attempts: 1 } } };
-  const incoming = course('BVnew123');
-  const response = { ok: true, status: 200, async json() { return { course: incoming }; } };
-  const { downloader, peek } = setup({ response, installedCourse: old, learningState: state });
-
-  const result = await downloader.download({
-    authorizationCode: 'KM-ABCDE-FGHIJ-KLMNO-PQRST',
-    replaceCourse: true,
-    expectedCourseId: oldCourse.courseId
-  });
-
-  assert.equal(result.status, 'replaced');
-  assert.equal(peek().installed.courseId, incoming.courseId);
-  assert.deepEqual(peek().learning.nodeStates, {});
-  assert.equal(peek().writes, 1);
-});
-
-test('recording an interaction stores the bounded local answer but omits it from the response', async () => {
-  const installedCourse = {
-    schemaVersion: 1,
-    courseId: course().courseId,
-    installedAt: UPDATED_AT,
-    course: course()
-  };
-  const { downloader, peek } = setup({ installedCourse });
-
-  const result = await downloader.recordNodeAttempt({
+  await downloader.download({ authorizationCode: 'KM-ABCDE-FGHIJ-KLMNO-PQRST' });
+  await downloader.recordNodeAttempt({
+    courseId: original.courseId,
+    lessonId: original.lessons[0].lessonId,
     nodeId: 'node-1',
     correct: true,
-    answer: 'student answer'
+    answer: 'kept'
   });
 
-  assert.equal(result.ok, true);
-  assert.deepEqual(peek().learning.nodeStates, {
-    'node-1': { status: 'completed', attempts: 1, lastAnswer: 'student answer' }
+  const updated = coursePackage();
+  const updateSetup = setup({
+    ok: true,
+    status: 200,
+    async json() { return { courses: [updated] }; }
   });
-  assert.equal(JSON.stringify(result).includes('student answer'), false);
+  const stored = await downloader.getInstalledCourses();
+  await updateSetup.chromeStorage.local.set({
+    studentCourseStore: {
+      storageVersion: 2,
+      installedCourses: Object.fromEntries(
+        stored.installedCourses.map((item) => [item.courseId, item])
+      ),
+      learningStates: stored.learningStates
+    }
+  });
+
+  const result = await updateSetup.downloader.download({
+    authorizationCode: 'KM-ABCDE-FGHIJ-KLMNO-PQRST'
+  });
+
+  assert.equal(result.status, 'updated');
+  assert.deepEqual(
+    result.learningStates[updated.courseId][updated.lessons[0].lessonId].nodeStates,
+    { 'node-1': { status: 'completed', attempts: 1, lastAnswer: 'kept' } }
+  );
 });
 
-test('an oversized student answer is rejected before local state is written', async () => {
-  const installedCourse = {
-    schemaVersion: 1,
-    courseId: course().courseId,
-    installedAt: UPDATED_AT,
-    course: course()
-  };
-  const { downloader, peek } = setup({ installedCourse });
+test('recording an attempt requires course and lesson identity and omits the answer from response', async () => {
+  const incoming = coursePackage();
+  const { downloader } = setup();
+  await downloader.download({ authorizationCode: 'KM-ABCDE-FGHIJ-KLMNO-PQRST' });
+
+  const invalid = await downloader.recordNodeAttempt({
+    nodeId: 'node-1',
+    correct: true,
+    answer: 'answer'
+  });
+  const saved = await downloader.recordNodeAttempt({
+    courseId: incoming.courseId,
+    lessonId: incoming.lessons[0].lessonId,
+    nodeId: 'node-1',
+    correct: true,
+    answer: 'answer'
+  });
+
+  assert.deepEqual(invalid, { ok: false, error: 'INVALID_COURSE' });
+  assert.equal(saved.ok, true);
+  assert.equal(JSON.stringify(saved).includes('answer'), false);
+});
+
+test('oversized student answers are rejected without a course-store write', async () => {
+  const incoming = coursePackage();
+  const { chromeStorage, downloader } = setup();
+  await downloader.download({ authorizationCode: 'KM-ABCDE-FGHIJ-KLMNO-PQRST' });
+  const writesBefore = chromeStorage.writes();
 
   const result = await downloader.recordNodeAttempt({
+    courseId: incoming.courseId,
+    lessonId: incoming.lessons[0].lessonId,
     nodeId: 'node-1',
     correct: true,
     answer: 'x'.repeat(2001)
   });
 
   assert.deepEqual(result, { ok: false, error: 'INVALID_REQUEST' });
-  assert.equal(peek().writes, 0);
-});
-
-test('installed course lookup returns sanitized learning state for runtime resume', async () => {
-  const installedCourse = {
-    schemaVersion: 1,
-    courseId: course().courseId,
-    installedAt: UPDATED_AT,
-    course: course()
-  };
-  const learningState = {
-    schemaVersion: 1,
-    courseId: course().courseId,
-    courseUpdatedAt: UPDATED_AT,
-    nodeStates: {
-      'node-1': { status: 'completed', attempts: 1, lastAnswer: null, extra: true }
-    }
-  };
-  const { downloader } = setup({ installedCourse, learningState });
-
-  const result = await downloader.getInstalledCourse();
-
-  assert.equal(result.ok, true);
-  assert.deepEqual(result.learningState.nodeStates, {
-    'node-1': { status: 'completed', attempts: 1, lastAnswer: null }
-  });
-});
-
-test('student course and learning state share one chrome.storage.local set boundary', async () => {
-  const writes = [];
-  const storage = createStorage({
-    async get() { return {}; },
-    async set(values) { writes.push(structuredClone(values)); },
-    async remove() {}
-  });
-  const installedCourse = { courseId: course().courseId, course: course() };
-  const learningState = { schemaVersion: 1, courseId: course().courseId, nodeStates: {} };
-
-  await storage.writeInstalledCourseAndState(installedCourse, learningState);
-
-  assert.equal(writes.length, 1);
-  assert.deepEqual(writes[0], {
-    [INSTALLED_COURSE_KEY]: installedCourse,
-    [LEARNING_STATE_KEY]: learningState
-  });
+  assert.equal(chromeStorage.writes(), writesBefore);
 });

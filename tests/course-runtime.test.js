@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const {
   getBvidFromLocation,
   courseMatchesLocation,
+  findLessonForLocation,
   createNodeTimeline,
   createCoursePageWatcher,
   evaluateNodeAnswer
@@ -24,6 +25,41 @@ test('matches only the exact BVID segment of a Bilibili video pathname', () => {
   assert.equal(courseMatchesLocation(course, { pathname: '/video/BV1WW4y1e7GL/' }), true);
   assert.equal(courseMatchesLocation(course, { pathname: '/video/BV1WW4y1e7GLX/' }), false);
   assert.equal(courseMatchesLocation(course, { pathname: '/other/BV1WW4y1e7GL/' }), false);
+});
+
+test('finds the matching lesson inside a multi-course library', () => {
+  const installedCourses = [{
+    courseId: 'd2045bc7-4ba2-4aff-8f27-3bc336be4f55',
+    course: {
+      courseId: 'd2045bc7-4ba2-4aff-8f27-3bc336be4f55',
+      title: '示例课程',
+      lessons: [{
+        lessonId: 'a1cc724e-19f4-4f12-9377-8ff71753e8c4',
+        title: '第一节',
+        videoRef: { platform: 'bilibili', videoId: 'BV1WW4y1e7GL' },
+        nodes: []
+      }]
+    }
+  }];
+  const learningStates = {
+    'd2045bc7-4ba2-4aff-8f27-3bc336be4f55': {
+      'a1cc724e-19f4-4f12-9377-8ff71753e8c4': { nodeStates: {} }
+    }
+  };
+
+  const match = findLessonForLocation(
+    installedCourses,
+    learningStates,
+    { pathname: '/video/BV1WW4y1e7GL/' }
+  );
+
+  assert.equal(match.course.title, '示例课程');
+  assert.equal(match.lesson.title, '第一节');
+  assert.deepEqual(match.learningState, { nodeStates: {} });
+  assert.equal(
+    findLessonForLocation(installedCourses, learningStates, { pathname: '/video/BV-other/' }),
+    null
+  );
 });
 
 test('timeline triggers each enabled node once when playback crosses its time', () => {

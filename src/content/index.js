@@ -10,6 +10,8 @@
 
   let course = null;
   let learningState = null;
+  let activeCourseId = null;
+  let activeLessonId = null;
   let pageWatcherStop = null;
   let playbackStop = null;
   let timeStop = null;
@@ -37,7 +39,13 @@
         const evaluation = runtime.evaluateNodeAnswer(node, answer);
         const saved = await chrome.runtime.sendMessage({
           type: 'RECORD_STUDENT_NODE_ATTEMPT',
-          payload: { nodeId: node.id, correct: evaluation.correct, answer }
+          payload: {
+            courseId: activeCourseId,
+            lessonId: activeLessonId,
+            nodeId: node.id,
+            correct: evaluation.correct,
+            answer
+          }
         });
         if (!saved?.ok) {
           return {
@@ -62,39 +70,53 @@
     timeStop = player.watchTime((currentTime) => timeline.update(currentTime));
   }
 
-  function activateCourse(nextCourse, nextLearningState = null) {
+  function activateLesson(match) {
+    teardownCourseUi();
+    course = match?.lesson ?? null;
+    learningState = match?.learningState ?? null;
+    activeCourseId = match?.course?.courseId ?? null;
+    activeLessonId = match?.lesson?.lessonId ?? null;
+    if (course) setupCourseUi();
+  }
+
+  function activateLibrary(installedCourses, learningStates) {
     pageWatcherStop?.();
     teardownCourseUi();
-    course = nextCourse;
-    learningState = nextLearningState;
-    if (!course) return;
-    pageWatcherStop = runtime.createCoursePageWatcher({
+    pageWatcherStop = runtime.createCourseLibraryWatcher({
       window,
-      course,
-      onEnter: setupCourseUi,
-      onLeave: teardownCourseUi
+      installedCourses,
+      learningStates,
+      onChange: activateLesson
     });
   }
 
+  async function loadLibrary() {
+    const response = await chrome.runtime.sendMessage({ type: 'GET_INSTALLED_STUDENT_COURSES' });
+    if (!response?.ok) return { installedCourses: [], learningStates: {} };
+    return {
+      installedCourses: response.installedCourses ?? [],
+      learningStates: response.learningStates ?? {}
+    };
+  }
+
   async function bootstrap() {
-    let installedCourse = null;
-    let installedLearningState = null;
+    let library = { installedCourses: [], learningStates: {} };
     try {
-      const response = await chrome.runtime.sendMessage({ type: 'GET_INSTALLED_STUDENT_COURSE' });
-      if (response?.ok) {
-        installedCourse = response.installedCourse;
-        installedLearningState = response.learningState;
-      }
+      library = await loadLibrary();
     } catch {
       // The bookbag remains usable and will show a download error if the worker is unavailable.
     }
     const panel = new AccessPanel({
       runtime: chrome.runtime,
-      installedCourse,
-      onCourseInstalled: activateCourse
+      installedCourses: library.installedCourses,
+      onCourseInstalled: async () => {
+        library = await loadLibrary();
+        panel.renderCourses(library.installedCourses);
+        activateLibrary(library.installedCourses, library.learningStates);
+      }
     });
     panel.mount();
-    activateCourse(installedCourse?.course ?? null, installedLearningState);
+    activateLibrary(library.installedCourses, library.learningStates);
 
     window.addEventListener('pagehide', () => {
       pageWatcherStop?.();

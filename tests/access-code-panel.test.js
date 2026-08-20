@@ -24,21 +24,7 @@ test('builds a fixed Bilibili URL only from a validated course video reference',
   assert.equal(buildBilibiliCourseUrl({ platform: 'bilibili', videoId: 'javascript:alert(1)' }), null);
 });
 
-test('builds one visible course record from an installed course', () => {
-  assert.deepEqual(buildCourseRecord({
-    courseId: 'bilibili:BV1WW4y1e7GL',
-    videoRef: { platform: 'bilibili', videoId: 'BV1WW4y1e7GL' }
-  }), {
-    courseId: 'bilibili:BV1WW4y1e7GL',
-    label: 'B 站课程 · BV1WW4y1e7GL',
-    url: 'https://www.bilibili.com/video/BV1WW4y1e7GL/'
-  });
-  assert.equal(buildCourseRecord(null), null);
-  assert.equal(buildCourseRecord({
-    courseId: 'invalid',
-    videoRef: { platform: 'other', videoId: 'BV1WW4y1e7GL' }
-  }), null);
-
+test('course list uses visible v2 course records', () => {
   const fs = require('node:fs');
   const source = fs.readFileSync('src/content/access-code/access-panel.js', 'utf8');
 
@@ -48,14 +34,30 @@ test('builds one visible course record from an installed course', () => {
   assert.match(source, /this\.courseEmpty\.hidden = Boolean\(record\)/);
 });
 
+test('multi-lesson course records display the course name instead of an internal id', () => {
+  assert.deepEqual(buildCourseRecord({
+    courseId: 'd2045bc7-4ba2-4aff-8f27-3bc336be4f55',
+    title: '英语面试表达：把答案说得具体',
+    lessons: [{
+      lessonId: 'a1cc724e-19f4-4f12-9377-8ff71753e8c4',
+      title: '第一课',
+      videoRef: { platform: 'bilibili', videoId: 'BV1WW4y1e7GL' }
+    }]
+  }), {
+    courseId: 'd2045bc7-4ba2-4aff-8f27-3bc336be4f55',
+    label: '英语面试表达：把答案说得具体',
+    url: 'https://www.bilibili.com/video/BV1WW4y1e7GL/'
+  });
+  assert.equal(buildCourseRecord(null), null);
+});
+
 test('download request contains the access code but never a client-selected course id', async () => {
   const calls = [];
   const controller = createAccessCodeController({
     download: async (payload) => {
       calls.push(payload);
-      return { ok: true, status: 'installed', course: { courseId: 'bilibili:BV1WW4y1e7GL' } };
-    },
-    confirmReplace: () => true
+      return { ok: true, status: 'installed', courses: [] };
+    }
   });
 
   await controller.submit('  km-abcde-fghij-klmno-pqrst  ');
@@ -64,62 +66,9 @@ test('download request contains the access code but never a client-selected cour
   assert.equal(Object.hasOwn(calls[0], 'courseId'), false);
 });
 
-test('different-course replacement is retried only after explicit confirmation', async () => {
-  const calls = [];
-  const controller = createAccessCodeController({
-    download: async (payload) => {
-      calls.push(payload);
-      if (calls.length === 1) {
-        return {
-          ok: false,
-          error: 'COURSE_REPLACEMENT_REQUIRED',
-          currentCourseId: 'bilibili:BV-old',
-          incomingCourseId: 'bilibili:BV-new'
-        };
-      }
-      return { ok: true, status: 'replaced', course: { courseId: 'bilibili:BV-new' } };
-    },
-    confirmReplace: () => true
-  });
-
-  const result = await controller.submit('KM-ABCDE-FGHIJ-KLMNO-PQRST');
-
-  assert.equal(result.ok, true);
-  assert.deepEqual(calls, [
-    { authorizationCode: 'KM-ABCDE-FGHIJ-KLMNO-PQRST' },
-    {
-      authorizationCode: 'KM-ABCDE-FGHIJ-KLMNO-PQRST',
-      replaceCourse: true,
-      expectedCourseId: 'bilibili:BV-old'
-    }
-  ]);
-});
-
-test('cancelling replacement preserves the first refusal and makes no second request', async () => {
-  let callCount = 0;
-  const controller = createAccessCodeController({
-    download: async () => {
-      callCount += 1;
-      return {
-        ok: false,
-        error: 'COURSE_REPLACEMENT_REQUIRED',
-        currentCourseId: 'bilibili:BV-old',
-        incomingCourseId: 'bilibili:BV-new'
-      };
-    },
-    confirmReplace: () => false
-  });
-
-  const result = await controller.submit('KM-ABCDE-FGHIJ-KLMNO-PQRST');
-
-  assert.equal(result.error, 'COURSE_REPLACEMENT_CANCELLED');
-  assert.equal(callCount, 1);
-});
-
 test('runtime rejection becomes a stable unavailable error instead of escaping the form handler', async () => {
   const controller = createAccessCodeController({
-    download: async () => { throw new Error('extension context invalidated'); },
-    confirmReplace: () => true
+    download: async () => { throw new Error('extension context invalidated'); }
   });
 
   const result = await controller.submit('KM-ABCDE-FGHIJ-KLMNO-PQRST');
@@ -144,7 +93,7 @@ test('manifest wires the student modules and grants only the fixed local API ori
   const contentEntry = fs.readFileSync('src/content/index.js', 'utf8');
   const mascot = fs.readFileSync('src/content/mascot/mascot.js', 'utf8');
   const player = fs.readFileSync('src/content/video/bili-player.js', 'utf8');
-  assert.match(worker, /GET_INSTALLED_STUDENT_COURSE/);
+  assert.match(worker, /GET_INSTALLED_STUDENT_COURSES/);
   assert.match(worker, /DOWNLOAD_STUDENT_COURSE/);
   assert.match(worker, /RECORD_STUDENT_NODE_ATTEMPT/);
   assert.match(contentEntry, /timeline\.complete\(node\.id\)/);

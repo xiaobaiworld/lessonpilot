@@ -12,8 +12,10 @@
 
 importScripts(
   '../shared/course-contract.js',
+  '../shared/course-package-contract.js',
   '../shared/bridge-protocol.js',
   '../shared/api-config.js',
+  '../content/config/example-course.js',
   './storage.js',
   './operations.js',
   './course-downloader.js'
@@ -35,13 +37,14 @@ importScripts(
   const courseDownloader = createCourseDownloader({
     fetchImpl: (...args) => fetch(...args),
     storage,
-    contract: global.LessonPilotCourseContract,
+    packageContract: global.LessonPilotCoursePackageContract,
+    exampleCoursePackage: global.LessonPilotExampleCourse.EXAMPLE_COURSE_PACKAGE,
     endpoint: global.LessonPilotApiConfig.COURSE_DOWNLOAD_ENDPOINT,
     now: () => new Date().toISOString()
   });
 
   const STUDENT_HANDLERS = {
-    GET_INSTALLED_STUDENT_COURSE: () => courseDownloader.getInstalledCourse(),
+    GET_INSTALLED_STUDENT_COURSES: () => courseDownloader.getInstalledCourses(),
     DOWNLOAD_STUDENT_COURSE: (payload) => courseDownloader.download(payload),
     RECORD_STUDENT_NODE_ATTEMPT: (payload) => courseDownloader.recordNodeAttempt(payload)
   };
@@ -55,7 +58,9 @@ importScripts(
       .then((response) => {
         console.debug('[KnownMap] student course', {
           operation: message.type,
-          courseId: response.course?.courseId ?? response.installedCourse?.courseId ?? null,
+          courseId: response.courses?.[0]?.courseId
+            ?? response.installedCourses?.[0]?.courseId
+            ?? null,
           result: response.ok ? 'success' : 'failure',
           errorCode: response.ok ? null : response.error
         });

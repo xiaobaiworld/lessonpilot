@@ -19,16 +19,27 @@
   }
 
   function buildCourseRecord(course) {
-    const url = course ? buildBilibiliCourseUrl(course.videoRef) : null;
+    if (!Array.isArray(course?.lessons) || course.lessons.length === 0
+      || typeof course.title !== 'string' || !course.title.trim()) {
+      return null;
+    }
+    const lesson = course.lessons[0];
+    const url = lesson ? buildBilibiliCourseUrl(lesson.videoRef) : null;
     if (!url || typeof course.courseId !== 'string') return null;
     return {
       courseId: course.courseId,
-      label: `B 站课程 · ${course.videoRef.videoId}`,
+      label: course.title.trim(),
       url
     };
   }
 
-  function createAccessCodeController({ download, confirmReplace, timeoutMs = 10000 }) {
+  function buildCourseRecords(installedCourses) {
+    return (installedCourses ?? [])
+      .map((item) => buildCourseRecord(item?.course ?? item))
+      .filter(Boolean);
+  }
+
+  function createAccessCodeController({ download, timeoutMs = 10000 }) {
     async function request(payload) {
       let timer;
       try {
@@ -55,18 +66,7 @@
       if (!ACCESS_CODE_PATTERN.test(authorizationCode)) {
         return { ok: false, error: 'INVALID_ACCESS_CODE' };
       }
-      const first = await request({ authorizationCode });
-      if (first.error !== 'COURSE_REPLACEMENT_REQUIRED') return first;
-      const confirmed = await confirmReplace({
-        currentCourseId: first.currentCourseId,
-        incomingCourseId: first.incomingCourseId
-      });
-      if (!confirmed) return { ...first, error: 'COURSE_REPLACEMENT_CANCELLED' };
-      return request({
-        authorizationCode,
-        replaceCourse: true,
-        expectedCourseId: first.currentCourseId
-      });
+      return request({ authorizationCode });
     }
     return { submit };
   }
@@ -79,14 +79,12 @@
     INVALID_COURSE: '课程配置未通过安全校验，旧课程未被替换。',
     STORAGE_FAILURE: '课程无法保存到插件本地存储。',
     SERVICE_UNAVAILABLE: '课程服务暂时不可用。',
-    COURSE_REPLACEMENT_CANCELLED: '已取消替换，原课程和学习状态保持不变。',
     EXTENSION_UNAVAILABLE: '插件后台暂时不可用，请重新加载插件和页面。'
   };
 
   class AccessPanel {
-    constructor({ runtime, installedCourse, onCourseInstalled }) {
+    constructor({ runtime, installedCourses, onCourseInstalled }) {
       this.runtime = runtime;
-      this.installedCourse = installedCourse;
       this.onCourseInstalled = onCourseInstalled;
       this.root = document.createElement('aside');
       this.root.id = 'lessonpilot-access-panel';
@@ -97,11 +95,13 @@
           <section class="lessonpilot-course-list" aria-labelledby="lessonpilot-course-list-title">
             <strong id="lessonpilot-course-list-title">课程</strong>
             <p class="lessonpilot-course-empty">还没有课程，输入授权码领取。</p>
-            <article class="lessonpilot-course-record" hidden>
-              <span class="lessonpilot-course-record-title"></span>
-              <a class="lessonpilot-course-url"></a>
-              <a class="lessonpilot-open-course">打开课程视频</a>
-            </article>
+            <div class="lessonpilot-course-records">
+              <article class="lessonpilot-course-record" hidden>
+                <span class="lessonpilot-course-record-title"></span>
+                <a class="lessonpilot-course-url"></a>
+                <a class="lessonpilot-open-course">打开课程视频</a>
+              </article>
+            </div>
           </section>
           <form>
             <label for="lessonpilot-access-code">课程授权码</label>
@@ -112,6 +112,7 @@
         </div>`;
       this.status = this.root.querySelector('.lessonpilot-access-status');
       this.courseEmpty = this.root.querySelector('.lessonpilot-course-empty');
+      this.courseRecords = this.root.querySelector('.lessonpilot-course-records');
       this.courseRecord = this.root.querySelector('.lessonpilot-course-record');
       this.courseRecordTitle = this.root.querySelector('.lessonpilot-course-record-title');
       this.courseUrl = this.root.querySelector('.lessonpilot-course-url');
@@ -120,11 +121,10 @@
       this.submitButton = this.root.querySelector('button[type="submit"]');
       this.card = this.root.querySelector('.lessonpilot-access-card');
       this.controller = createAccessCodeController({
-        download: (payload) => this.runtime.sendMessage({ type: 'DOWNLOAD_STUDENT_COURSE', payload }),
-        confirmReplace: () => window.confirm('插件当前只能保存一门课程。确定替换原课程和本地学习状态吗？')
+        download: (payload) => this.runtime.sendMessage({ type: 'DOWNLOAD_STUDENT_COURSE', payload })
       });
       this.bind();
-      this.renderCourse(installedCourse?.course ?? null);
+      this.renderCourses(installedCourses ?? []);
     }
 
     bind() {
@@ -142,12 +142,46 @@
           return;
         }
         this.status.textContent = result.status === 'current' ? '课程已经是最新版本。' : '课程已安全保存。';
-        this.renderCourse(result.course);
-        this.onCourseInstalled?.(result.course, result.learningState);
+        this.renderCourses(result.installedCourses ?? []);
+        this.onCourseInstalled?.();
       });
     }
 
+    renderCourses(installedCourses) {
+      const records = buildCourseRecords(installedCourses);
+      if (records.length <= 1) {
+        this.renderCourse(records.length === 1 ? (installedCourses[0]?.course ?? installedCourses[0]) : null);
+        return;
+      }
+      this.courseRecords.replaceChildren();
+      this.courseEmpty.hidden = true;
+      for (const record of records) {
+        const article = document.createElement('article');
+        article.className = 'lessonpilot-course-record';
+        const title = document.createElement('span');
+        title.className = 'lessonpilot-course-record-title';
+        title.textContent = record.label;
+        const url = document.createElement('a');
+        url.className = 'lessonpilot-course-url';
+        url.textContent = record.url;
+        url.href = record.url;
+        url.target = '_self';
+        url.rel = 'noopener';
+        const openLink = document.createElement('a');
+        openLink.className = 'lessonpilot-open-course';
+        openLink.textContent = '打开课程视频';
+        openLink.href = record.url;
+        openLink.target = '_self';
+        openLink.rel = 'noopener';
+        article.append(title, url, openLink);
+        this.courseRecords.append(article);
+      }
+    }
+
     renderCourse(course) {
+      if (!this.courseRecord.isConnected) {
+        this.courseRecords.replaceChildren(this.courseRecord);
+      }
       const record = buildCourseRecord(course);
       this.courseRecord.hidden = !record;
       this.courseEmpty.hidden = Boolean(record);
@@ -180,6 +214,7 @@
     normalizeAccessCode,
     buildBilibiliCourseUrl,
     buildCourseRecord,
+    buildCourseRecords,
     createAccessCodeController,
     AccessPanel
   };

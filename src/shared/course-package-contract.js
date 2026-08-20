@@ -2,8 +2,8 @@
  * The schema version 2 multi-lesson course package contract.
  *
  * Package identity is independent from video identity. Node semantics are
- * delegated to the version 1 course contract through a temporary legacy course
- * whose derived courseId is deliberately kept inside this module.
+ * delegated to the existing node-schema validator through a temporary lesson
+ * envelope whose synthetic courseId never leaves this module.
  */
 (function initCoursePackageContract(global, factory) {
   const legacyContract = typeof module !== 'undefined' && module.exports
@@ -14,18 +14,16 @@
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = api;
   }
-})(typeof self !== 'undefined' ? self : globalThis, function createCoursePackageContract(legacyContract) {
+})(typeof self !== 'undefined' ? self : globalThis, function createCoursePackageContract(nodeContract) {
   const SCHEMA_VERSION = 2;
   const PLATFORM = 'bilibili';
   const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
   const BVID_PATTERN = /^BV[0-9A-Za-z]{10}$/;
 
-  const ERROR_CODES = legacyContract.ERROR_CODES;
+  const ERROR_CODES = nodeContract.ERROR_CODES;
   const PACKAGE_FIELDS = ['schemaVersion', 'courseId', 'title', 'lessons', 'updatedAt'];
   const LESSON_FIELDS = ['lessonId', 'title', 'videoRef', 'nodes', 'updatedAt'];
   const VIDEO_REF_FIELDS = ['platform', 'videoId'];
-  const LEGACY_ENVELOPE_FIELDS = ['course'];
-  const LEGACY_IDENTITY_FIELDS = ['courseId', 'title', 'lessonId', 'lessonTitle'];
 
   function isPlainObject(value) {
     return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -75,10 +73,10 @@
   }
 
   function validateNodesWithLegacyContract(lesson, path, out) {
-    const legacyCourseId = legacyContract.deriveCourseId(lesson.videoRef);
-    const result = legacyContract.validateCourse({
-      schemaVersion: legacyContract.SCHEMA_VERSION,
-      courseId: legacyCourseId ?? '',
+    const syntheticCourseId = nodeContract.deriveCourseId(lesson.videoRef);
+    const result = nodeContract.validateCourse({
+      schemaVersion: nodeContract.SCHEMA_VERSION,
+      courseId: syntheticCourseId ?? '',
       videoRef: lesson.videoRef,
       nodes: lesson.nodes,
       updatedAt: lesson.updatedAt
@@ -105,7 +103,7 @@
     if (!isFilledString(lesson.title)) {
       out.add(ERROR_CODES.INVALID_VALUE, `${path}.title`, 'non-blank');
     }
-    if (!legacyContract.isUtcIsoString(lesson.updatedAt)) {
+    if (!nodeContract.isUtcIsoString(lesson.updatedAt)) {
       out.add(ERROR_CODES.INVALID_VALUE, `${path}.updatedAt`, 'utc-iso-ms');
     }
 
@@ -132,7 +130,7 @@
     if (!isFilledString(coursePackage.title)) {
       out.add(ERROR_CODES.INVALID_VALUE, 'coursePackage.title', 'non-blank');
     }
-    if (!legacyContract.isUtcIsoString(coursePackage.updatedAt)) {
+    if (!nodeContract.isUtcIsoString(coursePackage.updatedAt)) {
       out.add(ERROR_CODES.INVALID_VALUE, 'coursePackage.updatedAt', 'utc-iso-ms');
     }
 
@@ -170,75 +168,19 @@
       const normalizedLesson = { ...lesson };
       if (!Array.isArray(lesson.nodes)) return normalizedLesson;
 
-      const legacyCourseId = legacyContract.deriveCourseId(lesson.videoRef);
-      const normalizedLegacy = legacyContract.normalizeCourse({
-        schemaVersion: legacyContract.SCHEMA_VERSION,
-        courseId: legacyCourseId ?? '',
+      const syntheticCourseId = nodeContract.deriveCourseId(lesson.videoRef);
+      const normalizedLessonEnvelope = nodeContract.normalizeCourse({
+        schemaVersion: nodeContract.SCHEMA_VERSION,
+        courseId: syntheticCourseId ?? '',
         videoRef: lesson.videoRef,
         nodes: lesson.nodes,
         updatedAt: lesson.updatedAt
       });
-      normalizedLesson.nodes = normalizedLegacy.nodes;
+      normalizedLesson.nodes = normalizedLessonEnvelope.nodes;
       return normalizedLesson;
     });
 
     return normalized;
-  }
-
-  function mapLegacyErrors(errors, out) {
-    for (const error of errors) {
-      const mappedPath = error.path.replace(/^course/, 'legacyEnvelope.course');
-      out.add(error.code, mappedPath, error.detail);
-    }
-  }
-
-  function fromSingleCourseEnvelope(envelope, identity) {
-    const out = collector();
-    const envelopeOk = checkShape(
-      envelope,
-      'legacyEnvelope',
-      LEGACY_ENVELOPE_FIELDS,
-      LEGACY_ENVELOPE_FIELDS,
-      out
-    );
-    const identityOk = checkShape(
-      identity,
-      'legacyIdentity',
-      LEGACY_IDENTITY_FIELDS,
-      LEGACY_IDENTITY_FIELDS,
-      out
-    );
-
-    if (!envelopeOk || !identityOk) return { ok: false, errors: out.errors };
-
-    const legacyResult = legacyContract.validateCourse(envelope.course);
-    if (!legacyResult.ok) mapLegacyErrors(legacyResult.errors, out);
-
-    const candidate = {
-      schemaVersion: SCHEMA_VERSION,
-      courseId: identity.courseId,
-      title: identity.title,
-      lessons: [{
-        lessonId: identity.lessonId,
-        title: identity.lessonTitle,
-        videoRef: isPlainObject(envelope.course?.videoRef)
-          ? { ...envelope.course.videoRef }
-          : envelope.course?.videoRef,
-        nodes: Array.isArray(envelope.course?.nodes)
-          ? envelope.course.nodes.slice()
-          : envelope.course?.nodes,
-        updatedAt: envelope.course?.updatedAt
-      }],
-      updatedAt: envelope.course?.updatedAt
-    };
-
-    const packageResult = validateCoursePackage(candidate);
-    for (const error of packageResult.errors) {
-      out.add(error.code, error.path, error.detail);
-    }
-
-    if (out.errors.length > 0) return { ok: false, errors: out.errors };
-    return { ok: true, errors: [], coursePackage: candidate };
   }
 
   return {
@@ -246,9 +188,6 @@
     ERROR_CODES,
     isUuid,
     validateCoursePackage,
-    normalizeCoursePackage,
-    legacyAdapter: Object.freeze({
-      fromSingleCourseEnvelope
-    })
+    normalizeCoursePackage
   };
 });

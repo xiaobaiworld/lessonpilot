@@ -1,21 +1,12 @@
-/** Download, validate and atomically install one student course. */
+/** Download, validate and atomically merge v2 course packages. */
 (function initCourseDownloader(global, factory) {
-  const api = factory(global);
+  const api = factory();
   global.LessonPilotCourseDownloader = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
-})(typeof self !== 'undefined' ? self : globalThis, function createCourseDownloaderModule(global) {
+})(typeof self !== 'undefined' ? self : globalThis, function createCourseDownloaderModule() {
   const ACCESS_CODE_PATTERN = /^KM-[A-Z2-7]{5}(?:-[A-Z2-7]{5}){3}$/;
   const MAX_RESPONSE_BYTES = 1024 * 1024;
   const MAX_STUDENT_ANSWER_LENGTH = 2000;
-
-  function initialLearningState(course) {
-    return {
-      schemaVersion: 1,
-      courseId: course.courseId,
-      courseUpdatedAt: course.updatedAt,
-      nodeStates: {}
-    };
-  }
 
   function sanitizeNodeState(state) {
     if (!state || typeof state !== 'object' || Array.isArray(state)
@@ -35,20 +26,42 @@
     return clean;
   }
 
-  function migrateLearningState(previous, course) {
-    if (!previous || previous.courseId !== course.courseId) return initialLearningState(course);
-    const validIds = new Set(course.nodes.map((node) => node.id));
-    const nodeStates = {};
-    for (const [nodeId, state] of Object.entries(previous.nodeStates ?? {})) {
-      const clean = sanitizeNodeState(state);
-      if (validIds.has(nodeId) && clean) nodeStates[nodeId] = clean;
-    }
+  function initialLessonLearningState(coursePackage, lesson) {
     return {
       schemaVersion: 1,
-      courseId: course.courseId,
-      courseUpdatedAt: course.updatedAt,
-      nodeStates
+      courseId: coursePackage.courseId,
+      lessonId: lesson.lessonId,
+      courseUpdatedAt: coursePackage.updatedAt,
+      lessonUpdatedAt: lesson.updatedAt,
+      nodeStates: {}
     };
+  }
+
+  function migrateLessonLearningState(previous, coursePackage, lesson) {
+    const next = initialLessonLearningState(coursePackage, lesson);
+    if (!previous
+      || previous.courseId !== coursePackage.courseId
+      || previous.lessonId !== lesson.lessonId) {
+      return next;
+    }
+    const validNodeIds = new Set(lesson.nodes.map((node) => node.id));
+    for (const [nodeId, state] of Object.entries(previous.nodeStates ?? {})) {
+      const clean = sanitizeNodeState(state);
+      if (validNodeIds.has(nodeId) && clean) next.nodeStates[nodeId] = clean;
+    }
+    return next;
+  }
+
+  function migratePackageLearningStates(previous, coursePackage) {
+    const states = {};
+    for (const lesson of coursePackage.lessons) {
+      states[lesson.lessonId] = migrateLessonLearningState(
+        previous?.[lesson.lessonId],
+        coursePackage,
+        lesson
+      );
+    }
+    return states;
   }
 
   async function readJson(response) {
@@ -67,7 +80,106 @@
     return 'SERVICE_UNAVAILABLE';
   }
 
-  function createCourseDownloader({ fetchImpl, storage, contract, endpoint, now }) {
+  function createCourseDownloader({
+    fetchImpl,
+    storage,
+    packageContract,
+    exampleCoursePackage,
+    endpoint,
+    now
+  }) {
+    function installedPackage(coursePackage, source) {
+      return {
+        schemaVersion: 2,
+        courseId: coursePackage.courseId,
+        title: coursePackage.title,
+        installedAt: source === 'example' ? coursePackage.updatedAt : now(),
+        source,
+        readOnly: source === 'example',
+        course: structuredClone(coursePackage)
+      };
+    }
+
+    function validInstalledPackage(record) {
+      return Boolean(
+        record
+        && record.schemaVersion === 2
+        && record.courseId === record.course?.courseId
+        && packageContract.validateCoursePackage(record.course).ok
+      );
+    }
+
+    function validStore(store) {
+      return store
+        && store.storageVersion === 2
+        && store.installedCourses
+        && typeof store.installedCourses === 'object'
+        && !Array.isArray(store.installedCourses)
+        && store.learningStates
+        && typeof store.learningStates === 'object'
+        && !Array.isArray(store.learningStates);
+    }
+
+    async function ensureExampleCourse() {
+      const store = await storage.readStudentCourseStore();
+      if (!validStore(store)) throw new Error('invalid student course store');
+      if (!packageContract.validateCoursePackage(exampleCoursePackage).ok) {
+        throw new Error('invalid bundled example course');
+      }
+      if (Object.hasOwn(store.installedCourses, exampleCoursePackage.courseId)) return store;
+      return storage.ensureStudentCourse(
+        exampleCoursePackage.courseId,
+        installedPackage(exampleCoursePackage, 'example'),
+        migratePackageLearningStates(null, exampleCoursePackage)
+      );
+    }
+
+    async function installCoursePackages(coursePackages) {
+      if (!Array.isArray(coursePackages) || coursePackages.length === 0) {
+        return { ok: false, error: 'INVALID_RESPONSE' };
+      }
+      const seen = new Set();
+      for (const coursePackage of coursePackages) {
+        if (!packageContract.validateCoursePackage(coursePackage).ok
+          || seen.has(coursePackage.courseId)) {
+          return { ok: false, error: 'INVALID_COURSE' };
+        }
+        seen.add(coursePackage.courseId);
+      }
+
+      const store = await ensureExampleCourse();
+      const next = structuredClone(store);
+      let added = false;
+      let changed = false;
+      for (const coursePackage of coursePackages) {
+        const current = next.installedCourses[coursePackage.courseId];
+        const migratedStates = migratePackageLearningStates(
+          next.learningStates[coursePackage.courseId],
+          coursePackage
+        );
+        const courseChanged = current?.course?.updatedAt !== coursePackage.updatedAt;
+        const stateChanged = JSON.stringify(next.learningStates[coursePackage.courseId] ?? null)
+          !== JSON.stringify(migratedStates);
+        if (!current) added = true;
+        if (courseChanged) {
+          next.installedCourses[coursePackage.courseId] = installedPackage(
+            coursePackage,
+            'authorization'
+          );
+        }
+        next.learningStates[coursePackage.courseId] = migratedStates;
+        changed = changed || courseChanged || stateChanged;
+      }
+      if (changed) await storage.writeStudentCourseStore(next);
+      return {
+        ok: true,
+        status: changed ? (added ? 'installed' : 'updated') : 'current',
+        courses: structuredClone(coursePackages),
+        installedCourses: Object.values(next.installedCourses),
+        learningStates: structuredClone(next.learningStates)
+      };
+    }
+
     async function download(payload) {
       const authorizationCode = typeof payload?.authorizationCode === 'string'
         ? payload.authorizationCode.trim().toUpperCase()
@@ -96,71 +208,28 @@
         return { ok: false, error: response.ok ? 'INVALID_RESPONSE' : 'SERVICE_UNAVAILABLE' };
       }
       if (!response.ok) return { ok: false, error: publicError(response, body) };
-      if (!body || Object.keys(body).length !== 1 || !Object.hasOwn(body, 'course')) {
+      if (!body || Object.keys(body).length !== 1 || !Object.hasOwn(body, 'courses')) {
         return { ok: false, error: 'INVALID_RESPONSE' };
       }
 
-      const incoming = body.course;
-      if (!contract.validateCourse(incoming).ok) return { ok: false, error: 'INVALID_COURSE' };
-
       try {
-        const current = await storage.readInstalledCourse();
-        const previousState = await storage.readLearningState();
-        if (current && current.courseId !== incoming.courseId) {
-          if (!payload.replaceCourse || payload.expectedCourseId !== current.courseId) {
-            return {
-              ok: false,
-              error: 'COURSE_REPLACEMENT_REQUIRED',
-              currentCourseId: current.courseId,
-              incomingCourseId: incoming.courseId
-            };
-          }
-        }
-
-        if (current && current.courseId === incoming.courseId
-          && current.course?.updatedAt === incoming.updatedAt) {
-          return {
-            ok: true,
-            status: 'current',
-            course: structuredClone(incoming),
-            learningState: migrateLearningState(previousState, incoming)
-          };
-        }
-
-        const installedCourse = {
-          schemaVersion: 1,
-          courseId: incoming.courseId,
-          installedAt: now(),
-          course: structuredClone(incoming)
-        };
-        const learningState = current?.courseId === incoming.courseId
-          ? migrateLearningState(previousState, incoming)
-          : initialLearningState(incoming);
-        await storage.writeInstalledCourseAndState(installedCourse, learningState);
-        return {
-          ok: true,
-          status: current ? (current.courseId === incoming.courseId ? 'updated' : 'replaced') : 'installed',
-          course: structuredClone(incoming),
-          learningState: structuredClone(learningState)
-        };
+        return await installCoursePackages(body.courses);
       } catch {
         return { ok: false, error: 'STORAGE_FAILURE' };
       }
     }
 
-    async function getInstalledCourse() {
+    async function getInstalledCourses() {
       try {
-        const installedCourse = await storage.readInstalledCourse();
-        if (installedCourse === null) return { ok: true, installedCourse: null };
-        if (!installedCourse.course || !contract.validateCourse(installedCourse.course).ok
-          || installedCourse.courseId !== installedCourse.course.courseId) {
+        const store = await ensureExampleCourse();
+        const installedCourses = Object.values(store.installedCourses);
+        if (!installedCourses.every(validInstalledPackage)) {
           return { ok: false, error: 'INVALID_COURSE' };
         }
-        const previousState = await storage.readLearningState();
         return {
           ok: true,
-          installedCourse,
-          learningState: migrateLearningState(previousState, installedCourse.course)
+          installedCourses: structuredClone(installedCourses),
+          learningStates: structuredClone(store.learningStates)
         };
       } catch {
         return { ok: false, error: 'STORAGE_FAILURE' };
@@ -169,42 +238,51 @@
 
     async function recordNodeAttempt(payload) {
       try {
-        const installedCourse = await storage.readInstalledCourse();
-        if (!installedCourse?.course || !contract.validateCourse(installedCourse.course).ok) {
+        const store = await ensureExampleCourse();
+        const installedCourse = store.installedCourses[payload?.courseId];
+        if (!validInstalledPackage(installedCourse)) {
           return { ok: false, error: 'INVALID_COURSE' };
         }
-        const node = installedCourse.course.nodes.find((item) => item.id === payload?.nodeId);
-        const answer = payload?.answer ?? null;
-        if (!node || typeof payload?.correct !== 'boolean'
+        const coursePackage = installedCourse.course;
+        const lesson = coursePackage.lessons.find((item) => item.lessonId === payload.lessonId);
+        const node = lesson?.nodes.find((item) => item.id === payload.nodeId);
+        const answer = payload.answer ?? null;
+        if (!node || typeof payload.correct !== 'boolean'
           || (answer !== null && typeof answer !== 'string')
           || (typeof answer === 'string' && answer.length > MAX_STUDENT_ANSWER_LENGTH)) {
           return { ok: false, error: 'INVALID_REQUEST' };
         }
-        const previous = await storage.readLearningState();
-        const learningState = migrateLearningState(previous, installedCourse.course);
+        const learningState = migrateLessonLearningState(
+          store.learningStates[payload.courseId]?.[payload.lessonId],
+          coursePackage,
+          lesson
+        );
         const prior = learningState.nodeStates[node.id];
         learningState.nodeStates[node.id] = {
           status: payload.correct ? 'completed' : 'retry',
           attempts: (prior?.attempts ?? 0) + 1,
           lastAnswer: answer
         };
-        await storage.writeInstalledCourseAndState(installedCourse, learningState);
+        const next = structuredClone(store);
+        next.learningStates[payload.courseId][payload.lessonId] = learningState;
+        await storage.writeStudentCourseStore(next);
         return { ok: true, nodeId: node.id, status: learningState.nodeStates[node.id].status };
       } catch {
         return { ok: false, error: 'STORAGE_FAILURE' };
       }
     }
 
-    return { download, getInstalledCourse, recordNodeAttempt };
+    return { download, getInstalledCourses, recordNodeAttempt };
   }
 
   return {
     ACCESS_CODE_PATTERN,
     MAX_RESPONSE_BYTES,
     MAX_STUDENT_ANSWER_LENGTH,
-    initialLearningState,
     sanitizeNodeState,
-    migrateLearningState,
+    initialLessonLearningState,
+    migrateLessonLearningState,
+    migratePackageLearningStates,
     createCourseDownloader
   };
 });
