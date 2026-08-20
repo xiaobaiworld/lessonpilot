@@ -6,25 +6,26 @@
 
 ## 目标
 
-为未来多课程领取和本地保存建立稳定的课程身份规则：
+为未来多课程、多课节领取和本地保存建立稳定的课程身份规则：
 
 - 每门课程由后台生成一个独立 UUID；
+- 每个课节由后台生成一个独立 UUID；
 - UUID 在课程创建时生成一次，之后永久不变；
-- 课程名称、学习目标、B 站视频和发布版本都不能替代课程身份；
+- 课程名称、学习目标、B 站视频、课节和发布版本都不能替代课程身份；
 - 未来课程文件、目录和学习状态都按 `courseId` 隔离；
 - 当前只确定身份和边界，不提前实现图片、音频或大文件存储。
 
-当前内置示例课程使用固定的示例课程 ID，不占用学生真实课程存储位置。
+当前内置示例课程使用固定的示例课程 ID，示例课程可以先包含一个课节，不占用学生真实课程存储位置。
 
 ## 当前事实与约束
 
 ### 后台
 
-`backend/app/models/course.py` 当前已经使用 `uuid4()` 作为 `Course.id` 的默认值，但该行为尚未被抽象成明确的课程身份生成规则，也尚未在课程契约文档中说明。
+`backend/app/models/course.py` 当前已经使用 `uuid4()` 作为 `Course.id` 的默认值，但当前 `Course.lesson` 是单课节关系，`create_lesson()` 也通过 `LessonLimitReached` 限制每门课程只能有一个课节。这是当前阶段限制，不是长期课程模型。
 
 ### 插件课程契约
 
-当前 `PluginCourseConfig` 仍以 `platform:videoId` 推导 `courseId`。这适合当前单课程、单视频切片，但不能区分两门使用同一 B 站视频的不同课程。
+当前 `PluginCourseConfig` 仍以 `platform:videoId` 推导 `courseId`，并直接把一个 `videoRef` 和一组节点放在顶层。这适合当前单课程、单课节、单视频切片，但不能表达一门课程包含多个 B 站视频。
 
 ### 课程显示
 
@@ -36,14 +37,15 @@
 
 ## 课程身份模型
 
-课程身份与课程内容分层：
+课程身份、课节身份和课程内容分层：
 
 ```text
 courseId    后台生成的永久 UUID，课程主身份
+lessonId    后台生成的永久 UUID，课节主身份
 title       学生和老师看到的课程名称，可以修改
 goal        学习目标，可以修改
-videoRef    B 站视频匹配信息，可以变化或扩展
-releaseId   某个发布版本的身份，可以变化
+videoRef    课节绑定的 B 站视频，只属于 lesson
+releaseId   某个课程发布版本的身份，可以变化
 assetId     未来单个图片、音频或附件的身份
 ```
 
@@ -54,20 +56,68 @@ assetId     未来单个图片、音频或附件的身份
   "courseId": "7a0c4a42-91c8-4f4d-8a2e-17b89c4f6d21",
   "title": "英语面试表达：把答案说得具体",
   "goal": "让学生学会用具体证据回答英语面试问题",
-  "videoRef": {
-    "platform": "bilibili",
-    "videoId": "BV1WW4y1e7GL"
-  }
+  "lessons": [
+    {
+      "lessonId": "1f7b6b18-6b1e-4d2f-bb5e-b5f2a6d7150f",
+      "title": "第一节：英文面试完整流程",
+      "videoRef": {
+        "platform": "bilibili",
+        "videoId": "BV1WW4y1e7GL"
+      },
+      "nodes": []
+    }
+  ]
 }
 ```
 
 核心不变量：
 
 1. `courseId` 只在创建课程时生成一次；
-2. 修改标题、目标、视频绑定或课程内容不改变 `courseId`；
-3. 同名课程可以存在，但 `courseId` 不能重复；
-4. `videoRef.videoId` 只用于匹配 B 站页面，不代表课程身份；
-5. 发布包、授权码关联、插件本地课程记录和学习状态都引用同一个 `courseId`。
+2. 修改课程标题、目标、课节标题、课节视频绑定或课程内容不改变 `courseId`；
+3. 新增、删除或调整课节不改变 `courseId`；
+4. 同名课程可以存在，但 `courseId` 不能重复；
+5. `lessonId` 只代表课程中的一个课节，不能替代 `courseId`；
+6. `videoRef.videoId` 只用于匹配课节所在的 B 站页面，不代表课程身份；
+7. 发布包、授权码关联、插件本地课程记录和学习状态都引用同一个 `courseId`，课节数据再通过 `lessonId` 隔离。
+
+## 课程、课节与视频
+
+课程是学生领取和展示的上层容器，课节是课程中的可学习单元，每个课节绑定一个 B 站视频：
+
+```text
+Course
+├── courseId
+├── title
+├── goal
+└── lessons
+    ├── Lesson 1
+    │   ├── lessonId
+    │   ├── title
+    │   ├── videoRef
+    │   └── nodes
+    ├── Lesson 2
+    │   ├── lessonId
+    │   ├── title
+    │   ├── videoRef
+    │   └── nodes
+    └── Lesson 3
+        ├── lessonId
+        ├── title
+        ├── videoRef
+        └── nodes
+```
+
+授权码领取的是整门课程，而不是单独的一条视频：
+
+```text
+授权码
+→ 下载一个 courseId
+→ 保存课程元数据
+→ 保存多个 lessonId
+→ 每个课节保存自己的 videoRef、nodes 和学习状态
+```
+
+学生进入 B 站页面时，插件按 `videoRef.videoId` 找到当前视频对应的课节，再通过 `courseId + lessonId` 读取正确的节点和学习状态。课程列表显示课程 `title`，课程详情再显示课节标题。
 
 ## 后台生成规则
 
@@ -106,9 +156,15 @@ def generate_course_id() -> str:
 courses/
 └── 7a0c4a42-91c8-4f4d-8a2e-17b89c4f6d21/
     ├── manifest.json
-    ├── course.json
     ├── metadata.json
-    └── learning-state.json
+    ├── lessons/
+    │   ├── 1f7b6b18-6b1e-4d2f-bb5e-b5f2a6d7150f/
+    │   │   ├── lesson.json
+    │   │   └── learning-state.json
+    │   └── 3b4a2d2c-44f8-4a27-93b5-7b4d4e4a5c91/
+    │       ├── lesson.json
+    │       └── learning-state.json
+    └── assets/
 ```
 
 目录名不依赖可变的课程名称。课程名称只写在 `manifest.json` 或 `metadata.json` 中，用于界面显示。
@@ -124,8 +180,11 @@ courses/
 ├── courseId
 ├── title
 ├── goal
-├── videoRef
-└── nodes
+└── lessons[]
+    ├── lessonId
+    ├── title
+    ├── videoRef
+    └── nodes
 
 课程资源
 ├── assetId
@@ -136,7 +195,7 @@ courses/
 └── storageRef
 ```
 
-课程节点只引用 `assetId`，不直接把图片、音频或其他大文件塞进课程身份结构。资源实际存储位置以后可以根据规模选择本地缓存、导出课程包或远程对象存储。
+课程节点只引用 `assetId`，不直接把图片、音频或其他大文件塞进课程身份结构。资源可以归属于课程或具体课节，实际存储位置以后可以根据规模选择本地缓存、导出课程包或远程对象存储。
 
 本轮非目标：
 
@@ -153,10 +212,20 @@ courses/
 
 ```text
 courseId  ← 后台 Course.id
-videoRef  ← 用于 B 站页面匹配
+lessonId  ← 后台 Lesson.id
+videoRef  ← 课节用于 B 站页面匹配
+nodes     ← 课节的互动节点
 ```
 
 旧版单课程数据迁移时，现有 `bilibili:<BVID>` 只能作为迁移期间的旧标识，不能继续作为新课程的永久身份。迁移方案需在多课程实现计划中单独定义。
+
+后端需要从一对一课程课节关系升级为一对多：
+
+- `Course.lesson` 改为 `Course.lessons`；
+- 移除当前阶段的 `LessonLimitReached` 长期限制；
+- 发布和草稿仍然按课节保存，但课程发布包聚合多个课节；
+- 授权码继续绑定课程，而不是绑定单独的 BVID；
+- 示例课程先使用一门课节验证流程，数据结构不能因此退化为课程直连视频。
 
 ## 方案比较
 
@@ -180,10 +249,14 @@ videoRef  ← 用于 B 站页面匹配
 - 同名课程获得不同的 `courseId`；
 - 修改课程名称不会改变 `courseId`；
 - 修改 BVID 不会改变 `courseId`；
+- 一门课程可以包含两个或以上课节；
+- 每个课节拥有独立 `lessonId` 和 `videoRef`；
+- 两个课节可以绑定不同 B 站视频；
+- 授权码下载后得到整门课程及其多个课节；
 - 发布包和授权码关联使用后台课程 UUID；
 - 课程目录名只使用稳定 `courseId`；
 - 插件不再从 BVID 生成新课程的永久 ID；
-- 未来多课程状态可以按 `courseId` 独立保存。
+- 未来多课程状态可以按 `courseId` 独立保存，课节状态再按 `lessonId` 隔离。
 
 ## 重新讨论条件
 
@@ -191,4 +264,4 @@ videoRef  ← 用于 B 站页面匹配
 - 课程 ID 必须由外部业务编号兼容；
 - 需要用户直接管理真实本地课程目录；
 - 资源规模要求单独的对象存储或离线课程包；
-- 多课节模型要求重新定义课程、课节和发布版本的身份层级。
+- 需要跨课程共享课节或同一课节独立售卖，重新定义课程、课节和授权边界。
