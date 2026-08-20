@@ -4,6 +4,14 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### 教师工作台与 FastAPI 发布到阿里云 ECS — 2026-08-20
+
+- `knownmap.com` 现在同时提供销售首页、教师工作台和同源 FastAPI；教师页面在生产环境自动请求 `https://knownmap.com/api/v1`，本地开发仍使用 8000 端口。
+- 新增教师平台生产发布入口、systemd 服务、Nginx 反代、独立 SQLite 数据目录和同一 release ID 的网页/后端/GitHub 标签/仓库记录。
+- 当前生产版本：`20260820T142243Z-ec1454ed2f31`，GitHub SHA `ec1454ed2f31512049069122406e8fbd387868b3`。
+- 生产验收：教师登录、创建课程和课节、保存 4 个节点、发布 `v1`、创建短期授权码、公开下载课程全部通过；`/health`、首页和教师工作台返回 200，私有路径保持 404。
+- 发布提交验证：Node 289 pass / 0 fail；FastAPI 40 pass / 0 fail（1 条上游弃用警告）；Shell 语法和 `git diff --check` 通过。
+
 ## [0.9.1] - 2026-08-20
 
 ### 学生插件工具栏首页与下载恢复

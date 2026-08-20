@@ -2,7 +2,7 @@
 
 最近审计：2026-08-20
 
-当前阶段：教师平台本地发布与插件授权下载闭环。教师侧节点 1–7 已验证；插件 `0.9.1` 已完成节点 8 实现、自动化测试和基本可行性确认，完整真实 Chrome 边界验收待收口；节点 9 尚未完成。第一阶段销售页和原型 Demo 已归档。其它 Agent 开始工作时，先读本文件，再按“当前权威”顺序阅读。
+当前阶段：教师平台公网发布与插件授权下载闭环。教师工作台和 FastAPI 已部署到阿里云 ECS，并完成生产登录、课程发布和授权码下载验收；插件 `0.9.1` 已完成节点 8 实现、自动化测试和基本可行性确认，完整真实 Chrome 边界验收待收口；节点 9 尚未完成。第一阶段销售页和原型 Demo 已归档。其它 Agent 开始工作时，先读本文件，再按“当前权威”顺序阅读。
 
 ## 当前权威
 
@@ -17,6 +17,7 @@
 | `doc/teacher-platform-data-spec.md` | 教师、课程、课节、脚本、发布版本、授权码和插件本地状态字段 | 当前数据实现 |
 | `doc/teacher-platform-api-spec.md` | 教师认证、课程发布、授权码和插件下载 API | 当前 API 与插件客户端实现 |
 | `doc/student-plugin-course-delivery-design.md` | 单课程授权领取、工具栏首页、本地学习状态和打开 B 站课程页 | `0.9.1` 已实现核心路径；边界验收待收口 |
+| `doc/student-plugin-release-design.md` | 学生插件固定 ZIP 下载地址、发布、手动更新和回滚 | 已接受；代码已实现，生产部署待验证 |
 | `doc/decisions/2026-08-18-student-plugin-single-course-delivery.md` | 学生插件单课程、可重复授权码和本地学习数据决策过程 | 已接受；核心实现完成 |
 | `doc/teacher-platform-dev-plan.md` | 节点 8–9 的文件范围、测试和阶段收口门禁 | 当前计划入口 |
 | `doc/teacher-visual-node-editor-design.md` | 教师组件注册、横向时间轴、点击/拖放添加和字幕上下文设计 | 已实现并完成本地验证 |
@@ -129,7 +130,9 @@
 | `src/background/` | 插件后台存储与五个操作处理器 |
 | `src/content/` | 工作台消息桥内容脚本，以及 B 站运行时 spike |
 | `tools/assemble-workspace.js` | 把 `src/shared/` 复制到 `teacher-web/shared/`，本地与公网加载同一路径 |
-| `tools/web-release.sh` | 从精确 GitHub 提交发布销售站，查询历史并原子回滚 |
+| `tools/web-release.sh` | 从精确 GitHub 提交发布静态销售页/教师工作台，查询历史并原子回滚 |
+| `tools/teacher-platform-release.sh` | 从同一精确 GitHub 提交发布教师工作台和 FastAPI 到阿里云 ECS |
+| `deploy/teacher-platform/` | 教师 API systemd、Nginx 和生产部署说明 |
 | `deploy/releases/` | 每次成功 Web 生产发布的一文件一记录 |
 | `deploy/releases/README.md` | 生产发布记录的字段、命名和维护说明 |
 | `tests/` | Node 自动化测试 |

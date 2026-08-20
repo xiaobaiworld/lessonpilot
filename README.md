@@ -2,16 +2,18 @@
 
 当前插件版本：`0.9.1`
 
+学生插件固定下载地址：`https://knownmap.com/downloads/student-plugin/knownmapplugin.zip`
+
 品牌域名：`knownmap.com`
 Logo 规范：[`docs/superpowers/specs/2026-08-18-knownmap-brand-update-design.md`](docs/superpowers/specs/2026-08-18-knownmap-brand-update-design.md)
 
 KnownMap 把老师已有的 B 站录播课变成可在原视频页面运行的互动课程。老师在公网工作台导入一条 B 站视频链接和对应字幕，配置互动节点；学生在 PC Chrome 安装本机插件后，于 B 站原页面到点暂停、作答、查看反馈并继续播放。
 
-第一阶段销售页和原型 Demo 已完成并归档。当前本地教师平台已经完成教师侧节点 1–7；插件 `0.9.1` 已接入授权码下载、单课程本地保存、匹配 BVID 运行和工具栏课程首页。当前功能已确认基本可行，下一步是完成节点 8 的真实 Chrome 边界验收，再执行节点 9 的空数据库完整闭环。
+第一阶段销售页和原型 Demo 已完成并归档。教师平台已部署到阿里云 ECS，公网工作台可以登录、创建课程、保存草稿、发布课程和创建授权码；插件 `0.9.1` 已接入授权码下载、单课程本地保存、匹配 BVID 运行和工具栏课程首页。下一步是完成节点 8 的真实 Chrome 边界验收，再执行节点 9 的完整公网闭环。
 
 ## 当前范围
 
-- 本地 FastAPI + SQLite 教师平台；
+- 本地与阿里云生产环境均运行 FastAPI + SQLite 教师平台；
 - 预建教师测试账号，登录名加密码；
 - 一门课程和一个课节；
 - B 站视频绑定和课程发布；
@@ -19,8 +21,9 @@ KnownMap 把老师已有的 B 站录播课变成可在原视频页面运行的�
 - 教师创建课程授权码；
 - 学生使用 KnownMap `0.9.1` 解压版 Chrome 插件，通过工具栏首页或 B 站页面书包输入授权码并下载课程；
 - 插件只保存一门当前课程及其本地学习状态，并只在匹配的 BVID 页面启动；
-- 教师 API 和教师编辑器公网部署作为后续阶段，不在当前实现范围；
+- 教师 API 和教师编辑器已部署到 `knownmap.com`；
 - 销售页已经作为 `knownmap.com` 的生产首页发布。
+- 学生插件包随 Web 发布从精确 commit 组装为 `knownmapplugin.zip`，销售页和插件工具栏首页共用固定下载地址；学生下载后替换本地解压目录并手动刷新扩展。
 - 销售页的飞书真实课程试用表单与独立入口模块已完成，公开链接已通过无登录态访问验收。
 
 问答题只保存学生原始回答，并展示老师预设的参考反馈；第一阶段不评分、不调用 AI。
@@ -40,13 +43,14 @@ KnownMap 把老师已有的 B 站录播课变成可在原视频页面运行的�
 | `/teacher-web/` | 历史销售页和教师工作台原型 | 保留作视觉和历史入口 |
 | `/teacher-web/workspace.html` | 历史 1A 连接诊断页 | 保留作协议诊断参考 |
 | `/teacher-web/forsales.html` | 公网销售页 | 第一阶段已完成，也是 `knownmap.com` 当前生产首页 |
-| `/teacher-web/editor.html` | 当前教师工作台 | 本地开发主入口，已接入教师平台 API |
+| `/teacher-web/editor.html` | 当前教师工作台 | 本地和生产主入口，已接入同源教师平台 API |
 
 ## Web 生产发布
 
-销售页生产地址是 [https://knownmap.com](https://knownmap.com)。生产服务器通过本机 SSH
-别名 `aliyun` 连接；公网只发布销售页白名单，不发布教师编辑器、后端、测试、文档、
-插件源码或仓库元数据。
+销售页生产地址是 [https://knownmap.com](https://knownmap.com)，教师工作台是
+[https://knownmap.com/teacher-web/editor.html](https://knownmap.com/teacher-web/editor.html)。
+生产服务器通过本机 SSH 别名 `aliyun` 连接；静态发布只包含销售页和教师工作台白名单，
+FastAPI 由 systemd 独立运行，测试、文档、插件源码和仓库元数据不上公网。
 
 当用户说“发布到网站”或“发布到 Web 网站”时，使用统一入口：
 
@@ -74,6 +78,18 @@ tools/web-release.sh rollback <release-id>
 
 完整规则见 [`doc/web-production-release-design.md`](doc/web-production-release-design.md)。
 GitHub Pages 工作流保留为第一阶段历史部署入口，不再代表 `knownmap.com` 当前生产版本。
+
+教师平台生产发布使用：
+
+```bash
+tools/teacher-platform-release.sh deploy <git-ref>
+tools/teacher-platform-release.sh status
+```
+
+截至 2026-08-20，当前生产版本为 `20260820T142243Z-ec1454ed2f31`，对应 GitHub 提交
+`ec1454ed2f31512049069122406e8fbd387868b3` 和标签
+`web-prod/20260820T142243Z-ec1454ed2f31`。服务器上的网页、FastAPI 和仓库发布记录使用
+同一个 release ID；SQLite 数据保存在 `/var/lib/knownmap/knownmap.db`，不随代码版本切换。
 
 ## 本地运行
 
