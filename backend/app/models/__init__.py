@@ -1,6 +1,7 @@
 """SQLAlchemy models."""
 
 from app.models.access_code import AccessCode
+from app.models.access_grant import AccessGrant
 from app.models.course import Course
 from app.models.lesson import Lesson
 from app.models.operation_log import OperationLog
@@ -13,6 +14,7 @@ from app.models.workspace import Workspace
 __all__ = [
     "Course",
     "AccessCode",
+    "AccessGrant",
     "Lesson",
     "OperationLog",
     "PublishedScript",

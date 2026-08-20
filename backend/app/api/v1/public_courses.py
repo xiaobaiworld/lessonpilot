@@ -27,7 +27,7 @@ def download_course(
     if not secret:
         raise ApiError(500, "SERVER_MISCONFIGURED", "服务端授权码配置缺失。")
     try:
-        code, course = download_course_by_access_code(
+        code, courses = download_course_by_access_code(
             db,
             raw_code=payload.access_code,
             secret=secret,
@@ -58,7 +58,7 @@ def download_course(
             duration_ms=duration_ms,
         )
         db.commit()
-        return CourseDownloadResponse(course=course)
+        return CourseDownloadResponse(courses=courses)
 
     duration_ms = round((perf_counter() - started_at) * 1000)
     record_operation(

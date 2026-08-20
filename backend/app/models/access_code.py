@@ -2,9 +2,10 @@ from datetime import datetime, timezone
 from uuid import uuid4
 
 from sqlalchemy import DateTime, ForeignKey, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db_base import Base
+from app.models.access_grant import AccessGrant
 
 
 class AccessCode(Base):
@@ -25,4 +26,10 @@ class AccessCode(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
+    )
+
+    grants: Mapped[list[AccessGrant]] = relationship(
+        back_populates="access_code",
+        cascade="all, delete-orphan",
+        order_by="AccessGrant.course_id, AccessGrant.lesson_id, AccessGrant.node_id, AccessGrant.id",
     )

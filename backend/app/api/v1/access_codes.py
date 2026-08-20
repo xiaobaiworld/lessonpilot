@@ -1,3 +1,4 @@
+from datetime import timezone
 from time import perf_counter
 
 from fastapi import APIRouter, Depends, Request, status
@@ -12,11 +13,13 @@ from app.schemas.access_code import (
     AccessCodeCounts,
     AccessCodeCreate,
     AccessCodeCreated,
+    AccessGrantScope,
     AccessCodeListResponse,
     AccessCodeRecord,
 )
 from app.services.access_code_service import (
     CourseNotPublished,
+    InvalidAccessScope,
     access_code_status,
     create_course_access_code,
     list_course_access_codes,
@@ -24,6 +27,24 @@ from app.services.access_code_service import (
 from app.services.course_service import ResourceNotFound, get_teacher_course
 
 router = APIRouter(prefix="/api/v1/teacher/courses", tags=["access-codes"])
+
+
+def _grant_scope(grant) -> AccessGrantScope:
+    valid_from = grant.valid_from
+    valid_until = grant.valid_until
+    if valid_from is not None and valid_from.tzinfo is None:
+        valid_from = valid_from.replace(tzinfo=timezone.utc)
+    if valid_until is not None and valid_until.tzinfo is None:
+        valid_until = valid_until.replace(tzinfo=timezone.utc)
+    return AccessGrantScope.model_validate(
+        {
+            "course_id": grant.course_id,
+            "lesson_id": grant.lesson_id,
+            "node_id": grant.node_id,
+            "valid_from": valid_from,
+            "valid_until": valid_until,
+        }
+    )
 
 
 @router.post(
@@ -50,6 +71,11 @@ def create_access_code(
             course_id=course_id,
             secret=secret,
             code_type=(payload or AccessCodeCreate()).code_type,
+            scopes=[
+                scope.model_dump()
+                for scope in ((payload or AccessCodeCreate()).scopes or [])
+            ]
+            or None,
         )
     except ResourceNotFound:
         error_code = "RESOURCE_NOT_FOUND"
@@ -59,6 +85,10 @@ def create_access_code(
         error_code = "COURSE_NOT_PUBLISHED"
         status_code = 409
         message = "课程发布后才能创建授权码。"
+    except InvalidAccessScope:
+        error_code = "INVALID_ACCESS_SCOPE"
+        status_code = 422
+        message = "授权范围无效。"
     else:
         duration_ms = round((perf_counter() - started_at) * 1000)
         write_operation(
@@ -80,6 +110,7 @@ def create_access_code(
             code_type=row.code_type,
             created_at=row.created_at,
             expires_at=row.expires_at,
+            scopes=[_grant_scope(grant) for grant in row.grants],
         )
 
     duration_ms = round((perf_counter() - started_at) * 1000)
@@ -129,6 +160,7 @@ def get_access_codes(
                 created_at=row.created_at,
                 expires_at=row.expires_at,
                 status=access_code_status(row),
+                scopes=[_grant_scope(grant) for grant in row.grants],
             )
             for row in rows
         ],
