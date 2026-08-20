@@ -1,6 +1,6 @@
 # KnownMap 数据规范
 
-版本：2.1
+版本：2.2
 
 更新时间：2026-08-20
 
@@ -8,14 +8,15 @@
 
 最近审计：2026-08-20
 
-关键词：SQLite、FastAPI、Pydantic、PluginCourseConfig、Chrome storage、字幕、授权码、
-学习状态、发布记录、数据质量。
+关键词：SQLite、FastAPI、Pydantic、管理员、教师账号、PluginCourseConfig、Chrome storage、
+字幕、授权码、学习状态、发布记录、数据质量。
 
 ## 1. 文档职责与权威顺序
 
 KnownMap 已经不是“没有后端的第一阶段原型”。当前系统同时包含：
 
 - 生产 FastAPI + SQLite 教师平台；
+- 独立超级管理员认证、教师账号创建和密码重置；
 - 教师浏览器中的字幕和编辑器临时状态；
 - 不可变课程发布版本；
 - 授权码摘要和公开下载响应；
@@ -49,6 +50,7 @@ KnownMap 已经不是“没有后端的第一阶段原型”。当前系统同�
 ### 2.1 数据目标
 
 - 让教师创建课程、课节和互动节点，保存草稿并发布不可变版本；
+- 让超级管理员创建教师、重置密码并查看已发布课程数量；
 - 让授权码只暴露必要课程配置，不泄露教师内部数据；
 - 让插件在下载后再次校验课程，并以原子方式保存课程和学习状态；
 - 让字幕留在教师浏览器，不进入课程发布包；
@@ -60,6 +62,8 @@ KnownMap 已经不是“没有后端的第一阶段原型”。当前系统同�
 | 来源 | 原始格式 | 获取方式 | 当前去向 | 敏感级别 |
 | --- | --- | --- | --- | --- |
 | 教师登录输入 | JSON | HTTPS/本地 HTTP 表单 | 认证服务；密码不持久化 | secret |
+| 管理员登录输入 | JSON | HTTPS/本地 HTTP 表单 | 独立认证服务；密码不持久化 | secret |
+| 教师账号管理 | JSON | 管理员 API | `teachers`、`workspaces`；临时密码只返回一次 | secret |
 | 课程与课节表单 | JSON | 教师 API | SQLite | internal |
 | 节点编辑器 | JSON | 教师 API | `script_drafts.config_json` | sensitive |
 | SRT/VTT 字幕 | 文本文件 | 教师浏览器本地选择 | 浏览器内存 | sensitive |
@@ -78,7 +82,7 @@ KnownMap 当前采用逻辑分层，不要求每层都有独立数据库：
 | --- | --- | --- | --- |
 | `raw` | 是 | 教师表单、授权码输入、SRT/VTT、HTTP 请求 | 浏览器/请求内存 |
 | `staging` | 是 | `Caption[]`、规范化授权码、Pydantic 输入 | 浏览器/服务进程 |
-| `canonical` | 是 | Teacher、Workspace、Course、Lesson、ScriptDraft | SQLite |
+| `canonical` | 是 | Admin、Teacher、Workspace、Course、Lesson、ScriptDraft | SQLite |
 | `derived` | 是 | 操作日志、授权码状态、学习状态 | SQLite / Chrome storage |
 | `published` | 是 | `PublishedScript.config_json` | SQLite |
 | `output` | 是 | API 响应、`PluginCourseConfig`、release JSON、插件 ZIP | HTTP / Git / 服务器 |
@@ -87,9 +91,12 @@ KnownMap 当前采用逻辑分层，不要求每层都有独立数据库：
 
 ## 4. 核心实体总览
 
-当前数据库有 10 个业务实体：
+当前数据库有 12 个业务实体：
 
 ```text
+Admin
+└── AdminSession[]
+
 Teacher
 ├── TeacherSession[]
 └── Workspace
@@ -106,6 +113,7 @@ OperationLog[]                   使用弱关联审计字段
 当前关键事实：
 
 - `Course.id` 已是后台 UUID；
+- `Admin` 与 `Teacher` 使用独立表、会话表、Cookie 和 API 权限边界；
 - `0008_multi_lesson_courses` 已移除 `Lesson.course_id` 唯一约束，后端按 `sort_order` 支持多课节；
 - 教师页面当前仍以一个活动课节为主要编辑入口，但发布服务会聚合课程下全部有草稿的课节；
 - `AccessCode.course_id` 仅作为教师端管理锚点，下载范围以多条 `AccessGrant` 为准；
@@ -140,8 +148,9 @@ OperationLog[]                   使用弱关联审计字段
 
 ### 6.1 后端持久化
 
-- 教师密码使用慢哈希；
-- 会话和授权码只存 HMAC 摘要；
+- 管理员和教师密码使用 Argon2 慢哈希；
+- 管理员会话、教师会话和授权码只存 HMAC 摘要；
+- 创建或重置教师密码时，原始临时密码只存在于当次 HTTPS 响应，不进入数据库或日志；
 - 课程与课节使用 UUID 主键，一门课程可保存多个有序课节；
 - 草稿按课节整份替换；
 - 发布版本按课节单调递增且不可变；
@@ -154,6 +163,7 @@ OperationLog[]                   使用弱关联审计字段
 - `captions`、编辑器选择、缩放、弹窗草稿和脏状态只在页面内存；
 - `sessionStorage.knownmap_teacher_session` 只表示页面应尝试恢复会话；
 - 真正会话凭证位于 HttpOnly Cookie；
+- 管理员 Cookie 为独立的 `knownmap_admin_session`，页面不把它写入 Web Storage；
 - 字幕正文不进入后端或插件课程配置。
 - `localStorage` key `lessonpilot.workspaceDraft.v1` 是阶段 1B 历史工作台草稿标识；当前
   FastAPI 教师编辑器不再使用它，但名称保留在规范中，避免旧页面或迁移工具误作新 key。
@@ -343,6 +353,8 @@ flowchart LR
 - 数据库字段、migration、Pydantic、插件契约和文档保持一致；
 - 输入类型、长度、枚举、唯一性、顺序和引用关系可执行校验；
 - 授权码、会话 token、密码和摘要不进入日志或文档；
+- 教师临时密码只允许出现在创建/重置的即时 HTTPS 响应和当前页面内存；
+- 教师列表的 `published_course_count` 只统计 `courses.status = 'published'`；
 - 字幕正文、节点正文和学生答案不进入运行日志；
 - 下载失败和 schema 失败不破坏已保存数据；
 - 发布结果可追溯到课节、发布版本、教师和 request ID；
@@ -370,6 +382,9 @@ migration。详见 [`data/quality.md`](data/quality.md)。
 | 多课程合并与并发写入 | `src/background/course-downloader.js` 的课程库队列 |
 | BVID 页面匹配 | `src/content/course-runtime.js` |
 | 会话 Cookie 和教师身份 | FastAPI 认证依赖 |
+| 管理员 Cookie 和管理员身份 | 独立 FastAPI 管理员认证依赖 |
+| 教师账号创建/重置 | 管理员服务层 + Argon2 哈希 |
+| 已发布课程数量 | SQLAlchemy 分组聚合，只计 `published` |
 | 日志脱敏 | 固定日志字段和不记录原文的调用约束 |
 | 发布记录与文件哈希 | `tools/web-release.sh` |
 
@@ -398,3 +413,4 @@ migration。详见 [`data/quality.md`](data/quality.md)。
 | 2026-08-20 | 拆分模型、字典、流和质量文档，区分当前实现与目标模型 | 当前文档治理 |
 | 2026-08-20 | 同步多课节后端、v2 课程包契约和 `studentCourseStore` 的分段实施状态 | 多课程迁移进行中 |
 | 2026-08-20 | 完成 v2-only 多课程主链路、范围授权和内置示例课程，舍弃旧单课程兼容 | 多课程主链路生效 |
+| 2026-08-20 | 加入独立超级管理员、教师账号创建/重置和已发布课程统计 | 管理后台数据边界生效 |

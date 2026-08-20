@@ -4,6 +4,7 @@
 
 - 静态工作台：`https://knownmap.com/teacher-web/editor.html`
 - 站点索引：`https://knownmap.com/admin.html`
+- 教师账号管理：`https://knownmap.com/admin.html` 登录后的管理员工作台
 - 学生插件下载：`https://knownmap.com/downloads/student-plugin/knownmapplugin.zip`
 - API：`https://knownmap.com/api/v1/`
 - API 进程：仅监听服务器本机 `127.0.0.1:8000`
@@ -42,6 +43,37 @@ unset KNOWNMAP_PRODUCTION_TEACHER_PASSWORD
 密码通过 SSH 标准输入写入服务器 `/root` 下的 `0600` 临时文件，seed 完成后立即删除；
 不会进入命令参数、标准输出、Git、发布记录或长期环境文件。
 
+## 超级管理员首次初始化
+
+管理员与教师账号完全分离。首次发布管理员功能时，发布脚本在迁移后检查 `admins`：
+
+- 已存在管理员：只运行 migration，不重置密码、昵称或状态；
+- 尚无管理员：使用默认登录名 `admin` 和一次性初始密码执行显式管理员 seed；
+- 提供 `KNOWNMAP_PRODUCTION_ADMIN_PASSWORD` 时使用该值；
+- 未提供时由本机 `openssl rand` 生成高熵密码，并只在当前部署终端输出一次；
+- 初始密码不得进入 Git、release JSON、服务器长期环境文件、命令参数或数据库明文。
+
+可显式提供初始密码：
+
+```bash
+read -r -s KNOWNMAP_PRODUCTION_ADMIN_PASSWORD
+export KNOWNMAP_PRODUCTION_ADMIN_PASSWORD
+tools/teacher-platform-release.sh deploy <git-ref>
+unset KNOWNMAP_PRODUCTION_ADMIN_PASSWORD
+```
+
+底层 seed 只在明确调用管理员路径时读取临时变量：
+
+```bash
+SEED_ADMIN_LOGIN_NAME=admin \
+SEED_ADMIN_PASSWORD="$ONE_TIME_ADMIN_PASSWORD" \
+SEED_ADMIN_DISPLAY_NAME='KnownMap 管理员' \
+  python -m app.seed admin
+```
+
+示例值只说明变量形态，不是生产密码。seed 仅创建缺失账号；再次运行不会覆盖已有管理员。
+数据库只保存 Argon2 哈希。
+
 生产边界：
 
 - SSH 仅允许密钥登录；公网只开放 `22/80/443`。
@@ -61,5 +93,10 @@ unset KNOWNMAP_PRODUCTION_TEACHER_PASSWORD
 ```bash
 tools/teacher-platform-release.sh status
 curl -fsS https://knownmap.com/health
+curl -fsS https://knownmap.com/admin.html >/dev/null
+curl -sS -o /dev/null -w '%{http_code}\n' https://knownmap.com/api/v1/admin/auth/me
 ssh aliyun systemctl status knownmap-backup.timer
 ```
+
+未登录访问管理员会话接口预期返回 `401`。部署后还需人工验证管理员登录、教师列表、创建测试
+教师、重置密码和退出；临时密码只在当前页面显示一次，不写入发布记录或日志。

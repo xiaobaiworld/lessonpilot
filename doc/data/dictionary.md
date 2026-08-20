@@ -27,10 +27,10 @@
 | `id` | `VARCHAR(36)` | 否 | UUID 主键 | 是 | internal |
 | `login_name` | `VARCHAR(80)` | 否 | 唯一索引；请求长度 3-80 | 是 | sensitive |
 | `password_hash` | `VARCHAR(255)` | 否 | `pwdlib` 推荐慢哈希 | 否 | secret |
-| `display_name` | `VARCHAR(120)` | 否 | seed 输入 | 是 | internal |
+| `display_name` | `VARCHAR(120)` | 否 | seed 或管理员创建输入 | 是 | internal |
 | `status` | `VARCHAR(20)` | 否 | 默认 `active` | 是 | internal |
-| `created_at` | datetime | 否 | 服务端 UTC | 否 | internal |
-| `updated_at` | datetime | 否 | 服务端 UTC，更新时刷新 | 否 | internal |
+| `created_at` | datetime | 否 | 服务端 UTC | 管理员教师列表 | internal |
+| `updated_at` | datetime | 否 | 服务端 UTC，更新时刷新 | 管理员教师列表 | internal |
 
 ### 2.2 `teacher_sessions`
 
@@ -45,7 +45,33 @@
 
 浏览器 Cookie 保存随机 token，使用 `HttpOnly`、`SameSite=Lax`；生产环境增加 `Secure`。
 
-### 2.3 `workspaces`
+### 2.3 `admins`
+
+| 字段 | 类型 | 空值 | 默认/约束 | API 暴露 | 敏感级别 |
+| --- | --- | --- | --- | --- | --- |
+| `id` | `VARCHAR(36)` | 否 | UUID 主键 | 是 | internal |
+| `login_name` | `VARCHAR(80)` | 否 | 具名唯一索引；请求长度 3-80 | 是 | sensitive |
+| `password_hash` | `VARCHAR(255)` | 否 | Argon2 慢哈希 | 否 | secret |
+| `display_name` | `VARCHAR(120)` | 否 | bootstrap 输入 | 是 | internal |
+| `status` | `VARCHAR(20)` | 否 | `active` / `disabled` | 是 | internal |
+| `created_at` | datetime | 否 | 服务端 UTC | 否 | internal |
+| `updated_at` | datetime | 否 | 服务端 UTC，更新时刷新 | 否 | internal |
+
+### 2.4 `admin_sessions`
+
+| 字段 | 类型 | 空值 | 默认/约束 | 说明 | 敏感级别 |
+| --- | --- | --- | --- | --- | --- |
+| `id` | `VARCHAR(36)` | 否 | UUID 主键 | 会话记录 ID | internal |
+| `admin_id` | `VARCHAR(36)` | 否 | 管理员外键、索引 | 管理员归属 | internal |
+| `token_digest` | `VARCHAR(64)` | 否 | HMAC-SHA256、具名唯一索引 | 不保存原 token | secret |
+| `expires_at` | datetime | 否 | 登录时间 + TTL | 过期后拒绝 | internal |
+| `revoked_at` | datetime | 是 | 默认空 | 退出时写入 | internal |
+| `created_at` | datetime | 否 | 服务端 UTC | 创建时间 | internal |
+
+浏览器使用独立 `knownmap_admin_session` Cookie。Cookie 为 `HttpOnly`、`SameSite=Lax`，
+生产环境增加 `Secure`，不写入 `localStorage` 或 `sessionStorage`。
+
+### 2.5 `workspaces`
 
 | 字段 | 类型 | 空值 | 默认/约束 | 说明 | 敏感级别 |
 | --- | --- | --- | --- | --- | --- |
@@ -54,7 +80,7 @@
 | `name` | `VARCHAR(120)` | 否 | 自动生成 | 当前无编辑 API | internal |
 | `created_at` | datetime | 否 | 服务端 UTC | 创建时间 | internal |
 
-### 2.4 `courses`
+### 2.6 `courses`
 
 | 字段 | 类型 | 空值 | 默认/约束 | API 映射 | 敏感级别 |
 | --- | --- | --- | --- | --- | --- |
@@ -66,7 +92,7 @@
 | `created_at` | datetime | 否 | 服务端 UTC | `created_at` | internal |
 | `updated_at` | datetime | 否 | 服务端 UTC | `updated_at` | internal |
 
-### 2.5 `lessons`
+### 2.7 `lessons`
 
 | 字段 | 类型 | 空值 | 默认/约束 | API 映射 | 敏感级别 |
 | --- | --- | --- | --- | --- | --- |
@@ -80,7 +106,7 @@
 | `created_at` | datetime | 否 | 服务端 UTC | `created_at` | internal |
 | `updated_at` | datetime | 否 | 服务端 UTC | `updated_at` | internal |
 
-### 2.6 `script_drafts`
+### 2.8 `script_drafts`
 
 | 字段 | 类型 | 空值 | 默认/约束 | 说明 | 敏感级别 |
 | --- | --- | --- | --- | --- | --- |
@@ -90,7 +116,7 @@
 | `config_json` | JSON | 否 | `{"nodes":[]}` | 完整节点数组 | sensitive |
 | `updated_at` | datetime | 否 | 服务端 UTC | 保存时间 | internal |
 
-### 2.7 `published_scripts`
+### 2.9 `published_scripts`
 
 | 字段 | 类型 | 空值 | 默认/约束 | 说明 | 敏感级别 |
 | --- | --- | --- | --- | --- | --- |
@@ -101,7 +127,7 @@
 | `published_at` | datetime | 否 | 服务端 UTC | 发布时间 | internal |
 | `published_by` | `VARCHAR(36)` | 否 | 教师外键 | 发布者 | internal |
 
-### 2.8 `access_codes`
+### 2.10 `access_codes`
 
 | 字段 | 类型 | 空值 | 默认/约束 | 说明 | 敏感级别 |
 | --- | --- | --- | --- | --- | --- |
@@ -116,14 +142,14 @@
 原始授权码格式是 `KM-XXXXX-XXXXX-XXXXX-XXXXX`，字符集为 Base32 大写字母和数字 2-7。
 原文只在创建响应中返回一次，不写入数据库、日志或长期文档。
 
-### 2.9 `operation_logs`
+### 2.11 `operation_logs`
 
 | 字段 | 类型 | 空值 | 说明 | 敏感级别 |
 | --- | --- | --- | --- | --- |
 | `id` | integer | 否 | 自增主键 | internal |
 | `timestamp` | datetime | 否 | 服务端 UTC | internal |
 | `request_id` | `VARCHAR(100)` | 否 | HTTP 请求关联 ID | internal |
-| `actor_type` | `VARCHAR(40)` | 否 | `teacher` / `plugin` / `system` / `anonymous` | internal |
+| `actor_type` | `VARCHAR(40)` | 否 | `admin` / `teacher` / `plugin` / `system` / `anonymous` | internal |
 | `actor_id` | `VARCHAR(80)` | 是 | 当前没有学生 ID | internal |
 | `module` | `VARCHAR(80)` | 否 | 业务模块 | internal |
 | `action` | `VARCHAR(120)` | 否 | 稳定动作名 | internal |
@@ -132,6 +158,9 @@
 | `result` | `VARCHAR(20)` | 否 | `success` / `failure` | internal |
 | `error_code` | `VARCHAR(80)` | 是 | 稳定错误码 | internal |
 | `duration_ms` | integer | 是 | 动作耗时 | internal |
+
+管理员操作日志可以记录管理员 ID、动作、目标教师 ID、结果、错误码、请求 ID 和耗时。
+不得记录管理员密码、教师临时密码、密码哈希、Cookie、原始会话 token 或完整请求体。
 
 ## 3. 插件课程契约
 
@@ -236,8 +265,12 @@
 | 节点编辑 `dialog.draft` | 编辑器状态 | 弹窗打开期间 | 保存节点后才进入草稿 |
 | `knownmap_teacher_session=1` | `sessionStorage` | 当前标签页会话 | 否，只表示应尝试 `/auth/me` |
 | 会话 token | HttpOnly Cookie | TTL 内或退出前 | 浏览器自动发送，不可被页面 JS 读取 |
+| 管理员身份与教师列表 | `admin.html` 页面内存 | 当前管理员页面会话 | 否 |
+| 教师临时密码 | `admin.html` 文本节点/JS 变量 | 当前创建或重置结果 | 否；刷新、退出或会话失效后清空 |
+| 管理员会话 token | `knownmap_admin_session` HttpOnly Cookie | TTL 内或退出前 | 页面 JS 不可读取 |
 
 字幕文件内容和解析后的字幕正文只在教师浏览器中存在。
+管理员页面不得把教师临时密码写入 `localStorage`、`sessionStorage`、URL 或 HTML 源文件。
 
 历史阶段 1B 曾使用 `localStorage` key `lessonpilot.workspaceDraft.v1` 保存单个网页草稿。
 当前 FastAPI 编辑器不读写该 key；它仅作为兼容保留标识，不得复用于新的多课程 store。
@@ -246,6 +279,9 @@
 
 | API 对象 | 关键字段 | 说明 |
 | --- | --- | --- |
+| `AdminAuthResponse` | 管理员 `id/login_name/display_name/status` | 不返回密码哈希或会话 token |
+| `AdminTeacherSummary` | 教师公开字段、时间、`published_course_count` | 草稿课程不计入 |
+| `AdminTeacherMutationResponse` | `teacher`、`temporary_password` | 临时密码只在创建/重置响应出现一次 |
 | `CourseDetail` | 课程字段 + `lessons[]` | 按 `sort_order, created_at` 返回多个课节 |
 | `ScriptDraftResponse` | `schema_version`、`config`、`lesson_id`、`node_count`、`updated_at` | 草稿读取/保存 |
 | `PublishResponse` | `course_id`、`lesson_id`、`version`、`published_at`、`course` | `course` 是插件输出 |

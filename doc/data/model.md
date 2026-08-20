@@ -13,6 +13,7 @@
 
 ```mermaid
 erDiagram
+  Admin ||--o{ AdminSession : creates
   Teacher ||--o{ TeacherSession : creates
   Teacher ||--|| Workspace : owns
   Workspace ||--o{ Course : contains
@@ -33,7 +34,9 @@ erDiagram
 
 | 实体 | 主键 | 当前基数 | 生命周期 | 实现位置 |
 | --- | --- | --- | --- | --- |
-| `Teacher` | UUID 字符串 | 一个教师可有多条会话 | seed 创建，状态控制可用性 | `backend/app/models/teacher.py` |
+| `Admin` | UUID 字符串 | 一个管理员可有多条会话 | 显式 bootstrap 创建，状态控制可用性 | `backend/app/models/admin.py` |
+| `AdminSession` | UUID 字符串 | 多条会话归属一个管理员 | 登录创建，过期或退出撤销 | `backend/app/models/admin_session.py` |
+| `Teacher` | UUID 字符串 | 一个教师可有多条会话 | seed 或管理员 API 创建，状态控制可用性 | `backend/app/models/teacher.py` |
 | `TeacherSession` | UUID 字符串 | 多条会话归属一个教师 | 登录创建，过期或退出撤销 | `backend/app/models/teacher_session.py` |
 | `Workspace` | UUID 字符串 | 当前一个教师唯一一个工作空间 | 首次创建课程时自动建立 | `backend/app/models/workspace.py` |
 | `Course` | UUID 字符串 | 一个工作空间可有多门课程 | `draft` 到 `published` | `backend/app/models/course.py` |
@@ -48,6 +51,9 @@ erDiagram
 
 | 约束 | 当前实现 |
 | --- | --- |
+| 管理员登录名唯一 | `admins.login_name` 具名唯一索引 |
+| 管理员会话摘要唯一 | `admin_sessions.token_digest` 具名唯一索引 |
+| 管理员会话归属 | `admin_sessions.admin_id -> admins.id` 外键 |
 | 教师登录名唯一 | `teachers.login_name` 唯一索引 |
 | 会话摘要唯一 | `teacher_sessions.token_digest` 唯一索引 |
 | 一个教师一个工作空间 | `workspaces.owner_teacher_id` 唯一索引 |
@@ -60,6 +66,10 @@ erDiagram
 
 状态值、授权码类型和部分字符串枚举当前主要由服务层或 Pydantic 校验，数据库列本身仍是
 普通字符串，不具备 `CHECK` 约束。
+
+管理员和教师的认证数据完全分离。两类密码都只保存 Argon2 哈希；两类会话都只保存
+HMAC-SHA256 token 摘要。管理员创建或重置教师密码时，原始临时密码不属于数据库模型，
+只允许出现在当次 HTTPS 响应。
 
 ## 4. 当前领域模型与输出模型
 

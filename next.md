@@ -8,26 +8,33 @@
 
 实施计划：`docs/superpowers/plans/2026-08-20-teacher-account-admin.md`
 
-当前步骤：同步管理员与老师账号管理的数据、API、架构和部署文档。
+当前步骤：扩展现有 `admin.html`，组装管理员登录和教师账号管理界面。
 
 涉及文件：
 
-- `doc/data-spec.md`
-- `doc/data/model.md`
-- `doc/data/dictionary.md`
-- `doc/data/flow.md`
-- `doc/data/quality.md`
-- `doc/teacher-platform-api-spec.md`
-- `doc/teacher-platform-architecture.md`
-- `deploy/teacher-platform/README.md`
-- `doc/INDEX.md`
+- `teacher-web/admin.html`
+- `teacher-web/admin.js`
+- `tests/admin-page.test.js`
+- `tools/web-release.sh`
 
 验证方式：
 
 ```text
+node --test tests/admin-page.test.js
+node --test tests/*.test.js
 git diff --check
-rg -n -i '(password|token|cookie)' doc/data doc/teacher-platform-api-spec.md deploy/teacher-platform/README.md
 ```
+
+已完成的权威文档同步：
+
+- 数据规范和 ER 模型加入 `admins`、`admin_sessions` 及独立认证边界；
+- 字段字典记录 Argon2 哈希、HMAC 会话摘要和管理员教师摘要响应；
+- 数据流记录管理员 bootstrap、创建/重置教师、一次性密码响应和发布课程 SQL 聚合；
+- 数据质量规则禁止密码、哈希、Cookie、原始 token 和临时密码持久化或进入日志；
+- API 文档加入管理员登录、会话恢复、退出、教师列表、创建和重置密码端点；
+- 架构与部署文档加入独立管理员模块、首次初始化和生产验证步骤；
+- 文档敏感词扫描只命中字段名、变量名、占位符和禁止规则，没有真实凭据；
+- `git diff --check` 通过。
 
 已完成的老师账号管理后端：
 

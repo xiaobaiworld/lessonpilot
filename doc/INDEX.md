@@ -2,10 +2,10 @@
 
 最近审计：2026-08-20
 
-当前阶段：多课程数据底座实施。教师工作台和 FastAPI 已部署到阿里云 ECS，并完成生产登录、
+当前阶段：超级管理员与教师账号管理实施。教师工作台和 FastAPI 已部署到阿里云 ECS，并完成生产登录、
 课程发布和授权码下载验收；插件 `0.9.1` 的单课程核心路径已经实现，真实 Chrome 边界与公网
-完整闭环仍待收口。当前开发按多课程实施计划推进 UUID 课程包、多课节、范围授权和版本化
-插件存储。第一阶段销售页和原型 Demo 已归档。其它 Agent 开始工作时，先读本文件，再按
+完整闭环仍待收口。当前工作区已实现独立管理员认证、教师账号创建/重置和发布课程统计，
+正在同步文档、`admin.html` 界面和生产发布流程。第一阶段销售页和原型 Demo 已归档。其它 Agent 开始工作时，先读本文件，再按
 “当前权威”顺序阅读。
 
 ## 当前权威
@@ -17,14 +17,14 @@
 | `doc/AI_Learning_Companion_Product_Function_Spec_v0.2.md` | 教师中心平台化产品功能、授权码下载/更新语义和验收方向 | 长期产品规格；本地最小切片已部分实现 |
 | `doc/decisions/2026-08-18-teacher-centered-product-v0.2.md` | v0.2 教师账号、工作空间、本地课程和授权码决策过程 | 已接受；当前只实现本地最小切片 |
 | `doc/decisions/2026-08-18-teacher-platform-local-slice.md` | 当前本地教师发布、授权码下载切片的范围决策 | 已接受；教师侧已验证，插件侧待完整人工验收 |
-| `doc/teacher-platform-architecture.md` | FastAPI、SQLite、教师端、插件和数据边界 | 当前架构；多课程目标未实施 |
+| `doc/teacher-platform-architecture.md` | FastAPI、SQLite、管理员、教师端、插件和数据边界 | 当前架构 |
 | `doc/data-spec.md` | 数据规范总入口、权威顺序、结构摘要和当前/目标边界 | 当前数据权威 |
 | `doc/data/model.md` | 数据库 ER 模型、约束、课程包及目标模型 | 当前实现 + 已接受目标 |
 | `doc/data/dictionary.md` | 数据库、API、插件存储和结构化文件字段字典 | 当前实现 + 计划字段 |
 | `doc/data/flow.md` | 创建、发布、授权下载、学习状态、日志和发布血缘 | 当前实现 + 迁移路径 |
 | `doc/data/quality.md` | 校验矩阵、数据质量、已知漂移和变更门禁 | 当前 |
 | `doc/teacher-platform-data-spec.md` | 旧教师数据规范入口 | 兼容指针 |
-| `doc/teacher-platform-api-spec.md` | 教师认证、课程发布、授权码和插件下载 API | 当前 API 与插件客户端实现 |
+| `doc/teacher-platform-api-spec.md` | 管理员/教师认证、教师账号管理、课程发布、授权码和插件下载 API | 当前 API 与插件客户端实现 |
 | `doc/student-plugin-course-delivery-design.md` | 单课程授权领取、工具栏首页、本地学习状态和打开 B 站课程页 | `0.9.1` 已实现核心路径；边界验收待收口 |
 | `doc/student-plugin-release-design.md` | 学生插件固定 ZIP 下载地址、发布、手动更新和回滚 | 已接受；代码已实现，生产部署待验证 |
 | `doc/decisions/2026-08-18-student-plugin-single-course-delivery.md` | 学生插件单课程、可重复授权码和本地学习数据决策过程 | 已接受；核心实现完成 |
@@ -47,12 +47,12 @@
 | `doc/stage-one-validation-loop-design.md` | 第一阶段原型设计、架构与理由 | 历史设计参考 |
 | `doc/DECISIONS.md` | 方案比较、假设、重开条件和替代关系 | 当前决策权威 |
 | `docs/superpowers/specs/2026-08-20-course-identity-and-storage-design.md` | 课程 UUID 身份、未来本地课程包和资源存储边界 | 已接受；待实施 |
-| `docs/superpowers/specs/2026-08-20-teacher-account-admin-design.md` | 超级管理员、教师账号创建/重置、课程统计和 `admin.html` 工作台 | 已接受；待实施 |
+| `docs/superpowers/specs/2026-08-20-teacher-account-admin-design.md` | 超级管理员、教师账号创建/重置、课程统计和 `admin.html` 工作台 | 已接受；后端已实现，界面与部署待完成 |
 | `doc/archive/2026-08-18-stage-one-demo/dev-plan.md` | 第一阶段销售页和原型 Demo 计划 | 已归档；只用于追溯 |
 | `doc/archive/2026-08-18-stage-one-demo/next.md` | 第一阶段最后执行步骤 | 已归档；不作为当前任务 |
 | `doc/archive/2026-08-18-teacher-platform-nodes-1-7/dev-plan.md` | 教师平台节点 1–7 完整开发计划 | 已归档；只用于追溯 |
 | `doc/archive/2026-08-18-teacher-platform-nodes-1-7/next.md` | 教师平台节点 1–7 执行与验证记录 | 已归档；不作为当前任务 |
-| `next.md` | 多课程数据底座当前步骤及单课程闭环遗留门禁 | 当前任务权威 |
+| `next.md` | 超级管理员与教师账号管理当前步骤及既有遗留门禁 | 当前任务权威 |
 | `docs/superpowers/specs/2026-08-18-knownmap-brand-update-design.md` | KnownMap 名称、域名、Logo 几何、颜色和迁移边界 | 当前品牌设计权威 |
 | `docs/knownmap-logo-resources.md` | Logo 形态、颜色含义、使用场景和资源落点 | 当前 Logo 资源说明 |
 | `docs/superpowers/plans/2026-08-18-knownmap-brand-update.md` | KnownMap 品牌资源、页面、文档和验证实施计划 | 当前品牌实施计划 |
@@ -79,9 +79,10 @@
 | 文档 | 可独立验收结果 | 前置 |
 | --- | --- | --- |
 | `docs/superpowers/plans/2026-08-20-multi-course-authorization-and-example-course.md` | UUID 课程包、多课节、范围授权、多课程存储和示例课程 | 当前执行计划 |
+| `docs/superpowers/plans/2026-08-20-teacher-account-admin.md` | 超级管理员、教师账号管理、文档、页面和生产部署 | 当前执行计划 |
 | `doc/teacher-platform-dev-plan.md` | 单课程插件授权下载、运行和公网闭环 | 兼容路径仍需收口 |
 | `doc/student-plugin-course-delivery-design.md` | 单课程插件领取、覆盖、工具栏首页和本地状态 | `0.9.1` 兼容基线 |
-| `next.md` | 多课程数据底座步骤与遗留验收门禁 | 当前执行入口 |
+| `next.md` | 超级管理员与教师账号管理步骤及遗留验收门禁 | 当前执行入口 |
 
 ## 已完成阶段计划
 

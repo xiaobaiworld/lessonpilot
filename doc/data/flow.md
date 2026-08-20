@@ -156,6 +156,8 @@ flowchart LR
 
 | 最终数据 | 上游来源 | 转换规则 | 追踪字段 | 输出位置 |
 | --- | --- | --- | --- | --- |
+| `Admin` / `AdminSession` | 显式 bootstrap、管理员登录 | Argon2 哈希、HMAC token 摘要 | `admin_id/session_id/request_id` | SQLite |
+| 教师账号与临时密码响应 | 管理员创建/重置 | 登录名 trim、随机密码、Argon2 哈希 | `teacher_id/request_id` | SQLite + 当次 HTTPS 响应 |
 | `Course` | 教师课程表单 | trim、长度校验 | `Course.id`、时间 | SQLite |
 | `Lesson` | 课节表单、B 站 URL | BVID 提取/校验 | `Lesson.id/course_id` | SQLite |
 | `ScriptDraft.config_json` | 可视化节点编辑器 | 排序、严格节点 schema | `lesson_id/updated_at` | SQLite |
@@ -201,3 +203,26 @@ flowchart LR
 详细步骤见
 [`2026-08-20-multi-course-authorization-and-example-course.md`](../../docs/superpowers/plans/2026-08-20-multi-course-authorization-and-example-course.md)。
 真实 Chrome 边界和公网下载端点仍需单独验收。
+
+## 11. 管理员与教师账号管理
+
+```mermaid
+flowchart LR
+  A["管理员登录名 + 密码"] --> B["Argon2 校验"]
+  B --> C["独立管理员会话 Cookie"]
+  C --> D["管理员教师账号 API"]
+  D --> E["创建教师或重置密码"]
+  E --> F["安全随机临时密码"]
+  F --> G["Argon2 哈希写入 teachers"]
+  F --> H["当次 HTTPS 响应"]
+  D --> I["SQL 聚合 published 课程数"]
+  D --> J["operation_logs 脱敏摘要"]
+```
+
+- 管理员与教师使用独立账号表、会话表、Cookie 和认证依赖；
+- 管理员 bootstrap 只能由显式 seed 路径触发，已有管理员不会被后续发布重置；
+- 创建教师时同时建立 workspace；重复登录名拒绝且不修改既有账号；
+- 重置密码只修改 `password_hash`，不改变昵称或 `active` / `disabled` 状态；
+- 临时密码只在当前 HTTPS 响应和页面内存中存在，刷新、退出或会话失效后清除；
+- 教师列表使用数据库聚合，只统计 `courses.status = 'published'`，草稿不计入；
+- 日志不得包含管理员密码、教师临时密码、密码哈希、Cookie、原始 token 或请求体。
