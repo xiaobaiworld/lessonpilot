@@ -8,26 +8,37 @@
 
 实施计划：`docs/superpowers/plans/2026-08-20-teacher-account-admin.md`
 
-当前步骤：实现老师账号管理服务与受保护 API。
+当前步骤：同步管理员与老师账号管理的数据、API、架构和部署文档。
 
 涉及文件：
 
-- `backend/app/repositories/admin_teacher_repository.py`
-- `backend/app/services/admin_teacher_service.py`
-- `backend/app/api/v1/admin_teachers.py`
-- `backend/app/main.py`
-- `backend/app/schemas/admin.py`
-- `backend/tests/unit/test_admin_teacher_service.py`
-- `backend/tests/integration/test_admin_api.py`
+- `doc/data-spec.md`
+- `doc/data/model.md`
+- `doc/data/dictionary.md`
+- `doc/data/flow.md`
+- `doc/data/quality.md`
+- `doc/teacher-platform-api-spec.md`
+- `doc/teacher-platform-architecture.md`
+- `deploy/teacher-platform/README.md`
+- `doc/INDEX.md`
 
 验证方式：
 
 ```text
-cd backend
-uv run pytest tests/unit/test_admin_teacher_service.py tests/integration/test_admin_api.py -q
-uv run pytest -q
 git diff --check
+rg -n -i '(password|token|cookie)' doc/data doc/teacher-platform-api-spec.md deploy/teacher-platform/README.md
 ```
+
+已完成的老师账号管理后端：
+
+- `GET /api/v1/admin/teachers` 返回教师公开字段和已发布课程数；
+- 发布课程数由 SQL 聚合计算，只计 `courses.status = 'published'`；
+- `POST /api/v1/admin/teachers` 创建 active 教师及其 workspace，并仅在当次响应返回随机临时密码；
+- 重复教师登录名返回冲突，不覆盖既有昵称、状态或密码哈希；
+- `POST /api/v1/admin/teachers/{teacher_id}/reset-password` 只更新密码哈希，不自动恢复停用账号；
+- 临时密码由系统安全随机源生成，数据库只保存 Argon2 哈希；
+- 操作日志只记录管理员 ID、动作、教师 ID、结果和错误码；
+- 聚焦测试 `18 passed`，后端全量 `96 passed`，Python 编译和 `git diff --check` 通过。
 
 已完成的管理员认证 API：
 
