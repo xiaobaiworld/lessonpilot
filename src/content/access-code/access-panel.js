@@ -1,4 +1,6 @@
-/** Student bookbag UI and its testable download controller. */
+// 定位: 学生书包 UI、课程链接构造和可测试的授权码下载控制器。
+// 入口参数: 授权码文本、runtime 下载函数、覆盖确认函数和可选超时时间。
+// 返回参数: 标准化下载结果、课程记录，以及挂载到 B 站页面的 AccessPanel。
 (function initAccessPanel(global, factory) {
   const api = factory();
   global.LessonPilotAccessPanel = api;
@@ -26,33 +28,45 @@
     };
   }
 
-  function createAccessCodeController({ download, confirmReplace }) {
+  function createAccessCodeController({ download, confirmReplace, timeoutMs = 10000 }) {
+    async function request(payload) {
+      let timer;
+      try {
+        const result = await Promise.race([
+          Promise.resolve().then(() => download(payload)),
+          new Promise((_, reject) => {
+            timer = setTimeout(() => reject(new Error('runtime timeout')), timeoutMs);
+          })
+        ]);
+        if (!result || typeof result !== 'object' || Array.isArray(result)
+          || typeof result.ok !== 'boolean') {
+          return { ok: false, error: 'EXTENSION_UNAVAILABLE' };
+        }
+        return result;
+      } catch {
+        return { ok: false, error: 'EXTENSION_UNAVAILABLE' };
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
     async function submit(value) {
       const authorizationCode = normalizeAccessCode(value);
       if (!ACCESS_CODE_PATTERN.test(authorizationCode)) {
         return { ok: false, error: 'INVALID_ACCESS_CODE' };
       }
-      let first;
-      try {
-        first = await download({ authorizationCode });
-      } catch {
-        return { ok: false, error: 'EXTENSION_UNAVAILABLE' };
-      }
+      const first = await request({ authorizationCode });
       if (first.error !== 'COURSE_REPLACEMENT_REQUIRED') return first;
       const confirmed = await confirmReplace({
         currentCourseId: first.currentCourseId,
         incomingCourseId: first.incomingCourseId
       });
       if (!confirmed) return { ...first, error: 'COURSE_REPLACEMENT_CANCELLED' };
-      try {
-        return await download({
-          authorizationCode,
-          replaceCourse: true,
-          expectedCourseId: first.currentCourseId
-        });
-      } catch {
-        return { ok: false, error: 'EXTENSION_UNAVAILABLE' };
-      }
+      return request({
+        authorizationCode,
+        replaceCourse: true,
+        expectedCourseId: first.currentCourseId
+      });
     }
     return { submit };
   }
