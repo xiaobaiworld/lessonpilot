@@ -8,23 +8,37 @@
 
 实施计划：`docs/superpowers/plans/2026-08-20-teacher-account-admin.md`
 
-当前步骤：实现受保护的管理员认证 API。
+当前步骤：实现老师账号管理服务与受保护 API。
 
 涉及文件：
 
-- `backend/app/schemas/admin.py`
-- `backend/app/api/v1/admin_auth.py`
+- `backend/app/repositories/admin_teacher_repository.py`
+- `backend/app/services/admin_teacher_service.py`
+- `backend/app/api/v1/admin_teachers.py`
 - `backend/app/main.py`
+- `backend/app/schemas/admin.py`
+- `backend/tests/unit/test_admin_teacher_service.py`
 - `backend/tests/integration/test_admin_api.py`
 
 验证方式：
 
 ```text
 cd backend
-uv run pytest tests/integration/test_admin_api.py -q
+uv run pytest tests/unit/test_admin_teacher_service.py tests/integration/test_admin_api.py -q
 uv run pytest -q
 git diff --check
 ```
+
+已完成的管理员认证 API：
+
+- `POST /api/v1/admin/auth/login` 使用独立管理员 Cookie 建立会话；
+- `GET /api/v1/admin/auth/me` 只接受有效管理员会话；
+- `POST /api/v1/admin/auth/logout` 撤销会话并清除管理员 Cookie；
+- 教师 Cookie 不能访问管理员认证接口；
+- 登录失败不区分账号不存在或密码错误；
+- Cookie 使用 `HttpOnly`、`SameSite=Lax`，生产环境启用 `Secure`；
+- 操作日志只记录管理员 ID、动作和结果，不记录密码、Cookie 或 token；
+- 聚焦测试 `4 passed`，后端全量 `82 passed`，Python 编译和 `git diff --check` 通过。
 
 已完成的管理员认证服务：
 
