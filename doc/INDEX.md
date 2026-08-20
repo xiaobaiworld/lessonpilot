@@ -35,6 +35,7 @@
 | `doc/data-spec.md` | 第一阶段插件课程契约、消息协议和本地存储 | 历史插件契约参考 |
 | `doc/stage-one-validation-loop-design.md` | 第一阶段原型设计、架构与理由 | 历史设计参考 |
 | `doc/DECISIONS.md` | 方案比较、假设、重开条件和替代关系 | 当前决策权威 |
+| `docs/superpowers/specs/2026-08-20-course-identity-and-storage-design.md` | 课程 UUID 身份、未来本地课程包和资源存储边界 | 已接受；待实施 |
 | `doc/archive/2026-08-18-stage-one-demo/dev-plan.md` | 第一阶段销售页和原型 Demo 计划 | 已归档；只用于追溯 |
 | `doc/archive/2026-08-18-stage-one-demo/next.md` | 第一阶段最后执行步骤 | 已归档；不作为当前任务 |
 | `doc/archive/2026-08-18-teacher-platform-nodes-1-7/dev-plan.md` | 教师平台节点 1–7 完整开发计划 | 已归档；只用于追溯 |
