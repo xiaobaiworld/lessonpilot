@@ -1,6 +1,6 @@
 # KnownMap v1 需求说明书
 
-文档版本：`1.0.0-draft.15`
+文档版本：`1.0.0-draft.16`
 
 状态：第 1 段已于 2026-08-21 通过人工审核；当前不替代任何既有需求文档
 
@@ -30,9 +30,9 @@ KnownMap v1 是一次面向完整项目重构的新主版本。现有代码和�
 | ---: | --- | --- | --- |
 | 00 | `README.md` | 需求版本、文件索引、权威关系、编号规则和审核状态 | 第 1 段已接受 |
 | 01 | [`01-product-scope.md`](01-product-scope.md) | 产品目标、成功标准、利益相关者、范围、边界、非目标、约束和假设 | 已接受；已按 `D-026` 同步单机边界、后续学习反馈及本地文件范围 |
-| 02 | [`02-domain-glossary.md`](02-domain-glossary.md) | 统一角色、课程、课节、节点、授权、学习记录等领域术语 | 已接受；已按 `D-026` 同步单机术语 |
+| 02 | [`02-domain-glossary.md`](02-domain-glossary.md) | 统一角色、课程、课节、节点、授权、学习记录等领域术语 | 已接受；已同步单机术语和课程级发布版本 |
 | 03 | [`03-user-scenarios.md`](03-user-scenarios.md) | 用户角色、前置条件、主流程、异常流程和可观察结果 | 骨架、认证、视频重复、后续学习反馈及本地课程文件增补已接受 |
-| 04 | [`04-functional-requirements.md`](04-functional-requirements.md) | 按业务能力编号的功能性需求、业务规则和单项验收条件 | 第 1 段至 `FR-LIB` 已接受 |
+| 04 | [`04-functional-requirements.md`](04-functional-requirements.md) | 按业务能力编号的功能性需求、业务规则和单项验收条件 | 第 1 段至 `FR-RUNTIME` 已接受 |
 | 05 | `05-data-requirements.md` | 数据归属、分类、生命周期、质量、保留、导入导出和删除要求 | 未创建 |
 | 06 | `06-interface-integration-requirements.md` | 浏览器、B 站、Web、API、文件格式和其它外部系统的接口边界 | 未创建 |
 | 07 | `07-non-functional-requirements.md` | 性能、可靠性、可用性、兼容性、无障碍、可维护性和可观测性 | 未创建 |
