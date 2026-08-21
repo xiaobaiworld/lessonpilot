@@ -1,6 +1,6 @@
 # 13 旧资料来源登记
 
-文档版本：`1.0.0-draft.16`
+文档版本：`1.0.0-draft.17`
 
 状态：已于 2026-08-21 通过人工审核；本轮只登记，不移动、删除或改写旧资料
 
@@ -114,28 +114,28 @@
 | SRC-063 | `doc/plans/web-production-release-traceability.md` | 保留为证据 | 旧 Web 发布工具实施记录，不证明 v1 门禁通过 |
 | SRC-064 | `docs/superpowers/plans/2026-08-18-knownmap-brand-update.md` | 保留为证据 | 品牌更新实施记录 |
 | SRC-065 | `docs/superpowers/plans/2026-08-20-multi-course-authorization-and-example-course.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-056-065-batch.md)；多课程与范围授权已与 v1 对齐 |
-| SRC-066 | `docs/superpowers/plans/2026-08-20-teacher-account-admin.md` | 保留为证据 | 管理员功能实施与生产记录；仅作为迁移源和历史证据 |
+| SRC-066 | `docs/superpowers/plans/2026-08-20-teacher-account-admin.md` | 保留为证据 | [批量提取记录](legacy-source-extractions/SRC-066-074-batch.md)；管理员功能实施与生产记录 |
 | SRC-067 | `setup-gbrain-smoke-test-1786897219.md` | 保留为证据 | 独立工具冒烟记录；确认与产品无关后移出产品文档导航 |
-| SRC-068 | `tests/manual/bilibili-iframe-current-time/README.md` | 保留为证据 | 特定播放器时间读取探针，不作为全面兼容结论 |
-| SRC-069 | `tests/manual/sales-page-revision-20260816.md` | 保留为证据 | 销售页特定版本验收，未完成项继续如实保留 |
-| SRC-070 | `tests/manual/stage-1a-bridge/README.md` | 保留为证据 | 1A Chrome 与公网记录，未执行项不能标记通过 |
-| SRC-071 | `tests/manual/teacher-editor-completion/README.md` | 保留为证据 | 旧教师编辑器验收记录 |
-| SRC-072 | `tests/manual/teacher-platform-experience-polish/README.md` | 保留为证据 | 旧教师平台体验验收记录 |
-| SRC-073 | `tests/manual/teacher-platform-local/README.md` | 保留为证据 | v0.9.1 本地与真实 Chrome 证据，进入迁移基线核查 |
-| SRC-074 | `tests/manual/teacher-visual-node-editor/README.md` | 保留为证据 | 旧可视化编辑器验收记录 |
+| SRC-068 | `tests/manual/bilibili-iframe-current-time/README.md` | 保留为证据 | [批量提取记录](legacy-source-extractions/SRC-066-074-batch.md)；特定播放器时间读取探针 |
+| SRC-069 | `tests/manual/sales-page-revision-20260816.md` | 保留为证据 | [批量提取记录](legacy-source-extractions/SRC-066-074-batch.md)；销售页特定版本验收 |
+| SRC-070 | `tests/manual/stage-1a-bridge/README.md` | 保留为证据 | [批量提取记录](legacy-source-extractions/SRC-066-074-batch.md)；未执行项不能标记通过 |
+| SRC-071 | `tests/manual/teacher-editor-completion/README.md` | 保留为证据 | [批量提取记录](legacy-source-extractions/SRC-066-074-batch.md)；旧教师编辑器验收记录 |
+| SRC-072 | `tests/manual/teacher-platform-experience-polish/README.md` | 保留为证据 | [批量提取记录](legacy-source-extractions/SRC-066-074-batch.md)；旧教师平台体验验收记录 |
+| SRC-073 | `tests/manual/teacher-platform-local/README.md` | 保留为证据 | [批量提取记录](legacy-source-extractions/SRC-066-074-batch.md)；未完成项进入迁移核查 |
+| SRC-074 | `tests/manual/teacher-visual-node-editor/README.md` | 保留为证据 | [批量提取记录](legacy-source-extractions/SRC-066-074-batch.md)；旧可视化编辑器验收记录 |
 
 ### 3.5 已在归档目录的快照
 
 | ID | 来源 | 状态 | 已知去向或待核对事项 |
 | --- | --- | --- | --- |
-| SRC-075 | `doc/archive/2026-08-15-pre-stage-one/requirements.md` | 已归档待核对 | 保留整理前完整需求快照，独有事实待与 SRC-002 对照 |
-| SRC-076 | `doc/archive/2026-08-15-pre-stage-one/dev-plan.md` | 已归档待核对 | 保留整理前计划，不恢复为当前指令 |
-| SRC-077 | `doc/archive/2026-08-15-pre-stage-one/next.md` | 已归档待核对 | 保留当时执行状态，不覆盖当前 `next.md` |
-| SRC-078 | `doc/archive/2026-08-18-stage-one-demo/dev-plan.md` | 已归档待核对 | 保留第一阶段 Demo 计划与历史结果 |
-| SRC-079 | `doc/archive/2026-08-18-stage-one-demo/next.md` | 已归档待核对 | 保留第一阶段最后执行状态 |
-| SRC-080 | `doc/archive/2026-08-18-teacher-platform-nodes-1-7/README.md` | 已归档待核对 | 保留节点 1–7 当时入口和状态 |
-| SRC-081 | `doc/archive/2026-08-18-teacher-platform-nodes-1-7/dev-plan.md` | 已归档待核对 | 保留节点 1–7 完整开发计划 |
-| SRC-082 | `doc/archive/2026-08-18-teacher-platform-nodes-1-7/next.md` | 已归档待核对 | 保留节点 1–7 执行和验证记录 |
+| SRC-075 | `doc/archive/2026-08-15-pre-stage-one/requirements.md` | 已归档待核对 | [提取记录](legacy-source-extractions/SRC-075-082-batch.md)；保留整理前需求快照 |
+| SRC-076 | `doc/archive/2026-08-15-pre-stage-one/dev-plan.md` | 已归档待核对 | [提取记录](legacy-source-extractions/SRC-075-082-batch.md)；不恢复为当前指令 |
+| SRC-077 | `doc/archive/2026-08-15-pre-stage-one/next.md` | 已归档待核对 | [提取记录](legacy-source-extractions/SRC-075-082-batch.md)；不覆盖当前 `next.md` |
+| SRC-078 | `doc/archive/2026-08-18-stage-one-demo/dev-plan.md` | 已归档待核对 | [提取记录](legacy-source-extractions/SRC-075-082-batch.md)；保留 Demo 历史结果 |
+| SRC-079 | `doc/archive/2026-08-18-stage-one-demo/next.md` | 已归档待核对 | [提取记录](legacy-source-extractions/SRC-075-082-batch.md)；保留历史状态 |
+| SRC-080 | `doc/archive/2026-08-18-teacher-platform-nodes-1-7/README.md` | 已归档待核对 | [提取记录](legacy-source-extractions/SRC-075-082-batch.md)；保留节点入口和状态 |
+| SRC-081 | `doc/archive/2026-08-18-teacher-platform-nodes-1-7/dev-plan.md` | 已归档待核对 | [提取记录](legacy-source-extractions/SRC-075-082-batch.md)；保留完整开发计划 |
+| SRC-082 | `doc/archive/2026-08-18-teacher-platform-nodes-1-7/next.md` | 已归档待核对 | [提取记录](legacy-source-extractions/SRC-075-082-batch.md)；保留执行和验证记录 |
 
 ## 4. 已知跨来源冲突
 
