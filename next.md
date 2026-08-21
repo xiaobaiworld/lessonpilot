@@ -5,8 +5,8 @@
 ## 当前执行切片：KnownMap v1 需求逐段审核
 
 - 当前分支：`codex/v1-rewrite`；重构基线：`main@0e503a4`。
-- 已接受：产品范围、领域术语、用户场景骨架、功能分解骨架、`FR-AUTH-*`、`FR-WS-*`、`FR-COURSE-*`、`FR-AUTHOR-*`、`FR-PUBLISH-*`、`FR-GRANT-*`、`FR-LIB-*`、`FR-RUNTIME-*` 和 `FR-LEARN-*`。
-- 下一目标：整理并逐段审核 `FR-ADMIN-*` 平台管理、支持与审计。
+- 已接受：产品范围、领域术语、用户场景骨架、功能分解骨架、`FR-AUTH-*`、`FR-WS-*`、`FR-COURSE-*`、`FR-AUTHOR-*`、`FR-PUBLISH-*`、`FR-GRANT-*`、`FR-LIB-*`、`FR-RUNTIME-*`、`FR-LEARN-*` 和 `FR-ADMIN-*`。
+- 下一目标：整理并逐段审核 `FR-PORT-*` 课程导入导出、本地文件与恢复。
 - 当前限制：全部 v1 需求冻结前，不开始架构定稿或产品代码重写。
 - 阶段入口：`doc/requirements/v1/README.md`。
 
