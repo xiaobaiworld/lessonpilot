@@ -1,6 +1,6 @@
 # 13 旧资料来源登记
 
-文档版本：`1.0.0-draft.15`
+文档版本：`1.0.0-draft.16`
 
 状态：已于 2026-08-21 通过人工审核；本轮只登记，不移动、删除或改写旧资料
 
@@ -90,12 +90,12 @@
 | SRC-044 | `doc/node-content-standard.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-037-045-batch.md)；四类节点范围保持不变 |
 | SRC-045 | `doc/subtitle-pipeline.md` | 保留为证据 | 字幕来源与本地解析研究进入制作设计和不可信输入核对 |
 | SRC-046 | `doc/bili-mascot-spike.md` | 保留为证据 | 只证明播放器技术探索，不代表正式运行时或兼容承诺 |
-| SRC-047 | `doc/teacher-visual-node-editor-design.md` | 待核对 | 已实现旧编辑器设计；行为与 v1 制作需求逐项映射 |
-| SRC-048 | `doc/teacher-platform-experience-polish-design.md` | 待核对 | 旧体验校正和命名进入 UI 设计参考 |
-| SRC-049 | `doc/teacher-editor-completion-design.md` | 待核对 | 时间线、快捷操作和授权码历史进入设计证据核对 |
-| SRC-050 | `doc/teacher-timeline-reference-parity-design.md` | 待核对 | 样例时间线视觉对齐不等于 v1 验收完成 |
-| SRC-051 | `doc/knownmap-brand-lockup-refinement-design.md` | 待核对 | 品牌组合标识进入品牌资产设计，不定义业务需求 |
-| SRC-052 | `docs/superpowers/specs/2026-08-18-knownmap-brand-update-design.md` | 待核对 | 名称、域名和 Logo 决策与现行品牌资产核对 |
+| SRC-047 | `doc/teacher-visual-node-editor-design.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-046-055-batch.md)；编辑器行为已回链 |
+| SRC-048 | `doc/teacher-platform-experience-polish-design.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-046-055-batch.md)；体验与安全规则已分类 |
+| SRC-049 | `doc/teacher-editor-completion-design.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-046-055-batch.md)；旧实现证据已分类 |
+| SRC-050 | `doc/teacher-timeline-reference-parity-design.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-046-055-batch.md)；视觉验收证据已分类 |
+| SRC-051 | `doc/knownmap-brand-lockup-refinement-design.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-046-055-batch.md)；品牌资产已分类 |
+| SRC-052 | `docs/superpowers/specs/2026-08-18-knownmap-brand-update-design.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-046-055-batch.md)；品牌决策已回链 |
 | SRC-053 | `docs/knownmap-logo-resources.md` | 保留为证据 | 当前 Logo 资源说明；后续由品牌资产入口承接 |
 | SRC-054 | `doc/英文面试问答流程（超全！）｜自我介绍 矛盾处理 优缺点 技能.srt` | 保留为证据 | 演示字幕和测试数据，不是产品需求；发布使用需复核内容权利 |
 
@@ -103,17 +103,17 @@
 
 | ID | 来源 | 状态 | 已知去向或待核对事项 |
 | --- | --- | --- | --- |
-| SRC-055 | `doc/teacher-platform-dev-plan.md` | 待核对 | 节点 8–9 旧收口计划；未完成项进入迁移或新计划重新判断 |
+| SRC-055 | `doc/teacher-platform-dev-plan.md` | 保留为证据 | [批量提取记录](legacy-source-extractions/SRC-046-055-batch.md)；旧计划状态不证明 v1 完成 |
 | SRC-056 | `doc/plans/stage-1a-contract-bridge-deploy.md` | 保留为证据 | 历史实施计划与实际结果分开登记 |
 | SRC-057 | `doc/plans/stage-1b-sales-page-revision.md` | 保留为证据 | 已完成销售页修订计划，残余人工项由对应记录说明 |
-| SRC-058 | `doc/plans/stage-1b-sales-workspace.md` | 待核对 | 部分交付计划，未完成项不能直接带入 v1 |
-| SRC-059 | `doc/plans/stage-1c-runtime-e2e.md` | 待核对 | 部分交付计划，真实 B 站边界进入新测试计划 |
+| SRC-058 | `doc/plans/stage-1b-sales-workspace.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-056-065-batch.md)；未完成项不继承 |
+| SRC-059 | `doc/plans/stage-1c-runtime-e2e.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-056-065-batch.md)；真实边界进入新测试计划 |
 | SRC-060 | `doc/plans/teacher-visual-node-editor.md` | 保留为证据 | 旧编辑器实施记录，与 SRC-047 配对保留 |
 | SRC-061 | `doc/plans/teacher-platform-experience-polish.md` | 保留为证据 | 旧体验实施记录，与 SRC-048 配对保留 |
 | SRC-062 | `doc/plans/knownmap-brand-lockup-refinement.md` | 保留为证据 | 品牌修正实施记录，与 SRC-051 配对保留 |
 | SRC-063 | `doc/plans/web-production-release-traceability.md` | 保留为证据 | 旧 Web 发布工具实施记录，不证明 v1 门禁通过 |
 | SRC-064 | `docs/superpowers/plans/2026-08-18-knownmap-brand-update.md` | 保留为证据 | 品牌更新实施记录 |
-| SRC-065 | `docs/superpowers/plans/2026-08-20-multi-course-authorization-and-example-course.md` | 待核对 | 当前旧分支计划与 v1 多课程需求对照后决定重用或替代 |
+| SRC-065 | `docs/superpowers/plans/2026-08-20-multi-course-authorization-and-example-course.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-056-065-batch.md)；多课程与范围授权已与 v1 对齐 |
 | SRC-066 | `docs/superpowers/plans/2026-08-20-teacher-account-admin.md` | 保留为证据 | 管理员功能实施与生产记录；仅作为迁移源和历史证据 |
 | SRC-067 | `setup-gbrain-smoke-test-1786897219.md` | 保留为证据 | 独立工具冒烟记录；确认与产品无关后移出产品文档导航 |
 | SRC-068 | `tests/manual/bilibili-iframe-current-time/README.md` | 保留为证据 | 特定播放器时间读取探针，不作为全面兼容结论 |
