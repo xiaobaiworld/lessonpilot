@@ -42,10 +42,10 @@
 | SRC-006 | [`doc/requirements/stage-1c.md`](../../requirements/stage-1c.md) | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-006-stage-1c.md)；运行时语义与旧预览状态已分类 |
 | SRC-007 | [`doc/AI_Learning_Companion_Product_Function_Spec_v0.1.md`](../../AI_Learning_Companion_Product_Function_Spec_v0.1.md) | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-007-product-spec-v0.1.md)；长期身份、授权扩展和旧设计已分类 |
 | SRC-008 | `doc/AI_Learning_Companion_Product_Function_Spec_v0.2.md` | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-008-product-spec-v0.2.md)；`D-V1-002` 已决定 v1 完全排除 AI 辅助制作 |
-| SRC-009 | `doc/DECISIONS.md` | 部分提取 | 已接受决策被 01、02、04、05 引用；逐条状态和替代链待登记 |
-| SRC-010 | `doc/decisions/2026-08-18-teacher-centered-product-v0.2.md` | 部分提取 | 教师、工作空间、本地课程和授权决策待与 v1 编号逐条回链 |
-| SRC-011 | `doc/decisions/2026-08-18-teacher-platform-local-slice.md` | 待核对 | 仅代表旧最小切片，不自动限制 v1 完整范围 |
-| SRC-012 | `doc/decisions/2026-08-18-student-plugin-single-course-delivery.md` | 待核对 | 单课程决策已被 v1 多课程方向替代；保留迁移源事实 |
+| SRC-009 | `doc/DECISIONS.md` | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-009-decisions.md)；有效决策已回链，替代链保留为历史证据 |
+| SRC-010 | `doc/decisions/2026-08-18-teacher-centered-product-v0.2.md` | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-010-teacher-centered-product.md)；教师、工作空间、课程和授权原则已回链 |
+| SRC-011 | `doc/decisions/2026-08-18-teacher-platform-local-slice.md` | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-011-teacher-platform-local-slice.md)；旧本地切片限制已分类为证据 |
+| SRC-012 | `doc/decisions/2026-08-18-student-plugin-single-course-delivery.md` | 已提取待决策 | [提取记录](legacy-source-extractions/SRC-012-student-plugin-single-course.md)；字幕导航与学习/复习指标是否进入 v1 P0 |
 | SRC-013 | `doc/Digital_Learning_Platforms_竞争情报与定价研究_v0.1.md` | 保留为证据 | 研究资料不直接形成已接受需求，商业假设需重新验证 |
 | SRC-014 | `AI_Brand_Naming_Project.md` | 保留为证据 | KnownMap 命名研究过程，不定义产品行为 |
 | SRC-015 | `AI_Brand_Domain_Selection_Report_v0.1.md` | 保留为证据 | 域名研究不预设 v1 部署拓扑或正式域名 |
