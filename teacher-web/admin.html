@@ -55,6 +55,8 @@
 
       .visually-hidden {
         position: absolute;
+        left: 0;
+        top: 0;
         width: 1px;
         height: 1px;
         padding: 0;
@@ -395,6 +397,10 @@
         gap: 28px;
       }
 
+      .workspace > * {
+        min-width: 0;
+      }
+
       .workspace-topbar {
         display: flex;
         padding-bottom: 22px;
@@ -511,6 +517,7 @@
 
       .table-wrap {
         width: 100%;
+        max-width: 100%;
         overflow-x: auto;
         border: 1px solid #c6cec8;
         border-radius: 6px;

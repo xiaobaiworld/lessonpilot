@@ -39,6 +39,14 @@ test('admin page preserves existing links and exposes complete account managemen
   assert.doesNotMatch(page, /\/api\/v1\//);
 });
 
+test('admin workspace contains wide tables without widening the mobile page', () => {
+  const page = fs.readFileSync('teacher-web/admin.html', 'utf8');
+
+  assert.match(page, /\.visually-hidden\s*\{[^}]*left:\s*0;[^}]*top:\s*0;/s);
+  assert.match(page, /\.workspace\s*>\s*\*\s*\{[^}]*min-width:\s*0;/s);
+  assert.match(page, /\.table-wrap\s*\{[^}]*max-width:\s*100%;/s);
+});
+
 test('admin API client uses the isolated credentialed endpoints', async () => {
   const calls = [];
   const originalFetch = global.fetch;
