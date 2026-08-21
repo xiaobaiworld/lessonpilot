@@ -1,6 +1,6 @@
 # 13 旧资料来源登记
 
-文档版本：`1.0.0-draft.4`
+文档版本：`1.0.0-draft.5`
 
 状态：已于 2026-08-21 通过人工审核；本轮只登记，不移动、删除或改写旧资料
 
@@ -35,7 +35,7 @@
 | --- | --- | --- | --- |
 | SRC-001 | [`README.md`](../../../README.md) | 已提取待切换 | [提取记录](legacy-source-extractions/SRC-001-root-readme.md)；无新增需求，待 v1 可用后原位更新入口 |
 | SRC-002 | [`doc/requirements.md`](../../requirements.md) | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-002-first-stage-requirements.md)；无新增需求，旧原型限制已分类 |
-| SRC-003 | `doc/requirements/teacher-platform-local-stage.md` | 部分提取 | 教师平台、插件及生产闭环进入 03–11；实现状态不能冒充 v1 验收 |
+| SRC-003 | [`doc/requirements/teacher-platform-local-stage.md`](../../requirements/teacher-platform-local-stage.md) | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-003-teacher-platform-local-stage.md)；旧实施规则与迁移证据已分类 |
 | SRC-004 | `doc/requirements/stage-1a.md` | 待核对 | 共享契约、消息桥和公网路径分别进入接口、安全及设计阶段核对 |
 | SRC-005 | `doc/requirements/stage-1b.md` | 待核对 | 销售页、工作台、字幕和制作流程按当前范围拆分 |
 | SRC-006 | `doc/requirements/stage-1c.md` | 待核对 | B 站运行时、四类节点和端到端预览进入 03、04、06 核对 |
