@@ -1,6 +1,6 @@
 # KnownMap v1 需求说明书
 
-文档版本：`1.0.0-draft.37`
+文档版本：`1.0.0-draft.39`
 
 状态：第 1 段已于 2026-08-21 通过人工审核；当前不替代任何既有需求文档
 
@@ -37,7 +37,7 @@ KnownMap v1 是一次面向完整项目重构的新主版本。现有代码和�
 | 06 | [`06-interface-integration-requirements.md`](06-interface-integration-requirements.md) | Web、插件、B 站、课程包和文件之间的项目特有接口边界 | 已接受 |
 | 07 | [`07-non-functional-requirements.md`](07-non-functional-requirements.md) | 第一阶段非功能指标结论及后续重开范围 | 已接受；第一阶段不单独制定 `NFR-*` |
 | 08 | [`08-security-privacy-compliance-requirements.md`](08-security-privacy-compliance-requirements.md) | 测试原型阶段的访问、秘密、输入和本机数据安全底线 | 已接受 |
-| 09 | `09-development-quality-requirements.md` | 工程结构、依赖、编码、测试、日志、配置和文档同步门禁 | 未创建 |
+| 09 | [`09-development-quality-requirements.md`](09-development-quality-requirements.md) | 工程结构、依赖、编码、测试、日志、配置和文档同步门禁 | 已接受 |
 | 10 | `10-deployment-operations-requirements.md` | 环境、发布、迁移、回滚、监控、告警、备份、恢复和运行维护 | 未创建 |
 | 11 | `11-migration-compatibility-requirements.md` | v0.9.1 到 v1 的数据、配置、接口、用户路径兼容与弃用策略 | 未创建 |
 | 12 | `12-acceptance-traceability.md` | 需求到场景、设计、代码、测试和发布证据的追踪矩阵及发布门禁 | 未创建 |
