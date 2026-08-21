@@ -1,6 +1,6 @@
 # 12 验收追踪与发布门禁
 
-文档版本：`1.0.0-draft.2`
+文档版本：`1.0.0-draft.3`
 
 状态：已于 2026-08-21 通过人工审核；当前只有需求证据，v1 设计、实现、测试与发布证据待建立
 
@@ -32,23 +32,23 @@
 
 | 来源 | 稳定编号数 | 需求状态 | 下游证据 |
 | --- | ---: | --- | --- |
-| `01-product-scope.md` | 23 | 已接受 | 待建立 |
-| `03-user-scenarios.md` | 21 | 已接受 | 待建立 |
-| `04-functional-requirements.md` | 113 | 已接受 | 待建立 |
-| `05-data-requirements.md` | 28 | 已接受 | 待建立 |
-| `06-interface-integration-requirements.md` | 10 | 已接受 | 待建立 |
+| `01-product-scope.md` | 25 | 已接受 | 待建立 |
+| `03-user-scenarios.md` | 22 | 已接受 | 待建立 |
+| `04-functional-requirements.md` | 117 | 已接受 | 待建立 |
+| `05-data-requirements.md` | 30 | 已接受 | 待建立 |
+| `06-interface-integration-requirements.md` | 12 | 已接受 | 待建立 |
 | `07-non-functional-requirements.md` | 0 | 已接受不单独制定 `NFR-*` | 重开前不适用 |
-| `08-security-privacy-compliance-requirements.md` | 11 | 已接受 | 待建立 |
+| `08-security-privacy-compliance-requirements.md` | 12 | 已接受 | 待建立 |
 | `09-development-quality-requirements.md` | 12 | 已接受 | 待建立 |
-| `10-deployment-operations-requirements.md` | 9 | 已接受 | 待建立 |
+| `10-deployment-operations-requirements.md` | 10 | 已接受 | 待建立 |
 | `11-migration-compatibility-requirements.md` | 9 | 已接受 | 待建立 |
-| **合计** | **236** | 需求与场景层已记录 | 待建立 |
+| **合计** | **249** | 需求与场景层已记录 | 待建立 |
 
 `02-domain-glossary.md` 是术语真源，`README.md` 是索引与状态入口，二者不重复计入业务需求数。
 
 ## 3. 需求级矩阵字段
 
-设计阶段开始时，必须为上述 236 个编号各建一行。矩阵增长后可拆到同目录的机器可读文件，但本文件始终保留字段定义、状态入口和发布门禁。
+设计阶段开始时，必须为上述 249 个编号各建一行。矩阵增长后可拆到同目录的机器可读文件，但本文件始终保留字段定义、状态入口和发布门禁。
 
 每行至少包含：稳定编号、需求状态与优先级、来源场景或决策、设计证据、实现证据、自动化证据、真实环境证据、最终状态及最近检查版本与日期。
 
@@ -129,7 +129,7 @@
 ## 8. 当前完成条件
 
 1. 8 条 `ACC-*` 均通过人工审核；
-2. 236 个当前稳定编号数量经自动抽取复核；
+2. 249 个当前稳定编号数量经自动抽取复核；
 3. 所有下游状态如实记录为待建立，没有把旧代码、历史测试或当前生产冒充成 v1 证据；
 4. 设计阶段计划将建立需求级矩阵行和持续检查纳入首批交付。
 
