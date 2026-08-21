@@ -1,6 +1,6 @@
 # KnownMap 当前下一步
 
-更新时间：2026-08-20
+更新时间：2026-08-21
 
 ## 当前执行切片：超级管理员与教师账号管理
 
@@ -8,22 +8,46 @@
 
 实施计划：`docs/superpowers/plans/2026-08-20-teacher-account-admin.md`
 
-当前步骤：扩展现有 `admin.html`，组装管理员登录和教师账号管理界面。
+当前步骤：本地实现和验收已完成，等待合并并部署生产服务器。
 
 涉及文件：
 
+- `tools/teacher-platform-release.sh`
+- `tests/teacher-platform-release.test.js`
 - `teacher-web/admin.html`
 - `teacher-web/admin.js`
-- `tests/admin-page.test.js`
-- `tools/web-release.sh`
 
 验证方式：
 
 ```text
-node --test tests/admin-page.test.js
 node --test tests/*.test.js
+cd backend && uv run pytest -q
+cd ..
 git diff --check
 ```
+
+已完成的生产发布引导：
+
+- `teacher-platform-v1` 发布包包含 `admin.html` 和 `/teacher-web/admin.js`，销售站发布白名单不变；
+- 后端迁移和服务启动后检查远程 `admins` 总数，只有空表才允许首次 seed；
+- 管理员初始密码可由 `KNOWNMAP_PRODUCTION_ADMIN_PASSWORD` 显式提供，否则由 `openssl rand -hex 18` 生成；
+- 初始密码只通过 root `0600` 临时文件进入一次 seed，trap 和本机失败清理都会删除该文件；
+- 生产长期环境文件不包含管理员 seed 密码变量或值；
+- 已有任何管理员记录时后续发布跳过 seed，不重置密码、昵称或状态；
+- 远程验证新增管理员会话和教师列表未登录 `401` 探针；
+- 全量 Node 测试 `331 passed`、后端测试 `96 passed`，Shell 语法和 `git diff --check` 通过。
+
+已完成的管理员前端工作区：
+
+- 保留销售首页、教师工作台和服务状态三个原入口；
+- 未登录时按需打开超级管理员登录，登录后切换到教师账号管理工作区；
+- 支持教师列表、已发布课程数、创建教师、重置密码、会话恢复和退出；
+- 临时密码只保存在页面内存和文本节点，关闭、退出或会话失效时清空；
+- 请求代次会丢弃旧会话和旧教师列表响应，敏感操作串行执行；
+- 临时密码未关闭前禁止下一次创建或重置，避免覆盖不可再次获取的凭据；
+- 浏览器实测完成登录、列表、创建、复制、清除、重置和退出流程；
+- 390px 窄屏页面无整体横向溢出，宽表格只在自身容器内滚动；
+- 浏览器页面脚本无运行错误。
 
 已完成的权威文档同步：
 
