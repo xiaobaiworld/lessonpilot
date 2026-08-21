@@ -1,6 +1,6 @@
 # 13 旧资料来源登记
 
-文档版本：`1.0.0-draft.13`
+文档版本：`1.0.0-draft.14`
 
 状态：已于 2026-08-21 通过人工审核；本轮只登记，不移动、删除或改写旧资料
 
@@ -49,22 +49,22 @@
 | SRC-013 | `doc/Digital_Learning_Platforms_竞争情报与定价研究_v0.1.md` | 保留为证据 | 研究资料不直接形成已接受需求，商业假设需重新验证 |
 | SRC-014 | `AI_Brand_Naming_Project.md` | 保留为证据 | KnownMap 命名研究过程，不定义产品行为 |
 | SRC-015 | `AI_Brand_Domain_Selection_Report_v0.1.md` | 保留为证据 | 域名研究不预设 v1 部署拓扑或正式域名 |
-| SRC-016 | `LessonPilot_Creator_Studio_设计建议_v0.1.md` | 待核对 | 旧品牌和早期工作台建议；视觉事实进入后续设计核对 |
-| SRC-017 | `doc/multi-creator-platform.md` | 部分提取 | B2B2C 定位进入 01；计费、多创作者和平台化内容仍为未来候选 |
-| SRC-018 | `doc/student-runtime.md` | 部分提取 | 角色与本机数据边界进入 01、04、05；广义能力待分类 |
-| SRC-019 | `doc/promo-video.md` | 待核对 | 营销脚本不作为需求真源；只提取已验证产品承诺或风险 |
+| SRC-016 | `LessonPilot_Creator_Studio_设计建议_v0.1.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-013-019-batch.md)；早期工作台与 AI 建议保留为历史设计 |
+| SRC-017 | `doc/multi-creator-platform.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-013-019-batch.md)；定位保留，平台化和计费后置 |
+| SRC-018 | `doc/student-runtime.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-013-019-batch.md)；角色与本机数据边界已回链 |
+| SRC-019 | `doc/promo-video.md` | 保留为证据 | [批量提取记录](legacy-source-extractions/SRC-013-019-batch.md)；营销承诺需按 v1 实际能力复核 |
 
 ### 3.2 架构、数据、接口、安全与运行设计
 
 | ID | 来源 | 状态 | 已知去向或待核对事项 |
 | --- | --- | --- | --- |
-| SRC-020 | `doc/design.md` | 待核对 | 旧整体架构和数据契约仅作现状及迁移证据，不能覆盖 v1 需求 |
-| SRC-021 | `doc/teacher-platform-architecture.md` | 部分提取 | 当前 FastAPI、SQLite、Web 与插件边界进入 06、10、11；目标架构待重建 |
-| SRC-022 | `doc/data-spec.md` | 部分提取 | 当前数据现状被 02、05、11 引用；字段级映射留给数据设计 |
-| SRC-023 | `doc/data/model.md` | 部分提取 | 当前与目标模型混合，后续必须分开标记实现事实和未实现设计 |
-| SRC-024 | `doc/data/dictionary.md` | 待核对 | 数据库、API、插件字段进入字段映射和迁移清单 |
-| SRC-025 | `doc/data/flow.md` | 待核对 | 现有创建、发布、授权、学习及发布血缘进入数据流设计核对 |
-| SRC-026 | `doc/data/quality.md` | 待核对 | 现有校验、漂移和门禁与 05、09、12 对照，避免重复权威 |
+| SRC-020 | `doc/design.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-020-026-batch.md)；旧整体设计仅作迁移证据 |
+| SRC-021 | `doc/teacher-platform-architecture.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-020-026-batch.md)；FastAPI、SQLite、Web 与插件边界已分类 |
+| SRC-022 | `doc/data-spec.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-020-026-batch.md)；当前数据事实已回链 |
+| SRC-023 | `doc/data/model.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-020-026-batch.md)；实现模型与目标模型已区分 |
+| SRC-024 | `doc/data/dictionary.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-020-026-batch.md)；字段冲突转接口核对 |
+| SRC-025 | `doc/data/flow.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-020-026-batch.md)；数据流作为现状证据 |
+| SRC-026 | `doc/data/quality.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-020-026-batch.md)；质量门禁与迁移风险已分类 |
 | SRC-027 | `doc/teacher-platform-data-spec.md` | 待核对 | 旧数据入口和兼容指针；确认无独有内容后再归档 |
 | SRC-028 | `doc/teacher-platform-api-spec.md` | 部分提取 | 当前 API 是迁移源，不是 v1 契约；进入接口设计与兼容映射 |
 | SRC-029 | `doc/security/2026-08-20-production-security-audit.md` | 保留为证据 | 只证明特定版本和环境；风险项与 08、10 对照后重新验证 |
