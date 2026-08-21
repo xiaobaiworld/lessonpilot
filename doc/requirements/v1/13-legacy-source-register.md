@@ -71,7 +71,7 @@
 | SRC-030 | `doc/web-production-release-design.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-027-036-batch.md)；发布与回滚事实进入部署设计 |
 | SRC-031 | `deploy/releases/README.md` | 保留为证据 | 保留旧 Web 发布记录格式和恢复入口，不声明 v1 已发布 |
 | SRC-032 | `deploy/teacher-platform/README.md` | 保留为证据 | 保留当前生产运维事实，进入 10、11 的环境与迁移核查 |
-| SRC-033 | `doc/student-plugin-release-design.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-027-036-batch.md)；固定 ZIP 旧方案已分类 |
+| SRC-033 | `doc/student-plugin-release-design.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-027-036-batch.md)；固定 ZIP 方案已由 `D-V1-004` 纳入 v1 |
 | SRC-034 | `doc/student-plugin-course-delivery-design.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-027-036-batch.md)；单课程兼容基线已分类 |
 | SRC-035 | `docs/superpowers/specs/2026-08-20-course-identity-and-storage-design.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-027-036-batch.md)；UUID 与多课节原则已回链 |
 | SRC-036 | `docs/superpowers/specs/2026-08-20-teacher-account-admin-design.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-027-036-batch.md)；账号管理边界已回链 |
