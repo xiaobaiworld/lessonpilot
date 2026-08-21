@@ -49,6 +49,7 @@ TEACHER_SOURCE_FILES=(
 
 ADMIN_SOURCE_FILES=(
   "teacher-web/admin.html"
+  "teacher-web/admin.js"
 )
 
 TEACHER_PUBLIC_FILES=(
@@ -68,6 +69,7 @@ TEACHER_PUBLIC_FILES=(
 
 ADMIN_PUBLIC_FILES=(
   "public/admin.html"
+  "public/teacher-web/admin.js"
 )
 
 log() {
@@ -224,6 +226,7 @@ build_release() {
   build_student_plugin_package "$source_dir" "$output/public/downloads/student-plugin/knownmapplugin.zip"
   if [[ "$PUBLISH_PROFILE" == "teacher-platform-v1" ]]; then
     cp "$source_dir/teacher-web/admin.html" "$output/public/admin.html"
+    cp "$source_dir/teacher-web/admin.js" "$output/public/teacher-web/admin.js"
     for relative_path in "${TEACHER_SOURCE_FILES[@]}"; do
       source_file="$source_dir/$relative_path"
       public_file="$output/public/$relative_path"
