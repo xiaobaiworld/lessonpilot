@@ -1,6 +1,6 @@
 # 13 旧资料来源登记
 
-文档版本：`1.0.0-draft.12`
+文档版本：`1.0.0-draft.13`
 
 状态：已于 2026-08-21 通过人工审核；本轮只登记，不移动、删除或改写旧资料
 
@@ -45,7 +45,7 @@
 | SRC-009 | `doc/DECISIONS.md` | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-009-decisions.md)；有效决策已回链，替代链保留为历史证据 |
 | SRC-010 | `doc/decisions/2026-08-18-teacher-centered-product-v0.2.md` | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-010-teacher-centered-product.md)；教师、工作空间、课程和授权原则已回链 |
 | SRC-011 | `doc/decisions/2026-08-18-teacher-platform-local-slice.md` | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-011-teacher-platform-local-slice.md)；旧本地切片限制已分类为证据 |
-| SRC-012 | `doc/decisions/2026-08-18-student-plugin-single-course-delivery.md` | 已提取待决策 | [提取记录](legacy-source-extractions/SRC-012-student-plugin-single-course.md)；字幕导航与学习/复习指标是否进入 v1 P0 |
+| SRC-012 | `doc/decisions/2026-08-18-student-plugin-single-course-delivery.md` | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-012-student-plugin-single-course.md)；`D-V1-003` 已决定字幕导航与学习/复习指标不进入 v1 P0 |
 | SRC-013 | `doc/Digital_Learning_Platforms_竞争情报与定价研究_v0.1.md` | 保留为证据 | 研究资料不直接形成已接受需求，商业假设需重新验证 |
 | SRC-014 | `AI_Brand_Naming_Project.md` | 保留为证据 | KnownMap 命名研究过程，不定义产品行为 |
 | SRC-015 | `AI_Brand_Domain_Selection_Report_v0.1.md` | 保留为证据 | 域名研究不预设 v1 部署拓扑或正式域名 |
