@@ -179,6 +179,11 @@ test('nginx exposes the same-origin API and keeps the site root static', () => {
   assert.match(nginx, /location = \/health \{/);
   assert.match(nginx, /proxy_pass http:\/\/127\.0\.0\.1:8000\/health;/);
   assert.match(nginx, /location = \/api\/v1\/auth\/login \{/);
+  assert.match(nginx, /location = \/api\/v1\/admin\/auth\/login \{/);
+  assert.equal(
+    (nginx.match(/limit_req zone=knownmap_login burst=5 nodelay;/g) || []).length,
+    2
+  );
   assert.match(nginx, /limit_req zone=knownmap_login burst=5 nodelay;/);
   assert.match(nginx, /location \^~ \/api\/ \{/);
   assert.match(nginx, /proxy_pass http:\/\/127\.0\.0\.1:8000;/);
