@@ -1,6 +1,6 @@
 # KnownMap v1 需求说明书
 
-文档版本：`1.0.0-draft.43`
+文档版本：`1.0.0-draft.45`
 
 状态：第 1 段已于 2026-08-21 通过人工审核；当前不替代任何既有需求文档
 
@@ -40,14 +40,15 @@ KnownMap v1 是一次面向完整项目重构的新主版本。现有代码和�
 | 09 | [`09-development-quality-requirements.md`](09-development-quality-requirements.md) | 工程结构、依赖、编码、测试、日志、配置和文档同步门禁 | 已接受 |
 | 10 | [`10-deployment-operations-requirements.md`](10-deployment-operations-requirements.md) | 环境、发布、迁移、回滚、监控、告警、备份、恢复和运行维护 | 已接受 |
 | 11 | [`11-migration-compatibility-requirements.md`](11-migration-compatibility-requirements.md) | v0.9.1 到 v1 的数据、配置、接口、用户路径兼容与弃用策略 | 已接受 |
-| 12 | `12-acceptance-traceability.md` | 需求到场景、设计、代码、测试和发布证据的追踪矩阵及发布门禁 | 未创建 |
+| 12 | [`12-acceptance-traceability.md`](12-acceptance-traceability.md) | 需求到场景、设计、代码、测试和发布证据的追踪矩阵及发布门禁 | 已接受 |
 | 13 | `13-legacy-source-register.md` | 旧文档逐文件提取状态、独有信息去向、冲突和最终归档位置 | 未创建 |
 
 ### 1.2 需求编号规则
 
 进入具体文件后，每条可验收需求必须使用稳定编号：功能需求使用 `FR-*`，数据需求使用
 `DATA-*`，接口需求使用 `INT-*`，非功能需求使用 `NFR-*`，安全需求使用 `SEC-*`，
-开发质量要求使用 `DEV-*`，部署运维要求使用 `OPS-*`，迁移兼容要求使用 `MIG-*`。
+开发质量要求使用 `DEV-*`，部署运维要求使用 `OPS-*`，迁移兼容要求使用 `MIG-*`，
+验收追踪要求使用 `ACC-*`。
 编号一旦进入已接受状态便不复用；需求被替代时保留原编号和替代关系。
 
 ### 1.3 需求目录之外的工程文档
