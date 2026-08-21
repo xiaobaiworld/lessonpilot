@@ -1,0 +1,182 @@
+{
+  "schemaVersion": 1,
+  "releaseId": "20260821T014923Z-c0e8aaa94c27",
+  "environment": "production",
+  "site": "https://knownmap.com",
+  "repository": "xiaobaiworld/lessonpilot",
+  "gitRemote": "git@github-2:xiaobaiworld/lessonpilot.git",
+  "gitCommit": "c0e8aaa94c27019c8b30d317cf800abcc89df84e",
+  "gitShortCommit": "c0e8aaa94c27",
+  "gitRemoteBranch": "origin",
+  "gitCommitSubject": "Merge branch 'codex/teacher-account-admin'",
+  "gitCommitTime": "2026-08-21T09:43:09+08:00",
+  "gitTag": "web-prod/20260821T014923Z-c0e8aaa94c27",
+  "publishProfile": "teacher-platform-v1",
+  "status": "verified",
+  "builtAt": "2026-08-21T01:50:46Z",
+  "deployedAt": "2026-08-21T01:50:49Z",
+  "previousReleaseId": "20260820T162253Z-220dffbd4cfd",
+  "files": [
+    {
+      "path": "index.html",
+      "sha256": "35d99bade610617d89fdac33446e48f0f7f319e9394e12c6e0a7539c78e35da6",
+      "bytes": 45647
+    },
+    {
+      "path": "subtitle-context.js",
+      "sha256": "a8d210826727de919976a4ac8cac78f90b7a1e8acf7d5d6b3ac6d02ff4d2e1bd",
+      "bytes": 6996
+    },
+    {
+      "path": "demo-captions.js",
+      "sha256": "ca9af8b13bae00638b26a1dbca72d1dd58bb9c1c688f10f8d85556979e90685d",
+      "bytes": 12149
+    },
+    {
+      "path": "trial-intake.js",
+      "sha256": "d46c5bd01b037e041229505c849675b7dfe0c6d3ecdfa8c92459a0cffaa3fca7",
+      "bytes": 2535
+    },
+    {
+      "path": "assets/knownmap-icon.png",
+      "sha256": "8acae4dc406d44f31ed7b5a329c2d17a6e6d799197c51fdc4f8c2e806829d0b3",
+      "bytes": 3440
+    },
+    {
+      "path": "downloads/student-plugin/knownmapplugin.zip",
+      "sha256": "418fa86e5647267e3d1c7f7a228fc9db0fe7675bb9297d273f500adb4d50a880",
+      "bytes": 68666
+    },
+    {
+      "path": "robots.txt",
+      "sha256": "331ea9090db0c9f6f597bd9840fd5b171830f6e0b3ba1cb24dfa91f0c95aedc1",
+      "bytes": 26
+    },
+    {
+      "path": "teacher-web/forsales.html",
+      "sha256": "35d99bade610617d89fdac33446e48f0f7f319e9394e12c6e0a7539c78e35da6",
+      "bytes": 45647
+    },
+    {
+      "path": "teacher-web/subtitle-context.js",
+      "sha256": "a8d210826727de919976a4ac8cac78f90b7a1e8acf7d5d6b3ac6d02ff4d2e1bd",
+      "bytes": 6996
+    },
+    {
+      "path": "teacher-web/demo-captions.js",
+      "sha256": "ca9af8b13bae00638b26a1dbca72d1dd58bb9c1c688f10f8d85556979e90685d",
+      "bytes": 12149
+    },
+    {
+      "path": "teacher-web/trial-intake.js",
+      "sha256": "d46c5bd01b037e041229505c849675b7dfe0c6d3ecdfa8c92459a0cffaa3fca7",
+      "bytes": 2535
+    },
+    {
+      "path": "teacher-web/assets/knownmap-icon.png",
+      "sha256": "8acae4dc406d44f31ed7b5a329c2d17a6e6d799197c51fdc4f8c2e806829d0b3",
+      "bytes": 3440
+    },
+    {
+      "path": "admin.html",
+      "sha256": "c7471507f3ad71e9e0579fe7835f2013d792aca3ceb3a2db14598cd43c22afb6",
+      "bytes": 22538
+    },
+    {
+      "path": "teacher-web/admin.js",
+      "sha256": "41f6b8ecd7bad630848bceee20bafa192ab37a837a3619b1ef9993b88ba99077",
+      "bytes": 18488
+    },
+    {
+      "path": "teacher-web/editor.html",
+      "sha256": "95126db74780091585964596937529d7e311e38eea184e8c2bc55f90fda5d4f8",
+      "bytes": 14700
+    },
+    {
+      "path": "teacher-web/styles.css",
+      "sha256": "5d19f81a1ca0c683befe5bf6036711026bf90f1a36faa1262a8804ac941cc04b",
+      "bytes": 70033
+    },
+    {
+      "path": "teacher-web/subtitle-parser.js",
+      "sha256": "65c8f2e4c1c7d1aef8f1a66d5f9661c9252a374437691df378d097a8f6b9767b",
+      "bytes": 2894
+    },
+    {
+      "path": "teacher-web/subtitle-context.js",
+      "sha256": "a8d210826727de919976a4ac8cac78f90b7a1e8acf7d5d6b3ac6d02ff4d2e1bd",
+      "bytes": 6996
+    },
+    {
+      "path": "teacher-web/node-plugin-registry.js",
+      "sha256": "5a5bcd7f1fb57ba482f424e25df4dcdef7181442682429c47cd3da0bab7e1cdf",
+      "bytes": 7611
+    },
+    {
+      "path": "teacher-web/timeline-model.js",
+      "sha256": "94ca37a1ea14ba20c646ff5a6fd4c14b010669d3d717c66df312167f4d1817eb",
+      "bytes": 4867
+    },
+    {
+      "path": "teacher-web/editor-logger.js",
+      "sha256": "60900cdc8627028d9054a6d37d08a6344e6a6120f36c244590756d5625dc966d",
+      "bytes": 2180
+    },
+    {
+      "path": "teacher-web/visual-node-editor.js",
+      "sha256": "a6ae298ffa6e0bf9ed6624ddf5af20b6790ac23e675653b4a14bc7ab00e77c96",
+      "bytes": 30853
+    },
+    {
+      "path": "teacher-web/api-client.js",
+      "sha256": "a05021d5524eef076895739cfadbc7612def6ab57ac0dbacb4ed949f9d26ab86",
+      "bytes": 2547
+    },
+    {
+      "path": "teacher-web/auth-session.js",
+      "sha256": "a4a744cfe91f8a783db156dca6213d0a065a80b9aacec941071629c56030806b",
+      "bytes": 1044
+    },
+    {
+      "path": "teacher-web/app.js",
+      "sha256": "39c894a16b97af1b5f682791c5c7754a97cd7c08d3bd1b20b1841ce17a13d3d3",
+      "bytes": 26136
+    },
+    {
+      "path": "teacher-web/assets/knownmap-icon.png",
+      "sha256": "8acae4dc406d44f31ed7b5a329c2d17a6e6d799197c51fdc4f8c2e806829d0b3",
+      "bytes": 3440
+    }
+  ],
+  "verifiedAt": "2026-08-21T01:51:28Z",
+  "verification": {
+    "health": "passed",
+    "homepageSha256": "passed",
+    "privatePaths": "passed",
+    "apiHealth": "passed",
+    "teacherEditor": "passed",
+    "databaseBackup": "passed"
+  },
+  "components": {
+    "backend": {
+      "schemaVersion": 1,
+      "releaseId": "20260821T014923Z-c0e8aaa94c27",
+      "environment": "production",
+      "site": "https://knownmap.com",
+      "repository": "xiaobaiworld/lessonpilot",
+      "gitRemote": "git@github-2:xiaobaiworld/lessonpilot.git",
+      "gitCommit": "c0e8aaa94c27019c8b30d317cf800abcc89df84e",
+      "gitShortCommit": "c0e8aaa94c27",
+      "gitRemoteBranch": "origin/main",
+      "gitCommitSubject": "Merge branch 'codex/teacher-account-admin'",
+      "gitCommitTime": "2026-08-21T09:43:09+08:00",
+      "gitTag": "web-prod/20260821T014923Z-c0e8aaa94c27",
+      "publishProfile": "teacher-platform-v1",
+      "component": "fastapi",
+      "status": "verified",
+      "builtAt": "2026-08-21T01:49:38Z",
+      "deployedAt": "2026-08-21T01:51:28Z",
+      "previousReleaseId": null
+    }
+  }
+}
