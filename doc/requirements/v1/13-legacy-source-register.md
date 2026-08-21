@@ -1,6 +1,6 @@
 # 13 旧资料来源登记
 
-文档版本：`1.0.0-draft.14`
+文档版本：`1.0.0-draft.15`
 
 状态：已于 2026-08-21 通过人工审核；本轮只登记，不移动、删除或改写旧资料
 
@@ -65,29 +65,29 @@
 | SRC-024 | `doc/data/dictionary.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-020-026-batch.md)；字段冲突转接口核对 |
 | SRC-025 | `doc/data/flow.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-020-026-batch.md)；数据流作为现状证据 |
 | SRC-026 | `doc/data/quality.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-020-026-batch.md)；质量门禁与迁移风险已分类 |
-| SRC-027 | `doc/teacher-platform-data-spec.md` | 待核对 | 旧数据入口和兼容指针；确认无独有内容后再归档 |
-| SRC-028 | `doc/teacher-platform-api-spec.md` | 部分提取 | 当前 API 是迁移源，不是 v1 契约；进入接口设计与兼容映射 |
+| SRC-027 | `doc/teacher-platform-data-spec.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-027-036-batch.md)；已被后续数据文档替代 |
+| SRC-028 | `doc/teacher-platform-api-spec.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-027-036-batch.md)；实现事实进入接口兼容映射 |
 | SRC-029 | `doc/security/2026-08-20-production-security-audit.md` | 保留为证据 | 只证明特定版本和环境；风险项与 08、10 对照后重新验证 |
-| SRC-030 | `doc/web-production-release-design.md` | 待核对 | 现有静态站发布、记录和回滚进入部署设计现状清单 |
+| SRC-030 | `doc/web-production-release-design.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-027-036-batch.md)；发布与回滚事实进入部署设计 |
 | SRC-031 | `deploy/releases/README.md` | 保留为证据 | 保留旧 Web 发布记录格式和恢复入口，不声明 v1 已发布 |
 | SRC-032 | `deploy/teacher-platform/README.md` | 保留为证据 | 保留当前生产运维事实，进入 10、11 的环境与迁移核查 |
-| SRC-033 | `doc/student-plugin-release-design.md` | 待核对 | 固定 ZIP、手动更新和回滚是旧发布方案，进入插件分发开放项 |
-| SRC-034 | `doc/student-plugin-course-delivery-design.md` | 部分提取 | v0.9.1 单课程交付为兼容基线；多课程 v1 重新设计 |
-| SRC-035 | `docs/superpowers/specs/2026-08-20-course-identity-and-storage-design.md` | 部分提取 | UUID、多课节和本机存储决策进入 02、04、05；实现证据待确认 |
-| SRC-036 | `docs/superpowers/specs/2026-08-20-teacher-account-admin-design.md` | 部分提取 | 管理员与教师边界进入 03、04、08；旧页面和 API 留作迁移源 |
+| SRC-033 | `doc/student-plugin-release-design.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-027-036-batch.md)；固定 ZIP 旧方案已分类 |
+| SRC-034 | `doc/student-plugin-course-delivery-design.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-027-036-batch.md)；单课程兼容基线已分类 |
+| SRC-035 | `docs/superpowers/specs/2026-08-20-course-identity-and-storage-design.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-027-036-batch.md)；UUID 与多课节原则已回链 |
+| SRC-036 | `docs/superpowers/specs/2026-08-20-teacher-account-admin-design.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-027-036-batch.md)；账号管理边界已回链 |
 
 ### 3.3 产品体验、内容、品牌和技术参考
 
 | ID | 来源 | 状态 | 已知去向或待核对事项 |
 | --- | --- | --- | --- |
-| SRC-037 | `doc/stage-one-validation-loop-design.md` | 待核对 | 原型架构和理由作为历史设计，不能证明 v1 完成 |
-| SRC-038 | `doc/teacher-course-workspace-design.md` | 待核对 | 工作台信息结构进入 v1 体验设计，旧页面职责已被需求替代 |
-| SRC-039 | `doc/teacher-demo.md` | 待核对 | D0/D1 Demo 已被当前产品方向替代，只保留历史验证事实 |
+| SRC-037 | `doc/stage-one-validation-loop-design.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-037-045-batch.md)；保留历史验证闭环 |
+| SRC-038 | `doc/teacher-course-workspace-design.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-037-045-batch.md)；工作台体验作为设计参考 |
+| SRC-039 | `doc/teacher-demo.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-037-045-batch.md)；Demo 仅保留历史证据 |
 | SRC-040 | `doc/teacher-sales-page-design.md` | 保留为证据 | 已验证销售叙事可作内容参考，不定义 v1 业务规则 |
-| SRC-041 | `doc/trial-intake-form-design.md` | 待核对 | 飞书试用表单为旧业务入口；隐私、范围和继续保留性待确认 |
-| SRC-042 | `doc/ui-design.md` | 待核对 | 颜色与基础 UI 规则进入后续设计，不提前冻结 |
-| SRC-043 | `doc/learning-window-standard.md` | 待核对 | 展示与交互标准和四类基线节点逐项对照，超出范围作为候选 |
-| SRC-044 | `doc/node-content-standard.md` | 待核对 | 内容完整性规则进入节点设计；不自动扩大第一阶段节点类型 |
+| SRC-041 | `doc/trial-intake-form-design.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-037-045-batch.md)；试用入口已由 `D-V1-001` 吸收 |
+| SRC-042 | `doc/ui-design.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-037-045-batch.md)；视觉规则留给设计阶段 |
+| SRC-043 | `doc/learning-window-standard.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-037-045-batch.md)；超出基础节点的能力后置 |
+| SRC-044 | `doc/node-content-standard.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-037-045-batch.md)；四类节点范围保持不变 |
 | SRC-045 | `doc/subtitle-pipeline.md` | 保留为证据 | 字幕来源与本地解析研究进入制作设计和不可信输入核对 |
 | SRC-046 | `doc/bili-mascot-spike.md` | 保留为证据 | 只证明播放器技术探索，不代表正式运行时或兼容承诺 |
 | SRC-047 | `doc/teacher-visual-node-editor-design.md` | 待核对 | 已实现旧编辑器设计；行为与 v1 制作需求逐项映射 |
