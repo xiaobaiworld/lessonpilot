@@ -1,6 +1,6 @@
 # 13 旧资料来源登记
 
-文档版本：`1.0.0-draft.8`
+文档版本：`1.0.0-draft.9`
 
 状态：已于 2026-08-21 通过人工审核；本轮只登记，不移动、删除或改写旧资料
 
@@ -39,7 +39,7 @@
 | SRC-003 | [`doc/requirements/teacher-platform-local-stage.md`](../../requirements/teacher-platform-local-stage.md) | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-003-teacher-platform-local-stage.md)；旧实施规则与迁移证据已分类 |
 | SRC-004 | [`doc/requirements/stage-1a.md`](../../requirements/stage-1a.md) | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-004-stage-1a.md)；旧单课程契约与消息桥证据已分类 |
 | SRC-005 | [`doc/requirements/stage-1b.md`](../../requirements/stage-1b.md) | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-005-stage-1b.md)；公开销售与试用申请已按 `D-V1-001` 纳入 v1 P0 |
-| SRC-006 | `doc/requirements/stage-1c.md` | 待核对 | B 站运行时、四类节点和端到端预览进入 03、04、06 核对 |
+| SRC-006 | [`doc/requirements/stage-1c.md`](../../requirements/stage-1c.md) | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-006-stage-1c.md)；运行时语义与旧预览状态已分类 |
 | SRC-007 | `doc/AI_Learning_Companion_Product_Function_Spec_v0.1.md` | 待核对 | 被 v0.2 替代的产品基线；只保留独有历史与未被否决候选 |
 | SRC-008 | `doc/AI_Learning_Companion_Product_Function_Spec_v0.2.md` | 部分提取 | 教师中心、多课程、授权和学习方向进入 01–06；远期内容待分类 |
 | SRC-009 | `doc/DECISIONS.md` | 部分提取 | 已接受决策被 01、02、04、05 引用；逐条状态和替代链待登记 |
