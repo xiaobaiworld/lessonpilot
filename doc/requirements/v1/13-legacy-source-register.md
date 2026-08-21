@@ -1,6 +1,6 @@
 # 13 旧资料来源登记
 
-文档版本：`1.0.0-draft.10`
+文档版本：`1.0.0-draft.12`
 
 状态：已于 2026-08-21 通过人工审核；本轮只登记，不移动、删除或改写旧资料
 
@@ -41,7 +41,7 @@
 | SRC-005 | [`doc/requirements/stage-1b.md`](../../requirements/stage-1b.md) | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-005-stage-1b.md)；公开销售与试用申请已按 `D-V1-001` 纳入 v1 P0 |
 | SRC-006 | [`doc/requirements/stage-1c.md`](../../requirements/stage-1c.md) | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-006-stage-1c.md)；运行时语义与旧预览状态已分类 |
 | SRC-007 | [`doc/AI_Learning_Companion_Product_Function_Spec_v0.1.md`](../../AI_Learning_Companion_Product_Function_Spec_v0.1.md) | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-007-product-spec-v0.1.md)；长期身份、授权扩展和旧设计已分类 |
-| SRC-008 | `doc/AI_Learning_Companion_Product_Function_Spec_v0.2.md` | 部分提取 | 教师中心、多课程、授权和学习方向进入 01–06；远期内容待分类 |
+| SRC-008 | `doc/AI_Learning_Companion_Product_Function_Spec_v0.2.md` | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-008-product-spec-v0.2.md)；`D-V1-002` 已决定 v1 完全排除 AI 辅助制作 |
 | SRC-009 | `doc/DECISIONS.md` | 部分提取 | 已接受决策被 01、02、04、05 引用；逐条状态和替代链待登记 |
 | SRC-010 | `doc/decisions/2026-08-18-teacher-centered-product-v0.2.md` | 部分提取 | 教师、工作空间、本地课程和授权决策待与 v1 编号逐条回链 |
 | SRC-011 | `doc/decisions/2026-08-18-teacher-platform-local-slice.md` | 待核对 | 仅代表旧最小切片，不自动限制 v1 完整范围 |
