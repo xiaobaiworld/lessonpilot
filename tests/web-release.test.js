@@ -122,6 +122,9 @@ test('teacher platform profile packages the editor without publishing the reposi
   const metadata = JSON.parse(fs.readFileSync(path.join(output, 'release.json'), 'utf8'));
   assert.equal(metadata.publishProfile, 'teacher-platform-v1');
   assert.ok(fs.existsSync(path.join(output, 'public/admin.html')));
+  assert.ok(fs.existsSync(path.join(output, 'public/teacher-web/admin.js')));
+  assert.ok(metadata.files.some((file) => file.path === 'admin.html'));
+  assert.ok(metadata.files.some((file) => file.path === 'teacher-web/admin.js'));
   assert.ok(fs.existsSync(path.join(output, 'public/teacher-web/editor.html')));
   assert.ok(fs.existsSync(path.join(output, 'public/teacher-web/api-client.js')));
   assert.ok(fs.existsSync(path.join(output, 'public/teacher-web/app.js')));
@@ -138,6 +141,7 @@ test('admin index exposes only the approved production entry points', () => {
   assert.match(source, /href="\/"/);
   assert.match(source, /href="\/teacher-web\/editor\.html"/);
   assert.match(source, /href="\/health"/);
+  assert.match(source, /src="\/teacher-web\/admin\.js\?/);
   assert.doesNotMatch(source, /\/api\/v1\//);
   assert.doesNotMatch(source, /43\.110\.33\.202/);
 });

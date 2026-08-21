@@ -1,6 +1,112 @@
 # KnownMap 当前下一步
 
-更新时间：2026-08-20
+更新时间：2026-08-21
+
+## 当前执行切片：超级管理员与教师账号管理
+
+设计入口：`docs/superpowers/specs/2026-08-20-teacher-account-admin-design.md`
+
+实施计划：`docs/superpowers/plans/2026-08-20-teacher-account-admin.md`
+
+当前步骤：本地实现和验收已完成，等待合并并部署生产服务器。
+
+涉及文件：
+
+- `tools/teacher-platform-release.sh`
+- `tests/teacher-platform-release.test.js`
+- `teacher-web/admin.html`
+- `teacher-web/admin.js`
+
+验证方式：
+
+```text
+node --test tests/*.test.js
+cd backend && uv run pytest -q
+cd ..
+git diff --check
+```
+
+已完成的生产发布引导：
+
+- `teacher-platform-v1` 发布包包含 `admin.html` 和 `/teacher-web/admin.js`，销售站发布白名单不变；
+- 后端迁移和服务启动后检查远程 `admins` 总数，只有空表才允许首次 seed；
+- 管理员初始密码可由 `KNOWNMAP_PRODUCTION_ADMIN_PASSWORD` 显式提供，否则由 `openssl rand -hex 18` 生成；
+- 初始密码只通过 root `0600` 临时文件进入一次 seed，trap 和本机失败清理都会删除该文件；
+- 生产长期环境文件不包含管理员 seed 密码变量或值；
+- 已有任何管理员记录时后续发布跳过 seed，不重置密码、昵称或状态；
+- 远程验证新增管理员会话和教师列表未登录 `401` 探针；
+- 全量 Node 测试 `331 passed`、后端测试 `96 passed`，Shell 语法和 `git diff --check` 通过。
+
+已完成的管理员前端工作区：
+
+- 保留销售首页、教师工作台和服务状态三个原入口；
+- 未登录时按需打开超级管理员登录，登录后切换到教师账号管理工作区；
+- 支持教师列表、已发布课程数、创建教师、重置密码、会话恢复和退出；
+- 临时密码只保存在页面内存和文本节点，关闭、退出或会话失效时清空；
+- 请求代次会丢弃旧会话和旧教师列表响应，敏感操作串行执行；
+- 临时密码未关闭前禁止下一次创建或重置，避免覆盖不可再次获取的凭据；
+- 浏览器实测完成登录、列表、创建、复制、清除、重置和退出流程；
+- 390px 窄屏页面无整体横向溢出，宽表格只在自身容器内滚动；
+- 浏览器页面脚本无运行错误。
+
+已完成的权威文档同步：
+
+- 数据规范和 ER 模型加入 `admins`、`admin_sessions` 及独立认证边界；
+- 字段字典记录 Argon2 哈希、HMAC 会话摘要和管理员教师摘要响应；
+- 数据流记录管理员 bootstrap、创建/重置教师、一次性密码响应和发布课程 SQL 聚合；
+- 数据质量规则禁止密码、哈希、Cookie、原始 token 和临时密码持久化或进入日志；
+- API 文档加入管理员登录、会话恢复、退出、教师列表、创建和重置密码端点；
+- 架构与部署文档加入独立管理员模块、首次初始化和生产验证步骤；
+- 文档敏感词扫描只命中字段名、变量名、占位符和禁止规则，没有真实凭据；
+- `git diff --check` 通过。
+
+已完成的老师账号管理后端：
+
+- `GET /api/v1/admin/teachers` 返回教师公开字段和已发布课程数；
+- 发布课程数由 SQL 聚合计算，只计 `courses.status = 'published'`；
+- `POST /api/v1/admin/teachers` 创建 active 教师及其 workspace，并仅在当次响应返回随机临时密码；
+- 重复教师登录名返回冲突，不覆盖既有昵称、状态或密码哈希；
+- `POST /api/v1/admin/teachers/{teacher_id}/reset-password` 只更新密码哈希，不自动恢复停用账号；
+- 临时密码由系统安全随机源生成，数据库只保存 Argon2 哈希；
+- 操作日志只记录管理员 ID、动作、教师 ID、结果和错误码；
+- 聚焦测试 `18 passed`，后端全量 `96 passed`，Python 编译和 `git diff --check` 通过。
+
+已完成的管理员认证 API：
+
+- `POST /api/v1/admin/auth/login` 使用独立管理员 Cookie 建立会话；
+- `GET /api/v1/admin/auth/me` 只接受有效管理员会话；
+- `POST /api/v1/admin/auth/logout` 撤销会话并清除管理员 Cookie；
+- 教师 Cookie 不能访问管理员认证接口；
+- 登录失败不区分账号不存在或密码错误；
+- Cookie 使用 `HttpOnly`、`SameSite=Lax`，生产环境启用 `Secure`；
+- 操作日志只记录管理员 ID、动作和结果，不记录密码、Cookie 或 token；
+- 聚焦测试 `4 passed`，后端全量 `82 passed`，Python 编译和 `git diff --check` 通过。
+
+已完成的管理员认证服务：
+
+- 管理员密码使用 Argon2 哈希，损坏或不支持的哈希统一按认证失败处理；
+- 缺失、禁用和错误密码路径均执行密码校验，减少登录名时序枚举；
+- 管理员会话只持久化 HMAC-SHA256 摘要，支持 TTL、撤销和过期过滤；
+- 管理员 Cookie、会话表和认证依赖与教师完全隔离；
+- 管理员 seed 只能通过显式 `python -m app.seed admin` 路径执行，并且不会覆盖已有管理员密码、名称或状态；
+- 管理员初始密码不进入 Settings、`.env.example` 或数据库明文；
+- 聚焦测试 `28 passed`，后端全量 `78 passed`，`git diff --check` 通过。
+
+已完成的持久化修正：
+
+- SQLite 项目引擎对每个连接启用外键检查；
+- 保留已进入远程仓库的 `0010_admin_auth`，新增可逆 `0011` 修复迁移；
+- 管理员登录名和会话摘要统一为具名唯一索引；
+- 清除旧结构中无法归属有效管理员的孤立会话；
+- 升级、降级、数据保持和外键执行均有自动化验证；
+- 聚焦测试 `4 passed`，后端全量 `57 passed`，Alembic 保持单一 head。
+
+安全边界：
+
+- 管理员与教师使用独立会话表、Cookie 和 API 权限边界；
+- 管理员与教师密码只保存 Argon2 哈希；
+- 创建或重置教师密码时，明文只存在于当次 HTTPS 响应和页面内存；
+- 不在日志、浏览器存储、发布记录、环境文件或数据库中保存明文密码。
 
 当前阶段：多课程 v2 数据链路实施；旧单课程测试结构直接舍弃
 

@@ -1,10 +1,10 @@
 # KnownMap 教师平台当前 API 说明
 
-版本：0.4
+版本：0.5
 
 更新时间：2026-08-20
 
-状态：当前工作区 API 实现说明；健康检查、教师认证、课程、多课节持久化、脚本草稿、
+状态：当前工作区 API 实现说明；健康检查、教师认证、管理员认证、教师账号管理、课程、多课节持久化、脚本草稿、
 第一课节兼容发布、授权码、公开单课程下载和 CORS 已实现。插件 `0.9.1` 已接入 v1 公开
 下载协议，但当前插件 Base URL 仍固定为本机 `127.0.0.1:8000`。v2 课程包契约已实现，
 API 尚未输出；多课节改动尚未部署生产。
@@ -104,7 +104,82 @@ Base path：
 
 未登录返回 `AUTH_REQUIRED`。
 
-## 3. 教师课程端点
+## 3. 管理员与教师账号管理端点
+
+管理员 API 前缀为 `/admin`，使用独立 `knownmap_admin_session` Cookie。教师 Cookie 不能访问
+管理员端点。管理员密码、教师密码和会话原 token 不会出现在 API 响应中。
+
+### `POST /admin/auth/login`
+
+请求：
+
+```json
+{
+  "login_name": "admin",
+  "password": "provided-out-of-band"
+}
+```
+
+成功返回管理员公开字段并设置 `HttpOnly`、`SameSite=Lax` Cookie；生产环境 Cookie 增加
+`Secure`。失败统一返回 `AUTH_INVALID_CREDENTIALS`，不区分账号不存在、停用或密码错误。
+
+### `GET /admin/auth/me`
+
+恢复管理员会话。缺失、伪造、过期、撤销、停用管理员或教师 Cookie 均返回
+`AUTH_REQUIRED`。
+
+### `POST /admin/auth/logout`
+
+撤销当前管理员会话并清除管理员 Cookie：
+
+```json
+{
+  "logged_out": true
+}
+```
+
+### `GET /admin/teachers`
+
+返回教师登录名、昵称、状态、创建/更新时间和 `published_course_count`。课程数量由数据库
+聚合，只统计 `courses.status = "published"`，草稿不计入。响应不包含 `password_hash`。
+
+### `POST /admin/teachers`
+
+请求：
+
+```json
+{
+  "login_name": "teacher-02",
+  "display_name": "新教师"
+}
+```
+
+成功 HTTP 201，创建 active 教师及其 workspace，并只在本次 HTTPS 响应返回临时密码：
+
+```json
+{
+  "teacher": {
+    "id": "uuid",
+    "login_name": "teacher-02",
+    "display_name": "新教师",
+    "status": "active",
+    "published_course_count": 0,
+    "created_at": "2026-08-20T00:00:00Z",
+    "updated_at": "2026-08-20T00:00:00Z"
+  },
+  "temporary_password": "<returned-once>"
+}
+```
+
+临时密码不写入数据库、日志、操作记录、URL 或浏览器存储。重复登录名返回
+`TEACHER_LOGIN_CONFLICT`，不得修改已有账号。
+
+### `POST /admin/teachers/{teacher_id}/reset-password`
+
+请求体为空。成功返回教师公开字段和新的 `temporary_password`；旧密码立即失效。停用账号
+允许重置密码，但状态保持 `disabled`。不存在时返回 `RESOURCE_NOT_FOUND`。
+
+## 4. 教师课程端点
 
 所有 `/teacher/*` 端点都需要教师会话，并由服务端从会话取得教师和工作空间。
 
@@ -152,7 +227,7 @@ Base path：
 - `RESOURCE_NOT_FOUND`：课程不存在或不属于当前教师；
 - `DRAFT_NOT_READY`：没有课节、没有草稿或草稿节点为空。
 
-## 4. 教师课节和脚本端点
+## 5. 教师课节和脚本端点
 
 ### `POST /teacher/courses/{course_id}/lessons`
 
@@ -201,7 +276,7 @@ Base path：
 
 响应包含 `schema_version`、`config`、`lesson_id`、`node_count` 和 `updated_at`；不返回数据库内部字段。
 
-## 5. 授权码端点
+## 6. 授权码端点
 
 ### `POST /teacher/courses/{course_id}/access-codes`
 
@@ -244,7 +319,7 @@ Base path：
 
 返回总数、`short_term` / `long_term` 分类计数，以及只包含尾号提示、类型、创建时间、到期时间和状态的记录。不得返回授权码原文或摘要。
 
-## 6. 插件课程下载端点
+## 7. 插件课程下载端点
 
 ### `POST /public/course-download`
 
@@ -312,11 +387,15 @@ Base path：
 下载响应也只返回一门课程。独立的 v2 JavaScript 契约已经支持 UUID 和 `lessons[]`，但
 后端发布/下载、`AccessGrant` 和多范围响应尚未实施。
 
-## 7. API 节点工作单元
+## 8. API 节点工作单元
 
 | 节点 | 所属模块 | 输入 | 输出 | 失败条件 | 验证 |
 | --- | --- | --- | --- | --- | --- |
 | `POST /auth/login` | Auth | 登录名、密码 | 会话、教师摘要 | 密码错误、账号停用 | API 集成测试 |
+| `POST /admin/auth/login` | AdminAuth | 管理员登录名、密码 | 独立会话、管理员摘要 | 密码错误、账号停用 | API 集成测试 |
+| `GET /admin/teachers` | AdminTeacher | 管理员会话 | 教师摘要和发布课程数 | 未登录 | SQL 聚合/API 测试 |
+| `POST /admin/teachers` | AdminTeacher | 登录名、昵称 | 教师摘要、一次性临时密码 | 重复登录名、空值 | 服务/API 测试 |
+| `POST /admin/teachers/{id}/reset-password` | AdminTeacher | 教师 ID | 教师摘要、一次性临时密码 | 教师不存在 | 服务/API 测试 |
 | `GET /teacher/courses` | Course | 教师会话 | 课程摘要列表 | 未登录 | API 集成测试 |
 | `POST /teacher/courses` | Course | 课程标题、描述 | 课程 | 空标题、未登录 | 服务/数据库测试 |
 | `POST /teacher/courses/{id}/lessons` | Lesson | 标题、BVID | 有序课节 | 越权、BVID 错误 | 服务/数据库/migration 测试 |
@@ -326,7 +405,7 @@ Base path：
 | `GET /teacher/courses/{id}/access-codes` | AccessCode | 课程 ID | 分类统计、脱敏历史 | 越权 | API 集成测试 |
 | `POST /public/course-download` | Download | 授权码 | 插件课程配置 | 无效码、未发布 | API/E2E 测试 |
 
-## 8. 文档和联调要求
+## 9. 文档和联调要求
 
 - FastAPI 自动生成 Swagger/OpenAPI；
 - 每个端点同步维护 Pydantic request/response model；

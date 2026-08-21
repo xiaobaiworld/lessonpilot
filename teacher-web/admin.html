@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, noarchive">
-    <meta name="description" content="KnownMap 站点入口">
+    <meta name="description" content="KnownMap 站点入口与教师账号管理">
     <title>站点入口 · KnownMap</title>
     <link rel="icon" type="image/png" href="assets/knownmap-icon.png">
     <style>
@@ -12,10 +12,15 @@
         color: #16251f;
         background: #f5f1e7;
         font-family: "Avenir Next", "PingFang SC", "Microsoft YaHei", sans-serif;
+        color-scheme: light;
       }
 
       * {
         box-sizing: border-box;
+      }
+
+      [hidden] {
+        display: none !important;
       }
 
       body {
@@ -25,8 +30,40 @@
         background: #f5f1e7;
       }
 
+      button,
+      input {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      button:disabled {
+        cursor: wait;
+        opacity: 0.58;
+      }
+
       a {
         color: inherit;
+      }
+
+      :focus-visible {
+        outline: 3px solid rgba(29, 92, 67, 0.28);
+        outline-offset: 2px;
+      }
+
+      .visually-hidden {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
       }
 
       .topbar {
@@ -77,9 +114,14 @@
       }
 
       main {
-        width: min(980px, calc(100% - 40px));
+        width: min(1120px, calc(100% - 40px));
         margin: 0 auto;
-        padding: clamp(54px, 8vw, 96px) 0 80px;
+        padding: clamp(48px, 7vw, 84px) 0 80px;
+      }
+
+      .entry-shell {
+        width: min(980px, 100%);
+        margin: 0 auto;
       }
 
       .eyebrow {
@@ -89,17 +131,26 @@
         font-weight: 800;
       }
 
+      h1,
+      h2,
+      p {
+        letter-spacing: 0;
+      }
+
       h1 {
         max-width: 720px;
         margin: 10px 0 0;
         font-size: 56px;
         font-weight: 680;
-        letter-spacing: 0;
         line-height: 1.08;
       }
 
+      h2 {
+        margin: 0;
+      }
+
       .lead {
-        max-width: 620px;
+        max-width: 650px;
         margin: 18px 0 0;
         color: #52635b;
         font-size: 16px;
@@ -121,7 +172,7 @@
         gap: 22px;
         border-bottom: 1px solid #c6cec8;
         text-decoration: none;
-        transition: background-color 160ms ease, padding 160ms ease;
+        transition: background-color 160ms ease;
       }
 
       .entry:hover,
@@ -143,11 +194,11 @@
       }
 
       .entry:nth-child(2) .entry-index {
-        color: #a9654e;
+        color: #a34e35;
       }
 
       .entry:nth-child(3) .entry-index {
-        color: #8c6a08;
+        color: #806107;
       }
 
       .entry-copy {
@@ -175,13 +226,393 @@
         line-height: 1;
       }
 
+      .admin-entry {
+        display: flex;
+        margin-top: 30px;
+        padding: 20px 0;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        border-bottom: 1px solid #c6cec8;
+      }
+
+      .admin-entry strong,
+      .admin-entry span {
+        display: block;
+      }
+
+      .admin-entry span {
+        margin-top: 5px;
+        color: #52635b;
+        font-size: 13px;
+      }
+
+      .button,
+      .icon-button,
+      .table-action {
+        min-height: 40px;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        font-weight: 760;
+        transition: background-color 140ms ease, border-color 140ms ease;
+      }
+
+      .button {
+        padding: 9px 16px;
+      }
+
+      .button-primary {
+        border-color: #1d5c43;
+        background: #1d5c43;
+        color: #fff;
+      }
+
+      .button-primary:hover:not(:disabled) {
+        background: #144b35;
+      }
+
+      .button-secondary,
+      .icon-button,
+      .table-action {
+        border-color: #aebbb3;
+        background: transparent;
+        color: #1d5c43;
+      }
+
+      .button-secondary:hover:not(:disabled),
+      .icon-button:hover:not(:disabled),
+      .table-action:hover:not(:disabled) {
+        border-color: #1d5c43;
+        background: #fffdf8;
+      }
+
+      .button-quiet {
+        border-color: transparent;
+        background: transparent;
+        color: #52635b;
+      }
+
+      .button-quiet:hover:not(:disabled) {
+        color: #16251f;
+        background: #ebe8df;
+      }
+
+      .login-panel {
+        width: min(560px, 100%);
+        margin: 24px 0 0 auto;
+        padding: 24px;
+        border: 1px solid #aebbb3;
+        border-radius: 6px;
+        background: #fffdf8;
+      }
+
+      .panel-heading {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 20px;
+      }
+
+      .panel-heading p {
+        margin: 7px 0 0;
+        color: #52635b;
+        font-size: 13px;
+        line-height: 1.55;
+      }
+
+      .icon-button {
+        width: 40px;
+        min-width: 40px;
+        padding: 0;
+        font-size: 22px;
+        line-height: 1;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .login-form {
+        display: grid;
+        margin-top: 22px;
+        gap: 16px;
+      }
+
+      label {
+        display: grid;
+        gap: 7px;
+        color: #30483d;
+        font-size: 13px;
+        font-weight: 720;
+      }
+
+      input {
+        width: 100%;
+        min-height: 42px;
+        padding: 9px 11px;
+        border: 1px solid #aebbb3;
+        border-radius: 5px;
+        background: #fff;
+        color: #16251f;
+      }
+
+      input:focus {
+        border-color: #1d5c43;
+        outline: 3px solid rgba(29, 92, 67, 0.16);
+      }
+
+      .form-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+      }
+
+      .message {
+        margin: 14px 0 0;
+        padding: 10px 12px;
+        border-left: 3px solid #806107;
+        background: #f7efd0;
+        color: #5d4708;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .message[data-tone="error"] {
+        border-left-color: #a33a32;
+        background: #f8e4df;
+        color: #74241f;
+      }
+
       footer {
         margin-top: 34px;
         color: #69786f;
         font-size: 12px;
       }
 
-      @media (max-width: 620px) {
+      .workspace {
+        display: grid;
+        gap: 28px;
+      }
+
+      .workspace > * {
+        min-width: 0;
+      }
+
+      .workspace-topbar {
+        display: flex;
+        padding-bottom: 22px;
+        align-items: end;
+        justify-content: space-between;
+        gap: 24px;
+        border-bottom: 1px solid #aebbb3;
+      }
+
+      .workspace-topbar h1 {
+        font-size: 34px;
+      }
+
+      .admin-identity {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .identity-copy {
+        text-align: right;
+      }
+
+      .identity-copy small,
+      .identity-copy strong {
+        display: block;
+      }
+
+      .identity-copy small {
+        color: #69786f;
+        font-size: 11px;
+      }
+
+      .identity-copy strong {
+        margin-top: 3px;
+        font-size: 14px;
+      }
+
+      .temporary-result {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        padding: 18px 20px;
+        align-items: center;
+        gap: 20px;
+        border: 1px solid #806107;
+        border-radius: 6px;
+        background: #fff8d9;
+      }
+
+      .temporary-result p {
+        margin: 7px 0 0;
+        color: #5d4708;
+        font-size: 13px;
+        line-height: 1.55;
+      }
+
+      .credential-line {
+        display: flex;
+        margin-top: 12px;
+        align-items: baseline;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .credential-line code {
+        overflow-wrap: anywhere;
+        font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+        font-size: 16px;
+        font-weight: 800;
+      }
+
+      .temporary-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      #copy-status {
+        min-width: 46px;
+        color: #52635b;
+        font-size: 12px;
+      }
+
+      .workspace-band {
+        padding: 24px 0;
+        border-top: 1px solid #c6cec8;
+        border-bottom: 1px solid #c6cec8;
+      }
+
+      .band-heading {
+        display: flex;
+        margin-bottom: 20px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+      }
+
+      .band-heading h2 {
+        font-size: 20px;
+      }
+
+      .band-heading p {
+        margin: 5px 0 0;
+        color: #69786f;
+        font-size: 13px;
+      }
+
+      .create-form {
+        display: grid;
+        grid-template-columns: minmax(180px, 0.8fr) minmax(220px, 1fr) auto;
+        align-items: end;
+        gap: 16px;
+      }
+
+      .table-wrap {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        border: 1px solid #c6cec8;
+        border-radius: 6px;
+        background: #fffdf8;
+      }
+
+      table {
+        width: 100%;
+        min-width: 820px;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        padding: 13px 14px;
+        border-bottom: 1px solid #e0ded7;
+        text-align: left;
+        vertical-align: middle;
+      }
+
+      th {
+        background: #eeece4;
+        color: #52635b;
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      td {
+        font-size: 13px;
+      }
+
+      tbody tr:last-child td {
+        border-bottom: 0;
+      }
+
+      tbody tr:hover {
+        background: #f8f6ef;
+      }
+
+      .mono {
+        font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+      }
+
+      .number-cell {
+        font-variant-numeric: tabular-nums;
+        font-weight: 800;
+      }
+
+      .date-cell {
+        color: #69786f;
+        white-space: nowrap;
+      }
+
+      .action-cell {
+        text-align: right;
+      }
+
+      .table-action {
+        min-height: 34px;
+        padding: 6px 10px;
+        white-space: nowrap;
+        font-size: 12px;
+      }
+
+      .status-label {
+        display: inline-flex;
+        min-height: 24px;
+        padding: 3px 8px;
+        align-items: center;
+        border-radius: 5px;
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .status-active {
+        background: #dcece2;
+        color: #174c36;
+      }
+
+      .status-disabled {
+        background: #e8e4df;
+        color: #685f58;
+      }
+
+      .table-state {
+        margin: 0;
+        padding: 28px 16px;
+        border: 1px dashed #aebbb3;
+        border-radius: 6px;
+        color: #69786f;
+        text-align: center;
+        font-size: 13px;
+      }
+
+      @media (max-width: 760px) {
         .topbar {
           min-height: 66px;
         }
@@ -192,8 +623,8 @@
         }
 
         main {
-          width: min(100% - 32px, 980px);
-          padding-top: 48px;
+          width: min(100% - 32px, 1120px);
+          padding-top: 42px;
         }
 
         h1 {
@@ -218,6 +649,74 @@
         .entry-arrow {
           font-size: 22px;
         }
+
+        .admin-entry {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .workspace-topbar {
+          display: grid;
+        }
+
+        .admin-identity {
+          justify-content: space-between;
+        }
+
+        .identity-copy {
+          text-align: left;
+        }
+
+        .temporary-result {
+          grid-template-columns: 1fr;
+        }
+
+        .temporary-actions {
+          flex-wrap: wrap;
+        }
+
+        .create-form,
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .create-form .button {
+          width: 100%;
+        }
+      }
+
+      @media (max-width: 440px) {
+        .topbar {
+          padding-inline: 16px;
+        }
+
+        .brand small {
+          display: none;
+        }
+
+        main {
+          width: min(100% - 24px, 1120px);
+        }
+
+        h1 {
+          font-size: 36px;
+        }
+
+        .admin-entry {
+          display: grid;
+        }
+
+        .admin-entry .button {
+          width: 100%;
+        }
+
+        .login-panel {
+          padding: 20px 16px;
+        }
+
+        .band-heading {
+          align-items: start;
+        }
       }
     </style>
   </head>
@@ -234,40 +733,229 @@
     </header>
 
     <main>
-      <p class="eyebrow">KNOWNMAP</p>
-      <h1>站点入口</h1>
-      <p class="lead">进入公开销售页、教师课程工作台，或查看当前服务状态。</p>
+      <section id="entry-view" class="entry-shell">
+        <p class="eyebrow">KNOWNMAP</p>
+        <h1>站点入口</h1>
+        <p class="lead">进入公开销售页、教师课程工作台，或查看当前服务状态。</p>
 
-      <nav class="entry-list" aria-label="KnownMap 页面入口">
-        <a class="entry" href="/">
-          <span class="entry-index">01</span>
-          <span class="entry-copy">
-            <strong>销售首页</strong>
-            <span>knownmap.com/</span>
-          </span>
-          <span class="entry-arrow" aria-hidden="true">→</span>
-        </a>
+        <nav class="entry-list" aria-label="KnownMap 页面入口">
+          <a class="entry" href="/">
+            <span class="entry-index">01</span>
+            <span class="entry-copy">
+              <strong>销售首页</strong>
+              <span>knownmap.com/</span>
+            </span>
+            <span class="entry-arrow" aria-hidden="true">→</span>
+          </a>
 
-        <a class="entry" href="/teacher-web/editor.html">
-          <span class="entry-index">02</span>
-          <span class="entry-copy">
-            <strong>教师工作台</strong>
-            <span>knownmap.com/teacher-web/editor.html</span>
-          </span>
-          <span class="entry-arrow" aria-hidden="true">→</span>
-        </a>
+          <a class="entry" href="/teacher-web/editor.html">
+            <span class="entry-index">02</span>
+            <span class="entry-copy">
+              <strong>教师工作台</strong>
+              <span>knownmap.com/teacher-web/editor.html</span>
+            </span>
+            <span class="entry-arrow" aria-hidden="true">→</span>
+          </a>
 
-        <a class="entry" href="/health">
-          <span class="entry-index">03</span>
-          <span class="entry-copy">
-            <strong>服务状态</strong>
-            <span>knownmap.com/health</span>
-          </span>
-          <span class="entry-arrow" aria-hidden="true">→</span>
-        </a>
-      </nav>
+          <a class="entry" href="/health">
+            <span class="entry-index">03</span>
+            <span class="entry-copy">
+              <strong>服务状态</strong>
+              <span>knownmap.com/health</span>
+            </span>
+            <span class="entry-arrow" aria-hidden="true">→</span>
+          </a>
+        </nav>
 
-      <footer>KnownMap · Production</footer>
+        <section class="admin-entry" aria-labelledby="admin-entry-title">
+          <div>
+            <strong id="admin-entry-title">教师账号管理</strong>
+            <span>仅供超级管理员创建教师账号、查询课程数和重置密码。</span>
+          </div>
+          <button id="open-admin-login" class="button button-secondary" type="button">
+            管理员登录
+          </button>
+        </section>
+
+        <section id="admin-login-panel" class="login-panel" aria-labelledby="login-title" hidden>
+          <div class="panel-heading">
+            <div>
+              <h2 id="login-title">超级管理员登录</h2>
+              <p>登录成功后进入教师账号管理工作区。</p>
+            </div>
+            <button
+              id="close-admin-login"
+              class="icon-button"
+              type="button"
+              aria-label="关闭管理员登录"
+              title="关闭"
+            >
+              ×
+            </button>
+          </div>
+
+          <form id="admin-login-form" class="login-form">
+            <div class="form-grid">
+              <label>
+                用户名
+                <input
+                  id="admin-login-name"
+                  name="login_name"
+                  type="text"
+                  minlength="3"
+                  maxlength="80"
+                  autocomplete="username"
+                  required
+                >
+              </label>
+              <label>
+                密码
+                <input
+                  id="admin-password"
+                  name="password"
+                  type="password"
+                  maxlength="256"
+                  autocomplete="current-password"
+                  required
+                >
+              </label>
+            </div>
+            <p id="admin-login-message" class="message" role="alert" hidden></p>
+            <div class="form-actions">
+              <button id="admin-login-button" class="button button-primary" type="submit">
+                登录
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <footer>KnownMap · Production</footer>
+      </section>
+
+      <section id="admin-workspace" class="workspace" aria-labelledby="workspace-title" hidden>
+        <header class="workspace-topbar">
+          <div>
+            <p class="eyebrow">INTERNAL OPERATIONS</p>
+            <h1 id="workspace-title">教师账号管理</h1>
+          </div>
+          <div id="admin-identity" class="admin-identity" hidden>
+            <div class="identity-copy">
+              <small>当前管理员</small>
+              <strong id="admin-display-name"></strong>
+            </div>
+            <button id="admin-logout" class="button button-quiet" type="button">退出</button>
+          </div>
+        </header>
+
+        <p id="workspace-message" class="message" role="alert" hidden></p>
+
+        <section
+          id="temporary-password-result"
+          class="temporary-result"
+          aria-labelledby="temporary-password-title"
+          aria-live="polite"
+          hidden
+        >
+          <div>
+            <h2 id="temporary-password-title">临时密码</h2>
+            <p>
+              请立即交给对应教师。关闭后本页不会保留，也无法再次查看同一个临时密码。
+            </p>
+            <div class="credential-line">
+              <span>用户名：<code id="temporary-password-login"></code></span>
+              <span>临时密码：<code id="temporary-password-value"></code></span>
+            </div>
+          </div>
+          <div class="temporary-actions">
+            <span id="copy-status" role="status" aria-live="polite"></span>
+            <button
+              id="copy-temporary-password"
+              class="button button-secondary"
+              type="button"
+            >
+              复制密码
+            </button>
+            <button
+              id="dismiss-temporary-password"
+              class="icon-button"
+              type="button"
+              aria-label="关闭临时密码"
+              title="关闭并清除"
+            >
+              ×
+            </button>
+          </div>
+        </section>
+
+        <section class="workspace-band" aria-labelledby="create-teacher-title">
+          <div class="band-heading">
+            <div>
+              <h2 id="create-teacher-title">创建教师</h2>
+              <p>系统生成一次性临时密码，数据库只保存不可逆密码哈希。</p>
+            </div>
+          </div>
+          <form id="create-teacher-form" class="create-form">
+            <label>
+              登录名
+              <input
+                id="create-login-name"
+                name="login_name"
+                type="text"
+                minlength="3"
+                maxlength="80"
+                autocomplete="off"
+                required
+              >
+            </label>
+            <label>
+              教师名称
+              <input
+                id="create-display-name"
+                name="display_name"
+                type="text"
+                maxlength="120"
+                autocomplete="off"
+                required
+              >
+            </label>
+            <button id="create-teacher-button" class="button button-primary" type="submit">
+              创建教师
+            </button>
+          </form>
+        </section>
+
+        <section aria-labelledby="teacher-list-title">
+          <div class="band-heading">
+            <div>
+              <h2 id="teacher-list-title">教师账户</h2>
+              <p>已发布课程数仅统计当前处于发布状态的课程。</p>
+            </div>
+            <button id="refresh-teachers" class="button button-secondary" type="button">
+              刷新
+            </button>
+          </div>
+
+          <p id="teacher-loading" class="table-state" role="status">正在加载教师账户…</p>
+          <p id="teacher-empty" class="table-state" hidden>还没有教师账户。</p>
+          <div id="teacher-table" class="table-wrap" hidden>
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">登录名</th>
+                  <th scope="col">教师名称</th>
+                  <th scope="col">状态</th>
+                  <th scope="col">已发布课程</th>
+                  <th scope="col">最近更新</th>
+                  <th scope="col"><span class="visually-hidden">操作</span></th>
+                </tr>
+              </thead>
+              <tbody id="teacher-table-body"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
     </main>
+
+    <script src="/teacher-web/admin.js?v=20260820" defer></script>
   </body>
 </html>

@@ -427,6 +427,113 @@ systemctl reload nginx
 REMOTE
 }
 
+remote_admin_count() {
+  ssh -o BatchMode=yes "$SSH_HOST" bash -s -- "$APP_ROOT" <<'REMOTE'
+set -euo pipefail
+app_root="$1"
+env_file="/etc/knownmap/teacher-platform.env"
+release="$app_root/current"
+
+test -x "$release/backend/.venv/bin/python"
+set -a
+. "$env_file"
+set +a
+cd "$release/backend"
+"$release/backend/.venv/bin/python" - <<'PY'
+from sqlalchemy import func, select
+
+from app.config import Settings
+from app.db import create_database_engine, create_session_factory
+from app.models.admin import Admin
+
+settings = Settings()
+engine = create_database_engine(settings)
+session_factory = create_session_factory(engine)
+with session_factory() as session:
+    print(session.scalar(select(func.count()).select_from(Admin)) or 0)
+PY
+REMOTE
+}
+
+bootstrap_remote_admin() {
+  local release_id="$1"
+  local admin_password="$2"
+  local admin_password_file="/root/.knownmap-admin-seed-$release_id"
+  local bootstrap_output
+  local bootstrap_status
+  local command_status=0
+
+  ssh -o BatchMode=yes "$SSH_HOST" bash -s -- "$admin_password_file" <<'REMOTE'
+set -euo pipefail
+admin_password_file="$1"
+install -m 600 /dev/null "$admin_password_file"
+REMOTE
+  printf '%s' "$admin_password" |
+    ssh -o BatchMode=yes "$SSH_HOST" "cat > '$admin_password_file'"
+
+  bootstrap_output="$(
+    ssh -o BatchMode=yes "$SSH_HOST" bash -s -- \
+      "$APP_ROOT" \
+      "$admin_password_file" <<'REMOTE'
+set -euo pipefail
+app_root="$1"
+admin_password_file="$2"
+env_file="/etc/knownmap/teacher-platform.env"
+release="$app_root/current"
+
+cleanup() {
+  rm -f "$admin_password_file"
+}
+trap cleanup EXIT
+
+test -x "$release/backend/.venv/bin/python"
+set -a
+. "$env_file"
+set +a
+cd "$release/backend"
+admin_count="$(
+  "$release/backend/.venv/bin/python" - <<'PY'
+from sqlalchemy import func, select
+
+from app.config import Settings
+from app.db import create_database_engine, create_session_factory
+from app.models.admin import Admin
+
+settings = Settings()
+engine = create_database_engine(settings)
+session_factory = create_session_factory(engine)
+with session_factory() as session:
+    print(session.scalar(select(func.count()).select_from(Admin)) or 0)
+PY
+)"
+
+if [[ "$admin_count" != "0" ]]; then
+  printf 'skipped\n'
+  exit 0
+fi
+
+admin_password="$(cat "$admin_password_file")"
+rm -f "$admin_password_file"
+SEED_ADMIN_LOGIN_NAME=admin \
+SEED_ADMIN_PASSWORD="$admin_password" \
+SEED_ADMIN_DISPLAY_NAME='KnownMap 管理员' \
+  "$release/backend/.venv/bin/python" -m app.seed admin
+unset admin_password
+printf 'created\n'
+REMOTE
+  )" || command_status=$?
+
+  if [[ "$command_status" -ne 0 ]]; then
+    ssh -o BatchMode=yes "$SSH_HOST" "rm -f '$admin_password_file'" || true
+    return "$command_status"
+  fi
+
+  bootstrap_status="$(tail -n 1 <<<"$bootstrap_output")"
+  [[ "$bootstrap_status" == "created" || "$bootstrap_status" == "skipped" ]] ||
+    fail "unexpected administrator bootstrap status"
+  printf '%s\n' "$bootstrap_status"
+}
+
 verify_remote() {
   local release_id="$1"
   local expected_commit="$2"
@@ -439,6 +546,16 @@ verify_remote() {
   /usr/bin/curl -fsS "$SITE_URL/admin.html" >/dev/null
   /usr/bin/curl -fsS "$SITE_URL/teacher-web/editor.html" >/dev/null
   /usr/bin/curl -fsS "$SITE_URL/" >/dev/null
+  status="$(
+    /usr/bin/curl -sS -o /dev/null -w '%{http_code}' \
+      "$SITE_URL/api/v1/admin/auth/me"
+  )"
+  [[ "$status" == "401" ]] || return 1
+  status="$(
+    /usr/bin/curl -sS -o /dev/null -w '%{http_code}' \
+      "$SITE_URL/api/v1/admin/teachers"
+  )"
+  [[ "$status" == "401" ]] || return 1
 
   for private_path in /doc/ /src/ /tests/ /.git/config /.env; do
     status="$(/usr/bin/curl -sS -o /dev/null -w '%{http_code}' "$SITE_URL$private_path")"
@@ -473,6 +590,9 @@ deploy_release() {
   local commit_time
   local record_file
   local credential_rotation
+  local admin_count
+  local admin_seed_password
+  local admin_bootstrap_status
 
   validate_settings
   require_command git
@@ -493,6 +613,8 @@ deploy_release() {
   seed_password="${KNOWNMAP_PRODUCTION_TEACHER_PASSWORD:-}"
   credential_rotation="skipped"
   [[ -z "$seed_password" ]] || credential_rotation="requested"
+  admin_seed_password="${KNOWNMAP_PRODUCTION_ADMIN_PASSWORD:-}"
+  admin_bootstrap_status="skipped"
   run_commit_tests "$commit"
 
   temporary="$(mktemp -d "${TMPDIR:-/tmp}/knownmap-teacher-release.XXXXXX")"
@@ -535,6 +657,24 @@ deploy_release() {
     fail "nginx configuration failed; restored previous backend"
   fi
 
+  admin_count="$(remote_admin_count)"
+  [[ "$admin_count" =~ ^[0-9]+$ ]] || fail "invalid remote administrator count"
+  if [[ "$admin_count" == "0" ]]; then
+    if [[ -z "$admin_seed_password" ]]; then
+      admin_seed_password="$(openssl rand -hex 18)"
+    fi
+    if ! admin_bootstrap_status="$(
+      bootstrap_remote_admin "$release_id" "$admin_seed_password"
+    )"; then
+      remote_restore_backend "$previous_target"
+      fail "administrator bootstrap failed; restored previous backend"
+    fi
+    if [[ "$admin_bootstrap_status" == "created" ]]; then
+      printf 'ADMIN_LOGIN_NAME=admin\nADMIN_INITIAL_PASSWORD=%s\n' \
+        "$admin_seed_password"
+    fi
+  fi
+
   if ! KNOWNMAP_PUBLISH_PROFILE=teacher-platform-v1 \
     KNOWNMAP_RELEASE_ID="$release_id" \
     "$ROOT_DIR/tools/web-release.sh" deploy "$commit"; then
@@ -575,6 +715,7 @@ deploy_release() {
   printf 'RELEASE_ID=%s\nGIT_COMMIT=%s\nGIT_TAG=web-prod/%s\n' \
     "$release_id" "$commit" "$release_id"
   printf 'CREDENTIAL_ROTATION=%s\n' "$credential_rotation"
+  printf 'ADMIN_BOOTSTRAP=%s\n' "$admin_bootstrap_status"
 }
 
 show_status() {

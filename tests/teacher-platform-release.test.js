@@ -64,6 +64,33 @@ test('teacher platform release never prints or implicitly rotates production cre
   assert.match(source, /CREDENTIAL_ROTATION=/);
 });
 
+test('first administrator bootstrap is guarded, one-time, and non-persistent', () => {
+  const source = fs.readFileSync(releaseScript, 'utf8');
+  const envTemplate = source.match(/cat >"\$env_tmp" <<ENV\n([\s\S]*?)\nENV/);
+
+  assert.ok(envTemplate, 'persistent environment template must be detectable');
+  assert.doesNotMatch(envTemplate[1], /SEED_ADMIN|KNOWNMAP_PRODUCTION_ADMIN_PASSWORD/);
+  assert.match(source, /KNOWNMAP_PRODUCTION_ADMIN_PASSWORD/);
+  assert.match(source, /openssl rand -hex 18/);
+  assert.match(source, /local admin_password_file/);
+  assert.match(source, /install -m 600 \/dev\/null "\$admin_password_file"/);
+  assert.match(source, /select\(func\.count\(\)\)\.select_from\(Admin\)/);
+  assert.match(source, /SEED_ADMIN_LOGIN_NAME=admin/);
+  assert.match(source, /SEED_ADMIN_PASSWORD="\$admin_password"/);
+  assert.match(source, /python" -m app\.seed admin/);
+  assert.match(source, /rm -f "\$admin_password_file"/);
+  assert.match(source, /ADMIN_BOOTSTRAP=/);
+  assert.match(source, /ADMIN_INITIAL_PASSWORD=%s/);
+});
+
+test('production verification checks protected administrator endpoints', () => {
+  const source = fs.readFileSync(releaseScript, 'utf8');
+
+  assert.match(source, /SITE_URL\/api\/v1\/admin\/auth\/me/);
+  assert.match(source, /SITE_URL\/api\/v1\/admin\/teachers/);
+  assert.match(source, /\[\[ "\$status" == "401" \]\]/);
+});
+
 test('backend deploy uses a checksum-pinned uv and a frozen per-release environment', () => {
   const source = fs.readFileSync(releaseScript, 'utf8');
 

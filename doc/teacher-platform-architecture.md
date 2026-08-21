@@ -1,10 +1,11 @@
 # KnownMap 教师平台与学生插件当前架构
 
-版本：0.4
+版本：0.5
 
 更新时间：2026-08-20
 
 状态：当前实现架构。教师工作台、FastAPI 和 SQLite 已部署到阿里云 ECS 并完成生产探针；
+独立超级管理员认证、教师账号创建/重置和发布课程统计已在当前工作区实现，尚待生产部署；
 当前工作区的后端多课节持久化、v2 课程包契约和 v2 插件 store adapter 已实现并通过聚焦
 测试，但尚未串入同一发布/下载/运行链路，也尚未部署生产。插件 `0.9.1` 的生效路径仍是
 单课程，下载地址仍固定为本机 API，完整真实 Chrome 和公网闭环待收口。
@@ -17,6 +18,7 @@
 ```text
 teacher-web/
   ├─ 教师登录、课程编辑和发布
+  ├─ admin.html 超级管理员与教师账号管理
   └─ HTTP JSON API
        ↓
 backend/app/
@@ -82,6 +84,8 @@ backend/
     logging.py
     middleware.py
     models/
+      admin.py
+      admin_session.py
       teacher.py
       teacher_session.py
       course.py
@@ -92,6 +96,7 @@ backend/
       access_code.py
       workspace.py
     schemas/
+      admin.py
       auth.py
       course.py
       lesson.py
@@ -100,6 +105,8 @@ backend/
     api/
       deps.py
       v1/
+        admin_auth.py
+        admin_teachers.py
         auth.py
         teacher_courses.py
         teacher_lessons.py
@@ -107,6 +114,8 @@ backend/
         access_codes.py
         public_courses.py
     services/
+      admin_auth_service.py
+      admin_teacher_service.py
       auth_service.py
       course_service.py
       script_service.py
@@ -114,6 +123,9 @@ backend/
       operation_log_service.py
       publish_service.py
     repositories/
+      admin_repository.py
+      admin_session_repository.py
+      admin_teacher_repository.py
       teacher_repository.py
       teacher_session_repository.py
       course_repository.py
@@ -162,6 +174,8 @@ backend/
 服务层负责一个可验收的业务动作：
 
 - `login_teacher`；
+- `authenticate_admin`、`create_admin_session`；
+- `create_teacher_for_admin`、`reset_teacher_password_for_admin`、`list_teachers_for_admin`；
 - `create_course`；
 - `create_lesson`；
 - `save_lesson_draft`；
@@ -176,6 +190,8 @@ backend/
 Repository 只负责所属实体的查询、写入和事务边界：
 
 - 教师 repository 只读写教师账号；
+- 管理员 repository 只读写管理员账号和管理员会话；
+- 管理员教师聚合 repository 只返回教师公开摘要和已发布课程数量；
 - 课程 repository 只读写课程；
 - 课节 repository 只读写课节；
 - 脚本 repository 只读写草稿和发布版本；
@@ -186,6 +202,9 @@ Repository 只负责所属实体的查询、写入和事务边界：
 ## 5. 业务数据归属
 
 ```text
+Admin
+  └─ AdminSession[]
+
 Teacher
   └─ Workspace（当前每个教师自动拥有一个）
        └─ Course
@@ -216,7 +235,19 @@ AccessCode
 
 当前只实现教师 Owner 权限。手工预建账号直接绑定一个工作空间。
 
-### 6.2 插件下载权限
+### 6.2 超级管理员认证与教师账号管理
+
+- 管理员与教师使用独立数据库表、会话表、Cookie 和 API 前缀；
+- 管理员密码与教师密码只保存 Argon2 哈希；
+- 浏览器只保存 `knownmap_admin_session` HttpOnly Cookie，数据库只保存 HMAC-SHA256 摘要；
+- `require_admin` 拒绝缺失、伪造、过期、撤销、停用管理员和教师 Cookie；
+- 管理员 bootstrap 只能通过显式 seed 路径执行，已有管理员不会被普通发布重置；
+- 创建教师时服务端生成高熵临时密码、写入哈希并建立 workspace；
+- 重置教师密码只更新哈希，不自动恢复 `disabled` 状态；
+- 临时密码只返回给当前 HTTPS 调用方，前端只保存在当前页面内存；
+- 教师列表通过 SQL 聚合已发布课程数，不加载课程正文或密码字段。
+
+### 6.3 插件下载权限
 
 插件下载端点使用授权码作为当前阶段的唯一业务凭证：
 
@@ -288,6 +319,8 @@ flowchart LR
 
 关键日志动作：
 
+- `admin-auth.login.success/failure`
+- `admin.teachers.list/create/password_reset`
 - `auth.login.start/success/failure`
 - `course.create.start/success/failure`
 - `lesson.draft.save.start/success/failure`
@@ -347,6 +380,8 @@ production:       LOG_LEVEL=INFO，结构化 JSON 格式
 | 当前插件课程 API 写死本机地址 | 公网闭环前必须决定并验证环境选择方式 |
 | v2 课程包契约未接入发布/下载 | 保留 v1 主链路，完成聚合、兼容响应和端到端测试后再切换 |
 | 授权码是敏感凭证 | 只存摘要，原文只在创建响应中返回 |
+| 管理员和教师临时密码是敏感凭证 | 只保存 Argon2 哈希；原文仅在 bootstrap 或即时响应出现一次 |
+| 教师 Cookie 访问管理员 API | 使用独立 Cookie、会话表和 `require_admin` 默认拒绝 |
 | 本地 cookie 跨端口联调 | 明确 CORS、SameSite 和本地 origin；集成测试覆盖 |
 | 本机 SQLite migration 状态可能漂移 | 使用 Alembic 作为升级入口，不依赖 `create_all()` 修改已有表 |
 | 生产 SQLite 与代码回滚分离 | schema 变更前补充备份、恢复和数据库迁移回滚计划 |

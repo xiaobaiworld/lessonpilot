@@ -5,6 +5,8 @@ from app.api.errors import api_error_handler
 from app.api.errors import ApiError
 from app.api.v1.auth import router as auth_router
 from app.api.v1.access_codes import router as access_codes_router
+from app.api.v1.admin_auth import router as admin_auth_router
+from app.api.v1.admin_teachers import router as admin_teachers_router
 from app.api.v1.health import router as health_router
 from app.api.v1.public_courses import router as public_courses_router
 from app.api.v1.teacher_courses import router as teacher_courses_router
@@ -45,6 +47,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.add_exception_handler(ApiError, api_error_handler)
     app.include_router(health_router)
     app.include_router(auth_router)
+    app.include_router(admin_auth_router)
+    app.include_router(admin_teachers_router)
     app.include_router(access_codes_router)
     app.include_router(public_courses_router)
     app.include_router(teacher_courses_router)
