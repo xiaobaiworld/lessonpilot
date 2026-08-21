@@ -5,9 +5,9 @@
 ## 当前执行切片：KnownMap v1 需求逐段审核
 
 - 当前分支：`codex/v1-rewrite`；重构基线：`main@0e503a4`。
-- 已接受：产品范围、领域术语、用户场景和当前阶段全部功能需求；`FR-REPORT-*` 保留为后续候选。
-- 已接受：`05-data-requirements.md` 数据需求；具体保留期限等开放项继续跟踪。
-- 下一目标：建立并逐段审核 `06-interface-integration-requirements.md` 接口与集成需求。
+- 已接受：产品范围、领域术语、用户场景、当前阶段全部功能需求、数据需求及接口与集成需求；`FR-REPORT-*` 保留为后续候选。
+- 开放项：具体数据保留期限、插件分发与版本支持、接口字段设计等继续在对应后续文档中跟踪。
+- 下一目标：建立并逐段审核 `07-non-functional-requirements.md` 非功能性需求。
 - 当前限制：全部 v1 需求冻结前，不开始架构定稿或产品代码重写。
 - 阶段入口：`doc/requirements/v1/README.md`。
 

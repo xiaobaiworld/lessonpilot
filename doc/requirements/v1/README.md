@@ -1,6 +1,6 @@
 # KnownMap v1 需求说明书
 
-文档版本：`1.0.0-draft.25`
+文档版本：`1.0.0-draft.29`
 
 状态：第 1 段已于 2026-08-21 通过人工审核；当前不替代任何既有需求文档
 
@@ -34,7 +34,7 @@ KnownMap v1 是一次面向完整项目重构的新主版本。现有代码和�
 | 03 | [`03-user-scenarios.md`](03-user-scenarios.md) | 用户角色、前置条件、主流程、异常流程和可观察结果 | 已接受 |
 | 04 | [`04-functional-requirements.md`](04-functional-requirements.md) | 按业务能力编号的功能性需求、业务规则和单项验收条件 | 当前阶段功能需求已接受；`FR-REPORT` 保留为后续候选 |
 | 05 | [`05-data-requirements.md`](05-data-requirements.md) | 数据归属、分类、生命周期、质量、保留、导入导出和删除要求 | 已接受；具体保留期限等开放项继续跟踪 |
-| 06 | `06-interface-integration-requirements.md` | 浏览器、B 站、Web、API、文件格式和其它外部系统的接口边界 | 未创建 |
+| 06 | [`06-interface-integration-requirements.md`](06-interface-integration-requirements.md) | Web、插件、B 站、课程包和文件之间的项目特有接口边界 | 已接受 |
 | 07 | `07-non-functional-requirements.md` | 性能、可靠性、可用性、兼容性、无障碍、可维护性和可观测性 | 未创建 |
 | 08 | `08-security-privacy-compliance-requirements.md` | 身份、权限、输入、密钥、隐私、审计、合规和供应链安全 | 未创建 |
 | 09 | `09-development-quality-requirements.md` | 工程结构、依赖、编码、测试、日志、配置和文档同步门禁 | 未创建 |
