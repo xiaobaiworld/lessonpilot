@@ -1,6 +1,6 @@
 # KnownMap 文档索引
 
-最近审计：2026-08-21
+最近审计：2026-08-22
 
 当前阶段：超级管理员与教师账号管理实施。教师工作台和 FastAPI 已部署到阿里云 ECS，并完成生产登录、
 课程发布和授权码下载验收；插件 `0.9.1` 的单课程核心路径已经实现，真实 Chrome 边界与公网
@@ -15,6 +15,14 @@
 | `README.md` | 项目入口、当前状态、运行命令 | 当前 |
 | `doc/requirements/v1/README.md` | v1 已接受需求目录、审核状态和旧资料提取入口 | v1 重构权威；冻结前不替代当前实现文档 |
 | `doc/decisions/2026-08-21-v1-public-trial-intake.md` | 公开销售页与飞书试用申请纳入 v1 P0 的范围决定 | 已接受 |
+| `doc/decisions/2026-08-21-v1-no-ai-authoring.md` | v1 完全排除 AI 辅助制作 | 已接受 |
+| `doc/decisions/2026-08-21-v1-basic-student-runtime.md` | v1 学生端保持基础运行闭环 | 已接受 |
+| `doc/decisions/2026-08-21-v1-plugin-distribution.md` | v1 固定 ZIP 手动分发与更新 | 已接受 |
+| `doc/decisions/2026-08-22-v1-success-gates.md` | v1 产品闭环与市场价值观察门槛 | 已接受 |
+| `doc/decisions/2026-08-22-v1-data-retention.md` | v1 数据保留、导出与删除 | 已接受 |
+| `doc/decisions/2026-08-22-v1-infrastructure-target.md` | v1 基础设施目标 | 已接受 |
+| `doc/decisions/2026-08-22-v1-content-rights.md` | v1 课程内容权利与争议处置 | 已接受 |
+| `doc/decisions/2026-08-22-v1-compatibility-scope.md` | v1 Chrome/B 站兼容范围 | 已接受 |
 | `doc/requirements/teacher-platform-local-stage.md` | 当前教师平台、学生插件和生产闭环的范围、验收和非目标 | 当前实施需求权威 |
 | `doc/AI_Learning_Companion_Product_Function_Spec_v0.2.md` | 教师中心平台化产品功能、授权码下载/更新语义和验收方向 | 长期产品规格；本地最小切片已部分实现 |
 | `doc/decisions/2026-08-18-teacher-centered-product-v0.2.md` | v0.2 教师账号、工作空间、本地课程和授权码决策过程 | 已接受；当前只实现本地最小切片 |
