@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 2,
+  "messageId": "msg-0001",
+  "operation": "course.redeem",
+  "source": "popup",
+  "payload": {}
+}

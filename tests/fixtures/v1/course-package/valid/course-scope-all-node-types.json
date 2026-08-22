@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 1,
+  "packageType": "course-release",
+  "courseId": "course-0001",
+  "releaseId": "release-0001",
+  "releaseNumber": 3,
+  "title": "示例课程一",
+  "packageDigest": "sha256:0000000000000000000000000000000000000000000000000000000000000001",
+  "authorizedScope": {
+    "type": "course",
+    "lessonIds": [],
+    "nodeIds": []
+  },
+  "lessons": [
+    {
+      "lessonId": "lesson-0001",
+      "releaseLessonId": "release-lesson-0001",
+      "order": 1,
+      "title": "示例课节一",
+      "videoRef": {
+        "platform": "bilibili",
+        "videoId": "BV1example001",
+        "partId": null
+      },
+      "nodes": [
+        {
+          "nodeId": "node-0001",
+          "enabled": true,
+          "family": "attention",
+          "interaction": "notice",
+          "stateCompatibilityKey": "notice-v1",
+          "trigger": { "kind": "time_cross", "timeSeconds": 12.5 },
+          "effects": { "pause": true },
+          "display": {
+            "title": "示例重点",
+            "body": "这里是教师确认要强调的内容。",
+            "captionQuote": "示例字幕句，仅用于定位上下文。",
+            "highlights": [{ "text": "示例关键词" }]
+          },
+          "evaluation": null
+        },
+        {
+          "nodeId": "node-0002",
+          "enabled": true,
+          "family": "practice",
+          "interaction": "choice",
+          "stateCompatibilityKey": "choice-v1",
+          "trigger": { "kind": "time_cross", "timeSeconds": 45 },
+          "effects": { "pause": true },
+          "display": {
+            "title": "示例选择题",
+            "prompt": "以下哪一项符合刚才讲解的内容？",
+            "options": [
+              { "optionId": "opt-a", "label": "示例选项 A" },
+              { "optionId": "opt-b", "label": "示例选项 B" },
+              { "optionId": "opt-c", "label": "示例选项 C" }
+            ]
+          },
+          "evaluation": {
+            "correctOptionId": "opt-b",
+            "explanation": "示例选项 B 与讲解一致。"
+          }
+        },
+        {
+          "nodeId": "node-0003",
+          "enabled": true,
+          "family": "practice",
+          "interaction": "blank",
+          "stateCompatibilityKey": "blank-v1",
+          "trigger": { "kind": "time_cross", "timeSeconds": 78.25 },
+          "effects": { "pause": true },
+          "display": {
+            "title": "示例填空题",
+            "prompt": "请填入刚才提到的关键概念。"
+          },
+          "evaluation": {
+            "acceptedAnswers": ["示例答案", "示例答案二"],
+            "normalize": ["trim", "casefold"],
+            "explanation": "两种写法都接受。"
+          }
+        },
+        {
+          "nodeId": "node-0004",
+          "enabled": false,
+          "family": "followup",
+          "interaction": "free_text",
+          "stateCompatibilityKey": "free-text-v1",
+          "trigger": { "kind": "time_cross", "timeSeconds": 120 },
+          "effects": { "pause": true },
+          "display": {
+            "title": "示例问答题",
+            "prompt": "用你自己的话说明这一段的结论。"
+          },
+          "evaluation": {
+            "referenceFeedback": "参考答案：示例结论。本题不自动判定对错。"
+          }
+        }
+      ]
+    },
+    {
+      "lessonId": "lesson-0002",
+      "releaseLessonId": "release-lesson-0002",
+      "order": 2,
+      "title": "示例课节一",
+      "videoRef": {
+        "platform": "bilibili",
+        "videoId": "BV1example001",
+        "partId": null
+      },
+      "nodes": [
+        {
+          "nodeId": "node-0005",
+          "enabled": true,
+          "family": "attention",
+          "interaction": "notice",
+          "stateCompatibilityKey": "notice-v1",
+          "trigger": { "kind": "time_cross", "timeSeconds": 12.5 },
+          "effects": { "pause": true },
+          "display": {
+            "title": "示例重点",
+            "body": "标题、视频和节点内容与课节一相同，但这是独立的第二次安排。"
+          },
+          "evaluation": null
+        }
+      ]
+    },
+    {
+      "lessonId": "lesson-0003",
+      "releaseLessonId": "release-lesson-0003",
+      "order": 3,
+      "title": "示例课节三（分 P）",
+      "videoRef": {
+        "platform": "bilibili",
+        "videoId": "BV1example002",
+        "partId": 2
+      },
+      "nodes": []
+    }
+  ]
+}

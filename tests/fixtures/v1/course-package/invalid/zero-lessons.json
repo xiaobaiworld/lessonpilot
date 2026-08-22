@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "packageType": "course-release",
+  "courseId": "course-0003",
+  "releaseId": "release-0003",
+  "releaseNumber": 12,
+  "title": "示例课程三",
+  "packageDigest": "sha256:0000000000000000000000000000000000000000000000000000000000000003",
+  "authorizedScope": {
+    "type": "lesson",
+    "lessonIds": [
+      "lesson-0021"
+    ],
+    "nodeIds": []
+  },
+  "lessons": []
+}
