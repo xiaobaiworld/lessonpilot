@@ -12,7 +12,9 @@
 | --- | --- | --- |
 | `README.md` | 项目入口、当前状态、运行命令 | 当前 |
 | `doc/requirements/v1/README.md` | v1 已冻结需求目录、审核状态和旧资料提取入口 | v1 需求真源；版本 `1.0.0` |
+| `doc/design/v1/README.md` | v1 设计文件编号、权威顺序、审核与归档门禁 | 当前设计入口；持续维护 |
 | `doc/design/v1/01-current-system-assessment.md` | 当前代码、验证证据、可继承经验和原型负担评估 | 已接受；不定义目标架构 |
+| `doc/design/v1/02-legacy-document-register.md` | 82 个旧来源的演化、价值、冲突和最终去向 | 已接受；旧文件待新真源承接后归档 |
 | `doc/decisions/2026-08-21-v1-public-trial-intake.md` | 公开销售页与飞书试用申请纳入 v1 P0 的范围决定 | 已接受 |
 | `doc/decisions/2026-08-21-v1-no-ai-authoring.md` | v1 完全排除 AI 辅助制作 | 已接受 |
 | `doc/decisions/2026-08-21-v1-basic-student-runtime.md` | v1 学生端保持基础运行闭环 | 已接受 |
@@ -66,7 +68,9 @@
 | `docs/knownmap-logo-resources.md` | Logo 形态、颜色含义、使用场景和资源落点 | 当前 Logo 资源说明 |
 | `docs/superpowers/plans/2026-08-18-knownmap-brand-update.md` | KnownMap 品牌资源、页面、文档和验证实施计划 | 当前品牌实施计划 |
 
-解释冲突时按：当前阶段需求 -> 需求总览 -> 数据规范 -> 已确认设计 -> 内容/窗口标准 -> 计划。计划不得覆盖需求。
+本表仍保留旧系统在重构切换前需要使用的运行入口，但它们不再与 v1 需求和已接受设计并列为
+目标真源。精确权威顺序见 `doc/design/v1/README.md`；旧文件最终动作见
+`doc/design/v1/02-legacy-document-register.md`。
 
 ## 当前标准与参考
 
