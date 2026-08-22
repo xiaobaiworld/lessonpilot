@@ -4,6 +4,122 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### 模块边界检查 — 2026-08-22
+
+设计 03 第 7 节写了「一个模块不能直接查询或修改另一个模块拥有的表」，但只定义了六个模块的
+业务职责，没有把每张表分配到模块 —— 这条约束因此没有客观判定标准，也没有任何检查在跑。
+
+- 新增 `03-system-architecture.md` 第 7.0 节表归属：12 张表逐一分配到六个模块，
+  并说明「模型类仅作类型标注不算访问」和「跨模块只读也算越界」。文档版本升到 `1.0.2`，
+  属增量补充，不改变已冻结架构结论。
+- 新增 `tools/module-check.mjs`：扫描 `services/` 和 `repositories/` 的表访问
+  （`select`、`session.get`、按列过滤、构造实例）和跨模块仓储 import。
+  已验证注入一处新越界会被捕获。
+- 新增 5 项测试进入 `node --test`（新增越界、白名单未过期、文件归属登记完整、
+  模型归属登记完整、表归属与设计文档一致）。
+- 当前 9 处越界登记在 `KNOWN_VIOLATIONS` 并附修法，只报告不阻断（阶段 1 范围）；
+  新增越界一律失败。白名单条目修复后必须删除，过期同样失败，防止变成永久豁免。
+
+已登记的 9 处越界集中在 3 个文件：
+
+- `access_code_service.py` 直接 `select(Lesson)`、`session.get(Course)` 并 import
+  `lesson_repository`、`published_script_repository`。课节排序规则和发布有效性判断
+  被复制到授权模块 —— 04 第 8 节把发布改为 `CourseRelease` 后这段必须跟着改，
+  但它藏在授权模块里，改发布的人不会看到。
+- `admin_teacher_service.py` 直接构造 `Teacher` 行。这一处不是「不该跨模块」而是
+  「跨模块方式错误」：`FR-AUTH-002` 与 04 第 5 节要求教师账号与工作空间同事务建立，
+  本就是跨模块动作，但应当调用身份模块的应用服务，不自己构造对方的行。
+- `admin_teacher_repository.py` 直接查 `Teacher`、`Course`、`Workspace` 组装教师摘要。
+
+修正了我先前的口径错误：此前手工统计说「4 处越界」，实际是 9 处 —— 手工统计把
+`Teacher` 用作类型标注误判为越界，同时漏掉了跨模块仓储 import 这一整类。
+
+测试：Node 351 项通过；后端 pytest 97 项通过。
+
+### v1 HTTP 端点清单 — 2026-08-22
+
+`06-interface-contracts.md` 原本定义了信封、兑换和更新的字段边界，但从未枚举完整端点。
+实现时没有可对照的基准，容易漏接口、路径命名不一致或把某模块能力挂到另一模块路径下。
+
+- 新增 `06-interface-contracts.md` 第 4.5 节：41 个端点，按 03 第 7 节六个业务模块分组，
+  每行标注状态（`已有` 14、`改名` 7、`新建` 20）和冻结需求依据。文档版本升到 `1.0.1`，
+  属增量补充，不改变已冻结契约语义。
+- 新增 `tools/endpoint-check.mjs`：对照清单与 `backend/app/api/` 实际实现。
+  未登记端点视为失败；`改名` 行在依据列标注旧路径，工具据此把旧路径识别为「待退役」
+  而非「野端点」。已验证注入一个未登记端点会被捕获。
+- 新增 5 项测试进入 `node --test`（未登记端点、`已有` 标注准确、旧路径标注未过期、
+  模块归属受限、状态取值受限）。
+
+清单推导过程中发现的当前实现问题：
+
+- 授权码端点挂在 `/teacher/courses/{course_id}/access-codes` 下，暗示「授权码属于某课程」。
+  实际一个授权码可通过多个 `GrantItem` 覆盖多门课程（04 第 9 节），
+  这也是 `access_code_service` 直接查 `Course`/`Lesson` 表的诱因之一。清单改为顶级
+  `/teacher/access-codes`。
+- 学生兑换在 `/public/` 下，但它要求 `localIdentityId` 和 `localProof`，不是匿名能力。
+  清单改为 `/student/`。
+- `POST .../publish` 改为 `POST .../releases`：发布产生的是不可变资源 `CourseRelease`，
+  资源化后 `GET .../releases` 自然是历史查询，且「暂停交付」不会被误做成再发布一次。
+- 课节重排单独建 `PUT .../lesson-order`：04 第 6 节要求整组重排是一个事务，
+  逐个 `PATCH sequence` 无法满足。
+
+测试：Node 346 项通过；后端 pytest 97 项通过。
+
+### 测试不再依赖归档文档 — 2026-08-22
+
+- `web-release.test.js` 改为断言活跃的 `README.md`（含完整 `web-release.sh` CLI 文档）
+  和 `deploy/releases/README.md`，不再读取已归档的旧发布设计。
+- `knownmap-brand.test.js` 删除对 `lessonpilot.workspaceDraft.v1` 的断言：
+  该存储键在 `src/`、`teacher-web/` 中已不存在（实际只用 `lessonpilot.workspace.v1`
+  和 `lessonpilot.extension.v1`），且登记为「已替代」（`SRC-005`）。
+  原断言只能靠读旧文档通过，属于把死标识和归档一起变成测试依赖。
+
+修正了前一次归档时的处理错误：当时为让测试通过而把断言指向 `doc/archive/`，
+与 `dev-rules.md` 第 2 节「归档只用于追溯，不指导开发」冲突。
+
+### v1 文档收口与一致性门禁 — 2026-08-22
+
+执行 `doc/design/v1/02-legacy-document-register.md` 第 10.3 节收口的第 4–6 步，
+并把文档体系自己写下的规则变成可执行检查。
+
+编号与回链：
+
+- 删除需求条目里的 `关联要求`/`关联需求` 字段共 204 处（04 有 118 处、05 有 31 处，
+  其余 55 处分布在 06、08–11）。其中 306 处引用指向从未签发的编号族。
+- 上下游关系改由 `doc/traceability/v1-requirements.tsv` 单向维护，
+  174 条可解析的关联已迁入矩阵。
+- 修正 4 处正文引用：`FR-AUTHZ-*` → `FR-GRANT-*`、`SEC-RIGHTS-*` → `DATA-CONTENT-*`、
+  `DATA-PACKAGE-*` 与 `DATA-PUBLISH-*` → `DATA-DELIVERY-*`。
+- 补全 `doc/requirements/v1/README.md` 第 1.2 节编号规则：登记 13 个需求前缀和 5 个引用前缀，
+  并把 `NFR-*`、`FR-REPORT-*` 移入「已保留未签发」，消除与 07 号文件的矛盾。
+- 修正稳定编号数：`03-user-scenarios.md` 由 22 改为 21（实际 SCN 标题数），
+  补入 `12-acceptance-traceability.md` 自身的 8 个 `ACC-*`，合计由 249 改为 256。
+
+追踪矩阵：
+
+- 新增 `doc/traceability/v1-requirements.tsv`，256 行，覆盖全部稳定编号（`ACC-COVER-001`）。
+- 新增 `tools/build-traceability.mjs` 生成矩阵，`--check` 校验与需求文档一致。
+- 新增 `tools/lib/requirement-ids.mjs` 作为编号抽取的唯一实现（`DEV-STRUCT-001`）。
+
+文档结构：
+
+- 新建 `doc/dev-rules.md`：权威顺序、编号规则、契约真源边界、服务端模块边界、
+  客户端边界、文档同步门禁和检查命令。此前被三处引用但文件不存在。
+- 重写 `doc/INDEX.md`（225 → 168 行）：「当前权威」只列 v1 真源；
+  新增「当前证据」段收纳 29 份只证明 v0.9.1 现状的文档；历史审计日志移出索引。
+- 重写根 `README.md` 的文档入口、当前状态和冲突解释顺序，不再把旧 API/数据规范列为事实源。
+- 44 份旧文档以 `git mv` 归档到 `doc/archive/2026-08-22-pre-v1-rewrite/`（44 个 rename、0 个 delete）。
+- 3 份根目录散落文档移入 `doc/evidence/`；根目录只保留 4 个元文件。
+- 修正 `02-legacy-document-register.md` 第 10.1 节计数，改以逐文件登记为真源。
+- 重写 46 处指向已移动文件的链接，并修正 3 处归档文件的反向链接。
+
+自动化门禁：
+
+- 新增 `tools/doc-check.mjs`：编号可解析、链接不断、矩阵覆盖、权威唯一四项检查。
+- 新增 `tests/doc-consistency.test.js`（10 项），进入 `node --test tests/*.test.js`。
+- 修正 2 项既有测试对已归档文档路径的断言。
+- 测试：Node 341 项通过（331 + 10）；后端 pytest 97 项通过。
+
 ### v1 阶段进度临时总结 — 2026-08-22
 
 - 新增 `doc/status/v1-stage-0-progress-summary-2026-08-22.md`，明确需求/设计已完成、阶段 0 仅完成空库初始化测试，以及剩余五组工程任务。
