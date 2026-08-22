@@ -1,8 +1,8 @@
 # KnownMap v1 需求说明书
 
-文档版本：`1.0.0`
+文档版本：`1.0.2`
 
-状态：已于 2026-08-22 完成人工审核、一致性检查并冻结；作为 v1 设计与实现的需求真源
+状态：已于 2026-08-22 完成人工审核并冻结；随后按 `D-V1-010` 修订课节内容重复与同视频多课节规则并重新冻结
 
 重构基线：`main@0e503a4`；已发布插件基线：`v0.9.1`
 
@@ -29,12 +29,12 @@ KnownMap v1 是一次面向完整项目重构的新主版本。现有代码和�
 | 序号 | 文件 | 单一职责 | 审核状态 |
 | ---: | --- | --- | --- |
 | 00 | `README.md` | 需求版本、文件索引、权威关系、编号规则和审核状态 | 已接受并冻结 |
-| 01 | [`01-product-scope.md`](01-product-scope.md) | 产品目标、成功标准、利益相关者、范围、边界、非目标、约束和假设 | 已接受；`D-V1-001` 至 `D-V1-009` 均已同步 |
+| 01 | [`01-product-scope.md`](01-product-scope.md) | 产品目标、成功标准、利益相关者、范围、边界、非目标、约束和假设 | 已接受；`D-V1-001` 至 `D-V1-010` 均已同步 |
 | 02 | [`02-domain-glossary.md`](02-domain-glossary.md) | 统一角色、课程、课节、节点、授权、学习记录等领域术语 | 已接受；已同步单机术语和课程级发布版本 |
-| 03 | [`03-user-scenarios.md`](03-user-scenarios.md) | 用户角色、前置条件、主流程、异常流程和可观察结果 | 已接受 |
-| 04 | [`04-functional-requirements.md`](04-functional-requirements.md) | 按业务能力编号的功能性需求、业务规则和单项验收条件 | 当前阶段功能需求已接受；`FR-REPORT` 保留为后续候选 |
-| 05 | [`05-data-requirements.md`](05-data-requirements.md) | 数据归属、分类、生命周期、质量、保留、导入导出和删除要求 | 已接受；`D-V1-006` 已确定保留、删除与备份边界 |
-| 06 | [`06-interface-integration-requirements.md`](06-interface-integration-requirements.md) | Web、插件、B 站、课程包和文件之间的项目特有接口边界 | 已接受 |
+| 03 | [`03-user-scenarios.md`](03-user-scenarios.md) | 用户角色、前置条件、主流程、异常流程和可观察结果 | 已接受；同视频多课节场景已同步 |
+| 04 | [`04-functional-requirements.md`](04-functional-requirements.md) | 按业务能力编号的功能性需求、业务规则和单项验收条件 | 已接受；课节内容重复、同视频多课节与运行选择规则已同步；`FR-REPORT` 保留为后续候选 |
+| 05 | [`05-data-requirements.md`](05-data-requirements.md) | 数据归属、分类、生命周期、质量、保留、导入导出和删除要求 | 已接受；`D-V1-006` 与 `D-V1-010` 已同步，不对课节内容做语义去重 |
+| 06 | [`06-interface-integration-requirements.md`](06-interface-integration-requirements.md) | Web、插件、B 站、课程包和文件之间的项目特有接口边界 | 已接受；多课节匹配边界已同步 |
 | 07 | [`07-non-functional-requirements.md`](07-non-functional-requirements.md) | 第一阶段非功能指标结论及后续重开范围 | 已接受；第一阶段不单独制定 `NFR-*` |
 | 08 | [`08-security-privacy-compliance-requirements.md`](08-security-privacy-compliance-requirements.md) | 测试原型阶段的访问、秘密、输入和本机数据安全底线 | 已接受 |
 | 09 | [`09-development-quality-requirements.md`](09-development-quality-requirements.md) | 工程结构、依赖、编码、测试、日志、配置和文档同步门禁 | 已接受 |

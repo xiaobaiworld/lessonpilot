@@ -2,7 +2,7 @@
 
 最近审计：2026-08-22
 
-当前阶段：v1 需求已冻结为 `1.0.0`，正在根据冻结需求、实际程序和旧资料证据建立 v1 设计文档体系。
+当前阶段：v1 需求已按 `D-V1-010` 修订并重新冻结为 `1.0.2`，正在根据冻结需求、实际程序和旧资料证据建立 v1 设计文档体系。
 现有教师平台、插件和部署文档继续用于说明当前实现与迁移事实，但不再反向覆盖 v1 需求；在 v1 设计
 通过审核前，不开始产品代码重写。其它 Agent 开始工作时，先读本文件，再按“当前权威”顺序阅读。
 
@@ -11,11 +11,12 @@
 | 文档 | 职责 | 状态 |
 | --- | --- | --- |
 | `README.md` | 项目入口、当前状态、运行命令 | 当前 |
-| `doc/requirements/v1/README.md` | v1 已冻结需求目录、审核状态和旧资料提取入口 | v1 需求真源；版本 `1.0.0` |
+| `doc/requirements/v1/README.md` | v1 已冻结需求目录、审核状态和旧资料提取入口 | v1 需求真源；版本 `1.0.2` |
 | `doc/design/v1/README.md` | v1 设计文件编号、权威顺序、审核与归档门禁 | 当前设计入口；持续维护 |
-| `doc/design/v1/01-current-system-assessment.md` | 当前代码、验证证据、可继承经验和原型负担评估 | 已接受；不定义目标架构 |
+| `doc/design/v1/01-current-system-assessment.md` | 当前代码、验证证据、可继承经验和原型负担评估 | 已接受；版本 `1.0.1`；不定义目标架构 |
 | `doc/design/v1/02-legacy-document-register.md` | 82 个旧来源的演化、价值、冲突和最终去向 | 已接受；旧文件待新真源承接后归档 |
-| `doc/design/v1/03-system-architecture.md` | v1 模块化单体、多个客户端、信任边界和部署拓扑 | 已接受；版本 `1.0.0` |
+| `doc/design/v1/03-system-architecture.md` | v1 模块化单体、多个客户端、信任边界和部署拓扑 | 已接受；版本 `1.0.1` |
+| `doc/design/v1/04-domain-data-model.md` | v1 领域对象、身份、关系、数据位置和约束 | 已接受；版本 `1.0.0` |
 | `doc/decisions/2026-08-21-v1-public-trial-intake.md` | 公开销售页与飞书试用申请纳入 v1 P0 的范围决定 | 已接受 |
 | `doc/decisions/2026-08-21-v1-no-ai-authoring.md` | v1 完全排除 AI 辅助制作 | 已接受 |
 | `doc/decisions/2026-08-21-v1-basic-student-runtime.md` | v1 学生端保持基础运行闭环 | 已接受 |
@@ -25,16 +26,18 @@
 | `doc/decisions/2026-08-22-v1-infrastructure-target.md` | v1 基础设施目标 | 已接受 |
 | `doc/decisions/2026-08-22-v1-content-rights.md` | v1 课程内容权利与争议处置 | 已接受 |
 | `doc/decisions/2026-08-22-v1-compatibility-scope.md` | v1 Chrome/B 站兼容范围 | 已接受 |
+| `doc/decisions/2026-08-22-v1-repeated-video-lessons.md` | v1 课节内容重复安排与同视频多课节边界 | 已接受 |
+| `doc/decisions/2026-08-22-v1-data-persistence-strategy.md` | v1 脚本/发布聚合 JSON 与本机学习记录策略 | 已接受，待 v1 实施验证 |
 | `doc/requirements/teacher-platform-local-stage.md` | 当前教师平台、学生插件和生产闭环的范围、验收和非目标 | 当前实施需求权威 |
 | `doc/AI_Learning_Companion_Product_Function_Spec_v0.2.md` | 教师中心平台化产品功能、授权码下载/更新语义和验收方向 | 长期产品规格；本地最小切片已部分实现 |
 | `doc/decisions/2026-08-18-teacher-centered-product-v0.2.md` | v0.2 教师账号、工作空间、本地课程和授权码决策过程 | 已接受；当前只实现本地最小切片 |
 | `doc/decisions/2026-08-18-teacher-platform-local-slice.md` | 当前本地教师发布、授权码下载切片的范围决策 | 已接受；教师侧已验证，插件侧待完整人工验收 |
 | `doc/teacher-platform-architecture.md` | FastAPI、SQLite、管理员、教师端、插件和数据边界 | 当前架构 |
-| `doc/data-spec.md` | 数据规范总入口、权威顺序、结构摘要和当前/目标边界 | 当前数据权威 |
-| `doc/data/model.md` | 数据库 ER 模型、约束、课程包及目标模型 | 当前实现 + 已接受目标 |
-| `doc/data/dictionary.md` | 数据库、API、插件存储和结构化文件字段字典 | 当前实现 + 计划字段 |
+| `doc/data-spec.md` | 数据规范总入口、权威顺序、结构摘要和当前/目标边界 | v0.9.1 当前实现与迁移证据；不定义 v1 目标 |
+| `doc/data/model.md` | 数据库 ER 模型、约束、课程包及目标模型 | v0.9.1 当前实现与迁移证据；不定义 v1 目标 |
+| `doc/data/dictionary.md` | 数据库、API、插件存储和结构化文件字段字典 | v0.9.1 当前实现与迁移证据；不定义 v1 目标 |
 | `doc/data/flow.md` | 创建、发布、授权下载、学习状态、日志和发布血缘 | 当前实现 + 迁移路径 |
-| `doc/data/quality.md` | 校验矩阵、数据质量、已知漂移和变更门禁 | 当前 |
+| `doc/data/quality.md` | 校验矩阵、数据质量、已知漂移和变更门禁 | v0.9.1 当前实现与迁移证据；不定义 v1 目标 |
 | `doc/teacher-platform-data-spec.md` | 旧教师数据规范入口 | 兼容指针 |
 | `doc/teacher-platform-api-spec.md` | 管理员/教师认证、教师账号管理、课程发布、授权码和插件下载 API | 当前 API 与插件客户端实现 |
 | `doc/student-plugin-course-delivery-design.md` | 单课程授权领取、工具栏首页、本地学习状态和打开 B 站课程页 | `0.9.1` 已实现核心路径；边界验收待收口 |
