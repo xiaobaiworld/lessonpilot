@@ -114,6 +114,7 @@ node tools/endpoint-check.mjs             # 端点清单与后端实现对照
 node tools/module-check.mjs               # 模块边界：跨模块表访问
 node tools/contract-check.mjs             # 契约 Schema、版本清单、夹具、双端一致
 node tools/secret-scan.mjs                # 仓库秘密扫描（SEC-SECRET-003）
+node tools/dependency-check.mjs           # 依赖锁定与约束（DEV-DEP-001 离线部分）
 cd backend && uv run ruff check .         # 后端 lint
 cd backend && uv run ruff format --check . # 后端格式
 node tools/module-check.mjs --list        # 查看表归属与文件归属登记
@@ -140,6 +141,10 @@ cd backend && uv run pytest               # 后端测试
 秘密扫描发现命中时，先确认该凭证是否已在真实环境使用；若是，**先吊销再改代码** ——
 从 Git 历史移除比从工作区移除困难得多。确认是占位或示例时，在
 `tools/secret-scan.mjs` 的 `ALLOWLIST` 按「文件 + 规则」登记并写明理由，不整目录豁免。
+
+漏洞库查询（`npm audit`、`pip-audit`）只在 CI 执行，需要联网。
+**不要在本机用 `npm audit` 判断有无漏洞** —— 常用镜像源不实现 advisories 端点，
+本机跑只会得到 404 而不是「无漏洞」，那是最坏的假绿。
 
 ## 9. 语言
 

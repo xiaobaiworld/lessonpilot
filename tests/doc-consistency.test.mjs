@@ -22,6 +22,7 @@ import {
   looksLikePlaceholder,
   scan as scanSecrets,
 } from '../tools/secret-scan.mjs';
+import { runAll as checkDependencies } from '../tools/dependency-check.mjs';
 import {
   MODEL_OWNER,
   MODULES,
@@ -404,6 +405,25 @@ test('秘密扫描不对占位与示例告警', () => {
   ]) {
     assert.ok(looksLikePlaceholder(placeholder), `占位「${placeholder}」被判为真实秘密`);
   }
+});
+
+test('依赖已锁定、已约束且锁文件与声明同步', () => {
+  // DEV-DEP-001。漏洞库查询不在此 —— 需要联网，由 CI 的 npm audit / pip-audit 承担。
+  const { node, python, lockSync } = checkDependencies();
+  assert.deepEqual(node, [], `Node 依赖问题：\n${node.join('\n')}`);
+  assert.deepEqual(python, [], `后端依赖问题：\n${python.join('\n')}`);
+  // 本机无 uv 时该项会给出提示而非失败，此处只在真正不同步时失败
+  const outOfSync = lockSync.filter((p) => !p.includes('本机无 uv'));
+  assert.deepEqual(outOfSync, [], `锁文件不同步：\n${outOfSync.join('\n')}`);
+});
+
+test('CI 覆盖漏洞扫描', () => {
+  // 本机镜像源常不实现 advisories 端点，跑 npm audit 只会得到 404 而非「无漏洞」，
+  // 那是最坏的假绿。因此漏洞扫描必须在 CI 里，且必须真的存在。
+  const workflow = readFileSync('.github/workflows/test.yml', 'utf8');
+  assert.match(workflow, /npm audit/, 'CI 缺少 npm audit');
+  assert.match(workflow, /pip-audit|uv-secure|safety/, 'CI 缺少 Python 侧漏洞扫描');
+  assert.match(workflow, /dependency-check\.mjs/, 'CI 缺少依赖锁定检查');
 });
 
 test('项目开发规则文件存在且指向真源', () => {

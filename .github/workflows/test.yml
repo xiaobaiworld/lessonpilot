@@ -101,3 +101,18 @@ jobs:
       # SEC-SECRET-003 把仓库秘密扫描列为验收证据。
       - name: Scan for secrets
         run: node tools/secret-scan.mjs
+
+      # DEV-DEP-001 的离线部分：锁文件存在且同步、版本已约束、依赖数量可审阅。
+      - name: Check dependency locking
+        run: node tools/dependency-check.mjs
+
+      # 漏洞库查询需要联网，只能在 CI 做。开发机常用镜像源不实现 advisories 端点，
+      # 在本机跑 npm audit 得到的是 404 而不是「无漏洞」—— 那是最坏的假绿。
+      - name: Audit Node dependencies
+        run: npm audit --audit-level=high
+
+      # --skip-editable 跳过本项目自身：它不在 PyPI 上，没有可查的公告。
+      # 不用 --strict：它会把这个必然的跳过当成失败。
+      - name: Audit Python dependencies
+        working-directory: backend
+        run: uv run --with pip-audit pip-audit --skip-editable
