@@ -1,8 +1,8 @@
 # KnownMap v1 设计与开发文档
 
-文档版本：`0.5.0-draft.1`
+文档版本：`0.6.0-draft.1`
 
-状态：系统架构、领域与数据模型已通过人工审核；下一篇为数据流与生命周期
+状态：系统架构、领域与数据模型、数据流与生命周期已通过人工审核；下一篇为接口契约
 
 需求真源：[`../../requirements/v1/README.md`](../../requirements/v1/README.md)
 
@@ -39,7 +39,7 @@
 | 02 | [`02-legacy-document-register.md`](02-legacy-document-register.md) | `SRC-001` 至 `SRC-082` 的演化、价值、冲突和最终去向 | 已接受 |
 | 03 | [`03-system-architecture.md`](03-system-architecture.md) | v1 目标架构、模块边界和运行/部署拓扑 | 已接受 |
 | 04 | [`04-domain-data-model.md`](04-domain-data-model.md) | 领域模型、数据结构、字段、身份和约束 | 已接受 |
-| 05 | `05-data-flow-lifecycle.md` | 数据流、状态变化、保留、删除和恢复 | 待建立 |
+| 05 | [`05-data-flow-lifecycle.md`](05-data-flow-lifecycle.md) | 数据流、状态变化、保留、删除和恢复 | 已接受 |
 | 06 | `06-interface-contracts.md` | API、插件消息、课程包、文件和外部集成 | 待建立 |
 | 07 | `07-product-interaction-state.md` | 页面职责、用户流程、交互状态和恢复 | 待建立 |
 | 08 | `08-security-operations-design.md` | 权限、秘密、输入、日志、发布、备份和恢复 | 待建立 |
