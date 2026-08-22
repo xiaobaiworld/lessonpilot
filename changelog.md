@@ -4,6 +4,43 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### 阶段 0 契约真源与静态门禁 — 2026-08-23
+
+`ARCH-DEC-02` 要求课程包和插件消息以版本化 JSON Schema 为跨语言真源。
+此前仓库有 0 个 schema 文件，实际是手写 JS 校验器（485 行）加手写 Pydantic 两份定义。
+
+契约（工作包 `0C`、`0D`）：
+
+- `src/contracts/` 建立课程包与插件消息两份 Schema、版本清单和说明；
+- 31 个匿名夹具，每个反例只违反一条约束；正例覆盖重复课节、同视频多课节、
+  四类节点、三种授权范围、空节点课节；
+- `tools/contract-check.mjs` 四项：Schema 可编译、版本清单一致、夹具行为符合命名、
+  Python 与 Node 对同一夹具结论一致。
+
+依赖（`DEV-DEP-001`）：
+
+- 根 `package.json` 声明 `ajv` 8.17.1 精确版本；后端加 `jsonschema` 与 `ruff`；
+- 两侧 lockfile 入库。此前 `ajv` 只能从开发机全局 `node_modules` 解析、
+  `ruff` 只有 `[tool.ruff]` 配置而无依赖声明 —— 都在 CI 的 `--frozen` 环境会失败；
+- `tools/dependency-check.mjs` 检查锁定与约束；漏洞扫描（`npm audit`、`pip-audit`）
+  只在 CI 执行，因为镜像源不实现 advisories 端点，本机跑得到 404 而非「无漏洞」。
+
+静态检查（工作包 `0F`）：
+
+- 后端 10 个 Ruff 错误已清：7 处 SQLAlchemy 前向引用改用 `TYPE_CHECKING` 导入，
+  3 处未使用导入移除；10 个未格式化文件已格式化（逐文件比对 AST 确认未改变语义）；
+- `tools/secret-scan.mjs` 覆盖 7 类凭证形态（`SEC-SECRET-003`）。
+  报告不打印命中内容 —— 否则扫描输出自己成为泄露渠道。首次运行报 21 处，
+  查证全是测试夹具与 UI placeholder，改为按熵和形态判断而非逐个加白名单；
+- CI 新增 `contract-check` job 同时装 Node 与 Python：`node-test` 没有 Python，
+  双端一致性检查在那里会静默跳过，那条门禁就永远不会真正执行。
+
+加 `package.json` 时暴露一个静默漏跑：声明 `"type": "commonjs"` 后 ESM 测试文件
+无法加载，测试数从 352 掉到 331 且只报一条失败。该文件改名 `.test.mjs`，
+`npm test` 覆盖两类扩展名，CI 改用 `npm ci` + `npm test`。
+
+测试从 352 增至 364。
+
 ### 模块边界检查 — 2026-08-22
 
 设计 03 第 7 节写了「一个模块不能直接查询或修改另一个模块拥有的表」，但只定义了六个模块的
