@@ -1,11 +1,8 @@
 # 04 功能性需求
 
-文档版本：`1.0.0-draft.19`
+文档版本：`1.0.0`
 
-状态：第 1 段“功能分解与编号骨架”、`FR-AUTH-*`、`FR-WS-*`、`FR-COURSE-*` 和
-`FR-AUTHOR-*`、`FR-PUBLISH-*`、`FR-GRANT-*`、`FR-LIB-*` 均已于 2026-08-21
-通过人工审核；`FR-RUNTIME-*`、`FR-LEARN-*`、`FR-ADMIN-*`、`FR-PORT-*` 同日通过人工审核。
-`FR-INTAKE-*` 已按 `D-V1-001` 于同日接受；当前阶段功能需求域已全部完成，`FR-REPORT-*` 保留为后续阶段候选
+状态：当前阶段功能需求已完成人工审核并随 v1 需求冻结；`FR-REPORT-*` 保留为后续阶段候选
 
 上级索引：[`README.md`](README.md)
 

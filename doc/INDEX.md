@@ -2,18 +2,16 @@
 
 最近审计：2026-08-22
 
-当前阶段：超级管理员与教师账号管理实施。教师工作台和 FastAPI 已部署到阿里云 ECS，并完成生产登录、
-课程发布和授权码下载验收；插件 `0.9.1` 的单课程核心路径已经实现，真实 Chrome 边界与公网
-完整闭环仍待收口。当前工作区已实现独立管理员认证、教师账号创建/重置和发布课程统计，
-正在同步文档、`admin.html` 界面和生产发布流程。第一阶段销售页和原型 Demo 已归档。其它 Agent 开始工作时，先读本文件，再按
-“当前权威”顺序阅读。
+当前阶段：v1 需求已冻结为 `1.0.0`，正在根据冻结需求、实际程序和旧资料证据建立 v1 设计文档体系。
+现有教师平台、插件和部署文档继续用于说明当前实现与迁移事实，但不再反向覆盖 v1 需求；在 v1 设计
+通过审核前，不开始产品代码重写。其它 Agent 开始工作时，先读本文件，再按“当前权威”顺序阅读。
 
 ## 当前权威
 
 | 文档 | 职责 | 状态 |
 | --- | --- | --- |
 | `README.md` | 项目入口、当前状态、运行命令 | 当前 |
-| `doc/requirements/v1/README.md` | v1 已接受需求目录、审核状态和旧资料提取入口 | v1 重构权威；冻结前不替代当前实现文档 |
+| `doc/requirements/v1/README.md` | v1 已冻结需求目录、审核状态和旧资料提取入口 | v1 需求真源；版本 `1.0.0` |
 | `doc/decisions/2026-08-21-v1-public-trial-intake.md` | 公开销售页与飞书试用申请纳入 v1 P0 的范围决定 | 已接受 |
 | `doc/decisions/2026-08-21-v1-no-ai-authoring.md` | v1 完全排除 AI 辅助制作 | 已接受 |
 | `doc/decisions/2026-08-21-v1-basic-student-runtime.md` | v1 学生端保持基础运行闭环 | 已接受 |
@@ -62,7 +60,7 @@
 | `doc/archive/2026-08-18-stage-one-demo/next.md` | 第一阶段最后执行步骤 | 已归档；不作为当前任务 |
 | `doc/archive/2026-08-18-teacher-platform-nodes-1-7/dev-plan.md` | 教师平台节点 1–7 完整开发计划 | 已归档；只用于追溯 |
 | `doc/archive/2026-08-18-teacher-platform-nodes-1-7/next.md` | 教师平台节点 1–7 执行与验证记录 | 已归档；不作为当前任务 |
-| `next.md` | 超级管理员与教师账号管理当前步骤及既有遗留门禁 | 当前任务权威 |
+| `next.md` | v1 设计文档准备、人工决策边界和执行顺序 | 当前任务权威 |
 | `docs/superpowers/specs/2026-08-18-knownmap-brand-update-design.md` | KnownMap 名称、域名、Logo 几何、颜色和迁移边界 | 当前品牌设计权威 |
 | `docs/knownmap-logo-resources.md` | Logo 形态、颜色含义、使用场景和资源落点 | 当前 Logo 资源说明 |
 | `docs/superpowers/plans/2026-08-18-knownmap-brand-update.md` | KnownMap 品牌资源、页面、文档和验证实施计划 | 当前品牌实施计划 |
