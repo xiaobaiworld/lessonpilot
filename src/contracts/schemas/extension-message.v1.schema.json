@@ -49,31 +49,35 @@
       }
     },
     "response": {
+      "description": "响应有且只有两种形状：成功带 data、失败带 error。写成两个完整变体而不是 if/then 补丁 —— 这样每个变体自己就是封闭的，且 ajv strict 模式下 required 的字段都在同一 schema 内声明。设计 06 第 6.1 节要求调用方不能直接读 result.error 判断成败。",
+      "oneOf": [
+        { "$ref": "#/$defs/successResponse" },
+        { "$ref": "#/$defs/errorResponse" }
+      ]
+    },
+    "successResponse": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["schemaVersion", "messageId", "operation", "ok"],
+      "required": ["schemaVersion", "messageId", "operation", "ok", "data"],
       "properties": {
         "schemaVersion": { "const": 1 },
         "messageId": { "$ref": "#/$defs/messageId" },
         "operation": { "$ref": "#/$defs/operation" },
-        "ok": { "type": "boolean" },
-        "data": { "type": "object" },
+        "ok": { "const": true },
+        "data": { "type": "object" }
+      }
+    },
+    "errorResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "messageId", "operation", "ok", "error"],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "messageId": { "$ref": "#/$defs/messageId" },
+        "operation": { "$ref": "#/$defs/operation" },
+        "ok": { "const": false },
         "error": { "$ref": "#/$defs/error" }
-      },
-      "allOf": [
-        {
-          "description": "成功必须有 data 且不得有 error；失败必须有 error 且不得有 data。防止调用方直接读 result.error 判断成败（06 第 6.1 节）。",
-          "if": { "properties": { "ok": { "const": true } } },
-          "then": {
-            "required": ["data"],
-            "not": { "required": ["error"] }
-          },
-          "else": {
-            "required": ["error"],
-            "not": { "required": ["data"] }
-          }
-        }
-      ]
+      }
     },
     "error": {
       "type": "object",

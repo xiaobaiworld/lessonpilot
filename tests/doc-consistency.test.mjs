@@ -16,6 +16,7 @@ import {
 } from '../tools/doc-check.mjs';
 import { buildRows } from '../tools/build-traceability.mjs';
 import { compare as compareEndpoints } from '../tools/endpoint-check.mjs';
+import { runAll as runContractChecks } from '../tools/contract-check.mjs';
 import {
   MODEL_OWNER,
   MODULES,
@@ -299,6 +300,32 @@ test('契约校验器依赖已在两侧声明并锁定', () => {
   const pyproject = readFileSync('backend/pyproject.toml', 'utf8');
   assert.match(pyproject, /jsonschema>=/, 'backend/pyproject.toml 未声明 jsonschema');
   assert.ok(existsSync('backend/uv.lock'), '缺少 backend/uv.lock');
+});
+
+test('契约 Schema 合法、可编译且版本清单一致', () => {
+  const { schemas, versions } = runContractChecks('.', { python: false });
+  assert.deepEqual(schemas, [], `Schema 问题：\n${schemas.join('\n')}`);
+  assert.deepEqual(versions, [], `版本清单问题：\n${versions.join('\n')}`);
+});
+
+test('契约夹具行为与文件名一致', () => {
+  // 反例「应被拒绝却通过了」说明 Schema 缺约束；
+  // 正例「应通过却被拒绝」说明 Schema 过严或夹具写错。两种都不能放过。
+  const { fixtures, fixtureCount } = runContractChecks('.', { python: false });
+  assert.ok(fixtureCount > 0, '没有契约夹具，无法证明任何 Schema 规则生效');
+  assert.deepEqual(fixtures, [], `夹具与命名不符：\n${fixtures.join('\n')}`);
+});
+
+test('Python 与 Node 对同一契约夹具给出一致结论', () => {
+  // 阶段 0 门禁：跨语言契约必须在两侧得出相同结果，否则它不是真正的共同真源。
+  // 无 uv 环境时跳过而非失败 —— 但 CI 里必须跑到（workflow 装了后端依赖）。
+  const { crossLanguage, comparedCount, pythonSkipped } = runContractChecks('.', { python: true });
+  if (pythonSkipped || crossLanguage.some((p) => p.startsWith('Python 侧校验无法执行'))) {
+    console.log('    （跳过：本机无可用 uv/后端环境）');
+    return;
+  }
+  assert.deepEqual(crossLanguage, [], `双端结论不一致：\n${crossLanguage.join('\n')}`);
+  assert.ok(comparedCount > 0, 'Python 侧未比对任何夹具');
 });
 
 test('项目开发规则文件存在且指向真源', () => {

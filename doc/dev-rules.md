@@ -112,6 +112,7 @@ npm test                                  # 前端、插件与文档一致性测
 node tools/doc-check.mjs                  # 编号可解析、链接、矩阵覆盖、权威唯一
 node tools/endpoint-check.mjs             # 端点清单与后端实现对照
 node tools/module-check.mjs               # 模块边界：跨模块表访问
+node tools/contract-check.mjs             # 契约 Schema、版本清单、夹具、双端一致
 node tools/module-check.mjs --list        # 查看表归属与文件归属登记
 node tools/build-traceability.mjs         # 重新生成追踪矩阵
 node tools/build-traceability.mjs --check # 校验矩阵与需求文档一致

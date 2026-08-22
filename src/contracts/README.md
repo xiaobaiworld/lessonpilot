@@ -36,29 +36,38 @@ HTTP 请求响应有明确的定义方（FastAPI 路由和 Pydantic 模型），
 `versions.json` 是各契约当前主版本的单一记录，供后端 `/api/v1/meta/contracts`
 端点和插件兼容判定读取。它不重复 Schema 内容，只登记版本号和文件位置。
 
-## 当前状态
+## 检查
 
-Schema 与版本清单已建立，**检查工具和双端校验尚未建立**。
+```bash
+node tools/contract-check.mjs              # 四项
+node tools/contract-check.mjs --no-python   # 跳过双端比对（无 uv 环境时）
+```
+
+四项分别是：Schema 自身合法且能在 strict 模式编译、版本清单与文件一致、
+夹具行为与文件名一致、Python 与 Node 对同一夹具给出一致结论。
+
+已进入 `npm test`。CI 有独立的 `contract-check` job 同时装 Node 和 Python ——
+`node-test` job 没有 Python，双端比对在那里会静默跳过。
+
+夹具见 [`tests/fixtures/v1/`](../../tests/fixtures/v1/README.md)：31 个，
+每个反例只违反一条约束。
+
+## 当前状态
 
 已完成：
 
-- `schemas/course-package.v1.schema.json` —— 包信封、授权范围、视频引用、课节、四类节点；
-- `schemas/extension-message.v1.schema.json` —— 请求/响应信封、白名单操作、错误形状；
-- `versions.json` —— 三个契约的当前主版本登记。
+- 两份 Schema 与 `versions.json`；
+- 双端校验器依赖（`ajv` 8.17.1 锁定 / 后端 `jsonschema>=4.23,<5`），两侧 lockfile 入库；
+- 31 个匿名夹具，正例覆盖重复课节、同视频多课节、四类节点、三种授权范围、空节点课节；
+- `tools/contract-check.mjs` 四项检查，进入 `npm test` 与 CI。
 
-待完成（阶段 0 剩余部分）：
+待完成：
 
-- `tools/contract-check.mjs`：Schema 自身合法性、版本清单与文件一致、
-  同一夹具在 Python 与 TypeScript/JavaScript 侧校验结果一致；
-- 校验器依赖：目前**两侧都不具备**可用的项目级 JSON Schema 校验器 ——
-  后端 `uv run python -c "import jsonschema"` 报 `ModuleNotFoundError`；
-  Node 侧 `ajv` 只能从 `/Users/bai/node_modules` 解析到，不在仓库内，
-  仓库根也没有 `package.json`。按 `DEV-DEP-001`（依赖最小、锁定、可追溯），
-  两侧都需要显式声明并锁定版本，否则检查在干净环境和 CI 里不可重现；
-- 匿名夹具：正例，以及未知主版本、缺 `stateCompatibilityKey`、
-  `correctOptionId` 不在选项内、跨发布混合课节等反例；
-- 删除手写双真源：`src/shared/course-contract.js` 与后端 Pydantic 中重复的相同规则
-  （`DEV-STRUCT-001`）。在此之前，本目录的 Schema **尚未被任何运行代码使用**。
+- **删除手写双真源**：`src/shared/course-contract.js`（485 行）与后端 Pydantic 中
+  重复的相同规则（`DEV-STRUCT-001`）。在此之前，本目录的 Schema
+  **尚未被任何运行代码使用** —— 它只被检查工具读取。
+  这一步要等阶段 1 建立 v1 服务端领域后再做：现在删掉手写校验器会让 v0.9.1 原型停摆，
+  而 v1 实现还不存在。
 
 ## Schema 与当前实现的已知差异
 
