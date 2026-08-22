@@ -2,7 +2,7 @@
 
 文档版本：`1.0.2`
 
-状态：已于 2026-08-22 完成人工审核并冻结；随后按 `D-V1-010` 修订课节内容重复与同视频多课节规则并重新冻结
+状态：已于 2026-08-22 完成人工审核并冻结；随后按 `D-V1-010` 修订课节内容重复与同视频多课节规则并重新冻结；迁移范围按 `D-V1-012` 同步
 
 重构基线：`main@0e503a4`；已发布插件基线：`v0.9.1`
 
@@ -39,7 +39,7 @@ KnownMap v1 是一次面向完整项目重构的新主版本。现有代码和�
 | 08 | [`08-security-privacy-compliance-requirements.md`](08-security-privacy-compliance-requirements.md) | 测试原型阶段的访问、秘密、输入和本机数据安全底线 | 已接受 |
 | 09 | [`09-development-quality-requirements.md`](09-development-quality-requirements.md) | 工程结构、依赖、编码、测试、日志、配置和文档同步门禁 | 已接受 |
 | 10 | [`10-deployment-operations-requirements.md`](10-deployment-operations-requirements.md) | 环境、发布、迁移、回滚、监控、告警、备份、恢复和运行维护 | 已接受 |
-| 11 | [`11-migration-compatibility-requirements.md`](11-migration-compatibility-requirements.md) | v0.9.1 到 v1 的数据、配置、接口、用户路径兼容与弃用策略 | 已接受 |
+| 11 | [`11-migration-compatibility-requirements.md`](11-migration-compatibility-requirements.md) | v0.9.1 到 v1 的数据、配置、接口、用户路径兼容与弃用策略 | 已接受；迁移范围按 `D-V1-012` 同步 |
 | 12 | [`12-acceptance-traceability.md`](12-acceptance-traceability.md) | 需求到场景、设计、代码、测试和发布证据的追踪矩阵及发布门禁 | 已接受 |
 | 13 | [`13-legacy-source-register.md`](13-legacy-source-register.md) | 旧文档逐文件提取状态、独有信息去向、冲突和最终归档位置 | 已接受 |
 
