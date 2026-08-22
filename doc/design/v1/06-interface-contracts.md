@@ -1,8 +1,12 @@
 # 06 v1 接口与集成契约设计
 
-文档版本：`1.0.0`
+文档版本：`1.0.1`
 
 状态：已于 2026-08-22 通过人工审核；本文件把已接受接口需求落为可实现的跨边界契约，不替代业务需求、数据模型或安全运维设计
+
+`1.0.1` 增补第 4.5 节 v1 HTTP 端点清单。这是**增量补充，不改变已冻结的契约语义**：
+原文定义了信封、兑换和更新的字段边界，但从未枚举完整端点，实现时缺少可对照的基准。
+清单按已冻结需求推导，并由 `node tools/endpoint-check.mjs` 与后端实现持续对照。
 
 需求真源：[`../../requirements/v1/README.md`](../../requirements/v1/README.md)
 
@@ -191,6 +195,131 @@
 `courseIds` 和 `knownReleases` 只表达查询意图，不能授予范围。服务端重新计算全部有效资格，返回每门课程的
 当前发布版本、范围变化和完整包，或返回 `UP_TO_DATE`。如果某课程不再具备在线资格，响应只说明该课程不能
 更新，不删除本机已安装内容。
+
+### 4.5 v1 HTTP 端点清单
+
+按 `ARCH-DEC-02`，OpenAPI 是 HTTP 契约的真源，本清单不替代它。清单的作用是给实现提供
+**可对照的完整基准**：阶段 1–3 每建立一个端点就在此勾对，避免漏接口、路径命名不一致，
+或把某个模块的能力挂到另一个模块的路径下。
+
+`node tools/endpoint-check.mjs` 比对本清单与 `backend/app/api/` 的实际实现。
+
+列含义：**模块**为 03 第 7 节的六个业务模块；**状态**为 `已有`（v0.9.1 已实现且路径不变）、
+`改名`（能力已有但路径需调整）、`新建`（v1 新增）；**依据**为冻结需求或设计位置。
+
+`改名` 行在依据列用 `旧路径：<方法> <路径>` 记录当前实现的位置。检查工具据此把旧路径
+识别为「待退役」，而不是「未登记的野端点」 —— 两者处置完全不同：前者随重构删除，
+后者说明实现绕过了契约设计。旧路径退役后从依据列移除该标注。
+
+#### 身份与会话
+
+| 方法 | 路径 | 状态 | 依据 |
+| --- | --- | --- | --- |
+| POST | `/api/v1/admin/auth/login` | 已有 | `FR-AUTH-001` |
+| POST | `/api/v1/admin/auth/logout` | 已有 | `FR-AUTH-001` |
+| GET | `/api/v1/admin/auth/me` | 已有 | `FR-AUTH-001` 会话恢复 |
+| POST | `/api/v1/teacher/auth/login` | 改名 | `FR-AUTH-004`；旧路径：`POST /api/v1/auth/login` |
+| POST | `/api/v1/teacher/auth/logout` | 改名 | `FR-AUTH-004`；旧路径：`POST /api/v1/auth/logout` |
+| GET | `/api/v1/teacher/auth/me` | 改名 | 会话恢复；旧路径：`GET /api/v1/auth/me` |
+
+教师端点加 `/teacher` 前缀是为了让角色在路径上与 `/admin` 对称，便于按前缀审计
+和配置反向代理。这不改变 `INT-WEB-001`：角色仍由服务端从会话重算，路径前缀不是权限依据。
+
+#### 管理与支持
+
+| 方法 | 路径 | 状态 | 依据 |
+| --- | --- | --- | --- |
+| GET | `/api/v1/admin/teachers` | 已有 | `FR-ADMIN-*` |
+| POST | `/api/v1/admin/teachers` | 已有 | `FR-AUTH-002` |
+| POST | `/api/v1/admin/teachers/{teacher_id}/reset-password` | 已有 | `FR-AUTH-003` |
+| POST | `/api/v1/admin/teachers/{teacher_id}/deactivate` | 新建 | `FR-AUTH-003` 停用并终止会话 |
+| POST | `/api/v1/admin/teachers/{teacher_id}/reactivate` | 新建 | `FR-AUTH-003` 恢复登录资格 |
+| GET | `/api/v1/admin/trial-followups` | 新建 | `FR-INTAKE-*`、`DATA-INTAKE-002` |
+| PATCH | `/api/v1/admin/trial-followups/{followup_id}` | 新建 | `DATA-INTAKE-002` 跟进状态独立生命周期 |
+
+停用与恢复必须是独立动作，不能用 `PATCH teachers/{id}` 改状态字段代替 —— 停用要在同一事务内
+终止该教师全部会话（04 第 5 节 `credential_version`），这不是一次普通字段更新。
+
+#### 工作空间与课程
+
+| 方法 | 路径 | 状态 | 依据 |
+| --- | --- | --- | --- |
+| GET | `/api/v1/teacher/courses` | 已有 | `FR-COURSE-*`、`FR-WS-*` |
+| POST | `/api/v1/teacher/courses` | 已有 | `FR-COURSE-001` |
+| GET | `/api/v1/teacher/courses/{course_id}` | 已有 | `FR-COURSE-*` |
+| PATCH | `/api/v1/teacher/courses/{course_id}` | 新建 | `FR-COURSE-*`；带 `revision` 前置条件 |
+| POST | `/api/v1/teacher/courses/{course_id}/archive` | 新建 | 04 第 6 节归档用状态而非物理删除 |
+| POST | `/api/v1/teacher/courses/{course_id}/lessons` | 已有 | `FR-COURSE-*` 允许同内容多课节 |
+| GET | `/api/v1/teacher/lessons/{lesson_id}` | 已有 | `FR-COURSE-*` |
+| PATCH | `/api/v1/teacher/lessons/{lesson_id}` | 新建 | 课节元数据与视频引用，带 `revision` |
+| DELETE | `/api/v1/teacher/lessons/{lesson_id}` | 新建 | `FR-COURSE-*`；不破坏已发布快照 |
+| PUT | `/api/v1/teacher/courses/{course_id}/lesson-order` | 新建 | 04 第 6 节整组重排必须是一个事务 |
+
+课节重排是**整组提交**，不是逐个 `PATCH sequence`。04 第 6 节要求「整组重排是一个事务，
+不留下重复或部分顺序」，逐个更新无法满足该约束，因此单独建立一个端点。
+
+#### 制作与发布
+
+| 方法 | 路径 | 状态 | 依据 |
+| --- | --- | --- | --- |
+| GET | `/api/v1/teacher/lessons/{lesson_id}/draft` | 已有 | `FR-AUTHOR-*` |
+| PUT | `/api/v1/teacher/lessons/{lesson_id}/draft` | 已有 | 整份聚合替换，带 `revision` |
+| POST | `/api/v1/teacher/lessons/{lesson_id}/preview-sessions` | 新建 | 04 第 7.3 节 `PreviewSession` |
+| POST | `/api/v1/teacher/preview-sessions/{preview_session_id}/end` | 新建 | 预览结束/过期，不产生学生数据 |
+| POST | `/api/v1/teacher/courses/{course_id}/rights-attestation` | 新建 | `D-V1-008`、04 第 10 节 |
+| POST | `/api/v1/teacher/courses/{course_id}/releases` | 改名 | 带 `idempotencyKey`；旧路径：`POST /api/v1/teacher/courses/{course_id}/publish` |
+| GET | `/api/v1/teacher/courses/{course_id}/releases` | 新建 | 发布历史与当前可交付版本 |
+| GET | `/api/v1/teacher/releases/{release_id}` | 新建 | 单次发布及课节快照 |
+| POST | `/api/v1/teacher/releases/{release_id}/availability` | 新建 | 04 第 8 节 `ReleaseAvailability` 与内容分离 |
+
+`publish` 改为 `POST .../releases`：发布产生的是一个**不可变资源** `CourseRelease`，
+不是对课程执行一个动作。这让 `GET .../releases` 自然成为历史查询，也避免把
+「暂停交付」误做成再发布一次 —— 后者由 `availability` 端点改状态，不改快照。
+
+#### 授权与交付
+
+| 方法 | 路径 | 状态 | 依据 |
+| --- | --- | --- | --- |
+| POST | `/api/v1/teacher/access-codes` | 改名 | 原文只返回一次；旧路径：`POST /api/v1/teacher/courses/{course_id}/access-codes` |
+| GET | `/api/v1/teacher/access-codes` | 改名 | 支持按课程过滤；旧路径：`GET /api/v1/teacher/courses/{course_id}/access-codes` |
+| GET | `/api/v1/teacher/access-codes/{access_code_id}` | 新建 | 尾号、范围、窗口、状态；不返回原文 |
+| POST | `/api/v1/teacher/access-codes/{access_code_id}/terminate` | 新建 | `FR-GRANT-*`；只重算未来在线资格 |
+| POST | `/api/v1/student/redemptions` | 改名 | 首次兑换，见 4.3；旧路径：`POST /api/v1/public/course-download` |
+| POST | `/api/v1/student/course-updates` | 新建 | 免输授权码更新，见 4.4 |
+
+授权码端点从 `/teacher/courses/{course_id}/access-codes` 提升为顶级
+`/teacher/access-codes`：一个授权码可以通过多个 `GrantItem` 覆盖多门课程
+（04 第 9 节），挂在单门课程路径下会暗示「授权码属于某课程」这一错误模型。
+当前实现的这个嵌套也正是 `access_code_service` 直接查 `Course`/`Lesson` 表的诱因之一。
+
+学生端点使用 `/api/v1/student/` 而不是 `/public/`：兑换与更新都要求 `localIdentityId`
+和 `localProof`，不是匿名公开能力。真正无需任何身份的只有销售页静态资源和健康检查。
+
+#### 运行与审计
+
+| 方法 | 路径 | 状态 | 依据 |
+| --- | --- | --- | --- |
+| GET | `/health` | 已有 | `OPS-HEALTH-*` |
+| GET | `/api/v1/meta/version` | 新建 | `OPS-RELEASE-001` 组件与契约版本可识别 |
+| GET | `/api/v1/meta/contracts` | 新建 | 课程包/消息 Schema 版本，供客户端兼容判定 |
+
+`OperationAudit` 不开放查询端点。04 第 10 节把它定为受控弱关联记录，
+v1 通过服务器端排障访问，不建面向页面的审计查询 API（`FR-ADMIN-*` 未要求）。
+
+#### 清单口径与偏离规则
+
+- 当前实现 21 个端点；本清单 41 个（`已有` 14、`改名` 7、`新建` 20）。
+  其中 14 个已对齐，7 个旧路径待退役，20 个待实现。
+  差额主要来自课节顺序、预览会话、发布资源化、授权码终止、试用跟进和版本元数据。
+  数量由 `node tools/endpoint-check.mjs` 实时统计，本段只说明差额来源，不手工维护数字。
+- 清单不含 v1 明确排除的能力：教师自助注册（`FR-AUTH-002` 由管理员创建）、
+  学生登录（`SCOPE-06` 单机标识）、AI 相关端点（`D-V1-002`）、
+  教师查看学习反馈（`FR-REPORT-*` 后续阶段）、跨设备同步（`OPEN-01`）。
+- 实现时发现清单缺项或多余项，先改本节再改代码；`endpoint-check` 失败不能靠改测试绕过。
+- 路径与方法的最终事实仍以 OpenAPI 导出为准；两者不一致时以本节为待修正信号，
+  不默认代码正确 —— 清单是按冻结需求推导的，代码可能只是还没写到。
+
+
 
 ## 5. 课程发布包契约
 
@@ -381,7 +510,7 @@ SRT/VTT 是教师浏览器内的输入格式，不是服务端上传接口。解
 - `INT-PACKAGE-*`：兑换、课程包、版本、校验和原子安装；
 - `INT-FILE-*`：字幕及教师课程文件；
 - `INT-TRIAL-*`：销售页、飞书公开表单和人工运营；
-- `FR-GRANT-*`、`FR-LIB-*`、`FR-PORT-*`、`FR-RUNTIME-*` 及 `DATA-PACKAGE-*`、`DATA-LOCAL-*`。
+- `FR-GRANT-*`、`FR-LIB-*`、`FR-PORT-*`、`FR-RUNTIME-*` 及 `DATA-DELIVERY-*`、`DATA-LOCAL-*`。
 
 ### 11.2 旧资料承接
 
@@ -404,7 +533,9 @@ SRT/VTT 是教师浏览器内的输入格式，不是服务端上传接口。解
 3. 原始授权码、本机证明、课程正文、学生数据和教师私有数据不会通过接口或日志泄露；
 4. 版本兼容、未知字段、未知版本、幂等、超时和旧响应处理均有明确行为；
 5. 当前代码的兼容适配点与必须重写的旧行为已经区分；
-6. `SRC-*` 承接与 02 的登记一致，且不重复复制通用安全规范。
+6. `SRC-*` 承接与 02 的登记一致，且不重复复制通用安全规范；
+7. 第 4.5 节端点清单覆盖全部已冻结需求所需能力，每个端点归属 03 第 7 节的一个业务模块，
+   且 `node tools/endpoint-check.mjs` 无「清单外端点」。
 
 通过后，下一份文档为 [`07-product-interaction-state.md`](07-product-interaction-state.md)，具体冻结页面职责、
 学生兑换/安装确认、教师工作流、学习窗口和交互状态恢复。

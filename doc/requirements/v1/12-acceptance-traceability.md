@@ -33,7 +33,7 @@
 | 来源 | 稳定编号数 | 需求状态 | 下游证据 |
 | --- | ---: | --- | --- |
 | `01-product-scope.md` | 25 | 已接受 | 待建立 |
-| `03-user-scenarios.md` | 22 | 已接受 | 待建立 |
+| `03-user-scenarios.md` | 21 | 已接受 | 待建立 |
 | `04-functional-requirements.md` | 117 | 已接受 | 待建立 |
 | `05-data-requirements.md` | 30 | 已接受 | 待建立 |
 | `06-interface-integration-requirements.md` | 12 | 已接受 | 待建立 |
@@ -42,17 +42,32 @@
 | `09-development-quality-requirements.md` | 12 | 已接受 | 待建立 |
 | `10-deployment-operations-requirements.md` | 10 | 已接受 | 待建立 |
 | `11-migration-compatibility-requirements.md` | 9 | 已接受 | 待建立 |
-| **合计** | **249** | 需求与场景层已记录 | 待建立 |
+| `12-acceptance-traceability.md` | 8 | 已接受 | 待建立 |
+| **合计** | **256** | 需求与场景层已记录 | 待建立 |
 
 `02-domain-glossary.md` 是术语真源，`README.md` 是索引与状态入口，二者不重复计入业务需求数。
 
+以上数量由 `node tools/build-traceability.mjs` 从各文件的标题级编号抽取，不手工维护。
+本文件的 8 个 `ACC-*` 同样是已接受需求，因此按 `ACC-COVER-001` 一并计入并进入矩阵。
+
 ## 3. 需求级矩阵字段
 
-设计阶段开始时，必须为上述 249 个编号各建一行。矩阵增长后可拆到同目录的机器可读文件，但本文件始终保留字段定义、状态入口和发布门禁。
+矩阵本体是机器可读文件 [`doc/traceability/v1-requirements.tsv`](../../traceability/v1-requirements.tsv)，
+由 `node tools/build-traceability.mjs` 生成，每个稳定编号一行。本文件只保留字段定义、
+状态取值和发布门禁。
 
-每行至少包含：稳定编号、需求状态与优先级、来源场景或决策、设计证据、实现证据、自动化证据、真实环境证据、最终状态及最近检查版本与日期。
+矩阵列：稳定编号、定义文件、标题、需求状态、优先级、来源、关联需求、设计证据、实现证据、
+自动化证据、真实环境证据、最终状态、最近检查。
+
+前六列由需求文档解析，重新生成时覆盖。后七列由矩阵自己拥有，重新生成时保留已填内容，
+由各实施阶段回填。`关联需求` 属于后者：需求条目不再保存该字段，上下游关系只在矩阵维护一次。
 
 最终状态只能是：待设计、待实现、待验证、已验证、阻塞、不适用、已替代或已发布。“不适用”必须链接已接受需求或决策依据。
+
+`node tools/build-traceability.mjs --check` 校验矩阵与需求文档一致；
+`node tools/doc-check.mjs` 校验编号覆盖、无重复、无未定义编号；
+`node tools/endpoint-check.mjs` 校验 HTTP 端点清单与后端实现对照。
+三者都在 `node --test tests/*.test.js` 中运行。
 
 ## 4. 覆盖与链接
 
@@ -141,8 +156,8 @@
 ## 8. 当前完成条件
 
 1. 8 条 `ACC-*` 均通过人工审核；
-2. 249 个当前稳定编号数量经自动抽取复核；
+2. 256 个当前稳定编号数量经自动抽取复核（`node tools/build-traceability.mjs`）；
 3. 所有下游状态如实记录为待建立，没有把旧代码、历史测试或当前生产冒充成 v1 证据；
-4. 设计阶段计划将建立需求级矩阵行和持续检查纳入首批交付。
+4. 需求级矩阵行已建立，覆盖检查已进入自动化门禁。
 
 本文件通过后，下一篇为 `13-legacy-source-register.md`。

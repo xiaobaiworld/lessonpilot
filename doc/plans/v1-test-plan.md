@@ -82,7 +82,7 @@
 - 课程级原子发布、发布前权利确认、重复发布幂等、旧发布不可变；
 - 发布包保留课程/课节/节点身份和顺序，不合并重复内容、不生成跨版本混合包。
 
-关联：`FR-COURSE-*`、`FR-AUTHOR-*`、`FR-PUBLISH-*`、`DATA-CONTENT-*`、`DATA-PUBLISH-*`。
+关联：`FR-COURSE-*`、`FR-AUTHOR-*`、`FR-PUBLISH-*`、`DATA-CONTENT-*`、`DATA-DELIVERY-*`。
 
 ### 4.3 授权、兑换和课程库
 

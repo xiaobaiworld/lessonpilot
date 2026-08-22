@@ -45,11 +45,41 @@ KnownMap v1 是一次面向完整项目重构的新主版本。现有代码和�
 
 ### 1.2 需求编号规则
 
-进入具体文件后，每条可验收需求必须使用稳定编号：功能需求使用 `FR-*`，数据需求使用
-`DATA-*`，接口需求使用 `INT-*`，非功能需求使用 `NFR-*`，安全需求使用 `SEC-*`，
-开发质量要求使用 `DEV-*`，部署运维要求使用 `OPS-*`，迁移兼容要求使用 `MIG-*`，
-验收追踪要求使用 `ACC-*`。
+本目录使用的全部编号前缀如下。`tools/lib/requirement-ids.mjs` 保存同一份清单，
+`tools/doc-check.mjs` 据此校验每个编号引用都能解析到定义。
+
+**需求编号**（计入需求库存和追踪矩阵）：
+
+| 前缀 | 含义 | 定义文件 |
+| --- | --- | --- |
+| `GOAL-*` | 产品目标 | `01-product-scope.md` |
+| `SUCCESS-*` | 产品成功标准 | `01-product-scope.md` |
+| `SCOPE-*` | v1 功能范围 | `01-product-scope.md` |
+| `CONSTRAINT-*` | 已知约束 | `01-product-scope.md` |
+| `SCN-*` | 用户场景 | `03-user-scenarios.md` |
+| `FR-*` | 功能需求 | `04-functional-requirements.md` |
+| `DATA-*` | 数据需求 | `05-data-requirements.md` |
+| `INT-*` | 接口与集成需求 | `06-interface-integration-requirements.md` |
+| `SEC-*` | 安全、隐私与合规需求 | `08-security-privacy-compliance-requirements.md` |
+| `DEV-*` | 开发质量需求 | `09-development-quality-requirements.md` |
+| `OPS-*` | 部署运维需求 | `10-deployment-operations-requirements.md` |
+| `MIG-*` | 迁移兼容需求 | `11-migration-compatibility-requirements.md` |
+| `ACC-*` | 验收追踪需求 | `12-acceptance-traceability.md` |
+
+**引用编号**（可被引用，不计入需求数）：`TERM-*`（术语，`02-domain-glossary.md`）、
+`OPEN-*`（需求审核开放项，`01-product-scope.md` 第 8 节）、`D-V1-*`（v1 产品与范围决策，
+`doc/decisions/`）、`D-*`（v1 之前的历史决策，只作来源追溯）、`SRC-*`（旧资料来源，
+`13-legacy-source-register.md`）。设计目录另有 `ARCH-DEC-*` 和 `DATA-DEC-*` 记录工程取舍。
+
+**已保留未签发**：
+
+- `NFR-*`：`07-non-functional-requirements.md` 已决定第一阶段不制定量化非功能指标。
+  重开量化指标前不签发该前缀下的任何编号。
+- `FR-REPORT-*`：教师学习反馈与导出，第 1.1 节声明为后续阶段候选。
+
 编号一旦进入已接受状态便不复用；需求被替代时保留原编号和替代关系。
+需求之间的上下游关系不写进条目，统一由
+[`doc/traceability/v1-requirements.tsv`](../../traceability/v1-requirements.tsv) 单向维护。
 
 ### 1.3 需求目录之外的工程文档
 
