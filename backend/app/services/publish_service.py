@@ -14,7 +14,7 @@ from app.repositories.published_script_repository import (
 )
 from app.repositories.script_repository import get_script_draft
 from app.schemas.publish import PublishedCoursePackage
-from app.services.course_service import ResourceNotFound, get_teacher_course
+from app.services.course_service import get_teacher_course
 
 
 class DraftNotReady(Exception):

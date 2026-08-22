@@ -1,10 +1,17 @@
 from datetime import datetime, timezone
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db_base import Base
 from app.identifiers import generate_uuid
+
+if TYPE_CHECKING:
+    # 关系类型的前向引用。放在 TYPE_CHECKING 下：SQLAlchemy 运行时按字符串解析，
+    # 真实导入会形成循环依赖；但静态检查需要这些名字存在，否则 Ruff 报 F821。
+    from app.models.course import Course
+    from app.models.script_draft import ScriptDraft
 
 
 class Lesson(Base):

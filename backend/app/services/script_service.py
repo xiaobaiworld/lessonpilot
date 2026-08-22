@@ -6,7 +6,7 @@ from app.models.script_draft import ScriptDraft
 from app.models.teacher import Teacher
 from app.repositories.script_repository import add_script_draft, get_script_draft
 from app.schemas.script import ScriptDraftRequest, dump_script_config
-from app.services.course_service import ResourceNotFound, get_teacher_lesson
+from app.services.course_service import get_teacher_lesson
 
 
 class DraftNotFound(Exception):
