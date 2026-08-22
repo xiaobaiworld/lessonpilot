@@ -1,8 +1,12 @@
 # 03 v1 系统架构
 
-文档版本：`1.0.1`
+文档版本：`1.0.2`
 
 状态：已于 2026-08-22 通过人工审核；第 14 节两个长期工程取舍均已采用；已同步 `D-V1-010`
+
+`1.0.2` 增补第 7.0 节表归属。这是**增量补充，不改变已冻结的架构结论**：
+第 7 节原本只写模块的业务职责，没有把每张表分配到模块，「不能直接查询另一模块的表」
+因此缺少客观判定标准。归属表由 `node tools/module-check.mjs` 与后端代码持续对照。
 
 上级索引：[`README.md`](README.md)
 
@@ -160,6 +164,45 @@ FastAPI 内部按业务责任划分为六个模块。模块是代码和事务边
 | 授权与交付 | 授权码、领取窗口、授权项、来源并集、在线资格、课程包裁剪与下载 | 学生回答、本机安装删除 |
 | 管理与支持 | 教师接入、必要状态摘要、高风险操作和受限诊断 | 默认读取课程正文、冒充教师操作 |
 | 运行与审计 | 健康、版本、结构化日志、操作审计、保留任务和恢复探针 | 代替业务模块决定成功或权限 |
+
+### 7.0 表归属
+
+「一个模块不能直接查询或修改另一个模块拥有的表」需要客观判定标准，因此每张表明确归属一个模块。
+`node tools/module-check.mjs` 据此检查后端代码。
+
+| 模块 | 拥有的表 | 领域对象（04） |
+| --- | --- | --- |
+| 身份与会话 | `admins`、`admin_sessions`、`teachers`、`teacher_sessions` | `AdminAccount`、`AdminSession`、`TeacherAccount`、`TeacherSession` |
+| 工作空间与课程 | `workspaces`、`courses`、`lessons` | `Workspace`、`Course`、`Lesson`、`VideoReference` |
+| 制作与发布 | `script_drafts`、`published_scripts`（v1 改为 `course_releases`、`release_lesson_snapshots`、`release_availability`、`preview_sessions`） | `ScriptDraft`、`InteractionNode`、`PreviewSession`、`CourseRelease`、`ReleaseLessonSnapshot`、`ReleaseAvailability` |
+| 授权与交付 | `access_codes`、`access_grants`（v1 增加 `redemptions`） | `AccessCode`、`GrantItem`、`Redemption` |
+| 管理与支持 | v1 增加 `trial_followups`、`rights_attestations` | `TrialFollowup`、`RightsAttestation` |
+| 运行与审计 | `operation_logs` | `OperationAudit` |
+
+判定规则：
+
+- **拥有**表示可以直接 `select`、`session.get`、构造实例、按列过滤和写入；
+- 其它模块需要这些数据时，调用拥有方的应用服务，不自己拼查询；
+- 模型类**仅作类型标注**（例如把已认证的 `Teacher` 对象作为参数类型）不算访问。
+  身份已由路由层从会话解析，向下传递对象是依赖方向允许的，不是跨模块查表；
+- `EffectiveEntitlement` 没有表。它是 `Redemption + AccessCode + GrantItem + 当前时间/状态`
+  的派生视图（04 第 9 节），由授权与交付模块计算，不建物理表也不由其它模块拼装。
+
+跨模块只读也算越界。读另一个模块的表会把该模块的排序、状态和有效性规则复制到调用方，
+上游改字段或改语义时不会有任何编译或测试失败提示 —— 这是设计要消除的隐性耦合。
+
+当前实现有 9 处越界，集中在 3 个文件，登记在 `tools/module-check.mjs` 的 `KNOWN_VIOLATIONS`
+并附修法。它们只报告不阻断（属阶段 1 重构范围），但**新增越界一律失败**：
+
+| 文件 | 越界访问 | 修法方向 |
+| --- | --- | --- |
+| `services/access_code_service.py` | `Course`、`Lesson`、`published_script_repository` | 课节有序列表和最新可交付发布快照改由拥有方提供应用服务；排序规则和发布有效性判断不留在授权模块 |
+| `services/admin_teacher_service.py` | 构造 `Teacher` 行、`teacher_repository` | 由身份模块提供「创建教师账号」「重置密码并失效会话」服务，管理模块在一个事务内组合调用 |
+| `repositories/admin_teacher_repository.py` | `Teacher`、`Course`、`Workspace` | 教师摘要与课程计数分别由身份模块和课程模块提供只读摘要 |
+
+`admin_teacher_service` 这一处不是「不该跨模块」，而是「跨模块方式错误」：`FR-AUTH-002`
+和 04 第 5 节要求教师账号与工作空间在同一事务内建立，这本就是跨模块动作。
+区别在于组合方式 —— 应当调用对方的应用服务，而不是自己构造对方的行。
 
 ### 7.1 依赖方向
 
