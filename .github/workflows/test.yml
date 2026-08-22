@@ -97,3 +97,7 @@ jobs:
           node tools/endpoint-check.mjs
           node tools/module-check.mjs
           node tools/build-traceability.mjs --check
+
+      # SEC-SECRET-003 把仓库秘密扫描列为验收证据。
+      - name: Scan for secrets
+        run: node tools/secret-scan.mjs

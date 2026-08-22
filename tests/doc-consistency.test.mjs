@@ -18,6 +18,11 @@ import { buildRows } from '../tools/build-traceability.mjs';
 import { compare as compareEndpoints } from '../tools/endpoint-check.mjs';
 import { runAll as runContractChecks } from '../tools/contract-check.mjs';
 import {
+  RULES as SECRET_RULES,
+  looksLikePlaceholder,
+  scan as scanSecrets,
+} from '../tools/secret-scan.mjs';
+import {
   MODEL_OWNER,
   MODULES,
   analyze as analyzeModules,
@@ -353,6 +358,52 @@ test('Python 与 Node 对同一契约夹具给出一致结论', () => {
   }
   assert.deepEqual(crossLanguage, [], `双端结论不一致：\n${crossLanguage.join('\n')}`);
   assert.ok(comparedCount > 0, 'Python 侧未比对任何夹具');
+});
+
+test('仓库不含可用秘密', () => {
+  // SEC-SECRET-003 把「仓库秘密扫描测试」列为验收证据。
+  const { findings, scanned } = scanSecrets();
+  assert.ok(scanned > 100, `扫描文件数异常少（${scanned}），范围可能配置错误`);
+  const lines = findings.map((f) => `${f.file}:${f.line} [${f.rule}]`);
+  assert.deepEqual(lines, [], `发现疑似可用秘密：\n${lines.join('\n')}`);
+});
+
+test('秘密扫描能识别真实凭证形态', () => {
+  // 一个只会通过的扫描器等于没有扫描器。这里用构造样本验证每条规则真的会命中，
+  // 不写入仓库文件 —— 直接对规则求值。
+  const samples = {
+    'aws-access-key-id': 'const k = "AKIAQ7RJ4XKLM2NPWZ3B";',
+    'github-token': 'const t = "ghp_9Kz2mQvR7tYuI3oP5aSdF8gHjKlZxCvBnM4q";',
+    'postgres-url-with-password': 'postgres://svc:Rt7pQm2zXk@db.internal:5432/app',
+    'generic-assigned-secret': 'sessionKey = "k9Vx2QmR7tPwZa4LbNc8YsEdFgHjKuIo"',
+    'private-key-block': '-----BEGIN RSA PRIVATE KEY-----',
+    'knownmap-access-code': 'code = "KM-Q7RJ4-XKLM2-NPWZ3-BVTY6"',
+  };
+  for (const [ruleName, sample] of Object.entries(samples)) {
+    const rule = SECRET_RULES.find((r) => r.name === ruleName);
+    assert.ok(rule, `规则 ${ruleName} 不存在`);
+    const match = sample.match(rule.pattern);
+    assert.ok(match, `规则 ${ruleName} 未命中真实凭证形态样本`);
+    assert.ok(
+      !looksLikePlaceholder(match[0]),
+      `规则 ${ruleName} 的真实凭证样本被误判为占位，会造成漏报`,
+    );
+  }
+});
+
+test('秘密扫描不对占位与示例告警', () => {
+  // 对每个测试夹具都告警的扫描器会被学会忽略，那时它对真实泄露也不起作用。
+  for (const placeholder of [
+    'KM-XXXXX-XXXXX-XXXXX-XXXXX',
+    'KM-AAAAA-AAAAA-AAAAA-AAAAA',
+    'KM-ABCDE-FGHIJ-KLMNO-PQRST',
+    'KM-ZYXWV-TSRQP-NMLKJ-HGFED',
+    '"replacement-password"',
+    '"your-token-here"',
+    '"example-secret-value"',
+  ]) {
+    assert.ok(looksLikePlaceholder(placeholder), `占位「${placeholder}」被判为真实秘密`);
+  }
 });
 
 test('项目开发规则文件存在且指向真源', () => {

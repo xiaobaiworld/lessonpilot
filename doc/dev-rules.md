@@ -113,6 +113,9 @@ node tools/doc-check.mjs                  # 编号可解析、链接、矩阵覆
 node tools/endpoint-check.mjs             # 端点清单与后端实现对照
 node tools/module-check.mjs               # 模块边界：跨模块表访问
 node tools/contract-check.mjs             # 契约 Schema、版本清单、夹具、双端一致
+node tools/secret-scan.mjs                # 仓库秘密扫描（SEC-SECRET-003）
+cd backend && uv run ruff check .         # 后端 lint
+cd backend && uv run ruff format --check . # 后端格式
 node tools/module-check.mjs --list        # 查看表归属与文件归属登记
 node tools/build-traceability.mjs         # 重新生成追踪矩阵
 node tools/build-traceability.mjs --check # 校验矩阵与需求文档一致
@@ -129,8 +132,14 @@ cd backend && uv run pytest               # 后端测试
 用 `npm test` 而不是直接写 `node --test tests/*.test.js`：测试同时有 `.test.js`（CommonJS）
 和 `.test.mjs`（ESM，文档一致性检查需要 `import` 工具模块），单个 glob 会静默漏掉一类。
 
-依赖：Node 侧 `npm ci`（`ajv` 用于契约校验），后端 `uv sync`。
+依赖：Node 侧 `npm ci`（`ajv` 用于契约校验），后端 `uv sync`（含 `jsonschema`、`ruff`）。
 两侧都必须从仓库内解析，不依赖开发机全局安装（`DEV-DEP-001`）。
+这条踩过两次：`ajv` 曾只能从 `/Users/bai/node_modules` 解析，`ruff` 曾只有
+`[tool.ruff]` 配置而没有声明依赖 —— 两者在本机都能跑，在 CI 的 `--frozen` 环境都会失败。
+
+秘密扫描发现命中时，先确认该凭证是否已在真实环境使用；若是，**先吊销再改代码** ——
+从 Git 历史移除比从工作区移除困难得多。确认是占位或示例时，在
+`tools/secret-scan.mjs` 的 `ALLOWLIST` 按「文件 + 规则」登记并写明理由，不整目录豁免。
 
 ## 9. 语言
 
