@@ -31,7 +31,7 @@
 1. 需求/设计编号已回链；
 2. 失败、权限、原子性和恢复测试已补齐；
 3. 无秘密、真实个人数据或未经批准的外部内容；
-4. `node --test tests/*.test.js` 和 `cd backend && uv run pytest` 在适用范围通过；
+4. `npm test` 和 `cd backend && uv run pytest` 在适用范围通过；
 5. 人工验收记录和未验证项已写入 `tests/manual/v1/`；
 6. `changelog.md`、`doc/lessons.md`、`next.md` 与实际状态一致；
 7. 提交已推送，发布/回退信息可追溯。

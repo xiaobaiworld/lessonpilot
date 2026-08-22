@@ -1,0 +1,23 @@
+{
+  "name": "knownmap",
+  "version": "0.0.0",
+  "private": true,
+  "description": "KnownMap 互动课程工具：教师 Web、学生插件与共享契约",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.js tests/*.test.mjs",
+    "check:doc": "node tools/doc-check.mjs",
+    "check:endpoint": "node tools/endpoint-check.mjs",
+    "check:module": "node tools/module-check.mjs",
+    "check:contract": "node tools/contract-check.mjs",
+    "traceability": "node tools/build-traceability.mjs",
+    "traceability:check": "node tools/build-traceability.mjs --check"
+  },
+  "devDependencies": {
+    "ajv": "8.17.1",
+    "ajv-formats": "3.0.1"
+  }
+}

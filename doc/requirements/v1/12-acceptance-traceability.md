@@ -67,7 +67,7 @@
 `node tools/build-traceability.mjs --check` 校验矩阵与需求文档一致；
 `node tools/doc-check.mjs` 校验编号覆盖、无重复、无未定义编号；
 `node tools/endpoint-check.mjs` 校验 HTTP 端点清单与后端实现对照。
-三者都在 `node --test tests/*.test.js` 中运行。
+三者都在 `npm test` 中运行。
 
 ## 4. 覆盖与链接
 

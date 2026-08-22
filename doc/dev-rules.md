@@ -108,7 +108,7 @@ FastAPI 是一个部署单元、一个事务边界，内部分六个业务模块
 ## 8. 检查与测试命令
 
 ```bash
-node --test tests/*.test.js               # 前端、插件与文档一致性测试
+npm test                                  # 前端、插件与文档一致性测试
 node tools/doc-check.mjs                  # 编号可解析、链接、矩阵覆盖、权威唯一
 node tools/endpoint-check.mjs             # 端点清单与后端实现对照
 node tools/module-check.mjs               # 模块边界：跨模块表访问
@@ -123,7 +123,13 @@ cd backend && uv run pytest               # 后端测试
 登记。`endpoint-check` 把未登记端点视为失败：清单是按冻结需求推导的实现基准，
 代码不能先于契约设计存在。改名旧路径在依据列标注 `旧路径：<方法> <路径>`，退役后移除标注。
 
-提交前四项全绿。文档检查失败与测试失败同等对待，不允许「文档下次再说」。
+提交前全绿。文档检查失败与测试失败同等对待，不允许「文档下次再说」。
+
+用 `npm test` 而不是直接写 `node --test tests/*.test.js`：测试同时有 `.test.js`（CommonJS）
+和 `.test.mjs`（ESM，文档一致性检查需要 `import` 工具模块），单个 glob 会静默漏掉一类。
+
+依赖：Node 侧 `npm ci`（`ajv` 用于契约校验），后端 `uv sync`。
+两侧都必须从仓库内解析，不依赖开发机全局安装（`DEV-DEP-001`）。
 
 ## 9. 语言
 

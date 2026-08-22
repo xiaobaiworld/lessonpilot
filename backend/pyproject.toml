@@ -16,6 +16,10 @@ dependencies = [
 [dependency-groups]
 dev = [
   "httpx>=0.28,<1",
+  # 跨语言契约校验（ARCH-DEC-02）。放在 dev 组而非运行依赖：后端只生成课程包，
+  # 校验由插件执行；Python 侧校验目前只服务契约双端一致性检查。
+  # 后端运行时开始按 Schema 校验请求或包时再移入 dependencies。
+  "jsonschema>=4.23,<5",
   "pytest>=9.0.3,<10",
   "pytest-cov>=6,<7",
 ]

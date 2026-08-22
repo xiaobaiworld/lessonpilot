@@ -269,6 +269,38 @@ test('模块键与代码重构计划的目标目录名一致', () => {
   }
 });
 
+test('npm test 覆盖全部测试文件，CI 与文档使用同一命令', () => {
+  // 测试目录同时有 .test.js（CommonJS）和 .test.mjs（ESM）。
+  // 单个 glob 只匹配一类，会静默漏掉另一类 —— 加 package.json 时就发生过：
+  // node --test tests/*.test.js 从 352 项变成 331 项，且不报错。
+  const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
+  const script = pkg.scripts?.test ?? '';
+  for (const ext of ['*.test.js', '*.test.mjs']) {
+    assert.ok(script.includes(ext), `package.json 的 test 脚本未覆盖 ${ext}；当前为「${script}」`);
+  }
+
+  // CI 必须用同一入口，否则本地全绿而 CI 漏跑。
+  for (const workflow of ['.github/workflows/test.yml', '.github/workflows/pages.yml']) {
+    const text = readFileSync(workflow, 'utf8');
+    assert.match(text, /run:\s*npm test/, `${workflow} 未使用 npm test；直接写 glob 会漏掉一类测试文件`);
+    assert.match(text, /run:\s*npm ci/, `${workflow} 缺少 npm ci；契约校验依赖必须从仓库内解析`);
+  }
+});
+
+test('契约校验器依赖已在两侧声明并锁定', () => {
+  // DEV-DEP-001：依赖最小、锁定、可追溯。ajv 曾只能从开发机全局
+  // /Users/bai/node_modules 解析，那样检查在干净环境和 CI 里不可重现。
+  const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
+  const ajv = pkg.devDependencies?.ajv;
+  assert.ok(ajv, 'package.json 未声明 ajv');
+  assert.match(ajv, /^\d+\.\d+\.\d+$/, `ajv 必须锁定精确版本，当前为「${ajv}」`);
+  assert.ok(existsSync('package-lock.json'), '缺少 package-lock.json');
+
+  const pyproject = readFileSync('backend/pyproject.toml', 'utf8');
+  assert.match(pyproject, /jsonschema>=/, 'backend/pyproject.toml 未声明 jsonschema');
+  assert.ok(existsSync('backend/uv.lock'), '缺少 backend/uv.lock');
+});
+
 test('项目开发规则文件存在且指向真源', () => {
   const path = 'doc/dev-rules.md';
   assert.ok(existsSync(path), `${path} 缺失；设计 README 与全局规则都引用它`);

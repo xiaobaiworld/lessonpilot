@@ -154,11 +154,14 @@ node tools/assemble-workspace.js
 
 它把 `src/shared/` 复制到 `teacher-web/shared/`，使工作台页面在本地和公网加载同一路径。该目录不入版本库：提交副本会形成第二份契约定义并可能与源文件脱节（D-010）。
 
-运行自动化测试：
+安装依赖并运行自动化测试：
 
 ```bash
-node --test tests/*.test.js
+npm ci
+npm test
 ```
+
+`npm test` 覆盖 `.test.js`（CommonJS）与 `.test.mjs`（ESM）两类测试文件。
 
 加载当前插件 `0.9.1`：
 

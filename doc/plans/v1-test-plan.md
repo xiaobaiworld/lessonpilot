@@ -131,8 +131,8 @@
 当前仓库已有自动化基线，重构期间只把它当作现状回归参考；新增 v1 测试应按目标契约重新组织：
 
 ```bash
-node --test tests/*.test.js
-cd backend && uv run pytest
+npm ci && npm test
+cd backend && uv sync && uv run pytest
 ```
 
 后端测试也应在可用时运行覆盖率报告，但不设置没有真实基线的统一数字。每个失败修复先添加能复现问题的测试，

@@ -26,8 +26,14 @@ jobs:
       - name: Assemble shared contract
         run: node tools/assemble-workspace.js
 
+      # 契约校验依赖（ajv）从仓库内解析，不能依赖开发机全局 node_modules。
+      - name: Install dependencies
+        run: npm ci
+
+      # 用 npm test 而不是直接写 glob：测试同时有 .test.js（CommonJS）和
+      # .test.mjs（ESM，文档一致性检查需要 import 工具模块），单个 glob 会静默漏掉一类。
       - name: Run tests
-        run: node --test tests/*.test.js
+        run: npm test
 
   backend-test:
     runs-on: ubuntu-latest
