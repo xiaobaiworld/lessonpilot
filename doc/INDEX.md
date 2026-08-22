@@ -18,6 +18,7 @@
 | `doc/design/v1/03-system-architecture.md` | v1 模块化单体、多个客户端、信任边界和部署拓扑 | 已接受；版本 `1.0.1` |
 | `doc/design/v1/04-domain-data-model.md` | v1 领域对象、身份、关系、数据位置和约束 | 已接受；版本 `1.0.0` |
 | `doc/design/v1/05-data-flow-lifecycle.md` | v1 课程发布、授权兑换、安装、更新、离线、保留和恢复数据流 | 已接受；版本 `1.0.0` |
+| `doc/design/v1/06-interface-contracts.md` | v1 HTTP API、插件消息、课程包、文件、宿主和外部表单契约 | 已接受；版本 `1.0.0` |
 | `doc/decisions/2026-08-21-v1-public-trial-intake.md` | 公开销售页与飞书试用申请纳入 v1 P0 的范围决定 | 已接受 |
 | `doc/decisions/2026-08-21-v1-no-ai-authoring.md` | v1 完全排除 AI 辅助制作 | 已接受 |
 | `doc/decisions/2026-08-21-v1-basic-student-runtime.md` | v1 学生端保持基础运行闭环 | 已接受 |
