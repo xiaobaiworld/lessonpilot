@@ -252,6 +252,23 @@ test('表归属登记与设计 03 第 7.0 节一致', () => {
   }
 });
 
+test('模块键与代码重构计划的目标目录名一致', () => {
+  // 阶段 1 会把后端改成 modules/<domain>/。若工具的模块键与计划的目录名不一致，
+  // 届时要么改目录要么改工具，白白多一次重命名，且中间状态无法检查。
+  const plan = readFileSync('doc/plans/v1-code-refactor-execution-plan.md', 'utf8');
+  const start = plan.indexOf('## 5. 目标代码边界');
+  assert.notEqual(start, -1, '代码重构计划缺少第 5 节目标代码边界');
+  const section = plan.slice(start, plan.indexOf('## 6.', start));
+
+  const modulesBlock = section.slice(section.indexOf('modules/'));
+  for (const key of Object.keys(MODULES)) {
+    assert.ok(
+      new RegExp(`^\\s+${key}/\\s*$`, 'm').test(modulesBlock),
+      `计划第 5 节 modules/ 下缺少目录 ${key}/；模块键与目标目录名必须一致`,
+    );
+  }
+});
+
 test('项目开发规则文件存在且指向真源', () => {
   const path = 'doc/dev-rules.md';
   assert.ok(existsSync(path), `${path} 缺失；设计 README 与全局规则都引用它`);

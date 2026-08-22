@@ -22,13 +22,15 @@ import { join } from 'node:path';
 const BACKEND = 'backend/app';
 
 /** 六个业务模块。键用于报告，值是模块中文名（与设计文档一致）。 */
+// 键与 `doc/plans/v1-code-refactor-execution-plan.md` 第 5 节的目标目录名一致，
+// 阶段 1 重构为 `modules/<domain>/` 后可直接按目录判定，不需要再改一次命名。
 export const MODULES = {
   identity: '身份与会话',
-  course: '工作空间与课程',
-  authoring: '制作与发布',
-  grant: '授权与交付',
-  admin: '管理与支持',
-  ops: '运行与审计',
+  workspace_course: '工作空间与课程',
+  authoring_release: '制作与发布',
+  entitlement_delivery: '授权与交付',
+  admin_support: '管理与支持',
+  runtime_audit: '运行与审计',
 };
 
 /**
@@ -42,14 +44,14 @@ export const MODEL_OWNER = {
   AdminSession: 'identity',
   Teacher: 'identity',
   TeacherSession: 'identity',
-  Workspace: 'course',
-  Course: 'course',
-  Lesson: 'course',
-  ScriptDraft: 'authoring',
-  PublishedScript: 'authoring',
-  AccessCode: 'grant',
-  AccessGrant: 'grant',
-  OperationLog: 'ops',
+  Workspace: 'workspace_course',
+  Course: 'workspace_course',
+  Lesson: 'workspace_course',
+  ScriptDraft: 'authoring_release',
+  PublishedScript: 'authoring_release',
+  AccessCode: 'entitlement_delivery',
+  AccessGrant: 'entitlement_delivery',
+  OperationLog: 'runtime_audit',
 };
 
 /**
@@ -61,25 +63,25 @@ export const FILE_OWNER = {
   // services
   auth_service: 'identity',
   admin_auth_service: 'identity',
-  course_service: 'course',
-  script_service: 'authoring',
-  publish_service: 'authoring',
-  access_code_service: 'grant',
-  admin_teacher_service: 'admin',
-  operation_log_service: 'ops',
+  course_service: 'workspace_course',
+  script_service: 'authoring_release',
+  publish_service: 'authoring_release',
+  access_code_service: 'entitlement_delivery',
+  admin_teacher_service: 'admin_support',
+  operation_log_service: 'runtime_audit',
   // repositories
   admin_repository: 'identity',
   admin_session_repository: 'identity',
   teacher_repository: 'identity',
   teacher_session_repository: 'identity',
-  workspace_repository: 'course',
-  course_repository: 'course',
-  lesson_repository: 'course',
-  script_repository: 'authoring',
-  published_script_repository: 'authoring',
-  access_code_repository: 'grant',
-  access_grant_repository: 'grant',
-  admin_teacher_repository: 'admin',
+  workspace_repository: 'workspace_course',
+  course_repository: 'workspace_course',
+  lesson_repository: 'workspace_course',
+  script_repository: 'authoring_release',
+  published_script_repository: 'authoring_release',
+  access_code_repository: 'entitlement_delivery',
+  access_grant_repository: 'entitlement_delivery',
+  admin_teacher_repository: 'admin_support',
 };
 
 /**

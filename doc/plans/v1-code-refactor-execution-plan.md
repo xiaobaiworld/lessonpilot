@@ -1,8 +1,13 @@
 # KnownMap v1 代码重构执行计划
 
-文档版本：`0.1.0`
+文档版本：`0.2.0`
 
 状态：待审核；本文件只拆解代码重构，不授权修改产品代码、部署或生产数据
+
+`0.2.0` 与 2026-08-23 建立的两份实现基准对齐：设计 06 第 4.5 节 HTTP 端点清单和
+设计 03 第 7.0 节表归属。同时修正 §2 的后端测试数（96 → 97 实测），
+并把 9 处已登记跨模块越界的清偿列为阶段 1 工作包 `1F`。
+模块目录命名以本文件第 5 节为准，`tools/module-check.mjs` 已对齐。
 
 重构基线：`main@0e503a4`；计划分支：`codex/v1-rewrite`
 
@@ -38,7 +43,7 @@
 2026-08-22 对 `main@517c0ec` 的只读验证结果：
 
 - Node：`331 passed / 0 failed`；
-- 后端：`96 passed`，应用行覆盖率约 `95%`；
+- 后端：`97 passed`，应用行覆盖率约 `95%`；
 - Alembic：单一 head `0011_fix_admin_auth_schema`；
 - Ruff：10 个错误，包含 7 个未定义类型引用和 3 个未使用 import；
 - 后端测试产生 42 条依赖/SQLite/Alembic 弃用警告；
@@ -145,7 +150,15 @@ tests/
 
 ### 阶段 0：工程、契约与干净初始化
 
-依赖：冻结需求、设计和当前进行中的追踪/文档检查修改先独立收口。
+依赖：冻结需求、设计和追踪/文档检查修改先独立收口 —— 已于 2026-08-23 完成（8 个提交），
+本前置条件已解除。同期建立了两份实现基准，阶段 0 起即可对照：
+
+| 基准 | 位置 | 检查工具 |
+| --- | --- | --- |
+| HTTP 端点清单（41 个，按六模块分组） | 设计 06 第 4.5 节 | `node tools/endpoint-check.mjs` |
+| 表归属（12 张表分配到六模块） | 设计 03 第 7.0 节 | `node tools/module-check.mjs` |
+
+两者已进入 `node --test`。新增未登记端点、新增跨模块表访问都会失败。
 
 工作包：
 
@@ -155,8 +168,14 @@ tests/
 4. `0D` 建立匿名夹具：两个教师、两台本机身份、重复内容课节、同视频多课节、两次发布、多授权来源、损坏/旧契约。
 5. `0E` 建立 v1 数据库入口和旧 schema 拒绝门禁。现有“迁移后旧表为空”测试只保留为历史证据，不能作为 v1 初始化完成条件。
 6. `0F` 把 Ruff、TypeScript typecheck、Node/Python 测试、契约生成无 diff、文档链接、秘密扫描和依赖扫描接入 CI。
+   文档链接、编号、追踪矩阵、端点清单和模块边界五项已由 `tools/doc-check.mjs`、
+   `tools/endpoint-check.mjs`、`tools/module-check.mjs` 覆盖并进入 `node --test`；
+   本工作包只需补 Ruff、typecheck、契约生成无 diff、秘密扫描和依赖扫描。
 
 门禁：旧应用不回归；v1 骨架可构建；Python/TypeScript 对同一夹具给出一致结果；旧响应、旧存储和旧数据库不会进入 v1；静态检查零错误。
+
+`0C` 的 JSON Schema 真源建立后，HTTP 侧同时导出 OpenAPI 并与设计 06 第 4.5 节端点清单对照：
+清单是按冻结需求推导的预期，OpenAPI 是实现事实，两者不一致时先判断哪一侧错，不默认代码正确。
 
 提交建议：`build: establish v1 workspace`、`feat: establish v1 contracts`、`test: establish v1 clean initialization gates`。
 
@@ -168,7 +187,27 @@ tests/
 4. `1D` 新建版本化 ScriptDraft 聚合、四类节点校验、摘要和 optimistic revision；保存冲突返回稳定错误且不覆盖任一版本。
 5. `1E` 路由只做协议/权限/错误映射；应用服务拥有事务；仓储不决定权限。统一操作审计写入入口，删除路由间反向 import。
 
-门禁：两个教师的交叉资源访问全部拒绝且无副作用；停用立即使现有会话失效但不删业务数据；重复内容和同视频课节合法；草稿冲突可恢复。
+6. `1F` 按设计 03 第 7.0 节表归属清偿已登记的 9 处跨模块表访问，逐条从
+   `tools/module-check.mjs` 的 `KNOWN_VIOLATIONS` 删除（白名单过期同样会失败）：
+
+   | 文件 | 越界 | 修法 |
+   | --- | --- | --- |
+   | `services/access_code_service.py` | `Course`、`Lesson`、`lesson_repository`、`published_script_repository` | 课节有序列表与最新可交付发布快照改由拥有方提供应用服务；排序规则和发布有效性判断不留在授权模块 |
+   | `services/admin_teacher_service.py` | 构造 `Teacher` 行、`teacher_repository` | 由身份模块提供「创建教师账号」「重置密码并失效会话」服务，管理模块在一个事务内组合调用 |
+   | `repositories/admin_teacher_repository.py` | `Teacher`、`Course`、`Workspace` | 教师摘要与课程计数分别由身份模块和课程模块提供只读摘要 |
+
+   `admin_teacher_service` 这一处不是「不该跨模块」而是「跨模块方式错误」：`FR-AUTH-002`
+   与 04 第 5 节要求教师账号与工作空间同事务建立，本就是跨模块动作，
+   区别在于应当调用对方的应用服务，而不是自己构造对方的行。去掉跨模块调用会破坏该冻结约束。
+
+7. `1G` 目录改为 `modules/<domain>/` 后，同步更新 `tools/module-check.mjs` 的 `FILE_OWNER`
+   为按目录判定；约束本身不变。同时修正 §2 记录的 `CourseDetail.lessons[]` 与
+   `app.js` 读 `course.lesson` 的断点 —— 该字段 API 从不返回，实测 `app.js` 有 6 处
+   `course.lesson`、0 处 `lessons`。
+
+门禁：两个教师的交叉资源访问全部拒绝且无副作用；停用立即使现有会话失效但不删业务数据；重复内容和同视频课节合法；草稿冲突可恢复；
+`node tools/module-check.mjs` 无新增越界，且本阶段涉及的 `KNOWN_VIOLATIONS` 条目已清空；
+本阶段新建或改名的端点已在设计 06 第 4.5 节登记，`node tools/endpoint-check.mjs` 无清单外端点。
 
 ### 阶段 2：课程级发布、授权、兑换与课程包
 
