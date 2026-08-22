@@ -1,8 +1,8 @@
 # KnownMap v1 设计与开发文档
 
-文档版本：`0.8.0-draft.1`
+文档版本：`0.9.0-draft.1`
 
-状态：系统架构、领域与数据模型、数据流与生命周期、接口契约、产品交互状态已通过人工审核；下一篇为安全运维设计
+状态：系统架构、领域与数据模型、数据流与生命周期、接口契约、产品交互状态、安全运维设计已通过人工审核；下一篇为迁移切换设计
 
 需求真源：[`../../requirements/v1/README.md`](../../requirements/v1/README.md)
 
@@ -42,7 +42,7 @@
 | 05 | [`05-data-flow-lifecycle.md`](05-data-flow-lifecycle.md) | 数据流、状态变化、保留、删除和恢复 | 已接受 |
 | 06 | [`06-interface-contracts.md`](06-interface-contracts.md) | API、插件消息、课程包、文件和外部集成 | 已接受 |
 | 07 | [`07-product-interaction-state.md`](07-product-interaction-state.md) | 页面职责、用户流程、交互状态和恢复 | 已接受 |
-| 08 | `08-security-operations-design.md` | 权限、秘密、输入、日志、发布、备份和恢复 | 待建立 |
+| 08 | [`08-security-operations-design.md`](08-security-operations-design.md) | 权限、秘密、输入、日志、发布、备份和恢复 | 已接受 |
 | 09 | `09-migration-cutover-design.md` | 保留、重写、迁移、切换、回滚和旧入口退役 | 待建立 |
 
 项目专有开发规则固定写入 `doc/dev-rules.md`，不为编号另建重复副本。测试计划和开发计划在

@@ -15,12 +15,13 @@
   `05-data-flow-lifecycle.md` 已通过人工审核并冻结为 `1.0.0`。
   `06-interface-contracts.md` 已通过人工审核并冻结为 `1.0.0`。
   `07-product-interaction-state.md` 已通过人工审核并冻结为 `1.0.0`。
+  `08-security-operations-design.md` 已通过人工审核并冻结为 `1.0.0`。
 - 当前限制：v1 设计冻结前不开始产品代码重写；只允许文档审计、只读验证和必要的文档收口。
 
 ## 当前工作顺序
 
-1. 建立并审核 `08-security-operations-design.md`，冻结权限、秘密、输入、日志、发布、备份和恢复；
-2. 依次审核 09 迁移切换；
+1. 建立并审核 `09-migration-cutover-design.md`，冻结旧数据保留、迁移、切换、回滚和旧入口退役；
+2. 设计文档完成后建立 v1 测试计划和开发计划；
 3. 每份新真源明确承接的 `SRC-*`，不复制旧文档或全局规范；
 4. 设计全部通过后，建立 v1 测试计划和开发计划；
 5. 最后更新根 README、`doc/INDEX.md` 和旧链接，再执行已经接受的归档移动。
