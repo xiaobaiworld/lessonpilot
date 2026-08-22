@@ -7,9 +7,13 @@ from app.schemas.script import ScriptDraftRequest, dump_script_config
 
 
 def _utc_iso_milliseconds(value: datetime) -> str:
-    return value.astimezone(timezone.utc).isoformat(timespec="milliseconds").replace(
-        "+00:00",
-        "Z",
+    return (
+        value.astimezone(timezone.utc)
+        .isoformat(timespec="milliseconds")
+        .replace(
+            "+00:00",
+            "Z",
+        )
     )
 
 

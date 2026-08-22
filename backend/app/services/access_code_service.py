@@ -86,11 +86,7 @@ def _published_lesson(
     if package["courseId"] != course_id:
         raise CourseNotAvailable
     lesson = next(
-        (
-            item
-            for item in package["lessons"]
-            if item["lessonId"] == lesson_id
-        ),
+        (item for item in package["lessons"] if item["lessonId"] == lesson_id),
         None,
     )
     if lesson is None:
@@ -345,9 +341,7 @@ def _build_authorized_courses(
             permitted_nodes = lesson_permissions[lesson_id]
             if permitted_nodes is not None:
                 lesson_payload["nodes"] = [
-                    node
-                    for node in lesson_payload["nodes"]
-                    if node.get("id") in permitted_nodes
+                    node for node in lesson_payload["nodes"] if node.get("id") in permitted_nodes
                 ]
             if not lesson_payload["nodes"]:
                 continue

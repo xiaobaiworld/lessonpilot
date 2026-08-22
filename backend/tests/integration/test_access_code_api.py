@@ -41,7 +41,9 @@ def make_app():
     return app
 
 
-def login(client: TestClient, login_name: str = "code-owner", password: str = "owner-password") -> None:
+def login(
+    client: TestClient, login_name: str = "code-owner", password: str = "owner-password"
+) -> None:
     response = client.post(
         "/api/v1/auth/login",
         json={"login_name": login_name, "password": password},
@@ -97,10 +99,13 @@ def save_and_publish(
 ) -> None:
     payload = four_node_request()
     payload["config"]["nodes"] = payload["config"]["nodes"][:node_count]
-    assert client.put(
-        f"/api/v1/teacher/lessons/{lesson_id}/draft",
-        json=payload,
-    ).status_code == 200
+    assert (
+        client.put(
+            f"/api/v1/teacher/lessons/{lesson_id}/draft",
+            json=payload,
+        ).status_code
+        == 200
+    )
     assert client.post(f"/api/v1/teacher/courses/{course_id}/publish").status_code == 201
 
 
@@ -113,10 +118,13 @@ def save_lessons_and_publish(
         payload = four_node_request()
         for node in payload["config"]["nodes"]:
             node["id"] = f"{node['id']}-lesson-{index + 1}"
-        assert client.put(
-            f"/api/v1/teacher/lessons/{lesson_id}/draft",
-            json=payload,
-        ).status_code == 200
+        assert (
+            client.put(
+                f"/api/v1/teacher/lessons/{lesson_id}/draft",
+                json=payload,
+            ).status_code
+            == 200
+        )
     assert client.post(f"/api/v1/teacher/courses/{course_id}/publish").status_code == 201
 
 
@@ -309,9 +317,9 @@ def test_plugin_downloads_latest_published_course_as_v2_only_envelope() -> None:
         login(client)
         course_id, lesson_id = create_course_and_lesson(client)
         save_and_publish(client, course_id, lesson_id)
-        raw_code = client.post(
-            f"/api/v1/teacher/courses/{course_id}/access-codes"
-        ).json()["access_code"]
+        raw_code = client.post(f"/api/v1/teacher/courses/{course_id}/access-codes").json()[
+            "access_code"
+        ]
 
         first = client.post(
             "/api/v1/public/course-download",
@@ -571,9 +579,9 @@ def test_access_code_and_download_actions_are_logged_without_raw_code() -> None:
         login(client)
         course_id, lesson_id = create_course_and_lesson(client)
         save_and_publish(client, course_id, lesson_id)
-        raw_code = client.post(
-            f"/api/v1/teacher/courses/{course_id}/access-codes"
-        ).json()["access_code"]
+        raw_code = client.post(f"/api/v1/teacher/courses/{course_id}/access-codes").json()[
+            "access_code"
+        ]
         client.post("/api/v1/public/course-download", json={"access_code": raw_code})
 
     with app.state.session_factory() as session:
