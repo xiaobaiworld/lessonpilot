@@ -302,6 +302,33 @@ test('契约校验器依赖已在两侧声明并锁定', () => {
   assert.ok(existsSync('backend/uv.lock'), '缺少 backend/uv.lock');
 });
 
+test('后端静态检查工具已声明且进入 CI 门禁', () => {
+  // ruff 此前只有 [tool.ruff] 配置而没有声明依赖：本机能跑是因为解析到环境里已有的
+  // 版本，但 CI 用 uv sync --frozen 时 uv run ruff 会失败。
+  const pyproject = readFileSync('backend/pyproject.toml', 'utf8');
+  assert.match(pyproject, /"ruff>=/, 'backend/pyproject.toml 未声明 ruff 依赖');
+
+  const workflow = readFileSync('.github/workflows/test.yml', 'utf8');
+  for (const command of ['ruff check .', 'ruff format --check .']) {
+    assert.ok(
+      workflow.includes(command),
+      `CI 缺少 ${command}；0F 要求静态检查零错误并进门禁`,
+    );
+  }
+});
+
+test('CI 的契约检查 job 同时具备 Node 与 Python', () => {
+  // 双端一致性检查需要两套工具链。若只在 node-test job 里跑，
+  // Python 侧缺失会让它静默跳过 —— 那条阶段 0 门禁就永远不会真正执行。
+  const workflow = readFileSync('.github/workflows/test.yml', 'utf8');
+  const start = workflow.indexOf('contract-check:');
+  assert.notEqual(start, -1, 'CI 缺少 contract-check job');
+  const job = workflow.slice(start);
+  assert.match(job, /setup-node/, 'contract-check job 缺少 Node');
+  assert.match(job, /setup-python/, 'contract-check job 缺少 Python');
+  assert.match(job, /contract-check\.mjs/, 'contract-check job 未运行契约检查');
+});
+
 test('契约 Schema 合法、可编译且版本清单一致', () => {
   const { schemas, versions } = runContractChecks('.', { python: false });
   assert.deepEqual(schemas, [], `Schema 问题：\n${schemas.join('\n')}`);

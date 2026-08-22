@@ -22,6 +22,10 @@ dev = [
   "jsonschema>=4.23,<5",
   "pytest>=9.0.3,<10",
   "pytest-cov>=6,<7",
+  # 此前只有 [tool.ruff] 配置而没有声明依赖：本机能跑是因为解析到环境里已有的版本，
+  # 但 CI 用 uv sync --frozen 时 uv run ruff 会失败。0F 要求静态检查进门禁，
+  # 所以必须显式声明并锁定（DEV-DEP-001）。
+  "ruff>=0.13,<0.14",
 ]
 
 [tool.pytest.ini_options]

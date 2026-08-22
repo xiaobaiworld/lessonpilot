@@ -54,6 +54,13 @@ jobs:
           python -m pip install uv==0.11.12
           uv sync --frozen --all-groups
 
+      # 静态检查在测试之前：lint 错误比测试失败更快定位，且 0F 要求零错误。
+      - name: Lint backend
+        working-directory: backend
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+
       - name: Run backend tests
         working-directory: backend
         run: uv run pytest
