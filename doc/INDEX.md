@@ -15,6 +15,7 @@
 | `doc/design/v1/README.md` | v1 设计文件编号、权威顺序、审核与归档门禁 | 当前设计入口；持续维护 |
 | `doc/design/v1/01-current-system-assessment.md` | 当前代码、验证证据、可继承经验和原型负担评估 | 已接受；不定义目标架构 |
 | `doc/design/v1/02-legacy-document-register.md` | 82 个旧来源的演化、价值、冲突和最终去向 | 已接受；旧文件待新真源承接后归档 |
+| `doc/design/v1/03-system-architecture.md` | v1 模块化单体、多个客户端、信任边界和部署拓扑 | 已接受；版本 `1.0.0` |
 | `doc/decisions/2026-08-21-v1-public-trial-intake.md` | 公开销售页与飞书试用申请纳入 v1 P0 的范围决定 | 已接受 |
 | `doc/decisions/2026-08-21-v1-no-ai-authoring.md` | v1 完全排除 AI 辅助制作 | 已接受 |
 | `doc/decisions/2026-08-21-v1-basic-student-runtime.md` | v1 学生端保持基础运行闭环 | 已接受 |

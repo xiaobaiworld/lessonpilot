@@ -2,7 +2,7 @@
 
 文档版本：`0.3.0-draft.1`
 
-状态：旧文档审计已通过人工审核；开始编写目标架构
+状态：系统架构已通过人工审核；开始编写领域与数据模型
 
 需求真源：[`../../requirements/v1/README.md`](../../requirements/v1/README.md)
 
@@ -37,7 +37,7 @@
 | ---: | --- | --- | --- |
 | 01 | [`01-current-system-assessment.md`](01-current-system-assessment.md) | 当前代码、运行证据、经验和原型负担 | 已接受 |
 | 02 | [`02-legacy-document-register.md`](02-legacy-document-register.md) | `SRC-001` 至 `SRC-082` 的演化、价值、冲突和最终去向 | 已接受 |
-| 03 | `03-system-architecture.md` | v1 目标架构、模块边界和运行/部署拓扑 | 待建立 |
+| 03 | [`03-system-architecture.md`](03-system-architecture.md) | v1 目标架构、模块边界和运行/部署拓扑 | 已接受 |
 | 04 | `04-domain-data-model.md` | 领域模型、数据结构、字段、身份和约束 | 待建立 |
 | 05 | `05-data-flow-lifecycle.md` | 数据流、状态变化、保留、删除和恢复 | 待建立 |
 | 06 | `06-interface-contracts.md` | API、插件消息、课程包、文件和外部集成 | 待建立 |
