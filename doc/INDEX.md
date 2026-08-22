@@ -23,6 +23,8 @@
 | `doc/design/v1/08-security-operations-design.md` | v1 权限、秘密、输入、隐私、发布、备份和恢复边界 | 已接受；版本 `1.0.0` |
 | `doc/design/v1/09-migration-cutover-design.md` | v1 旧数据处理、干净初始化、切换、回滚和旧入口退役 | 已接受；版本 `1.0.0` |
 | `doc/decisions/2026-08-22-v1-no-legacy-data-migration.md` | v1 不迁移无价值旧服务端数据与学生本机数据的范围决策 | 已接受；`D-V1-012` |
+| `doc/plans/v1-test-plan.md` | v1 需求级测试矩阵、自动化/人工证据、真实闭环和发布门禁 | 已建立；待随实现执行 |
+| `doc/plans/v1-development-plan.md` | v1 干净初始化、服务端、发布授权、教师端、插件、运行时和发布阶段顺序 | 已建立；待执行 |
 | `doc/decisions/2026-08-21-v1-public-trial-intake.md` | 公开销售页与飞书试用申请纳入 v1 P0 的范围决定 | 已接受 |
 | `doc/decisions/2026-08-21-v1-no-ai-authoring.md` | v1 完全排除 AI 辅助制作 | 已接受 |
 | `doc/decisions/2026-08-21-v1-basic-student-runtime.md` | v1 学生端保持基础运行闭环 | 已接受 |
