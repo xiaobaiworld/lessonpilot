@@ -6,7 +6,7 @@
 
 登记入口：[13 旧资料来源登记](../13-legacy-source-register.md)
 
-源文件：[`doc/requirements.md`](../../../requirements.md)
+源文件：[`doc/requirements.md`](../../../archive/2026-08-22-pre-v1-rewrite/doc/requirements.md)
 
 源快照：文件 blob `e76909baffe5adb9fc996d36db87365542a408ce`；最近一次变更提交为 `5283b90fea1ffc7322e4ad6f99e945a1950b9ca2`（2026-08-18，`docs: close teacher platform nodes 1-7`）
 

@@ -49,7 +49,7 @@
 
 透明背景版的外轮廓与主路径使用品牌深绿色 `#1D5C43`，不使用纯黑；竖线使用较浅的 `#6E9180` 并降低不透明度。
 
-详细含义、颜色和使用规则见 [`docs/knownmap-logo-resources.md`](../../knownmap-logo-resources.md)。
+详细含义、颜色和使用规则见 [`docs/knownmap-logo-resources.md`](../../../../../../docs/knownmap-logo-resources.md)。
 
 ### 尺寸
 

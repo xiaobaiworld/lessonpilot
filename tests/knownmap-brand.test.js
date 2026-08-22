@@ -101,9 +101,11 @@ test('teacher application uses the interactive-course-tool name and colored K/M 
 });
 
 test('legacy protocol and storage identifiers remain compatible', () => {
+  // 只断言代码里真实存在的标识。原先还断言旧数据规范里的
+  // `lessonpilot.workspaceDraft.v1`，但该键在代码中已不存在、且登记为「已替代」
+  // （SRC-005），断言它等于把死标识和归档文档一起变成测试依赖。
   assert.match(read('src/shared/bridge-protocol.js'), /lessonpilot\.workspace\.v1/);
   assert.match(read('src/shared/bridge-protocol.js'), /lessonpilot\.extension\.v1/);
-  assert.match(read('doc/data-spec.md'), /lessonpilot\.workspaceDraft\.v1/);
   assert.match(read('src/shared/bridge-protocol.js'), /global\.LessonPilotBridgeProtocol/);
   assert.match(read('src/shared/course-contract.js'), /global\.LessonPilotCourseContract/);
 });

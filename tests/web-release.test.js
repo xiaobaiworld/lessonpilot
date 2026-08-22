@@ -147,14 +147,16 @@ test('admin index exposes only the approved production entry points', () => {
 });
 
 test('release documentation binds publish phrases to deploy, record, and rollback steps', () => {
-  const design = fs.readFileSync(path.join(root, 'doc/web-production-release-design.md'), 'utf8');
+  // 断言活跃文档，不断言归档：README 是当前发布入口说明，deploy/releases 是发布记录格式。
+  // 旧发布设计已按 SRC-030 归档，只作历史追溯，不能成为测试依赖。
+  const readme = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
   const records = fs.readFileSync(path.join(root, 'deploy/releases/README.md'), 'utf8');
 
-  assert.match(design, /发布到网站/);
-  assert.match(design, /发布到 Web 网站/);
-  assert.match(design, /tools\/web-release\.sh deploy <git-ref>/);
-  assert.match(design, /tools\/web-release\.sh verify <release-id>/);
-  assert.match(design, /tools\/web-release\.sh rollback <release-id>/);
+  assert.match(readme, /发布到网站/);
+  assert.match(readme, /发布到 Web 网站/);
+  assert.match(readme, /tools\/web-release\.sh deploy <git-ref>/);
+  assert.match(readme, /tools\/web-release\.sh verify <release-id>/);
+  assert.match(readme, /tools\/web-release\.sh rollback <release-id>/);
   assert.match(records, /gitCommit/);
   assert.match(records, /gitTag/);
 });

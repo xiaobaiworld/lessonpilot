@@ -6,7 +6,7 @@
 
 登记入口：[13 旧资料来源登记](../13-legacy-source-register.md)
 
-源文件：[`doc/requirements/stage-1a.md`](../../../requirements/stage-1a.md)
+源文件：[`doc/requirements/stage-1a.md`](../../../archive/2026-08-22-pre-v1-rewrite/doc/requirements/stage-1a.md)
 
 源快照：文件 blob `451b0a380cb21e23239989d4fed0430dba955275`；最近一次变更提交为 `c39dd23e6dde1c91e5e9b2cfdbb989a8258a187e`（2026-08-15，`docs: split stage-one requirements by phase`）
 

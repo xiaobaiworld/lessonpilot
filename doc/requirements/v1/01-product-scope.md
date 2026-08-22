@@ -38,8 +38,8 @@ KnownMap v1 的目标不是重写一个浏览器插件，而是建立一套可�
 ### 来源证据
 
 - 根目录 [`README.md`](../../../README.md) 对当前产品的描述：把老师已有录播课变成互动课程。
-- 旧 [`doc/requirements.md`](../../requirements.md) 第 1 节记录的真实老师课程闭环与行为证据。
-- [`AI Learning Companion 产品功能说明 v0.2`](../../AI_Learning_Companion_Product_Function_Spec_v0.2.md)
+- 旧 [`doc/requirements.md`](../../archive/2026-08-22-pre-v1-rewrite/doc/requirements.md) 第 1 节记录的真实老师课程闭环与行为证据。
+- [`AI Learning Companion 产品功能说明 v0.2`](../../archive/2026-08-22-pre-v1-rewrite/doc/AI_Learning_Companion_Product_Function_Spec_v0.2.md)
   第 1 节和第 21 节记录的教师制作、授权交付、学生学习和教师查看学习结果闭环。
 - [`doc/lessons.md`](../../lessons.md) 中“Chrome Extension Is Delivery Shape, Not Product Positioning”记录的
   已验证定位：插件是交付形态，产品是老师已有课程的升级层。
@@ -109,11 +109,11 @@ KnownMap v1 的成功分为“产品闭环成立”和“市场价值成立”�
 
 ### 来源证据
 
-- 旧 [`doc/requirements.md`](../../requirements.md) 第 1 节和第 7 节区分了老师行为证据、真实运行闭环和
+- 旧 [`doc/requirements.md`](../../archive/2026-08-22-pre-v1-rewrite/doc/requirements.md) 第 1 节和第 7 节区分了老师行为证据、真实运行闭环和
   工程完成定义。
-- [`AI Learning Companion 产品功能说明 v0.2`](../../AI_Learning_Companion_Product_Function_Spec_v0.2.md)
+- [`AI Learning Companion 产品功能说明 v0.2`](../../archive/2026-08-22-pre-v1-rewrite/doc/AI_Learning_Companion_Product_Function_Spec_v0.2.md)
   第 21 节把教师制作、授权交付、学生学习和教师查看结果定义为平台化闭环。
-- [`doc/DECISIONS.md`](../../DECISIONS.md) 的 D-002 要求使用真实老师和真实课程验证，不能用继续开发功能
+- [`doc/DECISIONS.md`](../../archive/2026-08-22-pre-v1-rewrite/doc/DECISIONS.md) 的 D-002 要求使用真实老师和真实课程验证，不能用继续开发功能
   代替市场证据。
 
 ## 3. 利益相关者与目标用户
@@ -178,13 +178,13 @@ KnownMap v1 采用老师主导的 B2B2C 关系：老师或小型教学组织是�
 
 ### 来源证据
 
-- 旧 [`doc/requirements.md`](../../requirements.md) 第 2 节把已有付费或半付费 B 站录播课程的英语老师
+- 旧 [`doc/requirements.md`](../../archive/2026-08-22-pre-v1-rewrite/doc/requirements.md) 第 2 节把已有付费或半付费 B 站录播课程的英语老师
   或小型团队定义为购买者和配置者。
-- [`doc/student-runtime.md`](../../student-runtime.md) 明确老师是购买、配置和交付者，学生是使用者但不是
+- [`doc/student-runtime.md`](../../archive/2026-08-22-pre-v1-rewrite/doc/student-runtime.md) 明确老师是购买、配置和交付者，学生是使用者但不是
   当前主要获客对象。
-- [`AI Learning Companion 产品功能说明 v0.2`](../../AI_Learning_Companion_Product_Function_Spec_v0.2.md)
+- [`AI Learning Companion 产品功能说明 v0.2`](../../archive/2026-08-22-pre-v1-rewrite/doc/AI_Learning_Companion_Product_Function_Spec_v0.2.md)
   第 4 节记录平台管理员、教师所有者、教师助手和学生的历史角色设想。
-- [`doc/multi-creator-platform.md`](../../multi-creator-platform.md) 第 11 节记录“小 B 优先的 B2B2C”商业定位，
+- [`doc/multi-creator-platform.md`](../../archive/2026-08-22-pre-v1-rewrite/doc/multi-creator-platform.md) 第 11 节记录“小 B 优先的 B2B2C”商业定位，
   同时记录内容权利和双边市场方向尚未取得足够证据。
 
 ## 4. v1 功能范围
@@ -374,7 +374,7 @@ KnownMap 必须遵守浏览器安全模型和视频平台政策。即使某项�
 
 | 编号 | 已接受结论 | 决策记录 |
 | --- | --- | --- |
-| OPEN-01 | 当前阶段只使用单机本地学习标识；不提供学生登录、跨设备恢复、身份合并或个人学习数据上传；换机后重新下载课程。 | [`D-026`](../../DECISIONS.md#d-026-当前阶段采用单机本地学习标识并推迟学习数据上传) |
+| OPEN-01 | 当前阶段只使用单机本地学习标识；不提供学生登录、跨设备恢复、身份合并或个人学习数据上传；换机后重新下载课程。 | [`D-026`](../../archive/2026-08-22-pre-v1-rewrite/doc/DECISIONS.md#d-026-当前阶段采用单机本地学习标识并推迟学习数据上传) |
 | 销售与试用申请 | 公开销售页和无需登录的飞书试用表单属于 v1 P0；申请经过人工跟进和管理员确认后才创建教师。 | [`D-V1-001`](../../decisions/2026-08-21-v1-public-trial-intake.md) |
 | 重复课节内容 | 老师可在课程内多次安排相同或相近内容；同一视频也可被同一或不同课程的多个课节复用，命中多个课节时由学生选择。 | [`D-V1-010`](../../decisions/2026-08-22-v1-repeated-video-lessons.md) |
 
@@ -390,11 +390,11 @@ KnownMap 必须遵守浏览器安全模型和视频平台政策。即使某项�
 
 ### 本轮主要来源
 
-- [`教师平台生产与学生插件验收阶段需求`](../teacher-platform-local-stage.md) 提供当前已实现、未完成和
+- [`教师平台生产与学生插件验收阶段需求`](../../archive/2026-08-22-pre-v1-rewrite/doc/requirements/teacher-platform-local-stage.md) 提供当前已实现、未完成和
   当前阶段明确不做的事实。
-- [`AI Learning Companion 产品功能说明 v0.2`](../../AI_Learning_Companion_Product_Function_Spec_v0.2.md)
+- [`AI Learning Companion 产品功能说明 v0.2`](../../archive/2026-08-22-pre-v1-rewrite/doc/AI_Learning_Companion_Product_Function_Spec_v0.2.md)
   提供教师、课程、课节、脚本版本、授权、学生身份、学习记录和教师后台的长期候选范围。
-- [`doc/DECISIONS.md`](../../DECISIONS.md) 提供 B 站插件宿主、真实闭环、多课程、范围授权、发布和生产
+- [`doc/DECISIONS.md`](../../archive/2026-08-22-pre-v1-rewrite/doc/DECISIONS.md) 提供 B 站插件宿主、真实闭环、多课程、范围授权、发布和生产
   数据边界等已接受或已验证决策。
 - [`doc/lessons.md`](../../lessons.md) 提供跨源播放器限制、定时触发必要性、数据真源和真实交付经验。
 

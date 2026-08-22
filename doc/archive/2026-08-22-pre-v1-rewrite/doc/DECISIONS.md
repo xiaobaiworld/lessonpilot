@@ -10,7 +10,7 @@
 - 状态：已接受，待 v1 实施验证
 - 决定：脚本草稿和发布课节快照使用版本化聚合 JSON，不把四类节点拆成多张关系表；学生本机学习使用“当前状态 + 追加式正式尝试”，不做全量事件溯源。
 - 重开条件：出现高频跨课程节点查询、节点级多人并发编辑、已审核的细粒度学习事件需求，或真实证据证明当前聚合成为主要瓶颈。
-- 详细记录：[`doc/decisions/2026-08-22-v1-data-persistence-strategy.md`](decisions/2026-08-22-v1-data-persistence-strategy.md)
+- 详细记录：[`doc/decisions/2026-08-22-v1-data-persistence-strategy.md`](../../../decisions/2026-08-22-v1-data-persistence-strategy.md)
 
 ## D-V1-010 课节内容允许重复安排
 
@@ -18,7 +18,7 @@
 - 状态：已接受，待 v1 实施验证
 - 决定：老师可以在同一课程中多次安排视频、脚本或节点内容相同的课节，系统不做语义去重或拒绝。每次安排内部使用独立 `lesson_id` 和顺序位置，以分开保存学习状态；不引入共享课节模板。当前视频匹配多个合法课节时由学生选择，并由学习会话锁定课程、课节和课程发布版本。
 - 替代与澄清范围：替代 D-024 中“同课程 BVID 不重复”的局部规则，并明确课节内容不做语义去重；不改变课程—课节层级和每次安排的独立数据身份。
-- 详细记录：[`doc/decisions/2026-08-22-v1-repeated-video-lessons.md`](decisions/2026-08-22-v1-repeated-video-lessons.md)
+- 详细记录：[`doc/decisions/2026-08-22-v1-repeated-video-lessons.md`](../../../decisions/2026-08-22-v1-repeated-video-lessons.md)
 
 ## D-026 当前阶段采用单机本地学习标识并推迟学习数据上传
 

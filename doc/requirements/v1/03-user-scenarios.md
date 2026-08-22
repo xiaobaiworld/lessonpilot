@@ -306,7 +306,7 @@ flowchart LR
 这些开放项沿用 [`01-product-scope.md`](01-product-scope.md) 第 7.2 节的状态。场景只声明不依赖具体答案的
 用户目标和业务结果，不能被用来证明某个候选方案已经批准。
 
-`OPEN-01` 已由 [`D-026`](../../DECISIONS.md#d-026-当前阶段采用单机本地学习标识并推迟学习数据上传)
+`OPEN-01` 已由 [`D-026`](../../archive/2026-08-22-pre-v1-rewrite/doc/DECISIONS.md#d-026-当前阶段采用单机本地学习标识并推迟学习数据上传)
 回答：当前阶段采用本机学习标识，不提供学生登录、个人学习数据上传、跨设备恢复或身份合并。
 
 ## 10. 来源与完成条件
@@ -315,9 +315,9 @@ flowchart LR
 
 - [`01-product-scope.md`](01-product-scope.md) 的已接受目标、角色、v1 范围、边界与开放问题；
 - [`02-domain-glossary.md`](02-domain-glossary.md) 的正式术语和状态分离规则；
-- 旧 [`doc/requirements.md`](../../requirements.md) 的真实课程端到端验证流程；
-- [`教师平台生产与学生插件验收阶段需求`](../teacher-platform-local-stage.md) 的当前教师、授权、学生运行和失败恢复事实；
-- [`AI Learning Companion 产品功能说明 v0.2`](../../AI_Learning_Companion_Product_Function_Spec_v0.2.md)
+- 旧 [`doc/requirements.md`](../../archive/2026-08-22-pre-v1-rewrite/doc/requirements.md) 的真实课程端到端验证流程；
+- [`教师平台生产与学生插件验收阶段需求`](../../archive/2026-08-22-pre-v1-rewrite/doc/requirements/teacher-platform-local-stage.md) 的当前教师、授权、学生运行和失败恢复事实；
+- [`AI Learning Companion 产品功能说明 v0.2`](../../archive/2026-08-22-pre-v1-rewrite/doc/AI_Learning_Companion_Product_Function_Spec_v0.2.md)
   的教师管理、领取、学习同步和教师查看结果候选流程。
 
 ### 10.2 本文件完成条件

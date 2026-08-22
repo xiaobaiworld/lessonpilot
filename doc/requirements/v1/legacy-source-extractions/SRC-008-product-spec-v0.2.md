@@ -6,7 +6,7 @@
 
 登记入口：[13 旧资料来源登记](../13-legacy-source-register.md)
 
-源文件：[`doc/AI_Learning_Companion_Product_Function_Spec_v0.2.md`](../../../AI_Learning_Companion_Product_Function_Spec_v0.2.md)
+源文件：[`doc/AI_Learning_Companion_Product_Function_Spec_v0.2.md`](../../../archive/2026-08-22-pre-v1-rewrite/doc/AI_Learning_Companion_Product_Function_Spec_v0.2.md)
 
 源快照：文件 blob `25579affcbc13bb88201a6226310cb0e8281b77a`；最近一次变更提交为 `5283b90fea1ffc7322e4ad6f99e945a1950b9ca2`（2026-08-18，`docs: close teacher platform nodes 1-7`）
 

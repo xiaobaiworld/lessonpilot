@@ -6,7 +6,7 @@
 
 登记入口：[13 旧资料来源登记](../13-legacy-source-register.md)
 
-源文件：[`doc/requirements/teacher-platform-local-stage.md`](../../../requirements/teacher-platform-local-stage.md)
+源文件：[`doc/requirements/teacher-platform-local-stage.md`](../../../archive/2026-08-22-pre-v1-rewrite/doc/requirements/teacher-platform-local-stage.md)
 
 源快照：文件 blob `c88c26b81b24d3bfa91e7902c0aa9d016337d5f3`；最近一次变更提交为 `a3e77a7b99d37b8a23c72013691b40ad6d4ee583`（2026-08-21，`feat: finalize multi-course plugin delivery`）
 

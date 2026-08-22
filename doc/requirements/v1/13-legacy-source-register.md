@@ -35,20 +35,20 @@
 | ID | 来源 | 状态 | 已知去向或待核对事项 |
 | --- | --- | --- | --- |
 | SRC-001 | [`README.md`](../../../README.md) | 已提取待切换 | [提取记录](legacy-source-extractions/SRC-001-root-readme.md)；无新增需求，待 v1 可用后原位更新入口 |
-| SRC-002 | [`doc/requirements.md`](../../requirements.md) | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-002-first-stage-requirements.md)；无新增需求，旧原型限制已分类 |
-| SRC-003 | [`doc/requirements/teacher-platform-local-stage.md`](../../requirements/teacher-platform-local-stage.md) | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-003-teacher-platform-local-stage.md)；旧实施规则与迁移证据已分类 |
-| SRC-004 | [`doc/requirements/stage-1a.md`](../../requirements/stage-1a.md) | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-004-stage-1a.md)；旧单课程契约与消息桥证据已分类 |
-| SRC-005 | [`doc/requirements/stage-1b.md`](../../requirements/stage-1b.md) | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-005-stage-1b.md)；公开销售与试用申请已按 `D-V1-001` 纳入 v1 P0 |
-| SRC-006 | [`doc/requirements/stage-1c.md`](../../requirements/stage-1c.md) | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-006-stage-1c.md)；运行时语义与旧预览状态已分类 |
-| SRC-007 | [`doc/AI_Learning_Companion_Product_Function_Spec_v0.1.md`](../../AI_Learning_Companion_Product_Function_Spec_v0.1.md) | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-007-product-spec-v0.1.md)；长期身份、授权扩展和旧设计已分类 |
+| SRC-002 | [`doc/requirements.md`](../../archive/2026-08-22-pre-v1-rewrite/doc/requirements.md) | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-002-first-stage-requirements.md)；无新增需求，旧原型限制已分类 |
+| SRC-003 | [`doc/requirements/teacher-platform-local-stage.md`](../../archive/2026-08-22-pre-v1-rewrite/doc/requirements/teacher-platform-local-stage.md) | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-003-teacher-platform-local-stage.md)；旧实施规则与迁移证据已分类 |
+| SRC-004 | [`doc/requirements/stage-1a.md`](../../archive/2026-08-22-pre-v1-rewrite/doc/requirements/stage-1a.md) | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-004-stage-1a.md)；旧单课程契约与消息桥证据已分类 |
+| SRC-005 | [`doc/requirements/stage-1b.md`](../../archive/2026-08-22-pre-v1-rewrite/doc/requirements/stage-1b.md) | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-005-stage-1b.md)；公开销售与试用申请已按 `D-V1-001` 纳入 v1 P0 |
+| SRC-006 | [`doc/requirements/stage-1c.md`](../../archive/2026-08-22-pre-v1-rewrite/doc/requirements/stage-1c.md) | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-006-stage-1c.md)；运行时语义与旧预览状态已分类 |
+| SRC-007 | [`doc/AI_Learning_Companion_Product_Function_Spec_v0.1.md`](../../archive/2026-08-22-pre-v1-rewrite/doc/AI_Learning_Companion_Product_Function_Spec_v0.1.md) | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-007-product-spec-v0.1.md)；长期身份、授权扩展和旧设计已分类 |
 | SRC-008 | `doc/AI_Learning_Companion_Product_Function_Spec_v0.2.md` | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-008-product-spec-v0.2.md)；`D-V1-002` 已决定 v1 完全排除 AI 辅助制作 |
 | SRC-009 | `doc/DECISIONS.md` | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-009-decisions.md)；有效决策已回链，替代链保留为历史证据 |
 | SRC-010 | `doc/decisions/2026-08-18-teacher-centered-product-v0.2.md` | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-010-teacher-centered-product.md)；教师、工作空间、课程和授权原则已回链 |
 | SRC-011 | `doc/decisions/2026-08-18-teacher-platform-local-slice.md` | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-011-teacher-platform-local-slice.md)；旧本地切片限制已分类为证据 |
 | SRC-012 | `doc/decisions/2026-08-18-student-plugin-single-course-delivery.md` | 已提取待归档 | [提取记录](legacy-source-extractions/SRC-012-student-plugin-single-course.md)；`D-V1-003` 已决定字幕导航与学习/复习指标不进入 v1 P0 |
 | SRC-013 | `doc/Digital_Learning_Platforms_竞争情报与定价研究_v0.1.md` | 保留为证据 | 研究资料不直接形成已接受需求，商业假设需重新验证 |
-| SRC-014 | `AI_Brand_Naming_Project.md` | 保留为证据 | KnownMap 命名研究过程，不定义产品行为 |
-| SRC-015 | `AI_Brand_Domain_Selection_Report_v0.1.md` | 保留为证据 | 域名研究不预设 v1 部署拓扑或正式域名 |
+| SRC-014 | `doc/evidence/brand-research/AI_Brand_Naming_Project.md` | 保留为证据 | KnownMap 命名研究过程，不定义产品行为 |
+| SRC-015 | `doc/evidence/brand-research/AI_Brand_Domain_Selection_Report_v0.1.md` | 保留为证据 | 域名研究不预设 v1 部署拓扑或正式域名 |
 | SRC-016 | `LessonPilot_Creator_Studio_设计建议_v0.1.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-013-019-batch.md)；早期工作台与 AI 建议保留为历史设计 |
 | SRC-017 | `doc/multi-creator-platform.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-013-019-batch.md)；定位保留，平台化和计费后置 |
 | SRC-018 | `doc/student-runtime.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-013-019-batch.md)；角色与本机数据边界已回链 |
@@ -115,7 +115,7 @@
 | SRC-064 | `docs/superpowers/plans/2026-08-18-knownmap-brand-update.md` | 保留为证据 | 品牌更新实施记录 |
 | SRC-065 | `docs/superpowers/plans/2026-08-20-multi-course-authorization-and-example-course.md` | 已提取待归档 | [批量提取记录](legacy-source-extractions/SRC-056-065-batch.md)；多课程与范围授权已与 v1 对齐 |
 | SRC-066 | `docs/superpowers/plans/2026-08-20-teacher-account-admin.md` | 保留为证据 | [批量提取记录](legacy-source-extractions/SRC-066-074-batch.md)；管理员功能实施与生产记录 |
-| SRC-067 | `setup-gbrain-smoke-test-1786897219.md` | 保留为证据 | 独立工具冒烟记录；确认与产品无关后移出产品文档导航 |
+| SRC-067 | `doc/evidence/tooling/setup-gbrain-smoke-test-1786897219.md` | 保留为证据 | 独立工具冒烟记录；确认与产品无关后移出产品文档导航 |
 | SRC-068 | `tests/manual/bilibili-iframe-current-time/README.md` | 保留为证据 | [批量提取记录](legacy-source-extractions/SRC-066-074-batch.md)；特定播放器时间读取探针 |
 | SRC-069 | `tests/manual/sales-page-revision-20260816.md` | 保留为证据 | [批量提取记录](legacy-source-extractions/SRC-066-074-batch.md)；销售页特定版本验收 |
 | SRC-070 | `tests/manual/stage-1a-bridge/README.md` | 保留为证据 | [批量提取记录](legacy-source-extractions/SRC-066-074-batch.md)；未执行项不能标记通过 |

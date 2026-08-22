@@ -6,7 +6,7 @@
 
 登记入口：[13 旧资料来源登记](../13-legacy-source-register.md)
 
-源文件：[`doc/requirements/stage-1b.md`](../../../requirements/stage-1b.md)
+源文件：[`doc/requirements/stage-1b.md`](../../../archive/2026-08-22-pre-v1-rewrite/doc/requirements/stage-1b.md)
 
 源快照：文件 blob `cb82f192daa4fddb11c868e74f1ead4424b37f75`；最近一次变更提交为 `9721cb309bb800748fabdd2c2ee1713a3ddcbfea`（2026-08-19，`docs: document Feishu trial intake release`）
 

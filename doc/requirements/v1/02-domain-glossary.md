@@ -167,11 +167,11 @@
 ### 9.1 主要来源
 
 - [`01-product-scope.md`](01-product-scope.md) 提供已接受的角色、功能范围、边界和状态分离要求。
-- [`doc/data-spec.md`](../../data-spec.md)、[`data/model.md`](../../data/model.md) 和
-  [`data/dictionary.md`](../../data/dictionary.md) 提供当前实现实体、课程包、授权和本地存储名称。
-- [`AI Learning Companion 产品功能说明 v0.2`](../../AI_Learning_Companion_Product_Function_Spec_v0.2.md)
+- [`doc/data-spec.md`](../../archive/2026-08-22-pre-v1-rewrite/doc/data-spec.md)、[`data/model.md`](../../archive/2026-08-22-pre-v1-rewrite/doc/data/model.md) 和
+  [`data/dictionary.md`](../../archive/2026-08-22-pre-v1-rewrite/doc/data/dictionary.md) 提供当前实现实体、课程包、授权和本地存储名称。
+- [`AI Learning Companion 产品功能说明 v0.2`](../../archive/2026-08-22-pre-v1-rewrite/doc/AI_Learning_Companion_Product_Function_Spec_v0.2.md)
   提供学习身份、领取、学习记录和教师后台的历史候选概念。
-- [`doc/DECISIONS.md`](../../DECISIONS.md) 提供 UUID 课程身份、多课节、范围授权和本地内容不受远程删除
+- [`doc/DECISIONS.md`](../../archive/2026-08-22-pre-v1-rewrite/doc/DECISIONS.md) 提供 UUID 课程身份、多课节、范围授权和本地内容不受远程删除
   等已接受决策。
 
 ### 9.2 本文件完成条件

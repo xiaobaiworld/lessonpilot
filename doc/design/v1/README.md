@@ -1,8 +1,8 @@
 # KnownMap v1 设计与开发文档
 
-文档版本：`0.9.0-draft.1`
+文档版本：`1.0.0`
 
-状态：系统架构、领域与数据模型、数据流与生命周期、接口契约、产品交互状态、安全运维设计、迁移切换设计已通过人工审核；下一步为测试计划与开发计划
+状态：01–09 均已通过人工审核并冻结；测试计划与开发计划已建立；当前处于 v1 实现阶段 0（工程基线与干净初始化）
 
 需求真源：[`../../requirements/v1/README.md`](../../requirements/v1/README.md)
 
@@ -37,16 +37,17 @@
 | ---: | --- | --- | --- |
 | 01 | [`01-current-system-assessment.md`](01-current-system-assessment.md) | 当前代码、运行证据、经验和原型负担 | 已接受 |
 | 02 | [`02-legacy-document-register.md`](02-legacy-document-register.md) | `SRC-001` 至 `SRC-082` 的演化、价值、冲突和最终去向 | 已接受 |
-| 03 | [`03-system-architecture.md`](03-system-architecture.md) | v1 目标架构、模块边界和运行/部署拓扑 | 已接受 |
+| 03 | [`03-system-architecture.md`](03-system-architecture.md) | v1 目标架构、模块边界、表归属和运行/部署拓扑 | 已接受；`1.0.2` 增补第 7.0 节表归属 |
 | 04 | [`04-domain-data-model.md`](04-domain-data-model.md) | 领域模型、数据结构、字段、身份和约束 | 已接受 |
 | 05 | [`05-data-flow-lifecycle.md`](05-data-flow-lifecycle.md) | 数据流、状态变化、保留、删除和恢复 | 已接受 |
-| 06 | [`06-interface-contracts.md`](06-interface-contracts.md) | API、插件消息、课程包、文件和外部集成 | 已接受 |
+| 06 | [`06-interface-contracts.md`](06-interface-contracts.md) | API、端点清单、插件消息、课程包、文件和外部集成 | 已接受；`1.0.1` 增补第 4.5 节端点清单 |
 | 07 | [`07-product-interaction-state.md`](07-product-interaction-state.md) | 页面职责、用户流程、交互状态和恢复 | 已接受 |
 | 08 | [`08-security-operations-design.md`](08-security-operations-design.md) | 权限、秘密、输入、日志、发布、备份和恢复 | 已接受 |
 | 09 | [`09-migration-cutover-design.md`](09-migration-cutover-design.md) | 保留、重写、迁移、切换、回滚和旧入口退役 | 已接受 |
 
-项目专有开发规则固定写入 `doc/dev-rules.md`，不为编号另建重复副本。测试计划和开发计划在
-设计通过后分别写入 `doc/plans/v1-test-plan.md` 和 `doc/plans/v1-development-plan.md`。
+项目专有开发规则固定写入 [`../../dev-rules.md`](../../dev-rules.md)，不为编号另建重复副本。
+测试计划和开发计划分别为 [`../../plans/v1-test-plan.md`](../../plans/v1-test-plan.md) 和
+[`../../plans/v1-development-plan.md`](../../plans/v1-development-plan.md)，均已建立。
 
 ## 4. 旧资料编号与审计方式
 
