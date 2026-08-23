@@ -1,0 +1,39 @@
+{
+  "contracts": {
+    "course_package": {
+      "version": "2.0.0",
+      "schema_file": "schemas/course-package.schema.json",
+      "status": "placeholder",
+      "note": "v1 course delivery format; replaces legacy single-lesson structure"
+    },
+    "extension_messages": {
+      "version": "2.0.0",
+      "schema_file": "schemas/extension-messages.schema.json",
+      "status": "placeholder",
+      "note": "v1 extension-page messaging; replaces legacy localStorage passthrough"
+    },
+    "http_api": {
+      "version": "2.0.0",
+      "spec_file": "schemas/openapi.schema.json",
+      "status": "placeholder",
+      "note": "v1 HTTP API; code-generated from design doc 06"
+    },
+    "storage_schema": {
+      "version": "2.0.0",
+      "schema_file": "schemas/extension-storage.schema.json",
+      "status": "placeholder",
+      "note": "v1 extension local storage structure"
+    }
+  },
+  "released_versions": [
+    {
+      "release": "v1.0.0",
+      "course_package": "2.0.0",
+      "extension_messages": "2.0.0",
+      "http_api": "2.0.0",
+      "storage_schema": "2.0.0",
+      "status": "placeholder",
+      "note": "First v1 production release - to be populated after stage 7"
+    }
+  ]
+}

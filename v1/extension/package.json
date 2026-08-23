@@ -1,0 +1,19 @@
+{
+  "name": "@v1/extension",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "description": "v1 Chrome MV3 extension - student learning runtime on Bilibili",
+  "manifest_version": 3,
+  "engines": {
+    "chrome": ">=120"
+  },
+  "scripts": {
+    "dev": "node tools/watch.mjs",
+    "build": "node tools/build.mjs",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.246"
+  }
+}
