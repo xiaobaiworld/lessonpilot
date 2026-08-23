@@ -14,11 +14,11 @@
 | 3 教师与管理员 Web 应用 | 已完成，本机真实后端验证通过 |
 | 4 学生插件课程库与本机状态 | 代码完成，待真实 Chrome 验收 |
 | 5 B 站运行时与学习状态机 | 代码完成，待真实 B 站验收 |
-| 6 安全、运维、发布与切换 | 6A 发布链路、6B 版本闸门、6E 旧入口重定向已完成；6C 环境校验与 6D 备份恢复需生产权限 |
+| 6 安全、运维、发布与切换 | 本机能做的已完成；生产执行待部署权限 |
 | 7 真实验收与 v1.0.0 | 待人工在 Chrome + B 站执行 |
 | 8 观察、责任清零与旧系统退役 | 阶段 7 之后 |
 
-测试：v1 167 项、旧系统 381 项，`npm run check` 全通。
+测试：v1 167 项、后端 140 项、旧系统 383 项，`npm run check` 全通。
 
 ## 已在真实后端跑通的完整链路
 
@@ -40,20 +40,35 @@ cd v1/extension && npm run build:local   # 产物在 dist/local
 
 账号由 `python -m app.seed [admin|teacher]` 用环境变量创建，密码不入仓库。
 
-## 发布
+## 阶段 6 已完成的部分
 
-```bash
-KNOWNMAP_PUBLISH_PROFILE=v1-apps tools/web-release.sh build <ref> <输出目录>
-```
+| 工作包 | 状态 |
+| --- | --- |
+| 6A 发布链路 | `v1-apps` profile 从归档提交构建两个应用与生产插件包 |
+| 6B 版本支持矩阵闸门 | `v1/contracts/release-gate.ts`，任一组件不符拒绝切换 |
+| 6C 启动校验 | 生产拒绝占位符密钥、短密钥、本机 CORS、DEBUG 日志、内存库 |
+| 6C 日志脱敏 | structlog 处理器按字段名脱敏，递归进嵌套结构 |
+| 6C 版本探针 | `GET /api/v1/meta/version` 报告迁移版本与数据库就绪 |
+| 6C 依赖检查 | 覆盖 v1 工作区，锁文件不同步在发布前失败 |
+| 6D 备份保留 | 14 天 → 30 天 |
+| 6D 恢复演练 | `knownmap-restore-check.py`，部署时执行，失败回滚 |
+| 6E 旧入口 | `/admin.html`、`/teacher-web/editor.html` 重定向，不删除 |
 
-在归档的精确提交里跑 `npm ci` → `npm test` → 构建，产出：
+### 6A 的脚本拆分：有意不做
 
-- `/admin/`、`/teacher/`：两个 v1 应用；
-- `/admin.html`、`/teacher-web/editor.html`：旧入口重定向到新地址（6E，不删除）；
-- `/downloads/student-plugin/knownmap-v1.zip`：生产目标插件，打包前检查无本机地址；
-- 销售页与试用表单原样保留，不随框架迁移改写。
+执行计划要求「拆分 build、migration、deploy、probe、rollback；共享校验库…
+不复制两个 700–800 行脚本」。实际测量后判断现在不拆：
 
-切换前用 `contracts/release-gate.ts` 核对版本支持矩阵，任一组件不符则拒绝切换。
+两个脚本共 1769 行，同名函数 11 个，但**逐字相同的只有 10 行**
+（`require_command` 3 行、`resolve_commit` 3 行、`release_id_for_commit` 4 行）。
+`log`/`fail` 只差前缀字符串，`validate_settings` 与 `require_github_commit`
+检查的本就是不同的东西（5 行 vs 8 行）。
+
+为 10 行抽公共库，会给两条部署路径都加上「必须正确引入共享文件」这个新
+失败模式，而这些脚本无法在本机端到端验证（需要阿里云主机）。在切换时必须
+可靠的那条路径上做无法验证的重构，风险大于收益。
+
+真正需要拆分的时机是第三条发布路径出现，或共享逻辑长到有实质行为时。
 
 ## 下一步：真实 Chrome 验收（阶段 4/5 门禁，只能人工）
 
@@ -67,11 +82,27 @@ KNOWNMAP_PUBLISH_PROFILE=v1-apps tools/web-release.sh build <ref> <输出目录>
 
 阶段 5E 还要留证：seek、全屏、播放器重建、离线、扩展更新。
 
+## 发布
+
+```bash
+KNOWNMAP_PUBLISH_PROFILE=v1-apps tools/web-release.sh build <ref> <输出目录>
+```
+
+在归档的精确提交里跑 `npm ci` → `npm test` → 构建，产出：
+
+- `/admin/`、`/teacher/`：两个 v1 应用；
+- `/admin.html`、`/teacher-web/editor.html`：旧入口重定向；
+- `/downloads/student-plugin/knownmap-v1.zip`：生产目标插件，打包前检查无本机地址；
+- 销售页与试用表单原样保留。
+
+切换前用 `contracts/release-gate.ts` 核对版本支持矩阵。
+
 ## 需要生产权限才能做的
 
-- **6C 环境启动校验、密钥/SAST、日志禁入、健康探针**：需要阿里云 ECS；
-- **6D 备份保留 30 天与代表性恢复演练**：需要生产数据库；
-- **阶段 7 生产切换**：发布链路已就绪，执行需要部署权限。
+- **阶段 7 生产切换**：发布链路已就绪，执行需要部署权限，且应在真实验收之后；
+- **6C/6D 的生产侧执行**：启动校验、恢复演练都已接进部署脚本，需在阿里云
+  ECS 上实际跑一次才算留证；
+- **阶段 8 旧系统退役**：按计划在阶段 7 观察期之后。
 
 ## 已知问题
 
