@@ -56,7 +56,7 @@ export function parseSubtitle(text: string, filename = ''): ParseResult {
   }
 
   const blocks = String(text || '')
-    .replace(/^﻿/, '') // BOM
+    .replace(/^\uFEFF/, '') // BOM
     .replace(/\r\n?/g, '\n') // CRLF / CR
     .trim()
     .split(/\n{2,}/);

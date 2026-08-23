@@ -4,6 +4,21 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### 重构收口门禁修复 — 2026-08-23
+
+- 修复 GitHub Actions 后端门禁：按仓库锁定的 Ruff 版本格式化 6 个未格式化文件，
+  本地复现并消除 `ruff format --check` 失败；
+- 为 v1 工作区补齐可执行的 ESLint 配置，修复检查发现的未使用导入和源码 BOM 写法；
+- 修正 TypeScript 路径映射、Vite 类型声明和 3 处测试替身类型，使 `npm run type-check`
+  在干净工作区通过；
+- 根 `npm test` 现在同时运行旧系统 Node 测试和 v1 Vitest，GitHub 的 `test`、`pages`
+  工作流都按 v1 锁文件安装依赖；`test` 工作流额外执行 v1 lint、类型检查和生产构建；
+- 测试发现自检同步验证拆分后的 `test:legacy` / `test:v1` 入口，防止以后再次静默漏跑。
+
+验证：legacy Node 385 项、v1 Vitest 188 项、后端 pytest 140 项全部通过；
+Ruff check/format、ESLint、TypeScript、文档、契约、模块边界、依赖锁定、秘密扫描与
+admin/teacher 生产构建全部通过。
+
 ### v1 目录隔离替换决策收口 — 2026-08-23
 
 - 接受同仓库 `v1/` 目录隔离替换：新系统使用独立代码、依赖、数据库和插件存储；旧系统冻结功能和结构变更，

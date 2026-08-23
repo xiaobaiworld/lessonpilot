@@ -43,6 +43,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install locked v1 environment
+        run: npm ci --prefix v1
+
       # npm test 覆盖 .test.js 与 .test.mjs 两类；单个 glob 会静默漏掉后者。
       - name: Run tests
         run: npm test

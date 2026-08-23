@@ -18,7 +18,8 @@
 | 7 真实验收与 v1.0.0 | 学生端已在真实 Chrome 验收；生产切换待部署权限 |
 | 8 观察、责任清零与旧系统退役 | 阶段 7 之后 |
 
-测试：v1 167 项、后端 140 项、旧系统 383 项，`npm run check` 全通。
+测试：v1 188 项、后端 140 项、旧系统 385 项；根 `npm test` 已覆盖 legacy 与 v1，
+Ruff、ESLint、TypeScript、生产构建和 `npm run check` 全通。
 
 ## 已在真实后端跑通的完整链路
 
@@ -170,6 +171,8 @@ CORS 不含本机来源、日志非 DEBUG）、`/api/v1/meta/version` 版本探�
 
 ## 已知问题
 
+- 文档健康：`changelog.md` 与本文件已进入拆分评估区间，`doc/lessons.md` 接近上限；
+  当前发布收口后按“当前状态 / 历史记录”拆分并更新 `doc/INDEX.md`，避免在 CI 门禁修复提交中混入大规模搬迁。
 - 迁移 `0008_multi_lesson_courses` 在缺少命名约束 `uq_lessons_course_id` 的旧
   本机库上会失败。`D-V1-012` 要求 v1 从干净 schema 初始化，本机遇到这个错误
   应重建数据库，不要改动已冻结的迁移。

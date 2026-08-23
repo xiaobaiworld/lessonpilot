@@ -282,15 +282,24 @@ test('npm test 覆盖全部测试文件，CI 与文档使用同一命令', () =>
   // node --test tests/*.test.js 从 352 项变成 331 项，且不报错。
   const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
   const script = pkg.scripts?.test ?? '';
+  const legacyScript = pkg.scripts?.['test:legacy'] ?? '';
+  const v1Script = pkg.scripts?.['test:v1'] ?? '';
+  assert.match(script, /test:legacy/, `package.json 的 test 入口未调用 legacy 测试；当前为「${script}」`);
+  assert.match(script, /test:v1/, `package.json 的 test 入口未调用 v1 测试；当前为「${script}」`);
   for (const ext of ['*.test.js', '*.test.mjs']) {
-    assert.ok(script.includes(ext), `package.json 的 test 脚本未覆盖 ${ext}；当前为「${script}」`);
+    assert.ok(
+      legacyScript.includes(ext),
+      `package.json 的 test:legacy 脚本未覆盖 ${ext}；当前为「${legacyScript}」`,
+    );
   }
+  assert.match(v1Script, /--prefix v1 test/, `package.json 的 test:v1 未运行 v1 测试；当前为「${v1Script}」`);
 
   // CI 必须用同一入口，否则本地全绿而 CI 漏跑。
   for (const workflow of ['.github/workflows/test.yml', '.github/workflows/pages.yml']) {
     const text = readFileSync(workflow, 'utf8');
     assert.match(text, /run:\s*npm test/, `${workflow} 未使用 npm test；直接写 glob 会漏掉一类测试文件`);
     assert.match(text, /run:\s*npm ci/, `${workflow} 缺少 npm ci；契约校验依赖必须从仓库内解析`);
+    assert.match(text, /npm ci --prefix v1/, `${workflow} 缺少 v1 锁定依赖安装，npm test 无法在干净环境运行`);
   }
 });
 

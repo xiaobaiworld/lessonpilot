@@ -14,9 +14,11 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
+      "@v1/web/shared": ["./web/shared/src/index.ts"],
+      "@v1/web/shared/editor": ["./web/shared/src/editor/index.ts"],
       "@v1/*": ["./*"]
     }
   },
-  "include": ["web", "extension", "contracts", "tests"],
+  "include": ["web", "extension", "contracts", "tests", "vite-env.d.ts"],
   "exclude": ["node_modules", "dist"]
 }

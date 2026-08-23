@@ -34,10 +34,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install locked v1 environment
+        run: npm ci --prefix v1
+
       # 用 npm test 而不是直接写 glob：测试同时有 .test.js（CommonJS）和
-      # .test.mjs（ESM，文档一致性检查需要 import 工具模块），单个 glob 会静默漏掉一类。
+      # .test.mjs（ESM，文档一致性检查需要 import 工具模块），并通过根入口覆盖
+      # v1 Vitest；单个 glob 会静默漏掉一类。
       - name: Run tests
         run: npm test
+
+      - name: Check and build v1 applications
+        run: |
+          npm --prefix v1 run lint
+          npm --prefix v1 run type-check
+          npm --prefix v1 run build
 
   backend-test:
     runs-on: ubuntu-latest

@@ -34,9 +34,7 @@ class TestProductionStartup:
     def test_placeholder_secret_refuses_start(self) -> None:
         # 这个值在 .env.example 和 git 历史里，公开可查
         with pytest.raises(ValueError, match="仍是占位符"):
-            production(
-                session_secret="replace-with-a-random-secret"
-            ).validate_runtime_secrets()
+            production(session_secret="replace-with-a-random-secret").validate_runtime_secrets()
 
     def test_short_secret_refuses_start(self) -> None:
         with pytest.raises(ValueError, match="太短"):
@@ -65,9 +63,7 @@ class TestProductionStartup:
 
     def test_in_memory_database_refuses_start(self) -> None:
         with pytest.raises(ValueError, match="内存库"):
-            production(
-                database_url="sqlite+pysqlite:///:memory:"
-            ).validate_runtime_secrets()
+            production(database_url="sqlite+pysqlite:///:memory:").validate_runtime_secrets()
 
     def test_all_problems_reported_at_once(self) -> None:
         # 一次只报一个问题，运维要重启好几轮才能改全

@@ -24,7 +24,7 @@ describe('存储契约一致性', () => {
   });
 
   it('空根带齐 schema 声明的全部顶层字段', () => {
-    const root = emptyRoot() as Record<string, unknown>;
+    const root = emptyRoot() as unknown as Record<string, unknown>;
     for (const field of Object.keys(schema.properties)) {
       expect(root, `缺少字段 ${field}`).toHaveProperty(field);
     }
@@ -38,7 +38,7 @@ describe('存储契约一致性', () => {
   });
 
   it('schema 的必填字段在空根里都有值', () => {
-    const root = emptyRoot() as Record<string, unknown>;
+    const root = emptyRoot() as unknown as Record<string, unknown>;
     for (const field of schema.required ?? []) {
       expect(root[field], `必填字段 ${field} 为空`).toBeDefined();
     }

@@ -89,10 +89,7 @@ class Settings(BaseSettings):
     @staticmethod
     def _is_local_origin(origin: str) -> bool:
         lowered = origin.lower()
-        return any(
-            marker in lowered
-            for marker in ("localhost", "127.0.0.1", "0.0.0.0", "[::1]")
-        )
+        return any(marker in lowered for marker in ("localhost", "127.0.0.1", "0.0.0.0", "[::1]"))
 
     @property
     def cors_origin_list(self) -> list[str]:

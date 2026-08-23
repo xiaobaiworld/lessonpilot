@@ -22,7 +22,13 @@ describe('currentVideoId', () => {
 });
 
 /** 最小 video 替身，只带面积和播放控制 */
-function fakeVideo(width: number, height: number) {
+type FakeVideo = Omit<HTMLVideoElement, 'paused'> & {
+  paused: boolean;
+  emit(t: string): void;
+  listeners: Record<string, ((...a: unknown[]) => void)[]>;
+};
+
+function fakeVideo(width: number, height: number): FakeVideo {
   const el = {
     tagName: 'VIDEO',
     clientWidth: width,
@@ -47,7 +53,7 @@ function fakeVideo(width: number, height: number) {
       for (const fn of this.listeners[type] ?? []) fn();
     },
   };
-  return el as unknown as HTMLVideoElement & { emit(t: string): void; listeners: any };
+  return el as unknown as FakeVideo;
 }
 
 function fakeDoc(map: Record<string, unknown>, all: unknown[] = []): Document {

@@ -91,9 +91,7 @@ class TestBackupRetention:
         backup = backup_tool.create_backup(source_db, tmp_path / "backups")
         assert backup.stat().st_mode & 0o777 == 0o600
 
-    def test_old_backups_are_pruned_and_current_kept(
-        self, source_db: Path, tmp_path: Path
-    ) -> None:
+    def test_old_backups_are_pruned_and_current_kept(self, source_db: Path, tmp_path: Path) -> None:
         import os
         import time
 
@@ -143,9 +141,7 @@ class TestRestoreDrill:
         assert result["ok"] is False
         assert any("缺少表 courses" in p for p in result["problems"])
 
-    def test_drill_does_not_modify_the_backup(
-        self, source_db: Path, tmp_path: Path
-    ) -> None:
+    def test_drill_does_not_modify_the_backup(self, source_db: Path, tmp_path: Path) -> None:
         # 演练改动了备份，就等于把仅有的一份可用数据也搭进去
         backup = backup_tool.create_backup(source_db, tmp_path / "backups")
         before = backup.read_bytes()

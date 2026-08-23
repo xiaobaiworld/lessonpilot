@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { CourseRuntime, PageController, Messenger, RuntimeDeps } from './runtime';
 import { PlayerHandle } from '../host/bilibili';
 import { RuntimeCandidate } from '../shared/library-view';
