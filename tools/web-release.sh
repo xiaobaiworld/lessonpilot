@@ -136,6 +136,12 @@ validate_settings() {
   [[ "$SSH_HOST" =~ ^[A-Za-z0-9._@-]+$ ]] || fail "unsafe SSH host: $SSH_HOST"
   [[ "$DEPLOY_ROOT" =~ ^/[A-Za-z0-9._/-]+$ ]] || fail "unsafe deploy root: $DEPLOY_ROOT"
   [[ "$SITE_URL" =~ ^https://[A-Za-z0-9._:-]+$ ]] || fail "site URL must be an HTTPS origin"
+
+  # 提前验连通性。SSH 别名在各人机器上可能不同（本机是 aliyun-us），
+  # 直接跑下去会在半途拿到一句 "Connection closed" 而看不出原因。
+  if ! ssh -o BatchMode=yes -o ConnectTimeout=10 "$SSH_HOST" true 2>/dev/null; then
+    fail "cannot reach SSH host '$SSH_HOST'; set KNOWNMAP_SSH_HOST to the alias in your ~/.ssh/config"
+  fi
 }
 
 resolve_commit() {
