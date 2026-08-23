@@ -14,7 +14,8 @@ Only record verified changes.
 - 根 `npm test` 现在同时运行旧系统 Node 测试和 v1 Vitest，GitHub 的 `test`、`pages`
   工作流都按 v1 锁文件安装依赖；`test` 工作流额外执行 v1 lint、类型检查和生产构建；
 - 补齐 `vite-node` 在 npm 10 / Linux 干净安装时要求的 `esbuild@0.28.2` 直接依赖并重建
-  v1 锁文件；用与 GitHub Node 22 环境一致的 npm 10.9.3 实跑 `npm ci` 通过；
+  v1 锁文件；显式锁定 Node 22 类型声明，避免 TypeScript 从开发机上级目录偷取全局依赖；
+  用与 GitHub Node 22 环境一致的 npm 10.9.3 实跑 `npm ci` 通过；
 - 测试发现自检同步验证拆分后的 `test:legacy` / `test:v1` 入口，防止以后再次静默漏跑。
 
 验证：legacy Node 385 项、v1 Vitest 188 项、后端 pytest 140 项全部通过；

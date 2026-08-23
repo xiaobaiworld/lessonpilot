@@ -26,6 +26,7 @@
     "gate": "vite-node tools/release-gate-check.mts"
   },
   "devDependencies": {
+    "@types/node": "22.20.1",
     "@typescript-eslint/eslint-plugin": "^6.13.0",
     "@typescript-eslint/parser": "^6.13.0",
     "esbuild": "0.28.2",

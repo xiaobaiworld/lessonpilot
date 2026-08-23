@@ -24,6 +24,10 @@ GitHub Node 22 / npm 10 却因 `vite-node` 的 peer dependency 缺少 `esbuild@0
 锁文件验证必须至少用发布环境的包管理器主版本跑一次真正的干净安装，不能只读顶层条目，
 也不能拿当前 `node_modules` 上的测试通过代替可重现安装。
 
+干净 runner 随后还发现 TypeScript 在本机从 `/Users/bai/node_modules` 找到了未声明的
+`@types/node`。依赖审计不能只查运行时包：编译器类型声明同样会沿父目录解析并制造假绿；
+所有构建所需类型必须在工作区 manifest 和 lockfile 中显式出现。
+
 ## 2026-08-23 — 「这一步只能人工」是个需要检验的假设，不是结论
 
 我连续几轮把阶段 7 报成「只有你能做」，理由是需要真实 Chrome 加载扩展。
