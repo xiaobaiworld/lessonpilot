@@ -1,0 +1,7 @@
+{
+  "name": "@v1/web-shared",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "description": "v1 web shared utilities and components"
+}

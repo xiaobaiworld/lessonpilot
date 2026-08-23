@@ -109,21 +109,29 @@ def _assert_admin_session_foreign_key_declared(engine) -> None:
 
 def _admin_auth_data_snapshot(engine) -> dict:
     with engine.connect() as connection:
-        admin = connection.execute(
-            text(
-                "SELECT id, login_name, password_hash, display_name, status, "
-                "created_at, updated_at "
-                "FROM admins WHERE id = :admin_id"
-            ),
-            {"admin_id": "admin-existing"},
-        ).mappings().one()
-        admin_session = connection.execute(
-            text(
-                "SELECT id, admin_id, token_digest, expires_at, revoked_at, created_at "
-                "FROM admin_sessions WHERE id = :session_id"
-            ),
-            {"session_id": "session-existing"},
-        ).mappings().one()
+        admin = (
+            connection.execute(
+                text(
+                    "SELECT id, login_name, password_hash, display_name, status, "
+                    "created_at, updated_at "
+                    "FROM admins WHERE id = :admin_id"
+                ),
+                {"admin_id": "admin-existing"},
+            )
+            .mappings()
+            .one()
+        )
+        admin_session = (
+            connection.execute(
+                text(
+                    "SELECT id, admin_id, token_digest, expires_at, revoked_at, created_at "
+                    "FROM admin_sessions WHERE id = :session_id"
+                ),
+                {"session_id": "session-existing"},
+            )
+            .mappings()
+            .one()
+        )
 
     return {
         "admin": dict(admin),
@@ -133,14 +141,18 @@ def _admin_auth_data_snapshot(engine) -> dict:
 
 def _access_grant_data_snapshot(engine) -> dict:
     with engine.connect() as connection:
-        row = connection.execute(
-            text(
-                "SELECT id, access_code_id, course_id, lesson_id, node_id, "
-                "valid_from, valid_until, created_at "
-                "FROM access_grants WHERE id = :grant_id"
-            ),
-            {"grant_id": "grant-existing"},
-        ).mappings().one()
+        row = (
+            connection.execute(
+                text(
+                    "SELECT id, access_code_id, course_id, lesson_id, node_id, "
+                    "valid_from, valid_until, created_at "
+                    "FROM access_grants WHERE id = :grant_id"
+                ),
+                {"grant_id": "grant-existing"},
+            )
+            .mappings()
+            .one()
+        )
     return dict(row)
 
 
@@ -155,13 +167,14 @@ def _assert_orphan_admin_session_absent(engine) -> None:
 
 def _assert_orphan_admin_session_present(engine) -> None:
     with engine.connect() as connection:
-        row = connection.execute(
-            text(
-                "SELECT id, admin_id FROM admin_sessions "
-                "WHERE id = :session_id"
-            ),
-            {"session_id": "session-orphan"},
-        ).mappings().one()
+        row = (
+            connection.execute(
+                text("SELECT id, admin_id FROM admin_sessions WHERE id = :session_id"),
+                {"session_id": "session-orphan"},
+            )
+            .mappings()
+            .one()
+        )
     assert dict(row) == {
         "id": "session-orphan",
         "admin_id": "admin-missing",
@@ -629,11 +642,14 @@ def test_authenticate_admin_performs_password_verification_for_missing_and_disab
     monkeypatch.setattr(auth_service, "verify_admin_password", record_verification)
 
     assert auth_service.authenticate_admin(database_session, "missing", "password") is None
-    assert auth_service.authenticate_admin(
-        database_session,
-        "disabled-admin",
-        "password",
-    ) is None
+    assert (
+        auth_service.authenticate_admin(
+            database_session,
+            "disabled-admin",
+            "password",
+        )
+        is None
+    )
     assert len(verified_hashes) == 2
     assert verified_hashes[0] == auth_service.DUMMY_ADMIN_PASSWORD_HASH
     assert verified_hashes[1] == disabled_admin.password_hash
@@ -677,16 +693,22 @@ def test_admin_session_stores_hmac_digest_and_obeys_ttl(database_session) -> Non
     if expires_at.tzinfo is None:
         expires_at = expires_at.replace(tzinfo=UTC)
     assert expires_at >= before_creation + timedelta(seconds=59)
-    assert get_active_admin_session(
-        database_session,
-        stored_session.token_digest,
-        now=before_creation,
-    ) == stored_session
-    assert get_active_admin_session(
-        database_session,
-        stored_session.token_digest,
-        now=expires_at,
-    ) is None
+    assert (
+        get_active_admin_session(
+            database_session,
+            stored_session.token_digest,
+            now=before_creation,
+        )
+        == stored_session
+    )
+    assert (
+        get_active_admin_session(
+            database_session,
+            stored_session.token_digest,
+            now=expires_at,
+        )
+        is None
+    )
 
 
 def test_revoked_admin_session_is_not_active(database_session) -> None:

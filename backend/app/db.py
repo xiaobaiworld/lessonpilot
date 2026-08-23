@@ -29,7 +29,9 @@ def _enable_sqlite_foreign_keys(dbapi_connection, _connection_record) -> None:
 
 
 def create_database_engine(settings: Settings) -> Engine:
-    connect_args = {"check_same_thread": False} if settings.database_url.startswith("sqlite") else {}
+    connect_args = (
+        {"check_same_thread": False} if settings.database_url.startswith("sqlite") else {}
+    )
     engine_kwargs = {"connect_args": connect_args, "future": True}
     if settings.database_url in {"sqlite:///:memory:", "sqlite+pysqlite:///:memory:"}:
         engine_kwargs["poolclass"] = StaticPool

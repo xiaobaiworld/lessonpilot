@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "packageType": "course-release",
+  "courseId": "course-0003",
+  "releaseId": "release-0003",
+  "releaseNumber": 12,
+  "title": "示例课程三",
+  "packageDigest": "sha256:0000000000000000000000000000000000000000000000000000000000000003",
+  "authorizedScope": {
+    "type": "course",
+    "lessonIds": [
+      "lesson-0021"
+    ],
+    "nodeIds": []
+  },
+  "lessons": [
+    {
+      "lessonId": "lesson-0021",
+      "releaseLessonId": "release-lesson-0021",
+      "order": 1,
+      "title": "示例课节丙",
+      "videoRef": {
+        "platform": "bilibili",
+        "videoId": "BV1example020",
+        "partId": null
+      },
+      "nodes": [
+        {
+          "nodeId": "node-0021",
+          "enabled": true,
+          "family": "practice",
+          "interaction": "blank",
+          "stateCompatibilityKey": "blank-v1",
+          "trigger": {
+            "kind": "time_cross",
+            "timeSeconds": 0
+          },
+          "effects": {
+            "pause": true
+          },
+          "display": {
+            "title": "示例填空题",
+            "prompt": "触发时刻为 0 是合法边界。"
+          },
+          "evaluation": {
+            "acceptedAnswers": [
+              "示例"
+            ],
+            "normalize": []
+          }
+        }
+      ]
+    }
+  ]
+}

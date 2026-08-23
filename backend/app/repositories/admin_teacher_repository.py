@@ -65,9 +65,7 @@ def _to_summary(row) -> AdminTeacherSummaryRow:
 
 
 def list_admin_teacher_summaries(session: Session) -> list[AdminTeacherSummaryRow]:
-    rows = session.execute(
-        _teacher_summary_statement().order_by(Teacher.login_name)
-    ).all()
+    rows = session.execute(_teacher_summary_statement().order_by(Teacher.login_name)).all()
     return [_to_summary(row) for row in rows]
 
 

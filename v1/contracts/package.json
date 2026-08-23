@@ -1,0 +1,26 @@
+{
+  "name": "@v1/contracts",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "description": "v1 cross-platform contracts: course package, extension messages, HTTP API",
+  "exports": {
+    ".": {
+      "types": "./index.ts",
+      "import": "./index.ts"
+    },
+    "./schemas": {
+      "types": "./schemas/index.ts",
+      "import": "./schemas/index.ts"
+    }
+  },
+  "files": [
+    "schemas",
+    "versions.json",
+    "index.ts"
+  ],
+  "scripts": {
+    "test": "node --test ..tests/contracts.test.js",
+    "validate": "node tools/contract-check.mjs"
+  }
+}

@@ -40,8 +40,12 @@ jobs:
       - name: Assemble shared contract
         run: node tools/assemble-workspace.js
 
+      - name: Install dependencies
+        run: npm ci
+
+      # npm test 覆盖 .test.js 与 .test.mjs 两类；单个 glob 会静默漏掉后者。
       - name: Run tests
-        run: node --test tests/*.test.js
+        run: npm test
 
       - name: Stage the publish set
         run: |

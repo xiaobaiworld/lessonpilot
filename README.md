@@ -6,7 +6,7 @@
 `https://knownmap.com/downloads/student-plugin/knownmapplugin.zip`
 
 品牌域名：`knownmap.com`
-Logo 规范：[`docs/superpowers/specs/2026-08-18-knownmap-brand-update-design.md`](docs/superpowers/specs/2026-08-18-knownmap-brand-update-design.md)
+Logo 资源与用法：[`docs/knownmap-logo-resources.md`](docs/knownmap-logo-resources.md)（品牌设计过程已归档）
 
 KnownMap 把老师已有的 B 站录播课变成可在原视频页面运行的互动课程。老师在公网工作台导入一条 B 站视频链接和对应字幕，配置互动节点；学生在 PC Chrome 安装本机插件后，于 B 站原页面到点暂停、作答、查看反馈并继续播放。
 
@@ -38,18 +38,16 @@ KnownMap 把老师已有的 B 站录播课变成可在原视频页面运行的�
 
 插件已经能够在指定 B 站页面定位播放器、监听时间、暂停、seek、卸载注入 UI，并通过授权码下载和保存课程。工具栏左键首页展示学生授权码入口、当前课程和教师登录入口；空消息、异常返回和超时会恢复表单并提示重新加载。完整边界验收和从空数据库开始的端到端闭环仍未完成。
 
-当前开发阶段是 **多课程数据底座验证**。后端多课节持久化、v2 课程包、`AccessGrant`、
-公开 `{ "courses": [...] }` 下载响应、`studentCourseStore`、示例课程、运行时和课程列表
-UI 已接通；下一步仍需完成真实 Chrome 边界验收和公网插件闭环。
+当前开发阶段是 **v1 重构阶段 0：工程基线与干净初始化**。v1 需求（`1.0.2`）与设计（01–09）
+已冻结，开发计划、目录隔离替换决策、代码重构执行计划和测试计划已建立。
 
-教师工作台和 FastAPI 已在 `knownmap.com` 生产运行；当前插件课程 API 仍固定指向本机
-`127.0.0.1:8000`，真实 Chrome 边界验收和公网插件闭环尚未收口。根目录
-[`next.md`](next.md) 记录当前步骤和遗留门禁。
+上述已接通的能力属于 v0.9.1 原型基线。按 `D-V1-012`，v1 从空数据库开始，不迁移旧服务端
+业务数据和学生本机数据；新系统在同仓库 `v1/` 目录独立建立，旧系统冻结功能和结构变更，
+完成真实切换、观察和回退验证后再独立退役。
 
-从 [`next.md`](next.md) 开始，多课程计划见
-[`docs/superpowers/plans/2026-08-20-multi-course-authorization-and-example-course.md`](docs/superpowers/plans/2026-08-20-multi-course-authorization-and-example-course.md)；
-单课程公网闭环门禁见 [`doc/teacher-platform-dev-plan.md`](doc/teacher-platform-dev-plan.md)。
-第一阶段计划已归档，不再是当前排期。
+教师工作台和 FastAPI 已在 `knownmap.com` 生产运行；插件课程 API 仍固定指向本机
+`127.0.0.1:8000`。根目录 [`next.md`](next.md) 记录当前切片和人工决策边界，
+阶段顺序见 [`doc/plans/v1-development-plan.md`](doc/plans/v1-development-plan.md)。
 
 ## 目标页面
 
@@ -91,7 +89,9 @@ tools/web-release.sh history
 tools/web-release.sh rollback <release-id>
 ```
 
-完整规则见 [`doc/web-production-release-design.md`](doc/web-production-release-design.md)。
+当前发布记录见 [`deploy/releases/README.md`](deploy/releases/README.md)；
+原发布设计已归档为 [`doc/archive/.../web-production-release-design.md`](doc/archive/2026-08-22-pre-v1-rewrite/doc/web-production-release-design.md)，
+v1 的发布与回滚边界以 [`doc/design/v1/08-security-operations-design.md`](doc/design/v1/08-security-operations-design.md) 为准。
 GitHub Pages 工作流保留为第一阶段历史部署入口，不再代表 `knownmap.com` 当前生产版本。
 
 教师平台生产发布使用：
@@ -155,11 +155,14 @@ node tools/assemble-workspace.js
 
 它把 `src/shared/` 复制到 `teacher-web/shared/`，使工作台页面在本地和公网加载同一路径。该目录不入版本库：提交副本会形成第二份契约定义并可能与源文件脱节（D-010）。
 
-运行自动化测试：
+安装依赖并运行自动化测试：
 
 ```bash
-node --test tests/*.test.js
+npm ci
+npm test
 ```
+
+`npm test` 覆盖 `.test.js`（CommonJS）与 `.test.mjs`（ESM）两类测试文件。
 
 加载当前插件 `0.9.1`：
 
@@ -171,19 +174,26 @@ node --test tests/*.test.js
 
 ## 文档入口
 
-开始任何跨文件实现前先读 [`doc/INDEX.md`](doc/INDEX.md)。当前事实源为：
+开始任何跨文件实现前先读 [`doc/INDEX.md`](doc/INDEX.md)，它区分了当前权威、当前证据和历史归档。
+
+当前权威只有以下几处：
 
 | 文档 | 职责 |
 | --- | --- |
-| [`doc/requirements/teacher-platform-local-stage.md`](doc/requirements/teacher-platform-local-stage.md) | 当前教师平台生产与学生插件验收范围 |
-| [`doc/teacher-platform-architecture.md`](doc/teacher-platform-architecture.md) | 生产 FastAPI、SQLite、教师端和插件边界 |
-| [`doc/data-spec.md`](doc/data-spec.md) | 数据规范总入口，覆盖模型、字典、数据流和质量 |
-| [`doc/teacher-platform-api-spec.md`](doc/teacher-platform-api-spec.md) | 当前教师认证、课程、发布和下载 API |
-| [`doc/DECISIONS.md`](doc/DECISIONS.md) | 决策、假设、证据和重开条件 |
-| [`docs/superpowers/plans/2026-08-20-multi-course-authorization-and-example-course.md`](docs/superpowers/plans/2026-08-20-multi-course-authorization-and-example-course.md) | 当前多课程数据底座实施计划 |
-| [`doc/teacher-platform-dev-plan.md`](doc/teacher-platform-dev-plan.md) | 单课程节点 8–9 的遗留验收和生产收口门禁 |
-| [`doc/trial-intake-form-design.md`](doc/trial-intake-form-design.md) | 飞书真实课程试用表单、销售页入口与数据边界 |
-| [`next.md`](next.md) | 当前执行步骤与遗留门禁 |
+| [`doc/requirements/v1/README.md`](doc/requirements/v1/README.md) | v1 需求真源（`1.0.2`，已冻结） |
+| [`doc/design/v1/README.md`](doc/design/v1/README.md) | v1 设计真源（01–09，已冻结） |
+| [`doc/plans/v1-development-plan.md`](doc/plans/v1-development-plan.md) | 阶段 0–8 目标与产品门禁 |
+| [`doc/plans/v1-replacement-plan.md`](doc/plans/v1-replacement-plan.md) | 已接受的 `v1/` 目录隔离替换决策与资产处置依据 |
+| [`doc/plans/v1-code-refactor-execution-plan.md`](doc/plans/v1-code-refactor-execution-plan.md) | 代码目录、工作包顺序与提交边界 |
+| [`doc/plans/v1-test-plan.md`](doc/plans/v1-test-plan.md) | 测试矩阵与发布门禁 |
+| [`doc/dev-rules.md`](doc/dev-rules.md) | 项目专有开发规则 |
+| [`doc/traceability/v1-requirements.tsv`](doc/traceability/v1-requirements.tsv) | 256 个稳定编号的追踪矩阵 |
+| [`doc/lessons.md`](doc/lessons.md) | 已踩的坑；开始新功能前先读 |
+| [`next.md`](next.md) | 当前执行切片 |
+
+原教师平台需求、架构、数据与 API 规范已按
+[`doc/design/v1/02-legacy-document-register.md`](doc/design/v1/02-legacy-document-register.md)
+归档到 `doc/archive/2026-08-22-pre-v1-rewrite/`。它们只描述 v0.9.1 现状，不定义 v1 目标。
 
 品牌资源：
 
@@ -195,7 +205,9 @@ node --test tests/*.test.js
 - `src/assets/icon-16.png`、`icon-24.png`、`icon-48.png`、`icon-128.png`：扩展资源；
 - `teacher-web/assets/knownmap-icon.png`：网页导出资源。
 
-解释冲突时按：当前阶段需求 -> v0.2 产品规格 -> 当前数据/API 规范 -> 架构 -> 计划。第一阶段原型、推广视频和远期平台文档不得覆盖当前范围。
+解释冲突时按 [`doc/dev-rules.md` 第 1 节](doc/dev-rules.md#1-权威顺序) 的权威顺序：
+已冻结 v1 需求与决策 -> 已审核 v1 设计 -> 可重复运行结果与真实验收 -> 当前代码事实 -> 已审计旧资料。
+已归档文档和历史原型不得覆盖 v1 范围。
 
 ## 核心边界
 

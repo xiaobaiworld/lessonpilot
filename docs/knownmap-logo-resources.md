@@ -3,7 +3,7 @@
 状态：当前品牌资源说明
 日期：2026-08-18
 关联决策：`doc/DECISIONS.md` 的 D-014
-关联规范：[`docs/superpowers/specs/2026-08-18-knownmap-brand-update-design.md`](superpowers/specs/2026-08-18-knownmap-brand-update-design.md)
+关联规范：[`docs/superpowers/specs/2026-08-18-knownmap-brand-update-design.md`](../doc/archive/2026-08-22-pre-v1-rewrite/docs/superpowers/specs/2026-08-18-knownmap-brand-update-design.md)
 
 ## 核心含义
 

@@ -1,12 +1,18 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from sqlalchemy import CheckConstraint, DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db_base import Base
+
+if TYPE_CHECKING:
+    # 关系类型的前向引用。放在 TYPE_CHECKING 下：SQLAlchemy 运行时按字符串解析，
+    # 真实导入会形成循环依赖；但静态检查需要这些名字存在，否则 Ruff 报 F821。
+    from app.models.access_code import AccessCode
 
 
 class AccessGrant(Base):

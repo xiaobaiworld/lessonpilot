@@ -71,10 +71,7 @@ def create_access_code(
             course_id=course_id,
             secret=secret,
             code_type=(payload or AccessCodeCreate()).code_type,
-            scopes=[
-                scope.model_dump()
-                for scope in ((payload or AccessCodeCreate()).scopes or [])
-            ]
+            scopes=[scope.model_dump() for scope in ((payload or AccessCodeCreate()).scopes or [])]
             or None,
         )
     except ResourceNotFound:

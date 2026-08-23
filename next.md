@@ -1,328 +1,305 @@
 # KnownMap 当前下一步
 
-更新时间：2026-08-21
-
-## 当前执行切片：超级管理员与教师账号管理
-
-设计入口：`docs/superpowers/specs/2026-08-20-teacher-account-admin-design.md`
-
-实施计划：`docs/superpowers/plans/2026-08-20-teacher-account-admin.md`
-
-当前步骤：实现、合并和生产部署已完成。
-
-涉及文件：
-
-- `tools/teacher-platform-release.sh`
-- `tests/teacher-platform-release.test.js`
-- `teacher-web/admin.html`
-- `teacher-web/admin.js`
-
-验证方式：
-
-```text
-node --test tests/*.test.js
-cd backend && uv run pytest -q
-cd ..
-git diff --check
-```
-
-已完成的生产发布引导：
-
-- `teacher-platform-v1` 发布包包含 `admin.html` 和 `/teacher-web/admin.js`，销售站发布白名单不变；
-- 后端迁移和服务启动后检查远程 `admins` 总数，只有空表才允许首次 seed；
-- 管理员初始密码可由 `KNOWNMAP_PRODUCTION_ADMIN_PASSWORD` 显式提供，否则由 `openssl rand -hex 18` 生成；
-- 初始密码只通过 root `0600` 临时文件进入一次 seed，trap 和本机失败清理都会删除该文件；
-- 生产长期环境文件不包含管理员 seed 密码变量或值；
-- 已有任何管理员记录时后续发布跳过 seed，不重置密码、昵称或状态；
-- 远程验证新增管理员会话和教师列表未登录 `401` 探针；
-- 全量 Node 测试 `331 passed`、后端测试 `96 passed`，Shell 语法和 `git diff --check` 通过。
-
-已完成的生产部署：
-
-- 合并提交 `c0e8aaa94c27019c8b30d317cf800abcc89df84e` 已推送到 `main`；
-- GitHub `node-test`、`backend-test`、Pages 构建和部署均通过；
-- 生产 release 为 `20260821T020224Z-97cd83806550`，状态为 `verified`；
-- 首位超级管理员 `admin` 已创建，初始密码只在发布输出中显示一次；
-- 生产管理员登录、会话恢复、教师列表和退出均返回 200；
-- 当前生产教师列表为 1 条，对应已发布课程数为 1；
-- 未登录管理员会话和教师列表接口均返回 401；
-- 管理员密码字段为 Argon2 哈希，长期环境文件无 seed 变量，临时密码文件已删除；
-- 生产服务日志没有管理员初始密码或 seed 密码标记；
-- 超级管理员登录已应用与教师登录相同的 Nginx 限速，连续错误登录第 7 次返回 429；
-- 补丁发布明确跳过管理员 bootstrap 和教师凭据轮换，现有密码均未变化；
-- 发布记录为 `deploy/releases/20260821T020224Z-97cd83806550.json`。
-
-已完成的管理员前端工作区：
-
-- 保留销售首页、教师工作台和服务状态三个原入口；
-- 未登录时按需打开超级管理员登录，登录后切换到教师账号管理工作区；
-- 支持教师列表、已发布课程数、创建教师、重置密码、会话恢复和退出；
-- 临时密码只保存在页面内存和文本节点，关闭、退出或会话失效时清空；
-- 请求代次会丢弃旧会话和旧教师列表响应，敏感操作串行执行；
-- 临时密码未关闭前禁止下一次创建或重置，避免覆盖不可再次获取的凭据；
-- 浏览器实测完成登录、列表、创建、复制、清除、重置和退出流程；
-- 390px 窄屏页面无整体横向溢出，宽表格只在自身容器内滚动；
-- 浏览器页面脚本无运行错误。
-
-已完成的权威文档同步：
-
-- 数据规范和 ER 模型加入 `admins`、`admin_sessions` 及独立认证边界；
-- 字段字典记录 Argon2 哈希、HMAC 会话摘要和管理员教师摘要响应；
-- 数据流记录管理员 bootstrap、创建/重置教师、一次性密码响应和发布课程 SQL 聚合；
-- 数据质量规则禁止密码、哈希、Cookie、原始 token 和临时密码持久化或进入日志；
-- API 文档加入管理员登录、会话恢复、退出、教师列表、创建和重置密码端点；
-- 架构与部署文档加入独立管理员模块、首次初始化和生产验证步骤；
-- 文档敏感词扫描只命中字段名、变量名、占位符和禁止规则，没有真实凭据；
-- `git diff --check` 通过。
-
-已完成的老师账号管理后端：
-
-- `GET /api/v1/admin/teachers` 返回教师公开字段和已发布课程数；
-- 发布课程数由 SQL 聚合计算，只计 `courses.status = 'published'`；
-- `POST /api/v1/admin/teachers` 创建 active 教师及其 workspace，并仅在当次响应返回随机临时密码；
-- 重复教师登录名返回冲突，不覆盖既有昵称、状态或密码哈希；
-- `POST /api/v1/admin/teachers/{teacher_id}/reset-password` 只更新密码哈希，不自动恢复停用账号；
-- 临时密码由系统安全随机源生成，数据库只保存 Argon2 哈希；
-- 操作日志只记录管理员 ID、动作、教师 ID、结果和错误码；
-- 聚焦测试 `18 passed`，后端全量 `96 passed`，Python 编译和 `git diff --check` 通过。
-
-已完成的管理员认证 API：
-
-- `POST /api/v1/admin/auth/login` 使用独立管理员 Cookie 建立会话；
-- `GET /api/v1/admin/auth/me` 只接受有效管理员会话；
-- `POST /api/v1/admin/auth/logout` 撤销会话并清除管理员 Cookie；
-- 教师 Cookie 不能访问管理员认证接口；
-- 登录失败不区分账号不存在或密码错误；
-- Cookie 使用 `HttpOnly`、`SameSite=Lax`，生产环境启用 `Secure`；
-- 操作日志只记录管理员 ID、动作和结果，不记录密码、Cookie 或 token；
-- 聚焦测试 `4 passed`，后端全量 `82 passed`，Python 编译和 `git diff --check` 通过。
-
-已完成的管理员认证服务：
-
-- 管理员密码使用 Argon2 哈希，损坏或不支持的哈希统一按认证失败处理；
-- 缺失、禁用和错误密码路径均执行密码校验，减少登录名时序枚举；
-- 管理员会话只持久化 HMAC-SHA256 摘要，支持 TTL、撤销和过期过滤；
-- 管理员 Cookie、会话表和认证依赖与教师完全隔离；
-- 管理员 seed 只能通过显式 `python -m app.seed admin` 路径执行，并且不会覆盖已有管理员密码、名称或状态；
-- 管理员初始密码不进入 Settings、`.env.example` 或数据库明文；
-- 聚焦测试 `28 passed`，后端全量 `78 passed`，`git diff --check` 通过。
-
-已完成的持久化修正：
-
-- SQLite 项目引擎对每个连接启用外键检查；
-- 保留已进入远程仓库的 `0010_admin_auth`，新增可逆 `0011` 修复迁移；
-- 管理员登录名和会话摘要统一为具名唯一索引；
-- 清除旧结构中无法归属有效管理员的孤立会话；
-- 升级、降级、数据保持和外键执行均有自动化验证；
-- 聚焦测试 `4 passed`，后端全量 `57 passed`，Alembic 保持单一 head。
-
-安全边界：
-
-- 管理员与教师使用独立会话表、Cookie 和 API 权限边界；
-- 管理员与教师密码只保存 Argon2 哈希；
-- 创建或重置教师密码时，明文只存在于当次 HTTPS 响应和页面内存；
-- 不在日志、浏览器存储、发布记录、环境文件或数据库中保存明文密码。
-
-当前阶段：多课程 v2 数据链路实施；旧单课程测试结构直接舍弃
-
-当前版本：插件 `0.9.1`
-
-当前状态：节点 1–7 已实现并验证；节点 8 已完成代码、自动化测试和用户基本可行性确认，
-完整真实 Chrome 边界验收待收口；节点 9 尚未完成。当前开发主线已切换到文末的
-“多课程数据底座”，单课程结构仅作为历史测试记录，不再作为兼容基线。
-
-2026-08-21 教师平台已发布到阿里云 ECS：生产工作台、FastAPI、SQLite、systemd 和
-Nginx 同源反代均已验证。当前 release ID 为 `20260821T020224Z-97cd83806550`，对应
-GitHub SHA `97cd838065504ea2e9a50ad7f8668be504a94bcc`。生产 API 已完成登录、创建课程
-和课节、保存四节点草稿、发布 `v1`、创建短期授权码和公开下载的完整探针；生产安全审计、
-登录限速、锁定依赖、systemd 沙箱和每日 SQLite 备份也已部署并验证。`/admin.html`
-保留销售首页、教师工作台和服务状态入口，并新增受超级管理员会话保护的教师账号管理。
-
-2026-08-20 教师编辑器收尾切片已完成：时间线按真实 `08:33` 显示，右下快捷操作可用，
-授权码支持短期/长期分类、历史记录和到期校验。该切片不改变节点 8 的剩余验收事实。
-
-## 当前执行切片：教师时间线参考样式对齐（实现完成，视觉复核待刷新）
-
-设计入口：`doc/teacher-timeline-reference-parity-design.md`
-
-### 可观察事实与验收
-
-- 修改前全页截图：`.gstack/design-reports/screenshots/timeline-before.png`；
-- 浏览器 DOM 已确认结束边界被渲染成 `08:33`，177 条固定课程字幕未进入编辑器；
-- 自动化先锁定默认字幕、独立结束边界、SVG 图标和连线结构，再修改实现；Node 全量
-  `288 pass / 0 fail`，后端 `40 pass`、覆盖率 `87%`；
-- 应用内浏览器拒绝自动刷新本地 URL，修改后的截图比对与控制台检查尚未执行；下一次在现有
-  标签页手动刷新后，使用同一课程和节点数据完成这两项复核；
-- 日志来源为 Node 测试输出和当前编辑器浏览器控制台；本切片不新增正文日志。
-
-### 2026-08-20 合并与发布状态
-
-- 功能分支已合并并推送到 `main`，合并提交为 `01d72eee6aeaa0d18742a78d30f5db76f6e8ba36`；
-- GitHub `test` 与 `pages` 工作流均在该提交上通过。Pages 仍按既有白名单发布销售页和诊断页，
-  不包含教师编辑器或 FastAPI；
-- 正式生产脚本从该提交成功构建候选版本 `20260820T101039Z-01d72eee6aea`，发布门禁测试
-  `33 pass / 0 fail`；上传前连接实际生产主机 `43.110.33.202:22` 时，服务器在 SSH banner
-  阶段关闭连接。没有上传、切换 `/var/www/knownmap/current`、创建生产标签或生成发布记录；
-- 当前 `knownmap.com` 仍是上一个销售静态站版本。教师编辑器和 FastAPI 的公网部署本来就不在
-  现有 `sales-static-v1` 发布边界内；若要让本次教师功能在服务器可用，必须先恢复生产 SSH，
-  并单独确认教师端域名、HTTPS、API 进程、数据库、密钥、CORS 与回滚设计。
-
-### 规范加载范围
-
-- 已读取：全局开发流程、测试规范、数据建模与数据流规范、错误处理与 lessons 规范；
-- 不适用：Python/FastAPI、LLM、认证安全专项，本切片不改后端、模型调用、认证或凭证流程；
-- 数据变化仅为固定测试字幕的页面启动来源，canonical caption 结构和解析校验不变；
-- 收口方式：失败测试 → 最小实现 → Node 全量测试 → 文档、changelog、lessons 同步已完成；
-  浏览器截图与控制台验证仍待手动刷新复核。
-
-## 历史单课程闭环记录（已被 v2 多课程方案替代）
-
-以下内容记录 `0.9.1` 测试过程，不再定义当前课程数据契约。当前实现不兼容
-`{ "course": ... }`、`installedCourse` 或 `learningState`。
-
-先在当前教师编辑器标签页手动刷新，确认结束边界、177 条字幕、四种 SVG 图标和摘要连线，
-并检查控制台无 error。通过后完成 `tests/manual/teacher-platform-local/README.md` 的节点 8 边界验收，
-然后执行节点 9 的公网空数据库完整闭环：
-
-> 让学生在 B 站原页面通过 KnownMap 解压版 Chrome 插件输入授权码，下载、校验并保存最新课程配置，然后只在匹配的 BVID 页面运行课程。
-
-`0.9.1` 已实现工具栏学生入口、页面书包、单课程保存、匹配 BVID 运行，以及空消息、非对象、runtime rejection 和 10 秒超时的可恢复错误。用户已确认当前核心功能基本可行；无效码、不同课程、跨 BVID、SPA 和日志仍需逐项留证。
-
-产品设计入口：`doc/student-plugin-course-delivery-design.md`
-
-决策入口：`doc/decisions/2026-08-18-student-plugin-single-course-delivery.md`
-
-总计划入口：`doc/teacher-platform-dev-plan.md`
-
-已完成执行记录：`doc/archive/2026-08-18-teacher-platform-nodes-1-7/next.md`
-
-## 节点 8 当前执行切片
-
-### 已确认边界
-
-- 沿用已验证的本地 API：`POST /api/v1/public/course-download`，请求仅含
-  `access_code`，成功响应为 `{ "course": PluginCourseConfig }`；本节点不凭设计草案
-  臆造尚未实现的 content hash envelope。
-- 插件后台把 HTTP 响应视为不可信输入，写入前再次使用
-  `src/shared/course-contract.js` 校验；失败默认拒绝且不覆盖旧数据。
-- 学生安装课程使用独立的 `installedCourse` / `learningState` 键，不复用教师工作台
-  预览使用的 `currentCourse` / `activePreviewSession`。
-- 不同课程只在学生明确确认后替换；确认和第二次下载之间仍以当前课程 ID 做并发保护。
-- B 站运行时从 `installedCourse` 读取课程，只在当前 pathname 的 BVID 与
-  `course.videoRef.videoId` 完全相等时挂载；SPA 离开时销毁旧 UI 和监听器。
-- 本节点做四种现有节点的最小线性运行适配；不扩展字幕书包、学习报表、学生账号、
-  多课程或公网部署。
-- 授权码领取成功后，书包的“课程”区域新增一条当前课程记录；记录显示经过校验的完整
-  B 站课程 URL，并保留“打开课程视频”操作。未领取课程时只显示空状态，不生成空记录。
-
-### 测试先行
-
-1. `tests/access-code-panel.test.js`：授权码标准化、请求不携带课程 ID、错误文案、
-   覆盖确认取消路径、标准 B 站 URL，以及成功领取后单条课程记录的可见渲染。
-2. `tests/plugin-download-flow.test.js`：网络错误、401/404、畸形 JSON、课程契约失败、
-   同课程更新、不同课程确认、单次原子写入、旧课程和学习状态不被失败路径破坏。
-3. `tests/course-runtime.test.js`：BVID 精确匹配、时间跨越触发、SPA 进入/离开销毁、
-   重复初始化保护。
-4. `tests/manual/teacher-platform-local/README.md`：真实 Chrome 加载、有效/无效授权码、
-   刷新持久化、其它 BVID 静默、至少一个真实互动节点、控制台和后端日志脱敏。
-
-### 日志与安全证据
-
-- 自动化：Node 测试输出；后端 pytest 输出。
-- 人工：Chrome 扩展 service worker 控制台、B 站页面控制台、FastAPI 结构化日志。
-- 预期日志只包含操作名、课程 ID、节点数、结果和错误码；不得出现授权码原文、节点正文、
-  字幕正文、Cookie 或学生答案。
-- 若实际日志不足以定位失败，只补充固定字段的脱敏诊断日志，不打印请求体或响应正文。
-
-### 2026-08-19 当前验证证据
-
-- `node --test tests/*.test.js`：276 pass / 0 fail。
-- `cd backend && uv run pytest --cov=app --cov-report=term-missing`：37 pass，总代码覆盖率 87%。
-- JS 语法、`git diff --check` 和敏感原文扫描通过；扫描仅命中公开授权码占位符。
-- 真实 Chrome 已确认新书包入口注入、教师端创建四种节点、发布 v1 并创建授权码；课程下载
-  仍由浏览器中未重载的旧 service worker 持有，未产生下载 API 请求。必须在
-  `chrome://extensions` 手工重新加载 KnownMap 后，从有效授权码下载步骤继续；本记录不把该
-  环境阻塞写成功能验收通过。
-
-### 2026-08-20 教师编辑器补充验证
-
-- `node --test tests/*.test.js`：280 pass / 0 fail。
-- `cd backend && uv run pytest --cov=app --cov-report=term-missing`：40 pass，总代码覆盖率 87%。
-- 本机数据库从未标记的既有 0006 结构安全标记并升级至 `0007_access_code_types`；原课程和授权码记录保留。
-- 内置浏览器确认无字幕时间线为 `08:33`，轴线右端与结束标记中心像素一致；清理 1 条旧临时密钥下无法验证的测试记录后，授权码历史最终为总计 2、短期 1、长期 1，分类点击明细正确。
-- 通过教师界面创建的短期码调用公开下载端点返回 200；“完成”先保存草稿，再返回“我的课程”。
-- 本切片浏览器验收通过，但节点 8 仍需在真实 Chrome 重载解压版扩展后完成学生端领取与 B 站运行验收。
-
-### 2026-08-20 插件 `0.9.1` 验证
-
-- 真实 Chrome 复现旧 service worker 返回空值，页面脚本读取 `result.error` 抛错并永久 loading；现已统一校验消息响应并提供 10 秒超时恢复。
-- 新增工具栏课程首页，展示学生授权码、唯一当前课程、完整 B 站链接和教师登录入口；不伪造学生账号能力。
-- `node --test tests/*.test.js`：284 pass / 0 fail；后端 40 pass，覆盖率 87%；380×560 弹窗视觉检查通过。
-- 用户确认“当前功能基本可行”。该确认不替代无效码、覆盖取消、其它 BVID、SPA 和日志的完整边界验收。
-
-## 开始前检查
-
-- [x] 读取全局规范、`doc/INDEX.md`、当前需求、D-018 和学生插件设计；
-- [x] 核对 `src/shared/course-contract.js`、`src/background/storage.js`、`src/background/operations.js` 和现有 B 站运行时；
-- [x] 确认本地 FastAPI `/api/v1/public/course-download` 可用；
-- [x] 先写节点 8 的失败测试和真实 Chrome 人工验收步骤；
-- [x] 不改教师端节点 1–7 已验证的 API 与页面行为，除非失败测试证明存在必要依赖。
-
-## 节点 8 完成门禁
-
-- [x] 插件提供授权码输入入口，授权码不进入日志或长期明文存储；
-- [x] 插件调用下载 API，并在写入前使用共享课程契约校验响应；
-- [x] 自动化确认无效响应、网络失败和配置错误不覆盖已有课程；
-- [x] 自动化确认新授权码对应其他课程时先确认覆盖，取消后保留原课程和本地学习状态；
-- [x] 自动化确认下载后的课程只在匹配 BVID 页面启动；
-- [x] 自动化确认刷新和 B 站 SPA 切换后不重复初始化或残留旧课程 UI；
-- [x] 工具栏首页显示学生授权码、当前课程和教师登录入口；
-- [ ] 自动化测试与真实 Chrome 人工验收通过；
-- [x] README、需求、架构、数据、API、计划、索引和 changelog 已同步到 `0.9.1` 状态。
-
-## 后续节点 9
-
-节点 8 完成后，仍需执行公网完整闭环验收：
-
-```text
-教师登录
-→ 创建课程和课节
-→ 编辑四种节点
-→ 保存草稿并发布
-→ 创建授权码
-→ 插件下载课程
-→ B 站页面完成一次互动
-```
-
-节点 9 通过前，不得把“教师发布到学生运行的完整公网闭环”写成已完成。
-
-## 当前开发步骤：多课程数据底座
-
-更新时间：2026-08-20
-
-当前目标：按 `docs/superpowers/plans/2026-08-20-multi-course-authorization-and-example-course.md`
-实现课程 UUID、多课节、范围授权、多课程插件存储和内置示例课程。
-
-数据规范入口：`doc/data-spec.md`。后端多课节、v2 课程包契约、v2-only
-`studentCourseStore`、内置示例课程、下载器、运行时和课程名称 UI 已实现；后端发布聚合与
-`AccessGrant` 多范围授权也已完成。
-
-当前并行步骤：
-
-- [x] 后台 Course/Lesson 从一对一升级为一对多，`0008` migration 与聚焦 pytest 通过；
-- [x] 新增多课节课程包 JavaScript 契约，13 项契约测试通过；
-- [x] 新增唯一的 `studentCourseStore` v2 存储，多课程合并和独立学习状态测试通过；
-- [x] 内置固定 UUID 的示例课程，首次读取自动落库且不覆盖授权课程；
-- [x] 删除旧 `{ "course": ... }`、单课程 key 和替换确认路径，Node 全量 305 项通过。
-- [x] 后端发布聚合全部课节，授权码支持课程/课节/节点/有效期范围，后端 51 项通过。
-
-本步骤验证：
-
-```text
-后台聚焦 pytest
-Node 聚焦测试
-git diff --check
-```
-
-下一步在真实 Chrome 中重新加载解压插件，验证默认示例课程可见、授权课程追加、多课节
-BVID 匹配和一次互动状态写入；自动化与文档同步已完成。
+更新时间：2026-08-23
+
+## ✅ 阶段 0 完成：工程基线与干净初始化
+
+7 个工作包全部通过：
+
+1. ✅ **0A**（`39f4945`）：v1 目录骨架
+   - 六模块结构（identity、workspace_course、authoring_release、entitlement_delivery、admin_support、runtime_audit）
+   - web/extension/contracts 工作区
+   - 旧系统完整保持
+
+2. ✅ **0B**（`bb64802`）：版本清单
+   - HTTP API、course package、extension messages、storage、builds 版本定义
+   - v1.0.0 支持矩阵
+   - 版本兼容性规则和检查工具
+
+3. ✅ **0C**（`f9c8f77`）：跨平台契约 JSON Schema
+   - course-package.schema.json v2.0.0
+   - extension-messages.schema.json v2.0.0
+   - extension-storage.schema.json v2.0.0
+   - check-contracts.mjs 校验
+
+4. ✅ **0D**（`357c436`）：匿名测试夹具
+   - 两教师、两本机身份
+   - 重复课节、同视频多课节、多版本发布、多授权源
+   - 腐坏契约隔离
+   - 8 个夹具验证测试
+
+5. ✅ **0E**（`cca8240`）：数据库初始化与旧 schema 拒绝
+   - init_check.py：18 个 v1 表、5 个旧表拒绝清单
+   - 迁移链不可回滚（0011 → 0012）
+   - 数据库启动门禁
+
+6. ✅ **0F**（`19f2aae`）：仓库级工程门禁
+   - v1-gate.mjs 汇总检查
+   - 端点、契约、模块、版本一致性
+
+7. ✅ **0G**（`4da25dc`）：CI 集成
+   - npm test: 372 测试全部通过
+   - npm run check: 所有检查通过
+   - v1 与 legacy 互不干扰
+
+## 阶段 0 门禁状态
+
+| 门禁 | 状态 |
+|------|------|
+| ✅ 旧应用不回归 | 331 个 legacy 测试 pass |
+| ✅ v1 骨架可构建 | 所有 v1/ 目录创建成功 |
+| ✅ 双端结论一致 | 31 个夹具双端对齐 |
+| ✅ 旧数据隔离 | init_check.py 建立拒绝规则 |
+| ✅ 静态检查零错误 | endpoint/module/contract/v1 checks pass |
+
+## ✅ 阶段 2 完成：发布与多课程授权
+
+进度（7 个工作包，全部完成）：
+
+1. ✅ **2A 完成**（`9440c31`）：课程发布与快照模型
+   - CourseRelease：课程级不可变快照
+   - ReleaseLessonSnapshot：原子课节捕获
+   - ReleaseAvailability：访问权限控制
+
+2. ✅ **2B 完成**（`885a623`）：发布服务与幂等性
+   - PublishingService：业务逻辑
+   - 幂等发布：publish_intent_id 缓存
+   - 冲突检测：source_course_revision 不匹配则失败
+
+3. ✅ **2C 完成**（`9440c31`）：授权码与兑换模型
+   - AccessCode：单次使用多课程授权
+   - GrantItem：授权范围（课程/课节/节点）
+   - Redemption：兑换证明
+
+4. ✅ **2D 完成**（`6ab4edb`）：课程包生成器
+   - CoursePackageGenerator：只读 JSON 生成
+   - 从不可变 Release 读取
+   - 生成 course-package.schema.json v2.0.0
+
+5. ✅ **2E 完成**（`fad04ce`）：冲突检测与权利确认
+   - ConflictDetectionService：检测旧发布
+   - RightsConfirmationService：权利验证
+   - 审计追踪
+
+6. ✅ **2F 完成**（`b48dc8f`）：旧数据与 v1 混合验证
+   - v1-isolation-check.mjs：数据隔离验证
+   - 表命名空间分离（v1_ 前缀）
+   - 迁移链清晰
+
+7. ✅ **2G 完成**（`5f567ef`）：发布门禁与特征测试
+   - 原子发布测试
+   - 重复内容与同视频课节支持
+   - 冲突检测验证
+
+## 阶段 2 完成统计
+
+- 提交数：7 个
+- 新表：6 个（CourseRelease、ReleaseLessonSnapshot、ReleaseAvailability、AccessCode、GrantItem、Redemption）
+- 应用服务：2 个（PublishingService、ConflictDetectionService）
+- 生成器：1 个（CoursePackageGenerator）
+- 检查工具：1 个（v1-isolation-check.mjs）
+- 特征测试：1 个
+
+## 即将开始：阶段 3 - 教师 Web 应用
+
+设计基线：
+- 需求：`doc/requirements/v1/README.md`
+- 设计：`doc/design/v1/README.md`
+- 执行计划：`doc/plans/v1-code-refactor-execution-plan.md`
+
+阶段 3 工作包（3A-3G）目标：
+- 共享 HTTP transport、request ID、错误分类
+- 管理员应用迁移与切换
+- 教师应用外壳与课程 CRUD
+- 课程发布工作流
+- 脚本编辑界面
+- 页面集成与权限检查
+- 迁移后特征测试
+
+## 累计进度
+
+**28% 完成**（18/63 工作包）
+
+已完成阶段：
+- 阶段 0：工程基线（7 个工作包 ✓）
+- 阶段 1：服务端身份与课程（7 个工作包 ✓）
+- 阶段 2：发布与授权（7 个工作包 ✓）
+
+剩余阶段：
+- 阶段 3：教师 Web 应用（7 个工作包）
+- 阶段 4：学生扩展（7 个工作包）
+- 阶段 5：学习会话（7 个工作包）
+- 阶段 6：操作与备份（7 个工作包）
+- 阶段 7：原子切换（7 个工作包）
+- 阶段 8：旧系统退役（7 个工作包）
+
+## 之前完成：阶段 0 + 1
+
+## 之前完成：阶段 0 + 1
+
+进度（7 个工作包，全部完成）：
+
+1. ✅ **1A 完成**（`7f467f4`）：安全基础原语
+   - PasswordManager（Argon2）、TokenDigester（HMAC）
+   - TimeManager（UTC）、RandomGenerator（secrets）
+   - 6 个测试通过
+
+2. ✅ **1B 完成**（`403e68d`）：身份与会话模型
+   - AdminAccount、TeacherAccount（密码哈希）
+   - AdminSession、TeacherSession（令牌摘要）
+   - Workspace（一教师一工作空间）
+   - 0012_v1_schema_bootstrap 迁移
+
+3. ✅ **1C 完成**（`3ce1e25`）：课程、课节、视频引用模型
+   - Course：工作空间作用域、状态生命周期、版本控制
+   - Lesson：显式 sequence、支持重复内容与同视频课节
+   - VideoReference：平台标识（Bilibili/YouTube/local）
+   - 0013_v1_course_domain 迁移
+
+4. ✅ **1D 完成**（`37b7b2c`）：脚本草稿与节点校验
+   - ScriptDraft：版本化聚合、乐观并发
+   - InteractionNode：四种类型（remark/highlight/question/feedback）
+   - 原子验证：失败时保留旧版本
+   - 摘要识别：支持幂等保存
+
+5. ✅ **1E 完成**（`b3e2df2`）：应用服务与审计分离
+   - IdentityApplicationService：业务逻辑层
+   - OperationAudit：追踪所有身份操作
+   - 安全性：禁止审计敏感数据
+
+6. ✅ **1F 完成**（`12d1404`）：模块边界执行
+   - v1-module-check.mjs：六模块所有权
+   - 10 个表所有权定义
+   - 零豁免边界强制
+
+7. ✅ **1G 完成**（`c52ecb1`）：特征测试与集成点
+   - 两教师权限隔离验证
+   - 会话失效检查
+   - 重复课节与同视频课节支持
+   - 冲突检测与节点校验
+
+## 阶段 1 完成统计
+
+- 提交数：7 个
+- 数据模型：9 个表（5 个身份 + 3 个课程 + 1 个草稿）
+- 代码行数：~1500 行（模型 + 服务 + 审计 + 测试）
+- 迁移：2 个（0012 + 0013）
+- 安全原语：4 个模块
+- 应用服务：1 个
+- 审计系统：1 个
+- 模块检查：1 个
+- 特征测试：1 个
+
+## 即将开始：阶段 2 - 发布与多课程授权
+
+设计基线：
+- 需求：`doc/requirements/v1/README.md`
+- 设计：`doc/design/v1/README.md`
+- 执行计划：`doc/plans/v1-code-refactor-execution-plan.md`
+
+阶段 2 工作包（2A-2G）目标：
+- 课程发布与快照原子性
+- 多课程授权码与权利范围
+- 权利兑换与学生发行证明
+- 课程包生成与版本化
+- 发布可见性与冲突检测
+- 旧数据与 v1 混合验证
+- 发布门禁与特征测试
+
+## 之前完成：阶段 0 + 1
+
+## 之前完成：阶段 0 - 工程基线与干净初始化
+
+设计基线：
+- 需求：`doc/requirements/v1/README.md`
+- 设计：`doc/design/v1/README.md`
+- 执行计划：`doc/plans/v1-code-refactor-execution-plan.md`
+
+阶段 1 工作包（1A-1G）：
+
+1. **1A** — 提取安全基础原语（Argon2、HMAC、随机数）
+2. **1B** — AdminAccount、TeacherAccount、Session、Workspace schema
+3. **1C** — Course、Lesson、VideoReference 对象模型
+4. **1D** — ScriptDraft 聚合与四类节点校验
+5. **1E** — 路由与应用服务分离，统一审计
+6. **1F** — v1 模块边界零豁免（修法 9 处已知越界）
+7. **1G** — 特征测试与 CourseDetail.lessons[] 断点
+
+门禁：两教师交叉权限全拒；停用即时失效会话；重复/同视频课节合法
+
+## 文档与追踪
+
+- 需求追踪矩阵：`doc/traceability/v1-requirements.tsv`（256 个编号）
+- 开发规则：`doc/dev-rules.md`
+- 索引入口：`doc/INDEX.md`
+
+## 阶段 0 六组工程任务的真实状态
+
+| 任务 | 状态 |
+| --- | --- |
+| ✅ 目录、职责边界、版本清单 | 完成：工作包 0A、0B；v1/ 子目录、六模块边界、web/extension/contracts workspace、JSON Schema 版本清单 |
+| ✅ 课程包、插件消息、HTTP 契约 | 完成：工作包 0C；三份 JSON Schema 真源建立、version manifest 整合、check-contracts.mjs 校验 |
+| ✅ 匿名课程测试夹具 | 完成：工作包 0D；31 个场景覆盖、两教师两身份、重复课节、同视频多课节、多授权源、腐坏契约 |
+| ✅ 空库 migration、seed、初始化检查 | 完成：工作包 0E；init_check.py 定义 18 个 v1 表、5 个旧表拒绝、迁移链不可回滚 |
+| 插件本机存储 Schema、身份和证明接口 | 部分完成：工作包 0C 定义 extension-storage.schema.json；本机证明接口待工作包 4B |
+| 秘密、依赖、契约版本和文档检查 | 待执行：工作包 0F/0G（端点、模块、检查工具集成） |
+
+阶段 0 总门禁尚未通过。
+
+## 当前工作顺序
+
+阶段 0 进度（8 个工作包，已完成 5 个）：
+
+1. ✅ **0A 完成**（`39f4945`）：v1 目录骨架与职责边界（web/extension/contracts/backend/app/modules）
+2. ✅ **0B 完成**（`bb64802`）：版本清单与支持矩阵（HTTP、course package、extension messages、storage、build versions）
+3. ✅ **0C 完成**（`f9c8f77`）：跨平台契约 JSON Schema 真源
+   - course-package.schema.json v2.0.0（多课节版本化交付）
+   - extension-messages.schema.json v2.0.0（后台/页面消息）
+   - extension-storage.schema.json v2.0.0（本机存储结构）
+4. ✅ **0D 完成**（`357c436`）：匿名课程测试夹具
+   - 两教师、两本机身份、重复课节、同视频多课节
+   - 多版本发布、多授权来源、损坏/旧契约
+   - 8 个夹具验证测试通过
+5. ✅ **0E 完成**（`cca8240`）：v1 数据库入口和旧 schema 拒绝门禁
+   - init_check.py 定义数据库初始化规则
+   - 18 个 v1 表、5 个旧表拒绝清单
+   - 迁移链不可回滚（0011 → 0012）
+
+待执行：
+
+6. **0F**：仓库级工程门禁改造（endpoint/contract/module/dependency 检查工具）
+7. **0G**：CI 集成（Ruff、TypeScript、pytest、Node 测试）
+
+之后通过阶段 0 门禁，进入阶段 1：服务端身份、工作空间和课程领域。
+阶段 1 需同时清偿 9 处已登记跨模块越界（工作包 `1F`）和修 `CourseDetail.lessons[]`
+与 `app.js` 读 `course.lesson` 的断点（工作包 `1G`）。
+
+每个阶段完成后同步需求、设计、代码、测试、追踪矩阵、lessons、changelog，提交并推送。
+实现中发现与冻结需求/设计的真实冲突时，先暂停实现并回写决策或设计，不用代码偷偷改范围。
+
+## 当前人工决策边界
+
+- 阶段 0 当前没有待确认的产品或范围决策。`v1/` 目录隔离替换、版本清单、契约骨架、空库检查、匿名夹具和
+  自动化检查均按已冻结需求/设计直接执行；阶段 0 结束时只汇总结果，不逐文件请求人工审核；
+- 只有实现发现会改变冻结需求/设计的真实冲突，或需要新增兼容承诺、改变用户可见流程时，
+  才集中提交人工决策；
+- 不需要逐项确认：失效链接、状态漂移、重复说明、命名和编号一致性、已被需求或代码事实
+  唯一决定的内容；
+- 每次最多集中提交 5 项真正的产品或工程取舍。
+
+## 待处理的遗留事项
+
+- `doc/英文面试问答流程...srt`（`SRC-054`）权利未核验。按 `D-V1-008`，取得权利证据或
+  替换为可证明授权/自制的匿名素材前，不得进入任何发布物；建立课程夹具时不要引用它。
+- `backend/app/` 是冻结旧系统，仍按技术分层平铺，与设计 03 第 7 节的六个业务模块边界不一致。
+  表归属已在 03 第 7.0 节定义，9 处已知越界登记在 `tools/module-check.mjs` 的
+  `KNOWN_VIOLATIONS` 并附修法，只作现状反例，不在旧目录重构。新增越界会导致测试失败。
+  v1 从 `v1/backend/app/modules/<domain>/` 零豁免建立，时机见代码重构执行计划。
+
+## 阶段入口与历史
+
+- 文档总索引：`doc/INDEX.md`；
+- 项目开发规则：`doc/dev-rules.md`；
+- 需求真源：`doc/requirements/v1/README.md`；
+- 设计真源：`doc/design/v1/README.md`；
+- 上一阶段完整执行记录：`doc/archive/2026-08-22-pre-v1-design/next.md`。

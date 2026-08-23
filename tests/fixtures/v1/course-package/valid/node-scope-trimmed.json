@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "packageType": "course-release",
+  "courseId": "course-0002",
+  "releaseId": "release-0002",
+  "releaseNumber": 1,
+  "title": "示例课程二",
+  "packageDigest": "sha256:0000000000000000000000000000000000000000000000000000000000000002",
+  "authorizedScope": {
+    "type": "node",
+    "lessonIds": ["lesson-0011", "lesson-0012"],
+    "nodeIds": ["node-0011"]
+  },
+  "lessons": [
+    {
+      "lessonId": "lesson-0011",
+      "releaseLessonId": "release-lesson-0011",
+      "order": 1,
+      "title": "示例课节甲",
+      "videoRef": {
+        "platform": "bilibili",
+        "videoId": "BV1example010",
+        "partId": null
+      },
+      "nodes": [
+        {
+          "nodeId": "node-0011",
+          "enabled": true,
+          "family": "practice",
+          "interaction": "choice",
+          "stateCompatibilityKey": "choice-v1",
+          "trigger": { "kind": "time_cross", "timeSeconds": 30 },
+          "effects": { "pause": true },
+          "display": {
+            "title": "示例选择题",
+            "prompt": "唯一被授权的节点。",
+            "options": [
+              { "optionId": "opt-1", "label": "示例选项一" },
+              { "optionId": "opt-2", "label": "示例选项二" }
+            ]
+          },
+          "evaluation": { "correctOptionId": "opt-1" }
+        }
+      ]
+    },
+    {
+      "lessonId": "lesson-0012",
+      "releaseLessonId": "release-lesson-0012",
+      "order": 2,
+      "title": "示例课节乙",
+      "videoRef": {
+        "platform": "bilibili",
+        "videoId": "BV1example011",
+        "partId": 1
+      },
+      "nodes": []
+    }
+  ]
+}

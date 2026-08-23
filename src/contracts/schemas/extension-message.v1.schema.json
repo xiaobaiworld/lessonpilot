@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://knownmap.com/contracts/extension-message.v1.schema.json",
+  "title": "KnownMap 插件内部消息 v1",
+  "description": "popup、content script 和 background 之间的消息信封。真源见 doc/design/v1/06-interface-contracts.md 第 6 节。请求与响应是两个不同形状，由 oneOf 区分：请求带 payload，响应带 ok 和 data/error。",
+  "oneOf": [
+    { "$ref": "#/$defs/request" },
+    { "$ref": "#/$defs/response" }
+  ],
+  "$defs": {
+    "messageId": {
+      "description": "单次消息的关联标识。响应必须回带原值，用于丢弃旧上下文响应和重复消息。",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80,
+      "pattern": "^[\\x21-\\x7E]+$"
+    },
+    "operation": {
+      "description": "白名单操作（06 第 6.2 节）。接收方只执行清单内操作，未知操作进入可恢复错误路径而非默默忽略。",
+      "enum": [
+        "course.redeem",
+        "course.install",
+        "course.list",
+        "course.update.check",
+        "course.update.apply",
+        "learning.load",
+        "learning.save",
+        "preview.start",
+        "preview.end"
+      ]
+    },
+    "source": {
+      "description": "发起方。background 不信任它做权限判断，只用于路由和排障 —— 页面消息可伪造 source。",
+      "enum": ["popup", "content", "teacher-preview", "background"]
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "messageId", "operation", "source", "payload"],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "messageId": { "$ref": "#/$defs/messageId" },
+        "operation": { "$ref": "#/$defs/operation" },
+        "source": { "$ref": "#/$defs/source" },
+        "payload": {
+          "description": "操作专有载荷。各操作的具体形状由 background 在处理时按操作校验，不在信封层展开 —— 信封只保证可路由和可拒绝。",
+          "type": "object"
+        }
+      }
+    },
+    "response": {
+      "description": "响应有且只有两种形状：成功带 data、失败带 error。写成两个完整变体而不是 if/then 补丁 —— 这样每个变体自己就是封闭的，且 ajv strict 模式下 required 的字段都在同一 schema 内声明。设计 06 第 6.1 节要求调用方不能直接读 result.error 判断成败。",
+      "oneOf": [
+        { "$ref": "#/$defs/successResponse" },
+        { "$ref": "#/$defs/errorResponse" }
+      ]
+    },
+    "successResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "messageId", "operation", "ok", "data"],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "messageId": { "$ref": "#/$defs/messageId" },
+        "operation": { "$ref": "#/$defs/operation" },
+        "ok": { "const": true },
+        "data": { "type": "object" }
+      }
+    },
+    "errorResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "messageId", "operation", "ok", "error"],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "messageId": { "$ref": "#/$defs/messageId" },
+        "operation": { "$ref": "#/$defs/operation" },
+        "ok": { "const": false },
+        "error": { "$ref": "#/$defs/error" }
+      }
+    },
+    "error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["errorCode", "retryable"],
+      "properties": {
+        "errorCode": {
+          "description": "稳定错误码。不含异常堆栈、内部路径、授权码原文或本机身份。",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[A-Z][A-Z0-9_]*$"
+        },
+        "retryable": { "type": "boolean" },
+        "messageKey": {
+          "description": "客户端本地化键，不是给用户看的原文。",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "pattern": "^[a-z][a-z0-9.]*$"
+        }
+      }
+    }
+  }
+}

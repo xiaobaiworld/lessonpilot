@@ -159,20 +159,19 @@ def test_admin_auth_operation_logs_do_not_contain_passwords() -> None:
 def test_admin_teacher_endpoints_require_admin_session() -> None:
     app = make_app()
     with app.state.session_factory() as session:
-        teacher = session.scalar(
-            select(Teacher).where(Teacher.login_name == "teacher-test-01")
-        )
+        teacher = session.scalar(select(Teacher).where(Teacher.login_name == "teacher-test-01"))
         teacher_id = teacher.id
 
     with TestClient(app) as client:
         assert client.get("/api/v1/admin/teachers").status_code == 401
-        assert client.post(
-            "/api/v1/admin/teachers",
-            json={"login_name": "teacher-02", "display_name": "Teacher 02"},
-        ).status_code == 401
-        assert client.post(
-            f"/api/v1/admin/teachers/{teacher_id}/reset-password"
-        ).status_code == 401
+        assert (
+            client.post(
+                "/api/v1/admin/teachers",
+                json={"login_name": "teacher-02", "display_name": "Teacher 02"},
+            ).status_code
+            == 401
+        )
+        assert client.post(f"/api/v1/admin/teachers/{teacher_id}/reset-password").status_code == 401
 
         teacher_login = client.post(
             "/api/v1/auth/login",
@@ -185,9 +184,7 @@ def test_admin_teacher_endpoints_require_admin_session() -> None:
 def test_admin_lists_teachers_with_published_course_counts() -> None:
     app = make_app()
     with app.state.session_factory() as session:
-        teacher = session.scalar(
-            select(Teacher).where(Teacher.login_name == "teacher-test-01")
-        )
+        teacher = session.scalar(select(Teacher).where(Teacher.login_name == "teacher-test-01"))
         workspace = session.scalar(
             select(Workspace).where(Workspace.owner_teacher_id == teacher.id)
         )
@@ -264,9 +261,7 @@ def test_admin_creates_teacher_once_and_returns_temporary_password_only_in_respo
         assert verify_password(temporary_password, teacher.password_hash) is True
         assert workspace is not None
         rows = session.scalars(
-            select(OperationLog).where(
-                OperationLog.action == "admin.teachers.create"
-            )
+            select(OperationLog).where(OperationLog.action == "admin.teachers.create")
         ).all()
 
     assert teacher.password_hash == original_hash
@@ -288,18 +283,14 @@ def test_admin_creates_teacher_once_and_returns_temporary_password_only_in_respo
 def test_admin_resets_teacher_password_without_reactivating_teacher() -> None:
     app = make_app()
     with app.state.session_factory() as session:
-        teacher = session.scalar(
-            select(Teacher).where(Teacher.login_name == "teacher-test-01")
-        )
+        teacher = session.scalar(select(Teacher).where(Teacher.login_name == "teacher-test-01"))
         teacher.status = "disabled"
         teacher_id = teacher.id
         session.commit()
 
     with TestClient(app) as client:
         login_admin(client)
-        response = client.post(
-            f"/api/v1/admin/teachers/{teacher_id}/reset-password"
-        )
+        response = client.post(f"/api/v1/admin/teachers/{teacher_id}/reset-password")
 
         assert response.status_code == 200
         payload = response.json()
@@ -307,9 +298,7 @@ def test_admin_resets_teacher_password_without_reactivating_teacher() -> None:
         assert payload["teacher"]["status"] == "disabled"
         assert "password_hash" not in response.text
 
-        missing = client.post(
-            "/api/v1/admin/teachers/missing-teacher/reset-password"
-        )
+        missing = client.post("/api/v1/admin/teachers/missing-teacher/reset-password")
         assert missing.status_code == 404
         assert missing.json()["error"]["code"] == "RESOURCE_NOT_FOUND"
 

@@ -1,0 +1,21 @@
+{
+  "name": "@v1/web",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "description": "v1 teacher and admin web applications",
+  "workspaces": [
+    "teacher",
+    "admin",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.0",
+    "vite": "^5.0.0"
+  }
+}

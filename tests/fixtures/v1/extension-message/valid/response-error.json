@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "messageId": "msg-0002",
+  "operation": "course.install",
+  "ok": false,
+  "error": {
+    "errorCode": "GRANT_CODE_INVALID",
+    "retryable": false,
+    "messageKey": "grant.code.invalid"
+  }
+}

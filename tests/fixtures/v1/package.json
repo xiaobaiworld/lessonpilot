@@ -1,0 +1,7 @@
+{
+  "name": "@v1/fixtures",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "description": "v1 anonymous test fixtures"
+}

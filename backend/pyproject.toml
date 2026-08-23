@@ -16,8 +16,16 @@ dependencies = [
 [dependency-groups]
 dev = [
   "httpx>=0.28,<1",
+  # 跨语言契约校验（ARCH-DEC-02）。放在 dev 组而非运行依赖：后端只生成课程包，
+  # 校验由插件执行；Python 侧校验目前只服务契约双端一致性检查。
+  # 后端运行时开始按 Schema 校验请求或包时再移入 dependencies。
+  "jsonschema>=4.23,<5",
   "pytest>=9.0.3,<10",
   "pytest-cov>=6,<7",
+  # 此前只有 [tool.ruff] 配置而没有声明依赖：本机能跑是因为解析到环境里已有的版本，
+  # 但 CI 用 uv sync --frozen 时 uv run ruff 会失败。0F 要求静态检查进门禁，
+  # 所以必须显式声明并锁定（DEV-DEP-001）。
+  "ruff>=0.13,<0.14",
 ]
 
 [tool.pytest.ini_options]

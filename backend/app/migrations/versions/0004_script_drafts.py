@@ -28,7 +28,9 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("lesson_id", name="uq_script_drafts_lesson_id"),
     )
-    op.create_index(op.f("ix_script_drafts_lesson_id"), "script_drafts", ["lesson_id"], unique=False)
+    op.create_index(
+        op.f("ix_script_drafts_lesson_id"), "script_drafts", ["lesson_id"], unique=False
+    )
 
 
 def downgrade() -> None:

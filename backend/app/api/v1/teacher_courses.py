@@ -219,7 +219,9 @@ def create_course_lesson(
     return LessonPublic.model_validate(lesson)
 
 
-@router.post("/{course_id}/publish", response_model=PublishResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/{course_id}/publish", response_model=PublishResponse, status_code=status.HTTP_201_CREATED
+)
 def publish_course(
     course_id: str,
     request: Request,
