@@ -39,10 +39,11 @@ KnownMap 把老师已有的 B 站录播课变成可在原视频页面运行的�
 插件已经能够在指定 B 站页面定位播放器、监听时间、暂停、seek、卸载注入 UI，并通过授权码下载和保存课程。工具栏左键首页展示学生授权码入口、当前课程和教师登录入口；空消息、异常返回和超时会恢复表单并提示重新加载。完整边界验收和从空数据库开始的端到端闭环仍未完成。
 
 当前开发阶段是 **v1 重构阶段 0：工程基线与干净初始化**。v1 需求（`1.0.2`）与设计（01–09）
-已冻结，开发计划、代码重构执行计划和测试计划已建立。
+已冻结，开发计划、目录隔离替换决策、代码重构执行计划和测试计划已建立。
 
 上述已接通的能力属于 v0.9.1 原型基线。按 `D-V1-012`，v1 从空数据库开始，不迁移旧服务端
-业务数据和学生本机数据；旧代码按设计逐项复用，不整体保留也不整体推倒。
+业务数据和学生本机数据；新系统在同仓库 `v1/` 目录独立建立，旧系统冻结功能和结构变更，
+完成真实切换、观察和回退验证后再独立退役。
 
 教师工作台和 FastAPI 已在 `knownmap.com` 生产运行；插件课程 API 仍固定指向本机
 `127.0.0.1:8000`。根目录 [`next.md`](next.md) 记录当前切片和人工决策边界，
@@ -181,7 +182,8 @@ npm test
 | --- | --- |
 | [`doc/requirements/v1/README.md`](doc/requirements/v1/README.md) | v1 需求真源（`1.0.2`，已冻结） |
 | [`doc/design/v1/README.md`](doc/design/v1/README.md) | v1 设计真源（01–09，已冻结） |
-| [`doc/plans/v1-development-plan.md`](doc/plans/v1-development-plan.md) | 阶段 0–7 目标与产品门禁 |
+| [`doc/plans/v1-development-plan.md`](doc/plans/v1-development-plan.md) | 阶段 0–8 目标与产品门禁 |
+| [`doc/plans/v1-replacement-plan.md`](doc/plans/v1-replacement-plan.md) | 已接受的 `v1/` 目录隔离替换决策与资产处置依据 |
 | [`doc/plans/v1-code-refactor-execution-plan.md`](doc/plans/v1-code-refactor-execution-plan.md) | 代码目录、工作包顺序与提交边界 |
 | [`doc/plans/v1-test-plan.md`](doc/plans/v1-test-plan.md) | 测试矩阵与发布门禁 |
 | [`doc/dev-rules.md`](doc/dev-rules.md) | 项目专有开发规则 |

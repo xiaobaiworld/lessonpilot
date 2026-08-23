@@ -73,17 +73,17 @@ FastAPI 是一个部署单元、一个事务边界，内部分六个业务模块
 机器可读副本在 `tools/module-check.mjs`。模型类仅作类型标注（例如把已认证的 `Teacher`
 对象作为参数类型）不算跨模块访问；`select`、`session.get`、按列过滤和构造实例才算。
 
-当前 `backend/app/` 仍是按技术分层的平铺结构，与上述模块边界不一致，已有 9 处越界
-登记在 `KNOWN_VIOLATIONS` 并附修法，属阶段 1 重构范围。**新增越界会导致测试失败**：
+当前 `backend/app/` 是冻结旧系统，仍按技术分层平铺，已有 9 处越界登记在 `KNOWN_VIOLATIONS`
+并附修法。它们作为现状反例和回归基线保留，不在旧目录实施结构重构；**旧系统新增越界仍会导致测试失败**：
 
 - 需要另一个模块的数据时，调用该模块的应用服务，不 import 它的模型或仓储；
 - 新增服务或仓储必须在 `FILE_OWNER` 登记模块归属；
 - 新增模型必须同时更新 `MODEL_OWNER` 和设计 03 第 7.0 节的表归属表；
-- 修好一处越界后从 `KNOWN_VIOLATIONS` 删除该条 —— 白名单过期同样会失败，
-  防止它变成永久豁免。
+- 只有确因 P0、安全或生产可用性修复顺带消除旧越界时，才从 `KNOWN_VIOLATIONS` 删除该条；
+  白名单过期同样会失败，防止它继续扩张。
 
-重构为 `modules/<domain>/` 的时机与范围由开发计划阶段 1 决定。届时检查改为按目录判定，
-约束本身不变。
+v1 后端从 `v1/backend/app/modules/<domain>/` 干净建立，阶段 1 起按目录判定归属且**零豁免**；
+旧系统白名单不能复制到 v1。跨模块事务通过拥有方应用服务组合，约束本身不变。
 
 ## 6. 客户端边界
 
@@ -132,6 +132,11 @@ cd backend && uv run pytest               # 后端测试
 
 用 `npm test` 而不是直接写 `node --test tests/*.test.js`：测试同时有 `.test.js`（CommonJS）
 和 `.test.mjs`（ESM，文档一致性检查需要 `import` 工具模块），单个 glob 会静默漏掉一类。
+
+阶段 0 建立 `v1/` 后，根 `npm test` 必须升级为仓库总入口，同时覆盖冻结旧 Node 测试、文档检查和
+v1 Node/TypeScript 测试；测试发现本身必须有清单或反例自测。旧后端使用
+`cd backend && uv run pytest` 保留基线，v1 后端使用 `cd v1/backend && uv run pytest`；
+依赖、端点、模块、契约、秘密和发布清单检查必须显式扫描 v1，不能以旧目录全绿代替 v1 证据。
 
 依赖：Node 侧 `npm ci`（`ajv` 用于契约校验），后端 `uv sync`（含 `jsonschema`、`ruff`）。
 两侧都必须从仓库内解析，不依赖开发机全局安装（`DEV-DEP-001`）。
