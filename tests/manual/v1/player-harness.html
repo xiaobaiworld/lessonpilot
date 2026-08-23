@@ -46,6 +46,8 @@
       <div class="bpx-player-video-wrap">
         <video id="main" muted playsinline></video>
       </div>
+      <!-- 全屏按钮：验收脚本点它进入真实全屏。playwright 的 click 是可信手势 -->
+      <button id="fullscreen">全屏</button>
     </div>
 
     <script>
@@ -80,6 +82,10 @@
        */
       main.play();
       decoy.play();
+
+      // 全屏整个播放器容器，和 B 站的行为一致
+      document.getElementById('fullscreen').onclick = () =>
+        document.querySelector('.bpx-player-container').requestFullscreen();
     </script>
   </body>
 </html>

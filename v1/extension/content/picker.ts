@@ -78,7 +78,8 @@ export class CandidatePicker {
       panel.append(actions);
 
       root.append(panel);
-      document.body.append(this.host);
+      // 同学习窗口：全屏时必须挂进全屏元素，否则不可见
+      (document.fullscreenElement ?? document.body).append(this.host);
       panel.querySelector<HTMLElement>('button')?.focus();
     });
   }

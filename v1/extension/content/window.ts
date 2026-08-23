@@ -28,6 +28,7 @@ const OUTCOME_TEXT: Record<NodeOutcome['result'], string> = {
 export class LearningWindow {
   private host: HTMLElement | null = null;
   private root: ShadowRoot | null = null;
+  private detachFullscreen: (() => void) | null = null;
 
   constructor(
     private callbacks: WindowCallbacks,
@@ -150,12 +151,32 @@ export class LearningWindow {
     style.textContent = this.styleText;
     this.root.append(style);
 
-    document.body.append(this.host);
+    this.mount();
+
+    /*
+     * 学生进出全屏时把窗口搬到正确的父节点。
+     * 全屏期间只有全屏元素的子树参与渲染，挂在 body 上的窗口有尺寸但
+     * 看不见——学生只会看到画面冻住，没有任何提示，也没法继续。
+     */
+    const onFullscreenChange = () => this.mount();
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    this.detachFullscreen = () =>
+      document.removeEventListener('fullscreenchange', onFullscreenChange);
+
     return this.root;
+  }
+
+  /** 挂到当前该挂的父节点：全屏时是全屏元素，否则是 body */
+  private mount(): void {
+    if (!this.host) return;
+    const parent = document.fullscreenElement ?? document.body;
+    if (this.host.parentNode !== parent) parent.append(this.host);
   }
 
   /** 移除窗口与宿主节点。离开页面时必须调用，否则 SPA 切走后残留 DOM */
   destroy(): void {
+    this.detachFullscreen?.();
+    this.detachFullscreen = null;
     this.host?.remove();
     this.host = null;
     this.root = null;

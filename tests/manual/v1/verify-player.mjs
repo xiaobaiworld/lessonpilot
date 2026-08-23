@@ -219,6 +219,65 @@ async function main() {
       check('作答写入本机', recorded.done > 0, `${recorded.done} 个节点`);
       check('播放位置写入本机', recorded.position > 0, `${recorded.position}s`);
 
+      /*
+       * 全屏。
+       *
+       * 全屏期间只有全屏元素的子树参与渲染，挂在 body 上的窗口有尺寸却
+       * 不可见——学生只会看到画面冻住。用命中测试判断真实可见性，
+       * 光看 getBoundingClientRect 是看不出来的。
+       */
+      await page.click('#fullscreen');
+      await page.waitForTimeout(800);
+      check('进入真实全屏',
+        (await page.evaluate(() => !!document.fullscreenElement)) === true);
+
+      // 让第二个节点到点
+      const secondAppeared = await waitForWindow(page, 60000);
+      check('全屏中节点仍触发', secondAppeared);
+
+      if (secondAppeared) {
+        const reachable = await page.evaluate(() => {
+          const host = document.querySelector('#knownmap-learning-window');
+          const panel = host?.shadowRoot?.querySelector('.km-panel');
+          if (!panel) return { visible: false, reason: '无面板' };
+          const r = panel.getBoundingClientRect();
+          // 命中测试：全屏下不可见的元素，中心点会命中全屏元素而不是它自己
+          const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+          return {
+            visible: hit === host || host?.contains(hit),
+            inFullscreenSubtree: document.fullscreenElement?.contains(host) ?? false,
+          };
+        });
+        check('全屏中窗口真实可见（命中测试）', reachable.visible);
+        check('窗口已挂进全屏元素子树', reachable.inFullscreenSubtree);
+
+        await page.evaluate(() => {
+          document
+            .querySelector('#knownmap-learning-window')
+            .shadowRoot.querySelector('.km-actions .km-primary')
+            .click();
+        });
+        await page.waitForTimeout(500);
+        await page.evaluate(() => {
+          document
+            .querySelector('#knownmap-learning-window')
+            .shadowRoot.querySelector('.km-actions .km-primary')
+            ?.click();
+        });
+        await page.waitForTimeout(1000);
+        check('全屏中作答后恢复播放',
+          await page.evaluate(() => !document.getElementById('main').paused));
+      }
+
+      // 退出全屏后窗口要能挪回 body
+      await page.evaluate(() => document.exitFullscreen());
+      await page.waitForTimeout(600);
+      check('退出全屏未留下孤立窗口',
+        (await page.evaluate(() => {
+          const host = document.querySelector('#knownmap-learning-window');
+          return !host || host.parentNode === document.body;
+        })) === true);
+
       // 刷新后不重复弹：等过节点时刻仍无窗口才算通过
       await page.reload({ waitUntil: 'domcontentloaded' });
       await page.waitForFunction(() => document.querySelectorAll('video').length === 2, {
