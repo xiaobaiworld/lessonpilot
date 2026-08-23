@@ -1,22 +1,6 @@
-/* 设计令牌与登录样式来自 shared，是 v1 视觉真源 */
-@import '../../shared/src/styles/tokens.css';
-@import '../../shared/src/styles/auth.css';
-@import '../../shared/src/styles/workspace.css';
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Tailwind preflight 会重置 body，令牌里的 background/color 需要重申 */
-body {
-  margin: 0;
-  background: var(--paper);
-  color: var(--ink);
-  font-family: "Avenir Next", "PingFang SC", "Microsoft YaHei", sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-#root {
-  min-height: 100vh;
-}
+/*
+ * 直接复用已上线验证的样式表，不另抄一份。
+ * 阶段 8 删除旧系统时，把 styles.css 移进 v1/ 并更新这一行路径。
+ */
+@import '../../../../teacher-web/styles.css';
+@import '../../shared/src/styles/supplement.css';

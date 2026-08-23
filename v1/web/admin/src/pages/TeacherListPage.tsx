@@ -66,8 +66,8 @@ export const TeacherListPage: React.FC<TeacherListPageProps> = ({
         )}
 
         {!loading && teachers.length > 0 && (
-          <div className="data-table-wrap">
-            <table className="data-table">
+          <div className="table-wrap">
+            <table>
               <thead>
                 <tr>
                   <th>登录名</th>
@@ -86,8 +86,8 @@ export const TeacherListPage: React.FC<TeacherListPageProps> = ({
                       <span
                         className={
                           teacher.status === 'active'
-                            ? 'badge badge-active'
-                            : 'badge badge-muted'
+                            ? 'status-pill is-active'
+                            : 'status-pill is-muted'
                         }
                       >
                         {teacher.status === 'active' ? '启用' : '停用'}

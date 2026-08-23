@@ -146,8 +146,8 @@ export interface EmptyStateProps {
 }
 
 export const EmptyState: React.FC<EmptyStateProps> = ({ message, children }) => (
-  <div className="empty-state">
-    <p>{message}</p>
+  <div className="table-state">
+    {message}
     {children}
   </div>
 );

@@ -79,8 +79,8 @@ export const CourseDetailPage: React.FC<CourseDetailPageProps> = ({
             {lessons.length === 0 ? (
               <EmptyState message="这门课程还没有课节" />
             ) : (
-              <div className="data-table-wrap">
-                <table className="data-table">
+              <div className="table-wrap">
+                <table>
                   <thead>
                     <tr>
                       <th>顺序</th>
