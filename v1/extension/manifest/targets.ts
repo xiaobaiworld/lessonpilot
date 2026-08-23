@@ -13,6 +13,19 @@ export interface BuildTarget {
   apiOrigin: string;
   /** 除 B 站外额外需要的 host permission */
   extraHostPermissions: string[];
+  /**
+   * 额外注入内容脚本的来源。
+   *
+   * 只给本机目标用：B 站不向自动化浏览器下发 <video>，播放器路径无法在
+   * 真实 B 站页面上自动验。本机构建额外注入一个带真实 <video> 的夹具页面，
+   * 让注入按真实 manifest 规则发生。生产目标为空。
+   *
+   * 注意模式里不能写端口：Chrome 匹配模式不支持锁定端口，带端口的模式
+   * 非法，整条内容脚本会被拒绝注入且没有报错。旧 manifest 在
+   * src/manifest.json 里记过同一条。所以只能匹配到主机，
+   * 由 currentVideoId() 的路径判断把范围收窄回 /video/BV...。
+   */
+  harnessMatches: string[];
 }
 
 export const TARGETS: Record<TargetName, BuildTarget> = {
@@ -20,11 +33,14 @@ export const TARGETS: Record<TargetName, BuildTarget> = {
     name: 'local',
     apiOrigin: 'http://127.0.0.1:8000',
     extraHostPermissions: ['http://127.0.0.1:8000/*'],
+    harnessMatches: ['http://127.0.0.1/*'],
   },
   production: {
     name: 'production',
     apiOrigin: 'https://knownmap.com',
     extraHostPermissions: ['https://knownmap.com/*'],
+    // 生产包绝不注入夹具来源
+    harnessMatches: [],
   },
 };
 
@@ -38,7 +54,11 @@ export function buildManifest(target: BuildTarget): Record<string, unknown> {
     description: '把 B 站课程变成可互动的学习路径。',
     // 只申请真正用到的权限：课程库读写需要 storage，其余都不需要
     permissions: ['storage'],
-    host_permissions: ['https://www.bilibili.com/*', ...target.extraHostPermissions],
+    host_permissions: [
+      'https://www.bilibili.com/*',
+      ...target.extraHostPermissions,
+      ...target.harnessMatches,
+    ],
     action: {
       default_title: '打开 KnownMap',
       default_popup: 'popup/index.html',
@@ -50,7 +70,10 @@ export function buildManifest(target: BuildTarget): Record<string, unknown> {
     content_scripts: [
       {
         // 只在投稿视频页注入；其它页面不加载任何课程代码
-        matches: ['https://www.bilibili.com/video/*'],
+        matches: [
+          'https://www.bilibili.com/video/*',
+          ...target.harnessMatches,
+        ],
         js: ['content/index.js'],
         css: ['content/window.css'],
         run_at: 'document_idle',

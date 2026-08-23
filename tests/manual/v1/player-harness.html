@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>播放器夹具</title>
+    <!--
+      播放器路径的验收夹具。
+
+      B 站不向自动化浏览器下发 <video>，所以到点暂停、作答、恢复播放这条
+      路径无法在真实 B 站页面上自动验。这个页面提供真实的 <video> 元素和
+      与 B 站一致的容器结构（.bpx-player-video-wrap），路径也伪装成
+      /video/BV...，让内容脚本按平常方式接管。
+
+      这样验到的是：宿主适配找元素、绑事件、暂停/恢复；运行时调度；
+      学习窗口渲染与 Shadow DOM 隔离。唯一没覆盖的是 B 站自己那套 DOM，
+      而选择器本来就是从它那里取的。
+    -->
+    <style>
+      body {
+        margin: 0;
+        background: #18191c;
+        font-family: -apple-system, sans-serif;
+      }
+      .bpx-player-container {
+        width: 960px;
+        margin: 40px auto;
+      }
+      /* 推荐位小视频：验证适配器不会绑错元素 */
+      .sidebar-video {
+        width: 160px;
+        margin: 12px auto;
+      }
+      video {
+        width: 100%;
+        display: block;
+        background: #000;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sidebar-video">
+      <video id="decoy" muted playsinline></video>
+    </div>
+
+    <div class="bpx-player-container">
+      <div class="bpx-player-video-wrap">
+        <video id="main" muted playsinline></video>
+      </div>
+    </div>
+
+    <script>
+      // 用 canvas 生成一段可播放的视频流，不依赖任何外部资源
+      function fakeStream(width, height) {
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const context = canvas.getContext('2d');
+        setInterval(() => {
+          context.fillStyle = '#123b2c';
+          context.fillRect(0, 0, width, height);
+        }, 100);
+        return canvas.captureStream(10);
+      }
+
+      // 主播放器面积更大，适配器应当选它
+      const main = document.getElementById('main');
+      const decoy = document.getElementById('decoy');
+      main.srcObject = fakeStream(960, 540);
+      decoy.srcObject = fakeStream(160, 90);
+
+      /*
+       * 让视频真的播放，currentTime 自然推进。
+       *
+       * 试过在主世界重定义 currentTime 让位置可跳转，但内容脚本运行在隔离
+       * 世界，看到的是原生属性，读到的永远是 0。隔离正是内容脚本的设计，
+       * 绕不过去——所以夹具只能让时间真的走。
+       *
+       * MediaStream 支撑的 video 的 currentTime 是播放开始以来的时长，
+       * 所以到达节点时刻需要等相应的秒数。验收脚本据此设置超时。
+       */
+      main.play();
+      decoy.play();
+    </script>
+  </body>
+</html>
