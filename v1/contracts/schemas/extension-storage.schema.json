@@ -1,0 +1,148 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://knownmap.local/schema/v2/extension-storage.schema.json",
+  "title": "KnownMap Extension Storage Schema v2.0.0",
+  "description": "Extension local storage root structure - zero tolerance for legacy storage format",
+  "type": "object",
+  "required": ["storage_schema_version"],
+  "properties": {
+    "storage_schema_version": {
+      "type": "string",
+      "pattern": "^2\\.\\d+\\.\\d+$",
+      "description": "Storage schema version; mismatch = reject and quarantine"
+    },
+    "localIdentity": {
+      "type": "object",
+      "required": ["clientId", "proof", "proofSalt"],
+      "description": "Student local identity for proof-of-installation",
+      "properties": {
+        "clientId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique per installation; generated at first redemption"
+        },
+        "proof": {
+          "type": "string",
+          "description": "HMAC-based proof; never stored plaintext"
+        },
+        "proofSalt": {
+          "type": "string",
+          "description": "Cryptographic salt for proof generation"
+        }
+      }
+    },
+    "installedCourses": {
+      "type": "object",
+      "description": "Installed course manifests keyed by courseId",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["courseId", "coursePackage", "installedAt"],
+        "properties": {
+          "courseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "coursePackage": {
+            "type": "object",
+            "description": "Embedded course-package.schema.json snapshot"
+          },
+          "installedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["installed", "update_available", "corrupted"],
+            "default": "installed"
+          }
+        }
+      }
+    },
+    "authorizationSourceCache": {
+      "type": "object",
+      "description": "Authorization sources from all redemptions",
+      "properties": {
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["accessCodeId", "grantedCourses"],
+            "properties": {
+              "accessCodeId": {
+                "type": "string",
+                "description": "Hashed access code identifier"
+              },
+              "grantedCourses": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "redeemAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      }
+    },
+    "localLearningState": {
+      "type": "object",
+      "description": "Student learning progress and session state",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "courseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lessonId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "progress": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "completedNodes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      }
+    },
+    "quarantine": {
+      "type": "object",
+      "description": "Corrupted or invalid entries isolated for recovery",
+      "properties": {
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["reason", "data"],
+            "properties": {
+              "reason": {
+                "type": "string",
+                "enum": ["schema_mismatch", "corrupted_package", "unknown_message_type"]
+              },
+              "data": {
+                "type": "object"
+              },
+              "quarantinedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

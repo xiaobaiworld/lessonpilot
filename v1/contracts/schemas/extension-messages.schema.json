@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://knownmap.local/schema/v2/extension-messages.schema.json",
+  "title": "KnownMap Extension Messages v2.0.0",
+  "description": "Extension-to-page messaging contracts for background, content, and hosted integration",
+  "type": "object",
+  "oneOf": [
+    { "$ref": "#/definitions/BackgroundToContentMessage" },
+    { "$ref": "#/definitions/ContentToHostedMessage" },
+    { "$ref": "#/definitions/HostedToContentMessage" }
+  ],
+  "definitions": {
+    "MessageBase": {
+      "type": "object",
+      "required": ["type", "schemaVersion"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Message type determines handler and schema validation"
+        },
+        "schemaVersion": {
+          "type": "string",
+          "pattern": "^2\\.\\d+\\.\\d+$",
+          "description": "Contract version; major change = incompatible handler required"
+        }
+      }
+    },
+    "BackgroundToContentMessage": {
+      "allOf": [
+        { "$ref": "#/definitions/MessageBase" },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "enum": ["installed-courses", "current-lesson-match", "course-update-notification"]
+            }
+          }
+        }
+      ]
+    },
+    "ContentToHostedMessage": {
+      "allOf": [
+        { "$ref": "#/definitions/MessageBase" },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "enum": ["initialize-learning-window", "video-timestamp-changed", "video-paused", "video-resumed"]
+            }
+          }
+        }
+      ]
+    },
+    "HostedToContentMessage": {
+      "allOf": [
+        { "$ref": "#/definitions/MessageBase" },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "enum": ["node-submitted", "node-skipped", "learning-session-complete", "request-video-control"]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}
