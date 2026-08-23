@@ -14,6 +14,7 @@
 
 | 文档 | 职责 |
 | --- | --- |
+| [`SYSTEM-OVERVIEW.md`](SYSTEM-OVERVIEW.md) | 系统总说明：四个部分、数据流、关键设计决定、目录、运行与验证。跨文件动代码前先读 |
 | [`requirements/v1/README.md`](requirements/v1/README.md) | v1 需求入口：文件索引、编号规则、审核状态 |
 | [`design/v1/README.md`](design/v1/README.md) | v1 设计入口：文件编号、权威顺序、审核与归档门禁 |
 | [`plans/v1-development-plan.md`](plans/v1-development-plan.md) | 阶段 0–8 目标、交付和产品门禁（`1.1.0`） |

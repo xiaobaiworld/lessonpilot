@@ -1,21 +1,43 @@
 # KnownMap
 
-当前插件版本：`0.9.1`
+KnownMap 把老师已有的 B 站录播课变成可在原视频页面运行的互动课程。老师导入
+一条 B 站视频链接和字幕、配置互动节点、发布并发出授权码；学生在 PC Chrome 装
+插件后，于 B 站原页面到点暂停、作答、看反馈并继续播放。
 
-学生插件固定下载地址（代码已实现，待下一次生产发布验证）：
-`https://knownmap.com/downloads/student-plugin/knownmapplugin.zip`
+## 先读这里
 
-品牌域名：`knownmap.com`
-Logo 资源与用法：[`docs/knownmap-logo-resources.md`](docs/knownmap-logo-resources.md)（品牌设计过程已归档）
+**[`doc/SYSTEM-OVERVIEW.md`](doc/SYSTEM-OVERVIEW.md) — 系统总说明。**
+系统是什么、由哪四个部分组成、数据怎么流动、关键设计决定为什么这样定、
+目录怎么对应、怎么跑起来和怎么验证。跨文件动代码之前先读它。
 
-KnownMap 把老师已有的 B 站录播课变成可在原视频页面运行的互动课程。老师在公网工作台导入一条 B 站视频链接和对应字幕，配置互动节点；学生在 PC Chrome 安装本机插件后，于 B 站原页面到点暂停、作答、查看反馈并继续播放。
+其余入口：
 
-第一阶段销售页和原型 Demo 已完成并归档。教师平台已部署到阿里云 ECS，公网工作台可以
-登录、创建课程、保存草稿、发布课程和创建授权码；插件 `0.9.1` 已接入 v2 多课程下载、
-按课程与课节保存学习状态、匹配 BVID 运行和工具栏课程首页。当前没有正式发布的旧课程
-数据，学生插件只支持新的多课程格式。
+| 想知道 | 读 |
+| --- | --- |
+| 系统整体 | [`doc/SYSTEM-OVERVIEW.md`](doc/SYSTEM-OVERVIEW.md) |
+| 现在该做什么 | [`next.md`](next.md) |
+| 文档分类与权威顺序 | [`doc/INDEX.md`](doc/INDEX.md) |
+| 踩过什么坑（动手前必读） | [`doc/lessons.md`](doc/lessons.md) |
+| 为什么这样设计 | [`doc/design/v1/`](doc/design/v1/) |
+| 要做到什么 | [`doc/requirements/v1/`](doc/requirements/v1/) |
 
-## 当前范围
+品牌域名 `knownmap.com`；Logo 资源见
+[`docs/knownmap-logo-resources.md`](docs/knownmap-logo-resources.md)。
+
+## 当前状态
+
+系统正在进行 v1 重构：新系统在同仓库 `v1/` 目录独立建立，旧 `backend/`、
+`teacher-web/`、`src/` 冻结但保持可运行，直到真实切换与观察期结束才退役
+（`D-V1-012`）。
+
+阶段 0–6 的代码与自动化门禁已完成，学生端已在真实 Chrome 中验收，生产切换
+尚未执行。逐阶段进度、剩余项和已知问题见 [`next.md`](next.md)。
+
+生产 `knownmap.com` 当前运行的仍是 v0.9.1：销售页、教师工作台和 FastAPI。
+下文「Web 生产发布」「本地运行」等章节描述的是这套旧系统；v1 的对应说明在
+系统总说明第 7–9 节。
+
+## v0.9.1 旧系统范围（冻结）
 
 - 本地与阿里云生产环境均运行 FastAPI + SQLite 教师平台；
 - 预建教师测试账号，登录名加密码；
