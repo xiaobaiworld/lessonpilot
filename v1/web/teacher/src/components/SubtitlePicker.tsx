@@ -7,6 +7,11 @@ interface Props {
   /** 已有节点的时刻，用来标出哪句已经放过节点 */
   usedSeconds: number[];
   onPick: (kind: NodeKind, seconds: number, captionText: string) => void;
+  /**
+   * 上报课程时长。取最后一句字幕的结束时刻——这是本机唯一可靠的时长真源，
+   * 时间轴据此渲染。没有字幕时不上报，时间轴就不显示，而不是猜一个数字。
+   */
+  onDuration: (seconds: number) => void;
   disabled: boolean;
 }
 
@@ -17,7 +22,12 @@ interface Props {
  * 老师从字幕里挑一句，节点就落在那句话的起点，不用手填 mm:ss。
  * 文件只在浏览器内解析，不上传。
  */
-export const SubtitlePicker: React.FC<Props> = ({ usedSeconds, onPick, disabled }) => {
+export const SubtitlePicker: React.FC<Props> = ({
+  usedSeconds,
+  onPick,
+  onDuration,
+  disabled,
+}) => {
   const fileInput = useRef<HTMLInputElement>(null);
   const [captions, setCaptions] = useState<Caption[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -34,6 +44,8 @@ export const SubtitlePicker: React.FC<Props> = ({ usedSeconds, onPick, disabled 
     }
     setCaptions(result.captions);
     setFilename(file.name);
+    const last = result.captions[result.captions.length - 1];
+    if (last) onDuration(Math.ceil(last.endSeconds));
   };
 
   if (!captions) {

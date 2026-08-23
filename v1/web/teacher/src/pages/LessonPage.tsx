@@ -11,6 +11,7 @@ import {
 } from '../nodes';
 import { NodeForm } from '../components/NodeForm';
 import { SubtitlePicker } from '../components/SubtitlePicker';
+import { Timeline } from '../components/Timeline';
 
 interface Props {
   api: TeacherAPI;
@@ -34,6 +35,9 @@ export const LessonPage: React.FC<Props> = ({
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  /** 课程时长的唯一真源是导入的字幕；没导入就不显示时间轴 */
+  const [durationSeconds, setDuration] = useState(0);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setError(null);
@@ -76,6 +80,14 @@ export const LessonPage: React.FC<Props> = ({
     // 新节点排在最后一个之后 30 秒，避免和已有节点同一时刻
     const last = nodes.reduce((max, n) => Math.max(max, n.trigger.timeSeconds), 0);
     update([...nodes, createNode(kind, nodes.length === 0 ? 30 : last + 30)]);
+  };
+
+  /** 从时间轴点击某处新建。默认重点标注，最常用且不需要填选项 */
+  const addAt = (seconds: number) => {
+    if (!nodes) return;
+    const node = createNode('notice', seconds);
+    update([...nodes, node]);
+    setSelectedId(node.id);
   };
 
   /** 从字幕插入：时刻取那句话的起点，正文/题目预填该句，老师再改 */
@@ -186,9 +198,25 @@ export const LessonPage: React.FC<Props> = ({
               ))}
             </div>
 
+            {durationSeconds > 0 && (
+              <Timeline
+                nodes={nodes}
+                durationSeconds={durationSeconds}
+                onPlaceAt={(seconds) => addAt(seconds)}
+                onSelect={(id) => {
+                  setSelectedId(id);
+                  document
+                    .getElementById(`node-${id}`)
+                    ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }}
+                selectedId={selectedId}
+              />
+            )}
+
             <SubtitlePicker
               usedSeconds={nodes.map((n) => n.trigger.timeSeconds)}
               onPick={addFromCaption}
+              onDuration={setDuration}
               disabled={busy}
             />
 
@@ -202,6 +230,7 @@ export const LessonPage: React.FC<Props> = ({
                   <NodeCard
                     key={node.id}
                     node={node}
+                    selected={selectedId === node.id}
                     disabled={busy}
                     onChange={(next) =>
                       update(nodes.map((n) => (n.id === node.id ? next : n)))
@@ -220,10 +249,11 @@ export const LessonPage: React.FC<Props> = ({
 
 const NodeCard: React.FC<{
   node: ScriptNode;
+  selected: boolean;
   disabled: boolean;
   onChange: (node: ScriptNode) => void;
   onRemove: () => void;
-}> = ({ node, disabled, onChange, onRemove }) => {
+}> = ({ node, selected, disabled, onChange, onRemove }) => {
   const meta = metaOf(node.interaction);
   const [timeText, setTimeText] = useState(formatTime(node.trigger.timeSeconds));
   const [timeError, setTimeError] = useState(false);
@@ -239,7 +269,10 @@ const NodeCard: React.FC<{
   };
 
   return (
-    <section className="node-card">
+    <section
+      id={`node-${node.id}`}
+      className={selected ? 'node-card is-selected' : 'node-card'}
+    >
       <header className="node-card-head">
         <span className={`node-tag node-tag-${node.interaction}`}>{meta.label}</span>
         <label className="node-time">

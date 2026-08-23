@@ -16,6 +16,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      // 子路径别名要排在前面，否则被前缀规则吞掉
+      '@v1/web/shared/editor': path.resolve(__dirname, '../shared/src/editor'),
       '@v1/web/shared': path.resolve(__dirname, '../shared/src'),
     },
   },

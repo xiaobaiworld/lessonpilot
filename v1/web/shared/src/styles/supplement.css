@@ -208,6 +208,116 @@
 
 
 
+/* 时间轴 */
+.timeline {
+  margin-bottom: 24px;
+  padding: 18px 20px 26px;
+  border: 1px solid var(--line-dark);
+  background: var(--paper-bright);
+}
+
+.timeline-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: baseline;
+  margin-bottom: 26px;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.timeline-head strong {
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.timeline-duration {
+  margin-left: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.timeline-track {
+  position: relative;
+  height: 4px;
+  margin: 0 12px;
+  border-radius: 2px;
+  background: var(--line-dark);
+  cursor: crosshair;
+}
+
+.timeline-track:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 8px;
+}
+
+.timeline-tick {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+}
+
+.timeline-tick i {
+  display: block;
+  width: 1px;
+  height: 9px;
+  margin: 0 auto;
+  background: var(--line-dark);
+}
+
+.timeline-tick b {
+  display: block;
+  margin-top: 4px;
+  color: var(--ink-soft);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 9px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+/* 节点标记。颜色与节点卡的标签同源 */
+.timeline-marker {
+  position: absolute;
+  top: 50%;
+  width: 13px;
+  height: 13px;
+  padding: 0;
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--ink);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.timeline-marker:hover,
+.timeline-marker.is-selected {
+  width: 17px;
+  height: 17px;
+  box-shadow: 0 0 0 3px rgba(29, 92, 67, 0.18);
+}
+
+.timeline-marker-notice {
+  background: var(--chalk);
+}
+.timeline-marker-choice {
+  background: var(--voice);
+}
+.timeline-marker-blank {
+  background: var(--activity);
+}
+.timeline-marker-free_text {
+  background: var(--ai);
+}
+
+/* 超出课程时长的节点贴在末端并用虚线圈出，不藏起来 */
+.timeline-marker.is-overflow {
+  border-style: dashed;
+  border-color: var(--danger);
+}
+
+.node-card.is-selected {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(29, 92, 67, 0.12);
+}
+
 /* 节点编辑器 */
 .node-add-row {
   display: flex;

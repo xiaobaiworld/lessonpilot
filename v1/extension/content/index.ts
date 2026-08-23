@@ -7,6 +7,7 @@ import {
 } from '../host/bilibili';
 import { LearningSession, toRuntimeNodes } from '../runtime/session';
 import { LearningWindow } from './window';
+import { CandidatePicker } from './picker';
 import { RuntimeCandidate } from '../shared/library-view';
 import styleText from './window.css?inline';
 
@@ -51,6 +52,13 @@ class Runtime {
   private session: LearningSession | null = null;
   private window: LearningWindow | null = null;
   private player: PlayerHandle | null = null;
+  private picker: CandidatePicker | null = null;
+  /*
+   * start() 里有多个 await（取候选、等学生选、等播放器出现）。
+   * 期间 SPA 可能已经切走并调过 stop()，若不检查就会把监听绑到
+   * 已废弃的运行时上，学生在新视频页看到上一课的窗口。
+   */
+  private stopped = false;
   private teardown: (() => void)[] = [];
 
   async start(videoId: string): Promise<void> {
@@ -58,16 +66,22 @@ class Runtime {
 
     // 没有匹配课程时安静退出，不在无关页面显示任何 KnownMap UI
     if (!candidates || candidates.length === 0) return;
+    if (this.stopped) return;
 
     /*
-     * 多候选时目前取第一个，但会记下来。
-     * D-V1-010 要求让学生显式选择，选择界面属于后续切片；
-     * 这里不假装只有一个候选。
+     * 单候选直接启动；多候选让学生选（D-V1-010）。
+     * 静默取第一个会让学生在一门课里做另一门课的题，而界面上看不出为什么。
      */
-    if (candidates.length > 1) {
-      console.info('[KnownMap] 该视频匹配到多个课节，暂用第一个：', candidates.length);
+    let pick: RuntimeCandidate;
+    if (candidates.length === 1) {
+      pick = candidates[0];
+    } else {
+      this.picker = new CandidatePicker(styleText);
+      const chosen = await this.picker.choose(candidates);
+      this.picker = null;
+      if (!chosen || this.stopped) return; // 先不学，或已切走
+      pick = chosen;
     }
-    const pick = candidates[0];
 
     const lesson = await send<{
       installedAt: string;
@@ -76,9 +90,11 @@ class Runtime {
       lastPositionSeconds: number;
     }>({ type: 'lesson', courseId: pick.courseId, lessonId: pick.lessonId });
     if (!lesson) return;
+    if (this.stopped) return;
 
     const video = await waitForVideo();
     if (!video) return; // 播放器没出现就不接线，也不留 UI
+    if (this.stopped) return;
 
     const nodes = toRuntimeNodes({
       lessonId: pick.lessonId,
@@ -172,10 +188,13 @@ class Runtime {
 
   /** 拆掉全部监听和 DOM。SPA 切走时必须调用 */
   stop(): void {
+    this.stopped = true;
     for (const off of this.teardown) off();
     this.teardown = [];
     this.window?.destroy();
     this.window = null;
+    this.picker?.destroy();
+    this.picker = null;
     this.session = null;
     this.player = null;
     this.lastSaved = -1;

@@ -5,11 +5,11 @@
   "private": true,
   "description": "v1 web shared utilities and components",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./editor": "./src/editor/index.ts"
   },
   "dependencies": {
-    "react": "^18.2.0",
-    "zustand": "^4.4.0"
+    "react": "^18.2.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",
