@@ -160,3 +160,90 @@ test('release documentation binds publish phrases to deploy, record, and rollbac
   assert.match(records, /gitCommit/);
   assert.match(records, /gitTag/);
 });
+
+// v1 应用的发布契约。
+//
+// 不在这里跑完整构建：那要 npm ci 和网络，几分钟一次。
+// 这些断言检查的是发布契约本身——profile 声明、白名单形状、防护是否存在，
+// 这些是改脚本时最容易悄悄改坏的部分。
+const v1Script = fs.readFileSync(script, 'utf8');
+
+test('v1 profile 从归档目录构建而非工作树', () => {
+  // 用工作树构建会让发布内容和记录的提交不是同一份
+  assert.match(v1Script, /build_v1_apps\(\) \{/);
+  assert.match(v1Script, /cd "\$source_dir\/v1" && npm ci/);
+  assert.doesNotMatch(v1Script, /cd "\$ROOT_DIR\/v1" && npm run build/);
+});
+
+test('v1 依赖按锁文件安装，缺锁文件直接失败', () => {
+  assert.match(v1Script, /npm ci/);
+  assert.doesNotMatch(v1Script, /cd "\$source_dir\/v1" && npm install/);
+  assert.match(v1Script, /package-lock\.json missing in archived commit/);
+});
+
+test('v1 构建前先跑测试', () => {
+  const buildFn = v1Script.slice(
+    v1Script.indexOf('build_v1_apps() {'),
+    v1Script.indexOf('build_release() {')
+  );
+  const testAt = buildFn.indexOf('npm test');
+  const buildAt = buildFn.indexOf('npm run build');
+  assert.ok(testAt > 0, '构建函数里应当有 npm test');
+  assert.ok(testAt < buildAt, '测试必须排在构建之前');
+});
+
+test('生产插件包发布前检查本机地址', () => {
+  // 带着本机地址发出去等于给每个安装者开一条通往自己机器的通道
+  assert.match(v1Script, /127\\\.0\\\.0\\\.1\|localhost/);
+  assert.match(v1Script, /contains a localhost reference; refusing to publish/);
+  assert.match(v1Script, /KNOWNMAP_TARGET=production/);
+});
+
+test('v1 白名单覆盖两个应用入口且不含仓库源码路径', () => {
+  const patterns = v1Script
+    .slice(v1Script.indexOf('V1_ALLOWED_PATTERNS=('))
+    .split(')')[0];
+
+  for (const required of [
+    'public/admin/index.html',
+    'public/teacher/index.html',
+    'public/admin/assets/*',
+    'public/teacher/assets/*',
+    'public/robots.txt'
+  ]) {
+    assert.ok(patterns.includes(required), `白名单缺少 ${required}`);
+  }
+
+  // 源码不得出现在发布产物里
+  assert.ok(!patterns.includes('public/v1/'), '白名单不应放行 v1 源码目录');
+  assert.ok(!patterns.includes('public/src/'), '白名单不应放行 src 目录');
+});
+
+test('v1 发布缺任一应用入口时失败', () => {
+  assert.match(v1Script, /admin entry missing from release/);
+  assert.match(v1Script, /teacher entry missing from release/);
+});
+
+test('v1 校验和按实测文件生成，静态 profile 仍用固定白名单', () => {
+  assert.match(v1Script, /released_files\(\) \{/);
+  // v1 走 find，其它 profile 走 PUBLIC_FILES
+  assert.match(v1Script, /find public -type f/);
+  assert.match(v1Script, /printf '%s\\n' "\$\{PUBLIC_FILES\[@\]\}"/);
+});
+
+test('v1 归档带上被 @import 的样式表', () => {
+  // 它在 v1/ 之外，不归档的话 postcss 在构建时解析不到
+  const profile = v1Script.slice(
+    v1Script.indexOf('elif [[ "$PUBLISH_PROFILE" == "v1-apps" ]]'),
+    v1Script.indexOf('  fail "unsupported publish profile')
+  );
+  assert.ok(profile.includes('teacher-web/styles.css'), 'v1 profile 应归档共用样式表');
+});
+
+test('销售页不随 v1 迁移改写', () => {
+  const profile = v1Script.slice(
+    v1Script.indexOf('elif [[ "$PUBLISH_PROFILE" == "v1-apps" ]]'),
+    v1Script.indexOf('  fail "unsupported publish profile')
+  );
+  assert.ok(profile.includes('SALES_SOURCE_FILES'), 'v1 发布应原样带上销售页');
+});
