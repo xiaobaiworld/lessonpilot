@@ -52,7 +52,30 @@
 | ✅ 旧数据隔离 | init_check.py 建立拒绝规则 |
 | ✅ 静态检查零错误 | endpoint/module/contract/v1 checks pass |
 
-## 即将开始：阶段 1 - 服务端身份与课程领域
+## 正在进行：阶段 1 - 服务端身份与课程领域
+
+进度（7 个工作包，已完成 2 个）：
+
+1. ✅ **1A 完成**（`7f467f4`）：安全基础原语
+   - PasswordManager（Argon2）、TokenDigester（HMAC）
+   - TimeManager（UTC）、RandomGenerator（secrets）
+   - 6 个测试通过
+
+2. ✅ **1B 完成**（`403e68d`）：身份与会话模型
+   - AdminAccount、TeacherAccount（密码哈希）
+   - AdminSession、TeacherSession（令牌摘要）
+   - Workspace（一教师一工作空间）
+   - 0012_v1_schema_bootstrap 迁移
+
+待执行：
+
+3. **1C**：课程、课节、视频引用模型
+4. **1D**：脚本草稿与节点校验
+5. **1E**：路由、应用服务、审计分离
+6. **1F**：v1 模块边界零豁免
+7. **1G**：特征测试与断点修正
+
+## 之前完成：阶段 0 - 工程基线与干净初始化
 
 设计基线：
 - 需求：`doc/requirements/v1/README.md`
