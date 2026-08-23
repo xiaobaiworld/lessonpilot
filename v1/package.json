@@ -16,7 +16,11 @@
     "contracts"
   ],
   "scripts": {
-    "test": "node --test tests/**/*.test.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "dev:admin": "npm run dev --workspace @v1/web-admin",
+    "dev:teacher": "npm run dev --workspace @v1/web-teacher",
+    "build": "npm run build --workspace @v1/web-admin && npm run build --workspace @v1/web-teacher",
     "lint": "eslint web extension contracts",
     "type-check": "tsc --noEmit"
   },
