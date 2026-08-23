@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { LoadingSpinner, ErrorBanner, SuccessToast } from '@v1/web/shared';
+import React, { useState } from 'react';
+import { LoadingSpinner, ErrorHandler } from '@v1/web/shared';
 import { useTeacherStore } from '../store';
 import { TeacherPublishAPI } from '../api-publish';
 
@@ -9,9 +9,7 @@ interface PublishWorkflowProps {
   onClose: () => void;
 }
 
-interface WorkflowStep {
-  step: 'preview' | 'publishing' | 'success' | 'accesscode' | 'done';
-}
+type Step = 'confirm' | 'publishing' | 'published' | 'code';
 
 export const PublishWorkflow: React.FC<PublishWorkflowProps> = ({
   api,
@@ -19,163 +17,134 @@ export const PublishWorkflow: React.FC<PublishWorkflowProps> = ({
   onClose,
 }) => {
   const { session, courses } = useTeacherStore();
-  const [state, setState] = useState<WorkflowStep>({ step: 'preview' });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  const [step, setStep] = useState<Step>('confirm');
+  const [error, setError] = useState<string | null>(null);
   const [releaseNumber, setReleaseNumber] = useState<number | null>(null);
   const [accessCode, setAccessCode] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const course = courses.find((c) => c.id === courseId);
-
-  if (!session || !course) {
-    return <div>数据错误</div>;
-  }
+  if (!session || !course) return null;
 
   const handlePublish = async () => {
-    setState({ step: 'publishing' });
-    setLoading(true);
+    setStep('publishing');
     setError(null);
-
     try {
-      const response = await api.publishCourse(session.token, courseId);
-      setReleaseNumber(response.release_number);
-      setState({ step: 'success' });
-      setSuccess(true);
-
-      // 成功后自动转到授权码生成
-      setTimeout(() => {
-        setState({ step: 'accesscode' });
-      }, 2000);
+      const res = await api.publishCourse(session.token, courseId);
+      setReleaseNumber(res.release_number);
+      setStep('published');
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('发布失败'));
-      setState({ step: 'preview' });
-    } finally {
-      setLoading(false);
+      setError(ErrorHandler.getDisplayMessage(err));
+      setStep('confirm');
     }
   };
 
-  const handleCreateAccessCode = async () => {
-    setLoading(true);
+  const handleCreateCode = async () => {
     setError(null);
-
     try {
-      const response = await api.createAccessCode(session.token, courseId, {
+      const res = await api.createAccessCode(session.token, courseId, {
         scope: 'course',
       });
-      setAccessCode(response.code);
-      setState({ step: 'done' });
+      setAccessCode(res.code);
+      setStep('code');
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('生成授权码失败'));
-    } finally {
-      setLoading(false);
+      setError(ErrorHandler.getDisplayMessage(err));
     }
   };
 
-  const handleCopyCode = () => {
-    if (accessCode) {
-      navigator.clipboard.writeText(accessCode);
-      setSuccess(true);
+  const handleCopy = async () => {
+    if (!accessCode) return;
+    try {
+      await navigator.clipboard.writeText(accessCode);
+      setCopied(true);
+    } catch {
+      setError('浏览器拒绝了剪贴板访问，请手动选中复制');
     }
+  };
+
+  /** 关闭时清空授权码：它不可再次获取 */
+  const handleClose = () => {
+    setAccessCode(null);
+    setCopied(false);
+    onClose();
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-8">
-        {error && <ErrorBanner error={error} onDismiss={() => setError(null)} />}
-
-        {state.step === 'preview' && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold">发布课程</h2>
-            <div className="bg-gray-50 p-4 rounded">
-              <p className="text-sm text-gray-600">
-                <strong>课程:</strong> {course.title}
-              </p>
-              <p className="text-sm text-gray-600 mt-2">
-                <strong>课节数:</strong> {course.lessons.length}
-              </p>
-              <p className="text-sm text-gray-600 mt-2">
-                本次发布将创建原子快照，所有课节和节点一起发布。
-              </p>
-            </div>
-            <button
-              onClick={handlePublish}
-              disabled={loading}
-              className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
-            >
-              {loading ? <LoadingSpinner size="sm" /> : '确认发布'}
-            </button>
-            <button
-              onClick={onClose}
-              disabled={loading}
-              className="w-full bg-gray-200 text-gray-800 py-2 rounded hover:bg-gray-300"
-            >
-              取消
-            </button>
-          </div>
-        )}
-
-        {state.step === 'publishing' && (
-          <div className="text-center space-y-4">
-            <LoadingSpinner message="正在发布..." />
-          </div>
-        )}
-
-        {state.step === 'success' && (
-          <div className="text-center space-y-4">
-            <p className="text-2xl">✓</p>
-            <p className="font-bold">发布成功</p>
-            <p className="text-sm text-gray-600">
-              版本号: {releaseNumber}
+    <div
+      className="modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="publish-title"
+    >
+      <div className="modal-panel">
+        {step === 'confirm' && (
+          <>
+            <p className="eyebrow">发布课程</p>
+            <h2 id="publish-title">{course.title}</h2>
+            <p className="modal-note">
+              发布会把当前 {course.lessons.length} 个课节和全部互动节点一起
+              保存为一个不可修改的版本。学生领取授权码后下载的就是这个版本，
+              之后继续编辑不影响已发布内容。
             </p>
-            {success && <SuccessToast message="发布成功！" onClose={() => {}} />}
-          </div>
-        )}
-
-        {state.step === 'accesscode' && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold">生成授权码</h2>
-            <p className="text-sm text-gray-600">
-              学生需要授权码才能下载这个课程版本
-            </p>
-
-            {!accessCode && (
-              <button
-                onClick={handleCreateAccessCode}
-                disabled={loading}
-                className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 disabled:bg-gray-400"
-              >
-                {loading ? <LoadingSpinner size="sm" /> : '生成授权码'}
+            {error && <p className="field-error">{error}</p>}
+            <div className="modal-actions">
+              <button className="light-button" type="button" onClick={handleClose}>
+                取消
               </button>
-            )}
+              <button className="dark-button" type="button" onClick={handlePublish}>
+                确认发布
+              </button>
+            </div>
+          </>
+        )}
 
-            {accessCode && (
-              <div className="bg-gray-50 p-4 rounded space-y-2">
-                <p className="text-xs text-gray-600">授权码（一次性，关闭后清空）</p>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={accessCode}
-                    readOnly
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded bg-white font-mono text-sm"
-                  />
-                  <button
-                    onClick={handleCopyCode}
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                  >
-                    复制
-                  </button>
-                </div>
-              </div>
-            )}
+        {step === 'publishing' && <LoadingSpinner message="正在发布课程" />}
 
-            <button
-              onClick={onClose}
-              className="w-full bg-gray-200 text-gray-800 py-2 rounded hover:bg-gray-300"
-            >
-              关闭
-            </button>
-          </div>
+        {step === 'published' && (
+          <>
+            <p className="eyebrow">发布成功</p>
+            <h2 id="publish-title">版本 {releaseNumber}</h2>
+            <p className="modal-note">
+              课程已发布。接下来创建授权码，学生用它在插件里下载这门课程。
+            </p>
+            {error && <p className="field-error">{error}</p>}
+            <div className="modal-actions">
+              <button className="light-button" type="button" onClick={handleClose}>
+                稍后再说
+              </button>
+              <button className="dark-button" type="button" onClick={handleCreateCode}>
+                创建授权码
+              </button>
+            </div>
+          </>
+        )}
+
+        {step === 'code' && accessCode && (
+          <>
+            <p className="eyebrow">授权码已创建</p>
+            <h2 id="publish-title">发给学生的授权码</h2>
+            <p className="credential-warning">
+              这个授权码只显示这一次，关闭后无法再次查看。请先复制并交给学生。
+            </p>
+            <div className="credential-row">
+              <input
+                type="text"
+                value={accessCode}
+                readOnly
+                aria-label="授权码"
+                onFocus={(e) => e.currentTarget.select()}
+              />
+              <button className="dark-button" type="button" onClick={handleCopy}>
+                {copied ? '已复制' : '复制'}
+              </button>
+            </div>
+            {error && <p className="field-error">{error}</p>}
+            <div className="modal-actions">
+              <button className="light-button" type="button" onClick={handleClose}>
+                我已保存，关闭
+              </button>
+            </div>
+          </>
         )}
       </div>
     </div>

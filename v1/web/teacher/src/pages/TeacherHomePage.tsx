@@ -1,8 +1,14 @@
 import React, { useEffect } from 'react';
-import { LoadingSpinner, useApiRequest, ErrorBanner } from '@v1/web/shared';
-import { useTeacherStore } from '../store';
+import {
+  Topbar,
+  PageHead,
+  EmptyState,
+  LoadingSpinner,
+  ErrorBanner,
+  useApiRequest,
+} from '@v1/web/shared';
+import { useTeacherStore, Course } from '../store';
 import { TeacherAPI } from '../api';
-import { Course } from '../store';
 
 interface TeacherHomePageProps {
   api: TeacherAPI;
@@ -10,6 +16,12 @@ interface TeacherHomePageProps {
   onCreateCourse: () => void;
   onLogout: () => void;
 }
+
+const STATUS_TEXT: Record<Course['status'], string> = {
+  draft: '草稿',
+  active: '已发布',
+  archived: '已归档',
+};
 
 export const TeacherHomePage: React.FC<TeacherHomePageProps> = ({
   api,
@@ -21,77 +33,95 @@ export const TeacherHomePage: React.FC<TeacherHomePageProps> = ({
   const { loading, error, execute } = useApiRequest<Course[]>();
 
   useEffect(() => {
-    if (session) {
-      execute(() => api.getCourses(session.token)).then((data) => {
-        if (data) setCourses(data);
-      });
-    }
+    if (!session) return;
+    execute(() => api.getCourses(session.token)).then((data) => {
+      if (data) setCourses(data);
+    });
   }, [session, api, setCourses, execute]);
 
-  if (!session) {
-    return <div>未登录</div>;
-  }
+  if (!session) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* 导航栏 */}
-      <div className="bg-white shadow">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">我的课程</h1>
-          <div className="space-x-2">
-            <button
-              onClick={onCreateCourse}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            >
-              新建课程
-            </button>
-            <button
-              onClick={onLogout}
-              className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300"
-            >
-              退出
-            </button>
-          </div>
-        </div>
-      </div>
+    <div className="app-shell">
+      <Topbar
+        subtitle="互动课程工具"
+        account={session.loginName}
+        onLogout={onLogout}
+      />
 
-      {/* 内容 */}
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <main className="view workspace-home">
+        <PageHead
+          eyebrow="KnownMap 互动课程工具"
+          title={
+            <>
+              把你的录播课
+              <br />
+              变成<em>会提问的课程</em>
+            </>
+          }
+          lead="选择一门课程继续编辑，或新建一门课程导入 B 站视频与字幕。"
+          note={
+            courses.length > 0
+              ? `当前共 ${courses.length} 门课程`
+              : undefined
+          }
+        />
+
         {error && <ErrorBanner error={error} />}
 
-        {loading ? (
-          <LoadingSpinner message="加载课程..." />
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {courses.map((course) => (
-              <div
-                key={course.id}
-                onClick={() => onSelectCourse(course.id)}
-                className="bg-white rounded-lg shadow hover:shadow-lg cursor-pointer transition p-6"
-              >
-                <h3 className="text-lg font-bold mb-2">{course.title}</h3>
-                <div className="space-y-1 text-sm text-gray-600">
-                  <p>课节数: {course.lessons.length}</p>
-                  <p>状态: {course.status === 'draft' ? '草稿' : '已发布'}</p>
-                  <p>已发布: {course.published_count} 版本</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        {loading && <LoadingSpinner message="正在读取课程" />}
 
         {!loading && courses.length === 0 && (
-          <div className="text-center py-12 text-gray-500">
-            <p className="mb-4">还没有课程</p>
-            <button
-              onClick={onCreateCourse}
-              className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
-            >
-              创建第一个课程
+          <EmptyState message="还没有课程">
+            <button className="dark-button" type="button" onClick={onCreateCourse}>
+              新建第一门课程
             </button>
-          </div>
+          </EmptyState>
         )}
-      </div>
+
+        {!loading && courses.length > 0 && (
+          <>
+            <div className="section-head">
+              <div>
+                <h2>我的课程</h2>
+              </div>
+              <div className="head-actions">
+                <button className="dark-button" type="button" onClick={onCreateCourse}>
+                  新建课程
+                </button>
+              </div>
+            </div>
+
+            <div className="course-list">
+              {courses.map((course) => (
+                <button
+                  key={course.id}
+                  className="course-card"
+                  type="button"
+                  onClick={() => onSelectCourse(course.id)}
+                >
+                  <span className="course-thumb">
+                    <span aria-hidden="true">▶</span>
+                    <b>{course.lessons.length} 课节</b>
+                  </span>
+                  <span className="course-card-copy">
+                    <small>{STATUS_TEXT[course.status]}</small>
+                    <strong>{course.title}</strong>
+                    <span>
+                      {course.published_count > 0
+                        ? `已发布 ${course.published_count} 个版本`
+                        : '尚未发布'}
+                    </span>
+                  </span>
+                  <span className="course-arrow" aria-hidden="true">
+                    →
+                  </span>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+      </main>
     </div>
   );
 };

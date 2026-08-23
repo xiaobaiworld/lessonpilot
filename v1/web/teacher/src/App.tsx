@@ -2,90 +2,71 @@ import React, { useState } from 'react';
 import { createAPIClient } from '@v1/web/shared';
 import { useTeacherStore } from './store';
 import { TeacherAPI } from './api';
+import { TeacherPublishAPI } from './api-publish';
 import { TeacherLoginPage } from './pages/TeacherLoginPage';
 import { TeacherHomePage } from './pages/TeacherHomePage';
 import { CourseDetailPage } from './pages/CourseDetailPage';
+import { PublishWorkflow } from './components/PublishWorkflow';
 
-type Page = 'login' | 'home' | 'course' | 'editor';
-
-interface RouteState {
-  page: Page;
-  courseId?: string;
-  lessonId?: string;
+function apiBaseUrl(): string {
+  const { origin } = window.location;
+  // 本地开发时后端在 8000；生产同源，由 Nginx 代理 /api
+  return origin.includes('localhost') || origin.includes('127.0.0.1')
+    ? 'http://localhost:8000'
+    : origin;
 }
 
+const client = createAPIClient(apiBaseUrl());
+const api = new TeacherAPI(client);
+const publishApi = new TeacherPublishAPI(client);
+
 export const TeacherApp: React.FC = () => {
-  const { session, logout, setSelectedCourseId } = useTeacherStore();
-  const [route, setRoute] = useState<RouteState>({ page: 'login' });
-
-  const getApiBaseUrl = (): string => {
-    const origin = window.location.origin;
-    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
-      return 'http://localhost:8000';
-    }
-    return origin;
-  };
-
-  const apiClient = createAPIClient(getApiBaseUrl());
-  const api = new TeacherAPI(apiClient);
-
-  const handleLoginSuccess = () => {
-    setRoute({ page: 'home' });
-  };
-
-  const handleSelectCourse = (courseId: string) => {
-    setSelectedCourseId(courseId);
-    setRoute({ page: 'course', courseId });
-  };
-
-  const handleCreateCourse = () => {
-    // TODO: Implement create course page
-  };
-
-  const handleEditLesson = (lessonId: string) => {
-    // TODO: Implement lesson editor
-  };
+  const { session, logout, selectedCourseId, setSelectedCourseId } =
+    useTeacherStore();
+  const [publishing, setPublishing] = useState(false);
 
   const handleLogout = () => {
     logout();
-    setRoute({ page: 'login' });
+    setPublishing(false);
   };
 
-  const handleBack = () => {
-    setRoute({ page: 'home' });
-  };
-
-  if (!session && route.page !== 'login') {
-    setRoute({ page: 'login' });
+  if (!session) {
+    return <TeacherLoginPage api={api} onLoginSuccess={() => undefined} />;
   }
 
-  switch (route.page) {
-    case 'login':
-      return <TeacherLoginPage api={api} onLoginSuccess={handleLoginSuccess} />;
-
-    case 'home':
-      return (
-        <TeacherHomePage
+  // 课程详情由 selectedCourseId 决定，不默认取第一门课程
+  if (selectedCourseId) {
+    return (
+      <>
+        <CourseDetailPage
           api={api}
-          onSelectCourse={handleSelectCourse}
-          onCreateCourse={handleCreateCourse}
+          courseId={selectedCourseId}
+          onBack={() => setSelectedCourseId(null)}
+          onEditLesson={() => {
+            // TODO(阶段 4): 课节编辑器接入 3D 的时间轴与节点模块
+          }}
           onLogout={handleLogout}
+          onPublish={() => setPublishing(true)}
         />
-      );
-
-    case 'course':
-      return (
-        route.courseId && (
-          <CourseDetailPage
-            api={api}
-            courseId={route.courseId}
-            onEditLesson={handleEditLesson}
-            onBack={handleBack}
+        {publishing && (
+          <PublishWorkflow
+            api={publishApi}
+            courseId={selectedCourseId}
+            onClose={() => setPublishing(false)}
           />
-        )
-      );
-
-    default:
-      return null;
+        )}
+      </>
+    );
   }
+
+  return (
+    <TeacherHomePage
+      api={api}
+      onSelectCourse={setSelectedCourseId}
+      onCreateCourse={() => {
+        // TODO(3F): 新建课程表单，待后端 POST /teacher/courses 联通
+      }}
+      onLogout={handleLogout}
+    />
+  );
 };

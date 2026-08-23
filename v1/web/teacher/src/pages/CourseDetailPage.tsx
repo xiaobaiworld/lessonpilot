@@ -1,14 +1,22 @@
 import React, { useEffect } from 'react';
-import { LoadingSpinner, useApiRequest, ErrorBanner } from '@v1/web/shared';
-import { useTeacherStore } from '../store';
+import {
+  Topbar,
+  SectionHead,
+  EmptyState,
+  LoadingSpinner,
+  ErrorBanner,
+  useApiRequest,
+} from '@v1/web/shared';
+import { useTeacherStore, Course } from '../store';
 import { TeacherAPI } from '../api';
-import { Course } from '../store';
 
 interface CourseDetailPageProps {
   api: TeacherAPI;
   courseId: string;
   onEditLesson: (lessonId: string) => void;
   onBack: () => void;
+  onLogout: () => void;
+  onPublish: () => void;
 }
 
 export const CourseDetailPage: React.FC<CourseDetailPageProps> = ({
@@ -16,82 +24,97 @@ export const CourseDetailPage: React.FC<CourseDetailPageProps> = ({
   courseId,
   onEditLesson,
   onBack,
+  onLogout,
+  onPublish,
 }) => {
-  const { session, updateCourse } = useTeacherStore();
+  // 所有 hook 必须在任何 return 之前调用
+  const { session, courses, updateCourse } = useTeacherStore();
   const { loading, error, execute } = useApiRequest<Course>();
 
   useEffect(() => {
-    if (session) {
-      execute(() => api.getCourse(session.token, courseId)).then((data) => {
-        if (data) updateCourse(data);
-      });
-    }
+    if (!session) return;
+    execute(() => api.getCourse(session.token, courseId)).then((data) => {
+      if (data) updateCourse(data);
+    });
   }, [courseId, session, api, updateCourse, execute]);
 
-  if (!session) {
-    return <div>未登录</div>;
-  }
+  if (!session) return null;
 
-  const store = useTeacherStore();
-  const course = store.courses.find((c) => c.id === courseId);
+  const course = courses.find((c) => c.id === courseId);
+  // 课节按 sequence 显式排序，不依赖后端返回顺序
+  const lessons = course ? [...course.lessons].sort((a, b) => a.sequence - b.sequence) : [];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* 导航栏 */}
-      <div className="bg-white shadow">
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <button onClick={onBack} className="text-blue-600 hover:underline mb-4">
-            ← 返回
-          </button>
-          <h1 className="text-2xl font-bold">{course?.title}</h1>
-        </div>
-      </div>
+    <div className="app-shell">
+      <Topbar
+        subtitle="互动课程工具"
+        account={session.loginName}
+        onLogout={onLogout}
+      />
 
-      {/* 内容 */}
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <main className="view workspace-home">
+        <button className="text-button back-link" type="button" onClick={onBack}>
+          ← 返回我的课程
+        </button>
+
         {error && <ErrorBanner error={error} />}
 
-        {loading ? (
-          <LoadingSpinner message="加载课程详情..." />
-        ) : (
-          course && (
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-sm font-medium">顺序</th>
-                    <th className="px-6 py-3 text-left text-sm font-medium">课节名称</th>
-                    <th className="px-6 py-3 text-left text-sm font-medium">节点数</th>
-                    <th className="px-6 py-3 text-left text-sm font-medium">操作</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {course.lessons.map((lesson) => (
-                    <tr key={lesson.id} className="border-t hover:bg-gray-50">
-                      <td className="px-6 py-3 text-sm">{lesson.sequence}</td>
-                      <td className="px-6 py-3 text-sm">{lesson.title}</td>
-                      <td className="px-6 py-3 text-sm">{lesson.node_count}</td>
-                      <td className="px-6 py-3 text-sm space-x-2">
-                        <button
-                          onClick={() => onEditLesson(lesson.id)}
-                          className="text-blue-600 hover:underline"
-                        >
-                          编辑
-                        </button>
-                        <button className="text-gray-600 hover:underline">删除</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        {loading && !course && <LoadingSpinner message="正在读取课程" />}
 
-              {course.lessons.length === 0 && (
-                <div className="text-center py-8 text-gray-500">暂无课节</div>
-              )}
-            </div>
-          )
+        {course && (
+          <>
+            <SectionHead
+              title={course.title}
+              count={
+                course.published_count > 0
+                  ? `已发布 ${course.published_count} 个版本`
+                  : '尚未发布'
+              }
+            >
+              <button className="dark-button" type="button" onClick={onPublish}>
+                发布课程
+              </button>
+            </SectionHead>
+
+            {lessons.length === 0 ? (
+              <EmptyState message="这门课程还没有课节" />
+            ) : (
+              <div className="data-table-wrap">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>顺序</th>
+                      <th>课节名称</th>
+                      <th>互动节点</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lessons.map((lesson) => (
+                      <tr key={lesson.id}>
+                        <td className="num">{lesson.sequence}</td>
+                        <td>{lesson.title}</td>
+                        <td>{lesson.node_count}</td>
+                        <td>
+                          <div className="row-actions">
+                            <button
+                              className="text-button"
+                              type="button"
+                              onClick={() => onEditLesson(lesson.id)}
+                            >
+                              编辑
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
         )}
-      </div>
+      </main>
     </div>
   );
 };
