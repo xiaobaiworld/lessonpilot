@@ -22,13 +22,15 @@
     "dev:teacher": "npm run dev --workspace @v1/web-teacher",
     "build": "npm run build --workspace @v1/web-admin && npm run build --workspace @v1/web-teacher",
     "lint": "eslint web extension contracts",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "gate": "vite-node tools/release-gate-check.mts"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6.13.0",
     "@typescript-eslint/parser": "^6.13.0",
     "eslint": "^8.54.0",
     "typescript": "^5.3.0",
+    "vite-node": "^6.0.0",
     "vitest": "^4.1.11"
   },
   "dependencies": {
