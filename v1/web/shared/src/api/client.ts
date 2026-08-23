@@ -1,10 +1,5 @@
 /**
  * v1 Web 应用 HTTP 客户端
- * 职责：
- * - 请求 ID 注入和追踪
- * - 超时和重试机制
- * - 错误分类
- * - 响应拦截
  */
 
 import { APIError, APIResponse, ErrorType, RequestContext } from './types';
@@ -19,12 +14,6 @@ function generateRequestId(): string {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
-function classifyError(status: number): ErrorType {
-  if (status >= 400 && status < 500) return 'ClientError';
-  if (status >= 500) return 'ServerError';
-  return 'UnknownError';
-}
-
 export class APIClient {
   private baseURL: string;
   private timeout: number;
@@ -36,125 +25,77 @@ export class APIClient {
     this.maxRetries = config.maxRetries ?? 3;
   }
 
-  private createContext(): RequestContext {
-    return {
-      requestId: generateRequestId(),
-      timestamp: Date.now(),
-    };
-  }
-
-  private async fetchWithRetry<T>(
-    url: string,
-    options: RequestInit,
-    context: RequestContext,
-    retryCount: number = 0
-  ): Promise<Response> {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
-
-    try {
-      const response = await fetch(url, {
-        ...options,
-        signal: controller.signal,
-        headers: {
-          ...options.headers,
-          'X-Request-ID': context.requestId,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      clearTimeout(timeoutId);
-
-      // 5xx 错误且未超过重试次数，重试
-      if (response.status >= 500 && retryCount < this.maxRetries) {
-        await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
-        return this.fetchWithRetry(url, options, context, retryCount + 1);
-      }
-
-      return response;
-    } catch (error) {
-      clearTimeout(timeoutId);
-
-      if (error instanceof Error && error.name === 'AbortError') {
-        throw new APIError('NetworkError', undefined, undefined, 'Request timeout');
-      }
-
-      // 网络错误，重试
-      if (retryCount < this.maxRetries && !(error instanceof APIError)) {
-        await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
-        return this.fetchWithRetry(url, options, context, retryCount + 1);
-      }
-
-      throw error;
-    }
-  }
-
-  async request<T = unknown>(
+  private async request<T>(
     method: string,
     path: string,
-    options: { body?: unknown; headers?: Record<string, string> } = {}
+    body?: unknown,
+    headers?: Record<string, string>
   ): Promise<T> {
-    const context = this.createContext();
     const url = `${this.baseURL}${path}`;
+    const requestId = generateRequestId();
 
-    const response = await this.fetchWithRetry(
-      url,
-      {
-        method,
-        headers: options.headers,
-        body: options.body ? JSON.stringify(options.body) : undefined,
+    const options: RequestInit = {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Request-ID': requestId,
+        ...(headers || {}),
       },
-      context
-    );
+    };
 
-    if (!response.ok) {
-      const errorType = classifyError(response.status);
-      let errorData;
-
-      try {
-        errorData = await response.json();
-      } catch {
-        // 无法解析响应体，使用默认错误
-      }
-
-      throw new APIError(
-        errorType,
-        response.status,
-        errorData?.error?.details,
-        errorData?.error?.message
-      );
+    if (body) {
+      options.body = JSON.stringify(body);
     }
 
     try {
-      const data = await response.json();
-      return data;
-    } catch {
-      throw new APIError('ServerError', 500, undefined, 'Invalid JSON response');
+      const response = await Promise.race([
+        fetch(url, options),
+        new Promise<Response>((_, reject) =>
+          setTimeout(
+            () => reject(new Error('Request timeout')),
+            this.timeout
+          )
+        ),
+      ]);
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new APIError(
+          response.status >= 500 ? 'ServerError' : 'ClientError',
+          response.status,
+          data
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      if (error instanceof APIError) throw error;
+      throw new APIError('NetworkError', undefined, {}, (error as Error).message);
     }
   }
 
-  async get<T = unknown>(path: string, headers?: Record<string, string>): Promise<T> {
-    return this.request<T>('GET', path, { headers });
+  async get<T>(path: string, headers?: Record<string, string>): Promise<T> {
+    return this.request<T>('GET', path, undefined, headers);
   }
 
-  async post<T = unknown>(
+  async post<T>(
     path: string,
-    body?: unknown,
+    body: unknown,
     headers?: Record<string, string>
   ): Promise<T> {
-    return this.request<T>('POST', path, { body, headers });
+    return this.request<T>('POST', path, body, headers);
   }
 
-  async put<T = unknown>(
+  async put<T>(
     path: string,
-    body?: unknown,
+    body: unknown,
     headers?: Record<string, string>
   ): Promise<T> {
-    return this.request<T>('PUT', path, { body, headers });
+    return this.request<T>('PUT', path, body, headers);
   }
 
-  async delete<T = unknown>(path: string, headers?: Record<string, string>): Promise<T> {
-    return this.request<T>('DELETE', path, { headers });
+  async delete<T>(path: string, headers?: Record<string, string>): Promise<T> {
+    return this.request<T>('DELETE', path, undefined, headers);
   }
 }
 

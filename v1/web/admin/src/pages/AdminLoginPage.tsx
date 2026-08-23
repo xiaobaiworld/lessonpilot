@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { ErrorBanner, LoadingSpinner, SuccessToast, ErrorHandler } from '@v1/web/shared';
-import { useAdminStore } from './store';
-import { AdminAPI } from './api';
+import { ErrorBanner, LoadingSpinner, SuccessToast } from '@v1/web/shared';
+import { useAdminStore } from '../store';
+import { AdminAPI } from '../api';
 
 interface AdminLoginPageProps {
   api: AdminAPI;

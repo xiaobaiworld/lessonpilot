@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { LoadingSpinner, ErrorBanner, useApiRequest } from '@v1/web/shared';
-import { useAdminStore } from './store';
-import { AdminAPI } from './api';
-import { Teacher } from './store';
+import { useAdminStore } from '../store';
+import { AdminAPI } from '../api';
+import { Teacher } from '../store';
 
 interface TeacherListPageProps {
   api: AdminAPI;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { APIError } from '../api';
+import { APIError } from '../api/types';
 
 export interface ErrorBannerProps {
   error: APIError | null;
