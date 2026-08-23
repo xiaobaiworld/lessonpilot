@@ -1,0 +1,223 @@
+import { LearningSession, toRuntimeNodes } from '../runtime/session';
+import { RuntimeCandidate } from '../shared/library-view';
+import { PlayerHandle } from '../host/bilibili';
+
+/**
+ * B 站页面上的课程运行时。
+ *
+ * 依赖全部注入，所以整条接线可以在测试里跑完，不需要真实播放器或扩展环境。
+ * content/index.ts 只负责把真实依赖填进来并自启动。
+ *
+ * 职责边界：BVID 与播放器归 host adapter，调度与判分归 runtime/session，
+ * 渲染归 content/window，存储访问一律经 background。
+ */
+
+export interface LessonPayload {
+  installedAt: string;
+  nodes: unknown[];
+  done: string[];
+  lastPositionSeconds: number;
+}
+
+/** 与 background 的通信。返回 null 表示这次请求不可用 */
+export interface Messenger {
+  candidates(videoId: string): Promise<RuntimeCandidate[] | null>;
+  lesson(courseId: string, lessonId: string): Promise<LessonPayload | null>;
+  attempt(
+    courseId: string,
+    lessonId: string,
+    nodeId: string,
+    at: string,
+    answer: string,
+    correct: boolean | null
+  ): Promise<void>;
+  position(courseId: string, lessonId: string, seconds: number): Promise<void>;
+}
+
+export interface WindowView {
+  render(state: unknown): void;
+  destroy(): void;
+}
+
+export interface RuntimeDeps {
+  messenger: Messenger;
+  /** 等播放器出现。返回 null 表示等不到，此时不接线也不留 UI */
+  waitForPlayer(): Promise<PlayerHandle | null>;
+  createWindow(callbacks: {
+    onDraft(text: string): void;
+    onSubmit(): void;
+    onSkip(): void;
+    onClose(): void;
+  }): WindowView;
+  /** 多候选时让学生选。返回 null 表示学生选择先不学 */
+  chooseCandidate(candidates: RuntimeCandidate[]): Promise<RuntimeCandidate | null>;
+  now(): Date;
+}
+
+export class CourseRuntime {
+  private session: LearningSession | null = null;
+  private view: WindowView | null = null;
+  private player: PlayerHandle | null = null;
+  private teardown: (() => void)[] = [];
+  private lastSavedSecond = -1;
+
+  /*
+   * start() 里有多个 await（取候选、等学生选、等播放器出现）。
+   * 期间 SPA 可能已经切走并调过 stop()，若不检查就会把监听绑到已废弃的
+   * 运行时上，学生在新视频页看到上一课的窗口。
+   */
+  private stopped = false;
+
+  constructor(private deps: RuntimeDeps) {}
+
+  async start(videoId: string): Promise<void> {
+    const candidates = await this.deps.messenger.candidates(videoId);
+    // 没有匹配课程时安静退出，不在无关页面显示任何 KnownMap UI
+    if (!candidates || candidates.length === 0 || this.stopped) return;
+
+    // 单候选直接启动；多候选让学生选（D-V1-010）
+    let pick: RuntimeCandidate;
+    if (candidates.length === 1) {
+      pick = candidates[0];
+    } else {
+      const chosen = await this.deps.chooseCandidate(candidates);
+      if (!chosen || this.stopped) return;
+      pick = chosen;
+    }
+
+    const lesson = await this.deps.messenger.lesson(pick.courseId, pick.lessonId);
+    if (!lesson || this.stopped) return;
+
+    const nodes = toRuntimeNodes({
+      lessonId: pick.lessonId,
+      title: pick.lessonTitle,
+      videoId,
+      nodes: lesson.nodes,
+    });
+    if (nodes.length === 0) return;
+
+    const player = await this.deps.waitForPlayer();
+    if (!player || this.stopped) return;
+
+    this.session = new LearningSession(
+      pick.courseId,
+      pick.lessonId,
+      lesson.installedAt,
+      nodes
+    );
+    this.session.restoreDone(lesson.done ?? []);
+
+    this.player = player;
+    this.view = this.deps.createWindow({
+      onDraft: (text) => this.session?.updateDraft(text),
+      onSubmit: () => this.commit('submit'),
+      onSkip: () => this.commit('skip'),
+      onClose: () => this.close(),
+    });
+
+    this.teardown.push(
+      player.onTimeUpdate((seconds) => this.tick(seconds)),
+      player.onSeeked((seconds) => {
+        this.session?.seek(seconds);
+      })
+    );
+  }
+
+  private tick(seconds: number): void {
+    if (!this.session) return;
+
+    const action = this.session.advance(seconds);
+    if (action.type === 'pause') this.player?.pause();
+
+    const state = this.session.snapshot().window;
+    if (action.type !== 'none' || state.kind !== 'idle') {
+      this.view?.render(state);
+    }
+
+    // 位置节流到整秒：timeupdate 每秒触发多次
+    const whole = Math.floor(seconds);
+    if (whole !== this.lastSavedSecond) {
+      this.lastSavedSecond = whole;
+      /*
+       * 必须接 catch，不能只用 void：上报失败时 void 会留下未处理的
+       * rejection，学生控制台里就是一条错误。位置丢一次无关紧要，
+       * 但不能因此在页面上留下噪声。
+       */
+      this.deps.messenger
+        .position(this.session.courseId, this.session.lessonId, whole)
+        .catch(() => undefined);
+    }
+  }
+
+  private commit(kind: 'submit' | 'skip'): void {
+    if (!this.session) return;
+
+    const at = this.deps.now().toISOString();
+    const record =
+      kind === 'submit' ? this.session.submit(at) : this.session.skip(at);
+
+    this.view?.render(this.session.snapshot().window);
+
+    if (record) {
+      // 同上：上报失败不能变成页面上的未处理 rejection。
+      // 作答已在本机内存里，界面照常进入已作答态。
+      this.deps.messenger
+        .attempt(
+          this.session.courseId,
+          this.session.lessonId,
+          record.nodeId,
+          record.attempt.at,
+          record.attempt.answer,
+          record.attempt.correct
+        )
+        .catch(() => undefined);
+    }
+  }
+
+  private close(): void {
+    if (!this.session) return;
+    const action = this.session.close();
+    this.view?.render(this.session.snapshot().window);
+    if (action.type === 'resume') this.player?.play();
+  }
+
+  /** 拆掉全部监听和 DOM。SPA 切走时必须调用 */
+  stop(): void {
+    this.stopped = true;
+    for (const off of this.teardown) off();
+    this.teardown = [];
+    this.view?.destroy();
+    this.view = null;
+    this.session = null;
+    this.player = null;
+    this.lastSavedSecond = -1;
+  }
+
+  /** 供测试与诊断读取当前状态，不用于业务判断 */
+  snapshot() {
+    return this.session?.snapshot() ?? null;
+  }
+}
+
+/**
+ * 页面控制器。按当前 BVID 起停运行时。
+ *
+ * 每次切换都先 stop 再新建：复用实例会让上一课的已触发标记和监听留下来。
+ */
+export class PageController {
+  private runtime: CourseRuntime | null = null;
+
+  constructor(private makeRuntime: () => CourseRuntime) {}
+
+  async navigate(videoId: string | null): Promise<void> {
+    this.runtime?.stop();
+    this.runtime = null;
+    if (!videoId) return;
+    this.runtime = this.makeRuntime();
+    await this.runtime.start(videoId);
+  }
+
+  current(): CourseRuntime | null {
+    return this.runtime;
+  }
+}
