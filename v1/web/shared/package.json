@@ -3,5 +3,16 @@
   "version": "0.0.0",
   "type": "module",
   "private": true,
-  "description": "v1 web shared utilities and components"
+  "description": "v1 web shared utilities and components",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "zustand": "^4.4.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "typescript": "^5.3.0"
+  }
 }

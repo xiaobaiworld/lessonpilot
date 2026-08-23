@@ -4,14 +4,9 @@
   "type": "module",
   "private": true,
   "description": "v1 teacher and admin web applications",
-  "workspaces": [
-    "teacher",
-    "admin",
-    "shared"
-  ],
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev:admin": "npm run dev --workspace @v1/web-admin",
+    "dev:teacher": "npm run dev --workspace @v1/web-teacher",
     "type-check": "tsc --noEmit"
   },
   "devDependencies": {

@@ -10,7 +10,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@v1/web-shared": "workspace:*",
+    "@v1/web-shared": "*",
     "zustand": "^4.4.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
