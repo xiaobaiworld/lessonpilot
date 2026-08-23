@@ -17,7 +17,8 @@
 | [`requirements/v1/README.md`](requirements/v1/README.md) | v1 需求入口：文件索引、编号规则、审核状态 |
 | [`design/v1/README.md`](design/v1/README.md) | v1 设计入口：文件编号、权威顺序、审核与归档门禁 |
 | [`plans/v1-development-plan.md`](plans/v1-development-plan.md) | 阶段 0–7 目标、交付和产品门禁 |
-| [`plans/v1-code-refactor-execution-plan.md`](plans/v1-code-refactor-execution-plan.md) | 代码目录、保留/替换矩阵、工作包顺序和提交边界（`0.1.0`，待审核） |
+| [`plans/v1-replacement-plan.md`](plans/v1-replacement-plan.md) | 每类资产是拷贝还是重建、目录形态、删除旧系统的条件（`0.1.0`，待审核） |
+| [`plans/v1-code-refactor-execution-plan.md`](plans/v1-code-refactor-execution-plan.md) | 分阶段工作包、失败模式和提交边界（`0.2.0`，待审核；第 1、5 节将按替换计划修订） |
 | [`plans/v1-test-plan.md`](plans/v1-test-plan.md) | 需求级测试矩阵、自动化/人工证据和发布门禁 |
 | [`dev-rules.md`](dev-rules.md) | 项目专有开发规则：权威顺序、编号、契约与模块边界 |
 | [`traceability/v1-requirements.tsv`](traceability/v1-requirements.tsv) | 256 个稳定编号的需求级追踪矩阵 |
