@@ -52,7 +52,46 @@
 | ✅ 旧数据隔离 | init_check.py 建立拒绝规则 |
 | ✅ 静态检查零错误 | endpoint/module/contract/v1 checks pass |
 
-## ✅ 阶段 1 完成：服务端身份与课程领域
+## 正在进行：阶段 2 - 发布与多课程授权
+
+进度（7 个工作包，已完成 4 个）：
+
+1. ✅ **2A 完成**（`9440c31`）：课程发布与快照模型
+   - CourseRelease：课程级不可变快照
+   - ReleaseLessonSnapshot：原子课节捕获
+   - ReleaseAvailability：访问权限控制
+   - 整门课发布为一个事务
+
+2. ✅ **2B 完成**（`885a623`）：发布服务与幂等性
+   - PublishingService：业务逻辑
+   - 幂等发布：publish_intent_id 缓存机制
+   - 冲突检测：source_course_revision 不匹配则失败
+
+3. ✅ **2C 完成**（`9440c31`，与 2A 合并）：授权码与兑换模型
+   - AccessCode：单次使用多课程授权
+   - GrantItem：授权范围（课程/课节/节点）
+   - Redemption：兑换证明
+
+4. ✅ **2D 完成**（`6ab4edb`）：课程包生成器
+   - CoursePackageGenerator：只读 JSON 生成
+   - 从不可变 Release 读取
+   - 生成 course-package.schema.json v2.0.0
+
+待执行：
+
+5. **2E**：发布冲突检测与权利确认事实
+6. **2F**：旧数据与 v1 混合验证
+7. **2G**：发布门禁与特征测试
+
+## 阶段 2 数据模型完成度
+
+✅ 发布层：3 个表（CourseRelease、ReleaseLessonSnapshot、ReleaseAvailability）
+✅ 授权层：3 个表（AccessCode、GrantItem、Redemption）
+✅ 生成器：CoursePackageGenerator（只读）
+
+总计：9 + 6 = 15 个表（阶段 1 + 2）
+
+## 之前完成：阶段 0 + 1
 
 进度（7 个工作包，全部完成）：
 
