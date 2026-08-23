@@ -54,7 +54,7 @@
 
 ## 正在进行：阶段 1 - 服务端身份与课程领域
 
-进度（7 个工作包，已完成 2 个）：
+进度（7 个工作包，已完成 4 个）：
 
 1. ✅ **1A 完成**（`7f467f4`）：安全基础原语
    - PasswordManager（Argon2）、TokenDigester（HMAC）
@@ -67,13 +67,33 @@
    - Workspace（一教师一工作空间）
    - 0012_v1_schema_bootstrap 迁移
 
+3. ✅ **1C 完成**（`3ce1e25`）：课程、课节、视频引用模型
+   - Course：工作空间作用域、状态生命周期、版本控制
+   - Lesson：显式 sequence、支持重复内容与同视频课节
+   - VideoReference：平台标识（Bilibili/YouTube/local）
+   - 0013_v1_course_domain 迁移
+
+4. ✅ **1D 完成**（`37b7b2c`）：脚本草稿与节点校验
+   - ScriptDraft：版本化聚合、乐观并发
+   - InteractionNode：四种类型（remark/highlight/question/feedback）
+   - 原子验证：失败时保留旧版本
+   - 摘要识别：支持幂等保存
+
 待执行：
 
-3. **1C**：课程、课节、视频引用模型
-4. **1D**：脚本草稿与节点校验
-5. **1E**：路由、应用服务、审计分离
-6. **1F**：v1 模块边界零豁免
-7. **1G**：特征测试与断点修正
+5. **1E**：路由、应用服务、审计分离（需要应用服务实现）
+6. **1F**：v1 模块边界零豁免（需要仓储实现）
+7. **1G**：特征测试与断点修正（需要集成测试）
+
+## 阶段 1 数据模型完成度
+
+✅ 身份层：5 个表（AdminAccount、AdminSession、TeacherAccount、TeacherSession、Workspace）
+✅ 课程层：3 个表（Course、Lesson、VideoReference）
+✅ 草稿层：1 个表（ScriptDraft，内含 JSON 节点）
+
+总计：9 个表，全部 v1 原生（零旧表引用）
+
+## 之前完成：阶段 0 - 工程基线与干净初始化
 
 ## 之前完成：阶段 0 - 工程基线与干净初始化
 
