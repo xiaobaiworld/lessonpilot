@@ -22,6 +22,11 @@ config.local.*
 logs/
 *.log
 backend/*.db
+# 备份与 SQLite 副本文件：`*.db` 匹配不到 knownmap.db.bak-<时间戳> 这种名字，
+# 而它确实被提交过一次（8f37caf，用 `git add backend` 带进来的）。
+backend/*.db.bak*
+backend/*.db-*
+backend/*.sqlite*
 
 # macOS
 .DS_Store
