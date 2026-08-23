@@ -6,5 +6,12 @@ export * from './components/AuthPanel';
 export * from './components/AppShell';
 export * from './components/CredentialDialog';
 
-// editor/ 的 TimelineModel、NodeRegistry、SubtitleParser 由阶段 4 的
-// 课节编辑器直接按路径引入，暂不并入这个入口。
+export {
+  parseSubtitle,
+  captionAt,
+  formatTimestamp,
+  type Caption,
+} from './editor/SubtitleParser';
+
+// TimelineModel 与 NodeRegistry 等到横向时间轴 UI 落地再从这里导出，
+// 现在没有消费者。

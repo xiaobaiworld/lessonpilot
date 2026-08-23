@@ -1,8 +1,16 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Topbar, SectionHead, APIError, errorMessage } from '@v1/web/shared';
 import { TeacherAPI, Teacher, ScriptNode, NodeKind } from '../api';
-import { NODE_KINDS, metaOf, createNode, formatTime, parseTime } from '../nodes';
+import {
+  NODE_KINDS,
+  metaOf,
+  createNode,
+  formatTime,
+  parseTime,
+  findEmptyField,
+} from '../nodes';
 import { NodeForm } from '../components/NodeForm';
+import { SubtitlePicker } from '../components/SubtitlePicker';
 
 interface Props {
   api: TeacherAPI;
@@ -70,15 +78,44 @@ export const LessonPage: React.FC<Props> = ({
     update([...nodes, createNode(kind, nodes.length === 0 ? 30 : last + 30)]);
   };
 
+  /** 从字幕插入：时刻取那句话的起点，正文/题目预填该句，老师再改 */
+  const addFromCaption = (kind: NodeKind, seconds: number, captionText: string) => {
+    if (!nodes) return;
+    const node = createNode(kind, seconds);
+    const field = kind === 'notice' ? 'body' : 'prompt';
+    update([
+      ...nodes,
+      {
+        ...node,
+        display: { ...node.display, [field]: captionText },
+        trigger: { ...node.trigger, captionId: null },
+      },
+    ]);
+  };
+
   const save = async () => {
     if (!nodes) return;
+
+    // 按时间排序后保存，学生端按顺序触发
+    const sorted = [...nodes].sort(
+      (a, b) => a.trigger.timeSeconds - b.trigger.timeSeconds
+    );
+
+    // 先本地挡一遍空字段：后端整份拒绝，逐个提交试错很费时间
+    for (let i = 0; i < sorted.length; i++) {
+      const missing = findEmptyField(sorted[i]);
+      if (missing) {
+        setError(
+          `第 ${i + 1} 个节点（${formatTime(sorted[i].trigger.timeSeconds)}` +
+            ` ${metaOf(sorted[i].interaction).label}）还缺「${missing}」`
+        );
+        return;
+      }
+    }
+
     setBusy(true);
     setError(null);
     try {
-      // 按时间排序后保存，学生端按顺序触发
-      const sorted = [...nodes].sort(
-        (a, b) => a.trigger.timeSeconds - b.trigger.timeSeconds
-      );
       const draft = await api.saveDraft(lessonId, sorted);
       setNodes(draft.config.nodes);
       setDirty(false);
@@ -148,6 +185,12 @@ export const LessonPage: React.FC<Props> = ({
                 </button>
               ))}
             </div>
+
+            <SubtitlePicker
+              usedSeconds={nodes.map((n) => n.trigger.timeSeconds)}
+              onPick={addFromCaption}
+              disabled={busy}
+            />
 
             {nodes.length === 0 ? (
               <p className="table-state">

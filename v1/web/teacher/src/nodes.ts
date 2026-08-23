@@ -100,6 +100,46 @@ export function createNode(kind: NodeKind, timeSeconds: number): ScriptNode {
   }
 }
 
+/**
+ * 保存前的本地检查。
+ *
+ * 后端对每个文本字段都要求非空（`文本不能为空。`），整份草稿一处不合格就
+ * 全部拒绝。在这里先挡一遍，老师能直接看到是哪个节点的哪一项，
+ * 而不是提交后收到一条 422。
+ *
+ * 这里只重复"非空"这一条最稳定的规则；判定权仍在后端，本地检查通过
+ * 也可能被后端拒绝，那种情况按后端返回的字段名提示。
+ */
+export function findEmptyField(node: ScriptNode): string | null {
+  const d = node.display as Record<string, unknown>;
+  const e = (node.evaluation ?? {}) as Record<string, unknown>;
+  const blank = (v: unknown) => typeof v !== 'string' || !v.trim();
+
+  if (blank(d.title)) return '标题';
+
+  if (node.interaction === 'notice') {
+    return blank(d.body) ? '正文' : null;
+  }
+
+  if (blank(d.prompt)) return '题目';
+
+  switch (node.interaction) {
+    case 'choice': {
+      const options = (d.options ?? []) as { id: string; label: string }[];
+      if (options.some((o) => blank(o.label))) return '选项文字';
+      if (!options.some((o) => o.id === e.answer)) return '正确答案';
+      return blank(e.explanation) ? '解析' : null;
+    }
+    case 'blank': {
+      const answers = (e.acceptedAnswers ?? []) as unknown[];
+      if (answers.length === 0 || answers.some(blank)) return '可接受答案';
+      return blank(e.explanation) ? '解析' : null;
+    }
+    case 'free_text':
+      return blank(e.referenceFeedback) ? '参考答案' : null;
+  }
+}
+
 /** mm:ss ⇄ 秒。编辑器只用整秒，够定位一句话 */
 export function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60);

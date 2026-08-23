@@ -1,6 +1,30 @@
 import { APIError } from './types';
 
 /**
+ * FastAPI 的 422 明细是 [{ loc, msg }]，只显示 msg 的话老师不知道该改哪个字段。
+ * loc 形如 ["body","config","nodes",0,"choice","evaluation","explanation"]，
+ * 取里面的数字下标和最后一个字段名，拼成「第 1 个节点的 explanation：文本不能为空」。
+ */
+function validationMessage(detail: unknown): string | undefined {
+  if (typeof detail === 'string') return detail;
+  if (!Array.isArray(detail) || detail.length === 0) return undefined;
+
+  return detail
+    .slice(0, 3)
+    .map((item) => {
+      const loc: unknown[] = Array.isArray(item?.loc) ? item.loc : [];
+      const index = loc.find((p) => typeof p === 'number');
+      const field = [...loc].reverse().find((p) => typeof p === 'string');
+      const where =
+        index === undefined ? '' : `第 ${(index as number) + 1} 个节点`;
+      const what = field ? `${where ? '的 ' : ''}${field}` : '';
+      const prefix = where + what;
+      return prefix ? `${prefix}：${item.msg}` : String(item.msg);
+    })
+    .join('；');
+}
+
+/**
  * HTTP 客户端。
  *
  * 只做四件事：拼 URL、带 Cookie、超时、把非 2xx 转成 APIError。
@@ -32,14 +56,12 @@ export class APIClient {
       });
 
       if (!res.ok) {
-        // 后端错误体形如 { error: { code, message } }；422 是 FastAPI 校验，用 detail
         const data = await res.json().catch(() => null);
         throw new APIError(
           res.status >= 500 ? 'ServerError' : 'ClientError',
           res.status,
           data?.error?.code,
-          data?.error?.message ??
-            (typeof data?.detail === 'string' ? data.detail : undefined)
+          data?.error?.message ?? validationMessage(data?.detail)
         );
       }
 

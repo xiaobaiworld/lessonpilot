@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { NODE_KINDS, createNode, formatTime, parseTime } from './nodes';
+import { NODE_KINDS, createNode, formatTime, parseTime, findEmptyField } from './nodes';
 
 /**
  * family / interaction 的组合和各自的 evaluation 形状由后端 schema 用 const
@@ -51,6 +51,58 @@ describe('createNode', () => {
   it('id 不重复', () => {
     const ids = new Set(Array.from({ length: 50 }, () => createNode('notice', 0).id));
     expect(ids.size).toBe(50);
+  });
+});
+
+describe('findEmptyField', () => {
+  it('新建的节点都缺内容，不会被误判为可保存', () => {
+    for (const { kind } of NODE_KINDS) {
+      expect(findEmptyField(createNode(kind, 0))).not.toBeNull();
+    }
+  });
+
+  it('填满后放行：重点标注', () => {
+    const n = createNode('notice', 0);
+    n.display = { title: '重点', body: '正文' };
+    expect(findEmptyField(n)).toBeNull();
+  });
+
+  it('填满后放行：选择题', () => {
+    const n = createNode('choice', 0);
+    n.display = {
+      title: 'T',
+      prompt: 'P',
+      options: [
+        { id: 'a', label: 'A' },
+        { id: 'b', label: 'B' },
+      ],
+    };
+    n.evaluation = { answer: 'a', explanation: '解析' };
+    expect(findEmptyField(n)).toBeNull();
+  });
+
+  it('选择题答案指向不存在的选项时拦下', () => {
+    const n = createNode('choice', 0);
+    n.display = {
+      title: 'T',
+      prompt: 'P',
+      options: [{ id: 'a', label: 'A' }],
+    };
+    n.evaluation = { answer: 'z', explanation: '解析' };
+    expect(findEmptyField(n)).toBe('正确答案');
+  });
+
+  it('空白字符不算填了', () => {
+    const n = createNode('notice', 0);
+    n.display = { title: '  ', body: '正文' };
+    expect(findEmptyField(n)).toBe('标题');
+  });
+
+  it('填空题的可接受答案不能是空串', () => {
+    const n = createNode('blank', 0);
+    n.display = { title: 'T', prompt: 'P' };
+    n.evaluation = { acceptedAnswers: [''], normalize: ['trim'], explanation: '解析' };
+    expect(findEmptyField(n)).toBe('可接受答案');
   });
 });
 
