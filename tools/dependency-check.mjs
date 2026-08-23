@@ -126,12 +126,68 @@ export function checkLockSync() {
   return problems;
 }
 
+// ------------------------------------------------------------ v1 工作区
+
+/**
+ * v1 的锁文件必须覆盖每个 workspace 包声明的依赖。
+ *
+ * 发布脚本在归档目录里跑 `npm ci`，锁文件与声明不同步时它会直接失败——
+ * 那是发布当天才发现。这里提前拦住。
+ *
+ * 不套用根目录的「必须精确版本」规则：那条是为了让契约校验器逐位可重现，
+ * 而应用依赖用范围版本加锁文件已经足够重现安装结果。
+ */
+export function checkV1Workspace() {
+  const problems = [];
+  const root = 'v1';
+
+  if (!existsSync(`${root}/package.json`)) {
+    return { problems: [], skipped: true };
+  }
+
+  if (!existsSync(`${root}/package-lock.json`)) {
+    problems.push('v1 缺少 package-lock.json：发布脚本的 npm ci 无法运行');
+    return { problems };
+  }
+
+  const lock = readJson(`${root}/package-lock.json`);
+  const locked = lock.packages ?? {};
+  const manifest = readJson(`${root}/package.json`);
+
+  for (const workspace of manifest.workspaces ?? []) {
+    const packagePath = `${root}/${workspace}/package.json`;
+    if (!existsSync(packagePath)) {
+      problems.push(`workspace ${workspace} 已登记但没有 package.json`);
+      continue;
+    }
+    // 锁文件按 workspace 路径记录每个成员，缺了说明没有重新安装过
+    if (!(workspace in locked)) {
+      problems.push(`workspace ${workspace} 不在锁文件中；在 v1/ 运行 npm install 同步`);
+      continue;
+    }
+
+    const pkg = readJson(packagePath);
+    const deps = { ...(pkg.dependencies ?? {}), ...(pkg.devDependencies ?? {}) };
+    for (const name of Object.keys(deps)) {
+      // 内部包由 workspace 解析，不出现在 node_modules 顶层
+      if (name.startsWith('@v1/')) continue;
+      if (!(`node_modules/${name}` in locked)) {
+        problems.push(`${workspace} 的依赖 ${name} 不在锁文件中`);
+      }
+    }
+  }
+
+  return { problems };
+}
+
 export function runAll() {
   const node = checkNode();
+  const v1 = checkV1Workspace();
   const python = checkPython();
   const lockSync = checkLockSync();
   return {
     node: node.problems,
+    v1: v1.problems,
     python: python.problems,
     lockSync,
     nodeDirect: node.direct,
@@ -143,11 +199,14 @@ function main() {
   const r = runAll();
   if (process.argv.includes('--json')) {
     console.log(JSON.stringify(r, null, 2));
-    process.exit(r.node.length + r.python.length + r.lockSync.length > 0 ? 1 : 0);
+    process.exit(
+      r.node.length + r.v1.length + r.python.length + r.lockSync.length > 0 ? 1 : 0,
+    );
   }
 
   const groups = [
     [`Node 依赖已锁定（直接依赖 ${r.nodeDirect} 个）`, r.node],
+    ['v1 工作区锁文件覆盖全部成员', r.v1],
     [`后端依赖已约束（直接依赖 ${r.pythonDirect} 个）`, r.python],
     ['锁文件与声明同步', r.lockSync],
   ];
@@ -169,7 +228,7 @@ function main() {
   );
 
   if (total === 0) {
-    console.log('三项检查全部通过');
+    console.log('四项检查全部通过');
     return;
   }
   console.log(`不一致合计：${total}`);
