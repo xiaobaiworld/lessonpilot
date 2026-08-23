@@ -1,39 +1,89 @@
 {
+  "schemaVersion": "1.0",
+  "timestamp": "2026-08-23T00:00:00Z",
+  "description": "v1 Contract and Build Version Manifest - Stage 0 (0B)",
   "contracts": {
+    "http_api": {
+      "version": "2.0.0",
+      "spec_file": "schemas/openapi.schema.json",
+      "status": "development",
+      "stage": "1A",
+      "note": "v1 HTTP API; code-generated from design doc 06 section 4.5",
+      "endpoints": 41,
+      "checkTool": "node tools/endpoint-check.mjs"
+    },
     "course_package": {
       "version": "2.0.0",
       "schema_file": "schemas/course-package.schema.json",
-      "status": "placeholder",
-      "note": "v1 course delivery format; replaces legacy single-lesson structure"
+      "status": "development",
+      "stage": "0C",
+      "note": "v1 course delivery format; replaces legacy single-lesson structure",
+      "replaces": "v0.9.1 PublishedScript.script_json"
     },
     "extension_messages": {
       "version": "2.0.0",
       "schema_file": "schemas/extension-messages.schema.json",
-      "status": "placeholder",
-      "note": "v1 extension-page messaging; replaces legacy localStorage passthrough"
+      "status": "development",
+      "stage": "0C",
+      "note": "v1 extension-page messaging; replaces legacy localStorage passthrough",
+      "directions": ["background-to-content", "content-to-hosted", "hosted-to-content"]
     },
-    "http_api": {
-      "version": "2.0.0",
-      "spec_file": "schemas/openapi.schema.json",
-      "status": "placeholder",
-      "note": "v1 HTTP API; code-generated from design doc 06"
-    },
-    "storage_schema": {
+    "extension_storage": {
       "version": "2.0.0",
       "schema_file": "schemas/extension-storage.schema.json",
-      "status": "placeholder",
-      "note": "v1 extension local storage structure"
+      "status": "development",
+      "stage": "0B",
+      "note": "v1 extension local storage root; zero tolerance for legacy storage",
+      "roots": ["LocalIdentity", "InstalledCourse", "AuthorizationSourceCache", "LocalLearningState", "QuarantineEntry"]
     }
   },
-  "released_versions": [
+  "builds": {
+    "web_build": {
+      "version": "0.0.0",
+      "status": "placeholder",
+      "stage": "3A",
+      "components": ["teacher-app", "admin-app", "shared-ui"]
+    },
+    "extension_build": {
+      "version": "0.0.0",
+      "status": "placeholder",
+      "stage": "4A",
+      "components": ["background", "popup", "content", "host-bilibili"],
+      "manifest": "manifest.json (auto-generated)"
+    },
+    "backend_build": {
+      "version": "0.0.0",
+      "status": "placeholder",
+      "stage": "1A",
+      "migrations": "0012_v1_schema_bootstrap (placeholder)"
+    }
+  },
+  "supportMatrix": [
     {
       "release": "v1.0.0",
-      "course_package": "2.0.0",
-      "extension_messages": "2.0.0",
-      "http_api": "2.0.0",
-      "storage_schema": "2.0.0",
-      "status": "placeholder",
-      "note": "First v1 production release - to be populated after stage 7"
+      "status": "development",
+      "releaseTarget": "stage 7",
+      "httpApi": "2.0.0",
+      "coursePackage": "2.0.0",
+      "extensionMessages": "2.0.0",
+      "extensionStorage": "2.0.0",
+      "webBuild": "1.0.0",
+      "extensionBuild": "1.0.0",
+      "backendMigration": "0012_v1_schema_bootstrap"
     }
-  ]
+  ],
+  "compatibility": {
+    "rules": [
+      "Major version change = breaking incompatibility; requires coordinated rollout",
+      "Minor version change = backwards-compatible; may proceed independently",
+      "Patch version = optional",
+      "Unknown major version = safe-fail (refuse to load legacy or future contract)"
+    ],
+    "downgrade": "v1 does not support downgrade; restoration requires fixed release backup"
+  },
+  "checkTools": {
+    "endpoint-check": "node tools/endpoint-check.mjs",
+    "contract-check": "node tools/contract-check.mjs",
+    "module-check": "node tools/module-check.mjs"
+  }
 }
