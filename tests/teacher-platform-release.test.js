@@ -218,7 +218,8 @@ test('production database backup is isolated, scheduled and retained', () => {
 
   assert.match(script, /sqlite3\.connect/);
   assert.match(script, /\.backup\(/);
-  assert.match(script, /retention_days=14/);
+  // 6D 已接受的保留期是 30 天
+  assert.match(script, /retention_days=30/);
   assert.match(service, /User=knownmap/);
   assert.match(service, /ReadWritePaths=\/var\/backups\/knownmap/);
   assert.match(service, /^CapabilityBoundingSet=$/m);
@@ -259,4 +260,41 @@ test('Dependabot monitors Python and GitHub Actions dependencies', () => {
   assert.match(dependabot, /package-ecosystem: "github-actions"/);
   assert.match(dependabot, /directory: "\/"/);
   assert.match(dependabot, /interval: "weekly"/);
+});
+
+test('部署时执行恢复演练，而不只是检查备份文件存在', () => {
+  // 文件存在不等于备份可用。6D 要求代表性副本恢复与对账，
+  // 备份链路坏掉时应该在部署当天发现，而不是出事那天。
+  const release = fs.readFileSync(
+    path.join(root, 'tools/teacher-platform-release.sh'),
+    'utf8'
+  );
+
+  assert.match(release, /knownmap-restore-check\.py/);
+  assert.match(release, /--latest --directory \/var\/backups\/knownmap/);
+
+  // 演练必须排在"文件非空"检查之后，而不是取代它
+  const existenceAt = release.indexOf("-name 'knownmap-*.db' -size +0c");
+  const drillAt = release.indexOf('knownmap-restore-check.py \\\n  --latest');
+  assert.ok(existenceAt > 0, '应保留备份文件非空检查');
+  assert.ok(drillAt > existenceAt, '恢复演练应排在存在性检查之后');
+
+  // 演练失败要回滚，不能带着坏掉的备份链路上线
+  assert.match(release, /database backup or restore drill failed; restored previous backend/);
+});
+
+test('恢复演练检查归属关系而不只是行数', () => {
+  const drill = fs.readFileSync(
+    path.join(root, 'deploy/teacher-platform/knownmap-restore-check.py'),
+    'utf8'
+  );
+
+  // 行数对上但外键断了，是行数统计看不出的失败
+  assert.match(drill, /OWNERSHIP_CHECKS/);
+  assert.match(drill, /owner_teacher_id/);
+  assert.match(drill, /integrity_check/);
+
+  // 演练不得改动备份本身
+  assert.match(drill, /mode=ro/);
+  assert.match(drill, /shutil\.copy2/);
 });

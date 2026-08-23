@@ -12,7 +12,7 @@ from app.services.operation_log_service import record_operation
 router = APIRouter()
 
 
-@router.get("/version")
+@router.get("/api/v1/meta/version")
 def version(request: Request, db: Session = Depends(get_db)) -> dict[str, str | bool]:
     """版本与就绪探针。
 

@@ -378,23 +378,33 @@ install_backup_service() {
   local backup_script="$1"
   local backup_service_file="$2"
   local backup_timer_file="$3"
+  local restore_check="$4"
   local remote_script="/root/.knownmap-backup.py.next"
+  local remote_check="/root/.knownmap-restore-check.py.next"
 
   scp -q "$backup_script" "$SSH_HOST:$remote_script"
+  scp -q "$restore_check" "$SSH_HOST:$remote_check"
   scp -q "$backup_service_file" "$SSH_HOST:/etc/systemd/system/knownmap-backup.service"
   scp -q "$backup_timer_file" "$SSH_HOST:/etc/systemd/system/knownmap-backup.timer"
-  ssh -o BatchMode=yes "$SSH_HOST" bash -s -- "$remote_script" <<'REMOTE'
+  ssh -o BatchMode=yes "$SSH_HOST" bash -s -- "$remote_script" "$remote_check" <<'REMOTE'
 set -euo pipefail
 remote_script="$1"
+remote_check="$2"
 install -d -o root -g root -m 755 /usr/local/lib/knownmap
 install -d -o knownmap -g knownmap -m 700 /var/backups/knownmap
 install -o root -g root -m 755 "$remote_script" /usr/local/lib/knownmap/knownmap-backup.py
-rm -f "$remote_script"
+install -o root -g root -m 755 "$remote_check" /usr/local/lib/knownmap/knownmap-restore-check.py
+rm -f "$remote_script" "$remote_check"
 systemctl daemon-reload
 systemctl enable --now knownmap-backup.timer >/dev/null
 systemctl start knownmap-backup.service
 systemctl is-active --quiet knownmap-backup.timer
 find /var/backups/knownmap -maxdepth 1 -type f -name 'knownmap-*.db' -size +0c | grep -q .
+
+# 文件存在不等于备份可用（6D）。立刻恢复一份到临时位置，核对结构与
+# 归属关系。这里失败就是备份链路坏了，此时发现比出事那天发现好。
+python3 /usr/local/lib/knownmap/knownmap-restore-check.py \
+  --latest --directory /var/backups/knownmap
 REMOTE
 }
 
@@ -646,9 +656,10 @@ deploy_release() {
   if ! install_backup_service \
     "$backend_build/deploy/teacher-platform/knownmap-backup.py" \
     "$backend_build/deploy/teacher-platform/knownmap-backup.service" \
-    "$backend_build/deploy/teacher-platform/knownmap-backup.timer"; then
+    "$backend_build/deploy/teacher-platform/knownmap-backup.timer" \
+    "$backend_build/deploy/teacher-platform/knownmap-restore-check.py"; then
     remote_restore_backend "$previous_target"
-    fail "database backup setup failed; restored previous backend"
+    fail "database backup or restore drill failed; restored previous backend"
   fi
 
   if ! configure_nginx \

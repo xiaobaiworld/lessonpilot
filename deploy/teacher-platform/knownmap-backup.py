@@ -11,7 +11,7 @@ def create_backup(
     database_path: Path,
     backup_directory: Path,
     *,
-    retention_days=14,
+    retention_days=30,
 ) -> Path:
     backup_directory.mkdir(mode=0o700, parents=True, exist_ok=True)
     os.chmod(backup_directory, 0o700)
@@ -54,7 +54,7 @@ def main() -> None:
         type=Path,
         default=Path("/var/backups/knownmap"),
     )
-    parser.add_argument("--retention-days", type=int, default=14)
+    parser.add_argument("--retention-days", type=int, default=30)
     args = parser.parse_args()
 
     if args.retention_days < 1:

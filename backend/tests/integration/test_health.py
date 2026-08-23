@@ -81,19 +81,19 @@ class TestVersionProbe:
     def test_reports_readiness_separately_from_migration(self) -> None:
         # 测试库能查询但没有 alembic 表：两个事实必须分开报，
         # 否则"数据库不可用"这个信号在真出问题时不可信
-        body = self.make_client().get("/version").json()
+        body = self.make_client().get("/api/v1/meta/version").json()
         assert body["database_ready"] is True
         assert body["migration"] == "none"
 
     def test_reports_versions_used_by_the_release_gate(self) -> None:
-        body = self.make_client().get("/version").json()
+        body = self.make_client().get("/api/v1/meta/version").json()
         assert body["api_version"] == "v1"
         assert body["app_version"]
         assert body["app_env"] in {"development", "test", "production"}
 
     def test_carries_no_secret(self) -> None:
         # 探针是公开端点，不能泄露配置
-        text = self.make_client().get("/version").text.lower()
+        text = self.make_client().get("/api/v1/meta/version").text.lower()
         for marker in ("secret", "password", "cookie", "database_url"):
             assert marker not in text
 
@@ -108,6 +108,6 @@ class TestVersionProbe:
             raise RuntimeError("database is gone")
 
         monkeypatch.setattr(Session, "execute", broken_execute)
-        response = client.get("/version")
+        response = client.get("/api/v1/meta/version")
         assert response.status_code == 200
         assert response.json()["database_ready"] is False
