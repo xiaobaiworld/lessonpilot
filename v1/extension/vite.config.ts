@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite';
-import { writeFileSync, mkdirSync, copyFileSync } from 'node:fs';
+import { writeFileSync, readFileSync, mkdirSync, copyFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { TARGETS, TargetName, buildManifest } from './manifest/targets';
 
@@ -59,10 +59,16 @@ export default defineConfig({
           resolve(__dirname, 'content/window.css'),
           resolve(outDir, 'content/window.css')
         );
-        copyFileSync(
+        /*
+         * 原样拷贝会留下 src="./index.ts"，而产物是 index.js —— popup
+         * 的脚本永远加载不到，页面白屏。构建成功不代表入口引用正确，
+         * 这里把引用改成产物名。
+         */
+        const popupHtml = readFileSync(
           resolve(__dirname, 'popup/index.html'),
-          resolve(outDir, 'popup/index.html')
-        );
+          'utf8'
+        ).replace('./index.ts', './index.js');
+        writeFileSync(resolve(outDir, 'popup/index.html'), popupHtml);
         copyFileSync(
           resolve(__dirname, 'popup/popup.css'),
           resolve(outDir, 'popup/popup.css')
