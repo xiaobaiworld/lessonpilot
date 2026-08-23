@@ -1,61 +1,92 @@
 {
   "schemaVersion": "1.0",
-  "timestamp": "2026-08-23T00:00:00Z",
-  "description": "v1 Contract and Build Version Manifest - Stage 0 (0B)",
+  "timestamp": "2026-08-23T11:48:00Z",
+  "description": "v1 契约与构建版本清单。占位符已按阶段 3-5 的实际实现替换。",
   "contracts": {
     "http_api": {
       "version": "2.0.0",
       "spec_file": "schemas/openapi.schema.json",
-      "status": "development",
+      "status": "implemented",
       "stage": "1A",
-      "note": "v1 HTTP API; code-generated from design doc 06 section 4.5",
+      "note": "后端实际路由前缀为 /api/v1/*；前端契约由 web/*/src/api.ts 对齐 backend/app/schemas/*.py",
       "endpoints": 41,
       "checkTool": "node tools/endpoint-check.mjs"
     },
     "course_package": {
       "version": "2.0.0",
       "schema_file": "schemas/course-package.schema.json",
-      "status": "development",
+      "status": "implemented",
       "stage": "0C",
       "note": "v1 course delivery format; replaces legacy single-lesson structure",
-      "replaces": "v0.9.1 PublishedScript.script_json"
+      "replaces": "v0.9.1 PublishedScript.script_json",
+      "implementedBy": "v1/extension/background/validate.ts"
     },
     "extension_messages": {
       "version": "2.0.0",
       "schema_file": "schemas/extension-messages.schema.json",
-      "status": "development",
+      "status": "drifted",
       "stage": "0C",
-      "note": "v1 extension-page messaging; replaces legacy localStorage passthrough",
-      "directions": ["background-to-content", "content-to-hosted", "hosted-to-content"]
+      "note": "schema 描述 background/content/hosted 三向；当前实现只有 content|popup → background 单向请求响应，尚未按 schema 校验。阶段 6 收口。",
+      "directions": [
+        "background-to-content",
+        "content-to-hosted",
+        "hosted-to-content"
+      ]
     },
     "extension_storage": {
       "version": "2.0.0",
       "schema_file": "schemas/extension-storage.schema.json",
-      "status": "development",
+      "status": "implemented",
       "stage": "0B",
-      "note": "v1 extension local storage root; zero tolerance for legacy storage",
-      "roots": ["LocalIdentity", "InstalledCourse", "AuthorizationSourceCache", "LocalLearningState", "QuarantineEntry"]
+      "note": "v1 插件本机存储根；不接受旧 storage。STORAGE_SCHEMA_VERSION 由 extension/storage/contract.test.ts 钉在本 schema 上。",
+      "roots": [
+        "LocalIdentity",
+        "InstalledCourse",
+        "AuthorizationSourceCache",
+        "LocalLearningState",
+        "QuarantineEntry"
+      ],
+      "implementedBy": "v1/extension/storage/types.ts"
     }
   },
   "builds": {
     "web_build": {
-      "version": "0.0.0",
-      "status": "placeholder",
+      "version": "1.0.0",
+      "status": "built",
       "stage": "3A",
-      "components": ["teacher-app", "admin-app", "shared-ui"]
+      "components": [
+        "teacher-app",
+        "admin-app",
+        "shared"
+      ],
+      "command": "cd v1 && npm run build"
     },
     "extension_build": {
-      "version": "0.0.0",
-      "status": "placeholder",
+      "version": "1.0.0",
+      "status": "built",
       "stage": "4A",
-      "components": ["background", "popup", "content", "host-bilibili"],
-      "manifest": "manifest.json (auto-generated)"
+      "components": [
+        "background",
+        "popup",
+        "content",
+        "host-bilibili",
+        "storage",
+        "runtime"
+      ],
+      "manifest": "manifest.json (auto-generated)",
+      "command": "cd v1/extension && npm run build:local | build:production",
+      "targets": [
+        "local",
+        "production"
+      ],
+      "note": "每个目标的 manifest 与 API 地址在构建期生成；产物无运行时开关。"
     },
     "backend_build": {
-      "version": "0.0.0",
-      "status": "placeholder",
+      "version": "1.0.0",
+      "status": "implemented",
       "stage": "1A",
-      "migrations": "0012_v1_schema_bootstrap (placeholder)"
+      "migrations": "0011_fix_admin_auth_schema (当前 head)",
+      "note": "0012-0014 的 v1 表已随阶段 0-2 合并；本机以干净库初始化。"
     }
   },
   "supportMatrix": [
@@ -69,7 +100,8 @@
       "extensionStorage": "2.0.0",
       "webBuild": "1.0.0",
       "extensionBuild": "1.0.0",
-      "backendMigration": "0012_v1_schema_bootstrap"
+      "backendMigration": "0011_fix_admin_auth_schema",
+      "note": "阶段 7 真实验收通过后才可标 released。"
     }
   ],
   "compatibility": {

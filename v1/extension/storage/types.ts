@@ -6,7 +6,12 @@
  */
 
 export const STORAGE_ROOT_KEY = 'knownmapV1';
-export const STORAGE_SCHEMA_VERSION = '1.0.0';
+
+/**
+ * 取值必须匹配 schema 里的 `^2\.\d+\.\d+$`。
+ * 这是契约字段，不是内部版本号——改它等于要求所有已安装的插件隔离重建。
+ */
+export const STORAGE_SCHEMA_VERSION = '2.0.0';
 
 /** 旧根，明确拒绝，不迁移（D-V1-012 要求干净初始化） */
 export const LEGACY_KEYS = [
