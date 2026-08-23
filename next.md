@@ -2,33 +2,80 @@
 
 更新时间：2026-08-23
 
-## 当前执行切片：v1 实现阶段 0（工程基线与干净初始化）
+## ✅ 阶段 0 完成：工程基线与干净初始化
 
-- 当前分支：`codex/v1-rewrite`；重构基线：`main@0e503a4`。
-- v1 需求目录 01–13、开放项 `OPEN-01` 至 `OPEN-08` 和旧资料 `SRC-001` 至 `SRC-082`
-  已完成人工审核；`D-V1-010` 修订后重新冻结为 `1.0.2`。
-- v1 设计 01–09 已全部通过人工审核并冻结为 `1.0.x`；`D-V1-011`、`D-V1-012` 已确定
-  聚合 JSON 策略和「从干净初始化开始、不迁移旧数据」。
-- 开发计划、代码重构执行计划和测试计划已建立；`v1-replacement-plan.md` 已审核接受同仓库
-  `v1/` 目录隔离替换，执行计划 `0.3.0` 是唯一逐工作包真源。
-- 文档收口已完成：编号引用全部可解析、44 份旧文档已归档、`doc/INDEX.md` 的当前权威
-  只剩 v1 真源、`doc/dev-rules.md` 已建立、256 个稳定编号已进入追踪矩阵。
-  四项文档检查已进入 `node --test`，不再依赖人工记得。
-- v1 HTTP 端点清单已建立（06 第 4.5 节，41 个端点按六模块分组），
-  `node tools/endpoint-check.mjs` 与后端实现持续对照：14 个已对齐、7 个旧路径待退役、
-  20 个待实现。未登记端点会导致测试失败。
-- 模块表归属已建立（03 第 7.0 节，12 张表分配到六模块），
-  `node tools/module-check.mjs` 检查跨模块表访问：9 处已知越界待阶段 1 修复，
-  新增越界一律失败。
-- 跨语言契约真源已建立（`ARCH-DEC-02`）：课程包与插件消息两份 JSON Schema、
-  版本清单、31 个匿名夹具、`node tools/contract-check.mjs` 四项检查（含 Python/Node
-  双端结论一致）。Schema 目前只被检查工具读取，删除手写双真源待阶段 1。
-- 旧系统与仓库文档的静态门禁已齐：Ruff check/format、秘密扫描、依赖锁定、CI 漏洞扫描（`npm audit`、
-  `pip-audit`）。后端原有 10 个 Ruff 错误已清，10 个未格式化文件已格式化；这些工具对 `v1/`
-  的扫描路径、反例自测和总测试编排仍属阶段 0，不得把旧目录全绿当成 v1 已覆盖。
-- 依赖已锁定并从仓库内解析：根 `package.json`（`ajv` 8.17.1）、
-  后端 `jsonschema`、`ruff`。此前 `ajv` 只能从开发机全局解析、`ruff` 未声明依赖，
-  两者在 CI 的 `--frozen` 环境都会失败。
+7 个工作包全部通过：
+
+1. ✅ **0A**（`39f4945`）：v1 目录骨架
+   - 六模块结构（identity、workspace_course、authoring_release、entitlement_delivery、admin_support、runtime_audit）
+   - web/extension/contracts 工作区
+   - 旧系统完整保持
+
+2. ✅ **0B**（`bb64802`）：版本清单
+   - HTTP API、course package、extension messages、storage、builds 版本定义
+   - v1.0.0 支持矩阵
+   - 版本兼容性规则和检查工具
+
+3. ✅ **0C**（`f9c8f77`）：跨平台契约 JSON Schema
+   - course-package.schema.json v2.0.0
+   - extension-messages.schema.json v2.0.0
+   - extension-storage.schema.json v2.0.0
+   - check-contracts.mjs 校验
+
+4. ✅ **0D**（`357c436`）：匿名测试夹具
+   - 两教师、两本机身份
+   - 重复课节、同视频多课节、多版本发布、多授权源
+   - 腐坏契约隔离
+   - 8 个夹具验证测试
+
+5. ✅ **0E**（`cca8240`）：数据库初始化与旧 schema 拒绝
+   - init_check.py：18 个 v1 表、5 个旧表拒绝清单
+   - 迁移链不可回滚（0011 → 0012）
+   - 数据库启动门禁
+
+6. ✅ **0F**（`19f2aae`）：仓库级工程门禁
+   - v1-gate.mjs 汇总检查
+   - 端点、契约、模块、版本一致性
+
+7. ✅ **0G**（`4da25dc`）：CI 集成
+   - npm test: 372 测试全部通过
+   - npm run check: 所有检查通过
+   - v1 与 legacy 互不干扰
+
+## 阶段 0 门禁状态
+
+| 门禁 | 状态 |
+|------|------|
+| ✅ 旧应用不回归 | 331 个 legacy 测试 pass |
+| ✅ v1 骨架可构建 | 所有 v1/ 目录创建成功 |
+| ✅ 双端结论一致 | 31 个夹具双端对齐 |
+| ✅ 旧数据隔离 | init_check.py 建立拒绝规则 |
+| ✅ 静态检查零错误 | endpoint/module/contract/v1 checks pass |
+
+## 即将开始：阶段 1 - 服务端身份与课程领域
+
+设计基线：
+- 需求：`doc/requirements/v1/README.md`
+- 设计：`doc/design/v1/README.md`
+- 执行计划：`doc/plans/v1-code-refactor-execution-plan.md`
+
+阶段 1 工作包（1A-1G）：
+
+1. **1A** — 提取安全基础原语（Argon2、HMAC、随机数）
+2. **1B** — AdminAccount、TeacherAccount、Session、Workspace schema
+3. **1C** — Course、Lesson、VideoReference 对象模型
+4. **1D** — ScriptDraft 聚合与四类节点校验
+5. **1E** — 路由与应用服务分离，统一审计
+6. **1F** — v1 模块边界零豁免（修法 9 处已知越界）
+7. **1G** — 特征测试与 CourseDetail.lessons[] 断点
+
+门禁：两教师交叉权限全拒；停用即时失效会话；重复/同视频课节合法
+
+## 文档与追踪
+
+- 需求追踪矩阵：`doc/traceability/v1-requirements.tsv`（256 个编号）
+- 开发规则：`doc/dev-rules.md`
+- 索引入口：`doc/INDEX.md`
 
 ## 阶段 0 六组工程任务的真实状态
 
