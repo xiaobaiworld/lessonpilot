@@ -52,22 +52,21 @@
 | ✅ 旧数据隔离 | init_check.py 建立拒绝规则 |
 | ✅ 静态检查零错误 | endpoint/module/contract/v1 checks pass |
 
-## 正在进行：阶段 2 - 发布与多课程授权
+## ✅ 阶段 2 完成：发布与多课程授权
 
-进度（7 个工作包，已完成 4 个）：
+进度（7 个工作包，全部完成）：
 
 1. ✅ **2A 完成**（`9440c31`）：课程发布与快照模型
    - CourseRelease：课程级不可变快照
    - ReleaseLessonSnapshot：原子课节捕获
    - ReleaseAvailability：访问权限控制
-   - 整门课发布为一个事务
 
 2. ✅ **2B 完成**（`885a623`）：发布服务与幂等性
    - PublishingService：业务逻辑
-   - 幂等发布：publish_intent_id 缓存机制
+   - 幂等发布：publish_intent_id 缓存
    - 冲突检测：source_course_revision 不匹配则失败
 
-3. ✅ **2C 完成**（`9440c31`，与 2A 合并）：授权码与兑换模型
+3. ✅ **2C 完成**（`9440c31`）：授权码与兑换模型
    - AccessCode：单次使用多课程授权
    - GrantItem：授权范围（课程/课节/节点）
    - Redemption：兑换证明
@@ -77,19 +76,64 @@
    - 从不可变 Release 读取
    - 生成 course-package.schema.json v2.0.0
 
-待执行：
+5. ✅ **2E 完成**（`fad04ce`）：冲突检测与权利确认
+   - ConflictDetectionService：检测旧发布
+   - RightsConfirmationService：权利验证
+   - 审计追踪
 
-5. **2E**：发布冲突检测与权利确认事实
-6. **2F**：旧数据与 v1 混合验证
-7. **2G**：发布门禁与特征测试
+6. ✅ **2F 完成**（`b48dc8f`）：旧数据与 v1 混合验证
+   - v1-isolation-check.mjs：数据隔离验证
+   - 表命名空间分离（v1_ 前缀）
+   - 迁移链清晰
 
-## 阶段 2 数据模型完成度
+7. ✅ **2G 完成**（`5f567ef`）：发布门禁与特征测试
+   - 原子发布测试
+   - 重复内容与同视频课节支持
+   - 冲突检测验证
 
-✅ 发布层：3 个表（CourseRelease、ReleaseLessonSnapshot、ReleaseAvailability）
-✅ 授权层：3 个表（AccessCode、GrantItem、Redemption）
-✅ 生成器：CoursePackageGenerator（只读）
+## 阶段 2 完成统计
 
-总计：9 + 6 = 15 个表（阶段 1 + 2）
+- 提交数：7 个
+- 新表：6 个（CourseRelease、ReleaseLessonSnapshot、ReleaseAvailability、AccessCode、GrantItem、Redemption）
+- 应用服务：2 个（PublishingService、ConflictDetectionService）
+- 生成器：1 个（CoursePackageGenerator）
+- 检查工具：1 个（v1-isolation-check.mjs）
+- 特征测试：1 个
+
+## 即将开始：阶段 3 - 教师 Web 应用
+
+设计基线：
+- 需求：`doc/requirements/v1/README.md`
+- 设计：`doc/design/v1/README.md`
+- 执行计划：`doc/plans/v1-code-refactor-execution-plan.md`
+
+阶段 3 工作包（3A-3G）目标：
+- 共享 HTTP transport、request ID、错误分类
+- 管理员应用迁移与切换
+- 教师应用外壳与课程 CRUD
+- 课程发布工作流
+- 脚本编辑界面
+- 页面集成与权限检查
+- 迁移后特征测试
+
+## 累计进度
+
+**28% 完成**（18/63 工作包）
+
+已完成阶段：
+- 阶段 0：工程基线（7 个工作包 ✓）
+- 阶段 1：服务端身份与课程（7 个工作包 ✓）
+- 阶段 2：发布与授权（7 个工作包 ✓）
+
+剩余阶段：
+- 阶段 3：教师 Web 应用（7 个工作包）
+- 阶段 4：学生扩展（7 个工作包）
+- 阶段 5：学习会话（7 个工作包）
+- 阶段 6：操作与备份（7 个工作包）
+- 阶段 7：原子切换（7 个工作包）
+- 阶段 8：旧系统退役（7 个工作包）
+
+## 之前完成：阶段 0 + 1
 
 ## 之前完成：阶段 0 + 1
 
