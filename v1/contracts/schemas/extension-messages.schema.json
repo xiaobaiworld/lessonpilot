@@ -2,68 +2,87 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://knownmap.local/schema/v2/extension-messages.schema.json",
   "title": "KnownMap Extension Messages v2.0.0",
-  "description": "Extension-to-page messaging contracts for background, content, and hosted integration",
+  "description": "插件内部消息契约。background 是唯一的网络与持久化边界，content script 与 popup 只发请求、收响应；没有页面到插件的方向——教师预览已降级为静态示意图，老师改用插件在 B 站原页面查看（doc/lessons.md 2026-08-14）。",
   "type": "object",
   "oneOf": [
-    { "$ref": "#/definitions/BackgroundToContentMessage" },
-    { "$ref": "#/definitions/ContentToHostedMessage" },
-    { "$ref": "#/definitions/HostedToContentMessage" }
+    { "$ref": "#/definitions/Request" },
+    { "$ref": "#/definitions/Reply" }
   ],
   "definitions": {
-    "MessageBase": {
+    "Request": {
+      "description": "content script 或 popup 发往 background 的请求",
       "type": "object",
-      "required": ["type", "schemaVersion"],
+      "required": ["type"],
       "properties": {
         "type": {
-          "type": "string",
-          "description": "Message type determines handler and schema validation"
+          "enum": [
+            "library",
+            "redeem",
+            "candidates",
+            "lesson",
+            "attempt",
+            "position",
+            "removalImpact",
+            "removeCourse",
+            "resetProgress"
+          ],
+          "description": "未列出的类型必须被明确拒绝，不得静默返回成功"
         },
-        "schemaVersion": {
+        "code": {
           "type": "string",
-          "pattern": "^2\\.\\d+\\.\\d+$",
-          "description": "Contract version; major change = incompatible handler required"
-        }
-      }
+          "description": "redeem：授权码明文，只在这一次消息中出现，不落盘"
+        },
+        "videoId": {
+          "type": "string",
+          "pattern": "^BV[0-9A-Za-z]{10}$",
+          "description": "candidates：当前 B 站页面的 BVID"
+        },
+        "courseId": { "type": "string", "format": "uuid" },
+        "lessonId": { "type": "string", "format": "uuid" },
+        "nodeId": { "type": "string", "minLength": 1 },
+        "at": { "type": "string", "format": "date-time" },
+        "answer": { "type": "string" },
+        "correct": {
+          "type": ["boolean", "null"],
+          "description": "null 表示该节点不自动判分（重点标注、问答题）或被跳过"
+        },
+        "seconds": { "type": "number", "minimum": 0 }
+      },
+      "additionalProperties": false
     },
-    "BackgroundToContentMessage": {
-      "allOf": [
-        { "$ref": "#/definitions/MessageBase" },
+    "Reply": {
+      "description": "background 的响应。调用方一律先看 ok，不靠字段是否存在推断成败。",
+      "oneOf": [
         {
           "type": "object",
+          "required": ["ok"],
           "properties": {
-            "type": {
-              "enum": ["installed-courses", "current-lesson-match", "course-update-notification"]
+            "ok": { "const": true },
+            "data": {
+              "description": "按请求类型而定；缺省表示该操作无返回值"
             }
-          }
-        }
-      ]
-    },
-    "ContentToHostedMessage": {
-      "allOf": [
-        { "$ref": "#/definitions/MessageBase" },
+          },
+          "additionalProperties": false
+        },
         {
           "type": "object",
+          "required": ["ok", "code", "message"],
           "properties": {
-            "type": {
-              "enum": ["initialize-learning-window", "video-timestamp-changed", "video-paused", "video-resumed"]
+            "ok": { "const": false },
+            "code": {
+              "type": "string",
+              "pattern": "^[A-Z_]+$",
+              "description": "稳定错误码，供调用方分支；文案可变，码不可变"
+            },
+            "message": {
+              "type": "string",
+              "minLength": 1,
+              "description": "给学生看的一句话，不含内部路径或堆栈"
             }
-          }
-        }
-      ]
-    },
-    "HostedToContentMessage": {
-      "allOf": [
-        { "$ref": "#/definitions/MessageBase" },
-        {
-          "type": "object",
-          "properties": {
-            "type": {
-              "enum": ["node-submitted", "node-skipped", "learning-session-complete", "request-video-control"]
-            }
-          }
+          },
+          "additionalProperties": false
         }
       ]
     }
-  },
-  "additionalProperties": false
+  }
 }

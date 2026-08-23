@@ -10,7 +10,8 @@
       "stage": "1A",
       "note": "后端实际路由前缀为 /api/v1/*；前端契约由 web/*/src/api.ts 对齐 backend/app/schemas/*.py",
       "endpoints": 41,
-      "checkTool": "node tools/endpoint-check.mjs"
+      "checkTool": "node tools/endpoint-check.mjs",
+      "implementedBy": "backend/app/api/v1/ + v1/web/{admin,teacher}/src/api.ts"
     },
     "course_package": {
       "version": "2.0.0",
@@ -24,14 +25,14 @@
     "extension_messages": {
       "version": "2.0.0",
       "schema_file": "schemas/extension-messages.schema.json",
-      "status": "drifted",
+      "status": "implemented",
       "stage": "0C",
-      "note": "schema 描述 background/content/hosted 三向；当前实现只有 content|popup → background 单向请求响应，尚未按 schema 校验。阶段 6 收口。",
+      "note": "background 是唯一网络与持久化边界，content 与 popup 只发请求收响应。原 schema 描述的 hosted 双向桥已随教师预览降级删除（doc/lessons.md 2026-08-14）；类型清单由 extension/background/messages.test.ts 钉住。",
       "directions": [
-        "background-to-content",
-        "content-to-hosted",
-        "hosted-to-content"
-      ]
+        "content-to-background",
+        "popup-to-background"
+      ],
+      "implementedBy": "v1/extension/background/service-worker.ts"
     },
     "extension_storage": {
       "version": "2.0.0",

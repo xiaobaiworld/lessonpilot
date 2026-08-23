@@ -134,8 +134,20 @@ describe('清单自身', () => {
     expect(manifest.supportMatrix[0].status).not.toBe('released');
   });
 
-  it('已漂移的契约被如实标注，不假装 implemented', () => {
-    // 消息契约的实现形状与 schema 不符，清单必须反映这一点
-    expect(manifest.contracts.extension_messages.status).toBe('drifted');
+  it('标为 implemented 的契约必须指出实现在哪', () => {
+    // 否则"已实现"是一句无法核对的声明，清单就失去了作为切换依据的价值
+    for (const [name, contract] of Object.entries<any>(manifest.contracts)) {
+      if (contract.status !== 'implemented') continue;
+      expect(contract.implementedBy, `${name} 标为 implemented 但未指出实现`).toBeTruthy();
+    }
+  });
+
+  it('契约状态只能取已定义的几种，不许随手编新词', () => {
+    const allowed = ['development', 'implemented', 'drifted', 'deprecated'];
+    for (const [name, contract] of Object.entries<any>(manifest.contracts)) {
+      expect(allowed, `${name} 的状态 ${contract.status} 未定义`).toContain(
+        contract.status
+      );
+    }
   });
 });
