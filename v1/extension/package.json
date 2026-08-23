@@ -9,11 +9,13 @@
     "chrome": ">=120"
   },
   "scripts": {
-    "dev": "node tools/watch.mjs",
-    "build": "node tools/build.mjs",
+    "build": "vite build",
+    "build:local": "KNOWNMAP_TARGET=local vite build",
+    "build:production": "KNOWNMAP_TARGET=production vite build",
     "type-check": "tsc --noEmit"
   },
   "devDependencies": {
-    "@types/chrome": "^0.0.246"
+    "@types/chrome": "^0.0.246",
+    "vite": "^5.0.0"
   }
 }

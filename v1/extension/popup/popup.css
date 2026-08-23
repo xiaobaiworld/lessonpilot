@@ -1,0 +1,201 @@
+/* 色板取自 teacher-web/styles.css，与教师端和学习窗口一致 */
+
+body {
+  width: 360px;
+  margin: 0;
+  padding: 16px;
+  background: #f5f1e7;
+  color: #16251f;
+  font-family: "Avenir Next", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.brand {
+  font-size: 16px;
+}
+
+/* K 粉笔黄、M 赭石红，见品牌规范 */
+.brand .k {
+  color: #d9a51e;
+}
+.brand .m {
+  color: #a9654e;
+}
+
+.head small {
+  color: #4f6259;
+}
+
+.redeem {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.redeem-input {
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+  padding: 0 11px;
+  border: 1px solid #b9beb5;
+  border-radius: 4px;
+  background: #fff;
+  font: inherit;
+}
+
+.redeem-input:focus {
+  outline: 2px solid #1d5c43;
+  outline-offset: -1px;
+}
+
+.primary {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 6px;
+  background: #16251f;
+  color: #fffdf8;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.error {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  background: #f6e2de;
+  color: #a74232;
+  border-radius: 4px;
+}
+
+.notice {
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  background: #f5e7b0;
+  color: #6b4f04;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.empty {
+  margin: 0;
+  padding: 28px 16px;
+  border: 1px dashed #aebbb3;
+  border-radius: 6px;
+  color: #69786f;
+  text-align: center;
+}
+
+.course {
+  margin-bottom: 14px;
+  padding: 14px;
+  border: 1px solid #16251f;
+  border-radius: 6px;
+  background: #fffdf8;
+}
+
+.course-title {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 15px;
+}
+
+.course-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+  color: #4f6259;
+  font-size: 11px;
+}
+
+.course-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.bar {
+  height: 5px;
+  margin-bottom: 12px;
+  border-radius: 3px;
+  background: #e5e2d8;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: #1d5c43;
+}
+
+.lessons {
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.lesson {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-top: 1px solid #e1e0d7;
+}
+
+.lesson-link {
+  color: #1d5c43;
+  text-decoration: none;
+}
+
+.lesson-link:hover {
+  text-decoration: underline;
+}
+
+.lesson.done .lesson-link {
+  color: #69786f;
+}
+
+.lesson-count {
+  color: #4f6259;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+}
+
+.course-actions {
+  display: flex;
+  gap: 14px;
+  padding-top: 10px;
+  border-top: 1px solid #e1e0d7;
+}
+
+.link-button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #1d5c43;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.link-button:hover {
+  text-decoration: underline;
+}
+
+.link-button.danger {
+  color: #a74232;
+  margin-left: auto;
+}
