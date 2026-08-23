@@ -143,6 +143,19 @@ SSH 凭据本机就有（别名是 `aliyun-us`，与文档约定的 `aliyun` 不
 切换会改变 `knownmap.com` 的对外行为且不易回退。本次工作中已明确要求
 「检查只在本机做，部署的事情后面再完成」，因此只做只读核对。
 
+### 切换前预检（已跑通）
+
+```bash
+KNOWNMAP_SSH_HOST=aliyun-us tools/preflight-check.sh
+```
+
+五项全通：后端运行、生产 `.env` 满足 6C 启动校验（两个密钥均 64 字符非占位符、
+CORS 只含 `knownmap.com` 与 `www.knownmap.com`、`APP_ENV=production` 日志 INFO、
+文件库）、`try_files $uri $uri/` + `index index.html` 能解析目录请求（实测
+临时探针 200）、`/admin/` 与 `/teacher/` 空闲、8 份备份且定时器 active。
+
+也就是说切换不会因为配置不合格而失败——这是我最担心的一条，已排除。
+
 要切换时：
 
 ```bash

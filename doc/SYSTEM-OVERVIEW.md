@@ -258,6 +258,9 @@ node tests/manual/v1/verify-bilibili-dom.mjs        # 选择器与真实 B 站 D
 ## 9. 发布
 
 ```bash
+# 切换前预检生产（只读，不打印任何密钥值）
+KNOWNMAP_SSH_HOST=<别名> tools/preflight-check.sh
+
 # 构建候选（在归档的精确提交里跑 npm ci → npm test → 构建）
 KNOWNMAP_PUBLISH_PROFILE=v1-apps tools/web-release.sh build <ref> <输出目录>
 
@@ -274,6 +277,10 @@ KNOWNMAP_SSH_HOST=<别名> KNOWNMAP_PUBLISH_PROFILE=v1-apps \
 
 旧入口 `/admin.html` 与 `/teacher-web/editor.html` **重定向而非删除**：
 收藏了旧地址的人要被带到新位置，不是撞 404。
+
+预检覆盖五项：后端在跑、生产配置能通过 6C 启动校验（不满足会让服务起不来）、
+nginx 能把 `/admin/` 这样的目录请求解析到 `index.html`（否则切换后两个应用
+都是 404）、目标路径未被占用、备份存在且定时器在跑。
 
 ---
 
