@@ -1,10 +1,17 @@
+/* 设计令牌与登录样式来自 shared，是 v1 视觉真源 */
+@import '../../shared/src/styles/tokens.css';
+@import '../../shared/src/styles/auth.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Tailwind preflight 会重置 body，令牌里的 background/color 需要重申 */
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    'Helvetica Neue', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Avenir Next", "PingFang SC", "Microsoft YaHei", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

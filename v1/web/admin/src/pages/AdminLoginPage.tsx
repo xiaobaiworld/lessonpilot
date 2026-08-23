@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
-import { ErrorBanner, LoadingSpinner, SuccessToast } from '@v1/web/shared';
+import {
+  AuthPanel,
+  AuthField,
+  PasswordField,
+  ErrorHandler,
+} from '@v1/web/shared';
 import { useAdminStore } from '../store';
 import { AdminAPI } from '../api';
 
@@ -8,13 +13,15 @@ interface AdminLoginPageProps {
   onLoginSuccess: () => void;
 }
 
-export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ api, onLoginSuccess }) => {
+export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
+  api,
+  onLoginSuccess,
+}) => {
   const { setSession } = useAdminStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,66 +31,41 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ api, onLoginSucc
     try {
       const session = await api.login(email, password);
       setSession(session);
-      setSuccess(true);
-      setTimeout(onLoginSuccess, 1500);
+      onLoginSuccess();
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('登录失败'));
+      // 登录失败不区分账号不存在或密码错误，与后端抗枚举策略一致
+      setError(ErrorHandler.getDisplayMessage(err));
+      setPassword('');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow p-8">
-        <h1 className="text-2xl font-bold text-center mb-6">超级管理员登录</h1>
-
-        {error && (
-          <ErrorBanner error={error} onDismiss={() => setError(null)} />
-        )}
-
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              邮箱
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={loading}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              密码
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={loading}
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-md font-medium hover:bg-blue-700 disabled:bg-gray-400"
-          >
-            {loading ? <LoadingSpinner size="sm" /> : '登录'}
-          </button>
-        </form>
-
-        {success && (
-          <SuccessToast message="登录成功！" onClose={() => setSuccess(false)} />
-        )}
-      </div>
-    </div>
+    <AuthPanel
+      eyebrow="KnownMap 管理后台"
+      title="超级管理员登录"
+      onSubmit={handleLogin}
+      error={error}
+    >
+      <AuthField
+        id="admin-email"
+        label="邮箱"
+        type="email"
+        value={email}
+        onChange={setEmail}
+        autoComplete="username"
+        disabled={loading}
+      />
+      <PasswordField
+        id="admin-password"
+        value={password}
+        onChange={setPassword}
+        disabled={loading}
+      />
+      <button className="dark-button" type="submit" disabled={loading}>
+        {loading ? '登录中…' : '登录'}
+      </button>
+    </AuthPanel>
   );
 };
