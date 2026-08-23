@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { createAPIClient } from '@v1/web/shared';
 import { useAdminStore } from './store';
 import { AdminAPI } from './api';
@@ -8,64 +8,51 @@ import { CreateTeacherPage } from './pages/CreateTeacherPage';
 
 type Page = 'login' | 'list' | 'create';
 
+function apiBaseUrl(): string {
+  const { origin } = window.location;
+  // 本地开发时后端在 8000；生产同源，由 Nginx 代理 /api
+  return origin.includes('localhost') || origin.includes('127.0.0.1')
+    ? 'http://localhost:8000'
+    : origin;
+}
+
+const api = new AdminAPI(createAPIClient(apiBaseUrl()));
+
 export const AdminApp: React.FC = () => {
-  const { session, logout } = useAdminStore();
-  const [currentPage, setCurrentPage] = useState<Page>('login');
-
-  // 获取 API 基础 URL（支持本地和生产）
-  const getApiBaseUrl = (): string => {
-    const origin = window.location.origin;
-    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
-      return 'http://localhost:8000';
-    }
-    return origin;
-  };
-
-  const apiClient = createAPIClient(getApiBaseUrl());
-  const api = new AdminAPI(apiClient);
-
-  // 根据 session 状态决定显示页面
-  useEffect(() => {
-    if (!session) {
-      setCurrentPage('login');
-    } else if (currentPage === 'login') {
-      setCurrentPage('list');
-    }
-  }, [session, currentPage]);
+  const { session, logout, setTemporaryPassword } = useAdminStore();
+  const [page, setPage] = useState<Page>('list');
 
   const handleLogout = () => {
     logout();
-    setCurrentPage('login');
+    setPage('list');
   };
 
-  switch (currentPage) {
-    case 'login':
-      return (
-        <AdminLoginPage
-          api={api}
-          onLoginSuccess={() => setCurrentPage('list')}
-        />
-      );
-
-    case 'list':
-      return (
-        <TeacherListPage
-          api={api}
-          onLogout={handleLogout}
-          onCreateTeacher={() => setCurrentPage('create')}
-        />
-      );
-
-    case 'create':
-      return (
-        <CreateTeacherPage
-          api={api}
-          onBack={() => setCurrentPage('list')}
-          onSuccess={() => setCurrentPage('list')}
-        />
-      );
-
-    default:
-      return null;
+  // 未登录一律回登录页，不依赖 effect 同步，避免多渲染一帧
+  if (!session) {
+    return <AdminLoginPage api={api} onLoginSuccess={() => setPage('list')} />;
   }
+
+  if (page === 'create') {
+    return (
+      <CreateTeacherPage
+        api={api}
+        onBack={() => {
+          setTemporaryPassword(null);
+          setPage('list');
+        }}
+        onLogout={handleLogout}
+      />
+    );
+  }
+
+  return (
+    <TeacherListPage
+      api={api}
+      onLogout={handleLogout}
+      onCreateTeacher={() => setPage('create')}
+      onResetPassword={() => {
+        // TODO(3F): 重置密码沿用创建页的一次性凭据面板，待后端联通后接入
+      }}
+    />
+  );
 };

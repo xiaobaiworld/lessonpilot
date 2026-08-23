@@ -1,6 +1,7 @@
 /* 设计令牌与登录样式来自 shared，是 v1 视觉真源 */
 @import '../../shared/src/styles/tokens.css';
 @import '../../shared/src/styles/auth.css';
+@import '../../shared/src/styles/workspace.css';
 
 @tailwind base;
 @tailwind components;
