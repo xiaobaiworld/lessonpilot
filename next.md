@@ -36,16 +36,16 @@
 | --- | --- |
 | ✅ 目录、职责边界、版本清单 | 完成：工作包 0A、0B；v1/ 子目录、六模块边界、web/extension/contracts workspace、JSON Schema 版本清单 |
 | ✅ 课程包、插件消息、HTTP 契约 | 完成：工作包 0C；三份 JSON Schema 真源建立、version manifest 整合、check-contracts.mjs 校验 |
-| 空库 migration、seed、初始化检查 | 待执行：工作包 0E |
-| 插件本机存储 Schema、身份和证明接口 | 部分完成：工作包 0C 定义了 extension-storage.schema.json；本机证明接口待工作包 4B |
-| ✅ 匿名课程测试夹具 | 已完成：31 个夹具（但尚未与 v1 路径集成）|
+| ✅ 匿名课程测试夹具 | 完成：工作包 0D；31 个场景覆盖、两教师两身份、重复课节、同视频多课节、多授权源、腐坏契约 |
+| ✅ 空库 migration、seed、初始化检查 | 完成：工作包 0E；init_check.py 定义 18 个 v1 表、5 个旧表拒绝、迁移链不可回滚 |
+| 插件本机存储 Schema、身份和证明接口 | 部分完成：工作包 0C 定义 extension-storage.schema.json；本机证明接口待工作包 4B |
 | 秘密、依赖、契约版本和文档检查 | 待执行：工作包 0F/0G（端点、模块、检查工具集成） |
 
 阶段 0 总门禁尚未通过。
 
 ## 当前工作顺序
 
-阶段 0 进度：
+阶段 0 进度（8 个工作包，已完成 5 个）：
 
 1. ✅ **0A 完成**（`39f4945`）：v1 目录骨架与职责边界（web/extension/contracts/backend/app/modules）
 2. ✅ **0B 完成**（`bb64802`）：版本清单与支持矩阵（HTTP、course package、extension messages、storage、build versions）
@@ -53,12 +53,17 @@
    - course-package.schema.json v2.0.0（多课节版本化交付）
    - extension-messages.schema.json v2.0.0（后台/页面消息）
    - extension-storage.schema.json v2.0.0（本机存储结构）
-   - check-contracts.mjs 校验工具
+4. ✅ **0D 完成**（`357c436`）：匿名课程测试夹具
+   - 两教师、两本机身份、重复课节、同视频多课节
+   - 多版本发布、多授权来源、损坏/旧契约
+   - 8 个夹具验证测试通过
+5. ✅ **0E 完成**（`cca8240`）：v1 数据库入口和旧 schema 拒绝门禁
+   - init_check.py 定义数据库初始化规则
+   - 18 个 v1 表、5 个旧表拒绝清单
+   - 迁移链不可回滚（0011 → 0012）
 
 待执行：
 
-4. **0D**：匿名课程测试夹具（两教师、两本机身份、重复课节、同视频多课节、损坏/旧契约）
-5. **0E**：v1 数据库入口和旧 schema 拒绝门禁
 6. **0F**：仓库级工程门禁改造（endpoint/contract/module/dependency 检查工具）
 7. **0G**：CI 集成（Ruff、TypeScript、pytest、Node 测试）
 
