@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Topbar,
   SectionHead,
@@ -27,11 +27,20 @@ export const TeacherListPage: React.FC<Props> = ({ api, admin, onSignedOut }) =>
   const [creating, setCreating] = useState(false);
   const [busy, setBusy] = useState(false);
 
+  /*
+   * 请求代次：慢的旧请求返回时不能覆盖新数据。
+   * 旧页面用 interactionCoordinator 做同一件事（tests/admin-page.test.js）。
+   */
+  const generation = useRef(0);
+
   const load = useCallback(async () => {
+    const mine = ++generation.current;
     setError(null);
     try {
-      setTeachers(await api.listTeachers());
+      const list = await api.listTeachers();
+      if (mine === generation.current) setTeachers(list);
     } catch (err) {
+      if (mine !== generation.current) return;
       setError(errorMessage(err));
       setTeachers([]);
     }
@@ -42,12 +51,19 @@ export const TeacherListPage: React.FC<Props> = ({ api, admin, onSignedOut }) =>
   }, [load]);
 
   const signOut = async () => {
+    generation.current++; // 丢弃在途响应
     try {
       await api.logout();
     } finally {
       onSignedOut();
     }
   };
+
+  /*
+   * 临时密码还在屏上时禁止下一次创建或重置。
+   * 那个密码不可再次获取，覆盖掉就永久丢了。
+   */
+  const locked = busy || credential !== null;
 
   const create = async (loginName: string, displayName: string) => {
     setBusy(true);
@@ -93,7 +109,7 @@ export const TeacherListPage: React.FC<Props> = ({ api, admin, onSignedOut }) =>
             className="dark-button"
             type="button"
             onClick={() => setCreating(true)}
-            disabled={busy}
+            disabled={locked}
           >
             新建教师
           </button>
@@ -139,7 +155,7 @@ export const TeacherListPage: React.FC<Props> = ({ api, admin, onSignedOut }) =>
                         className="text-button"
                         type="button"
                         onClick={() => reset(t)}
-                        disabled={busy}
+                        disabled={locked}
                       >
                         重置密码
                       </button>

@@ -89,7 +89,12 @@ export const CoursePage: React.FC<Props> = ({
   };
 
   // 按 sort_order 显式排序，不依赖后端返回顺序
-  const lessons = course ? [...course.lessons].sort((a, b) => a.sort_order - b.sort_order) : [];
+  const lessons = course
+    ? [...course.lessons].sort((a, b) => a.sort_order - b.sort_order)
+    : [];
+
+  // 授权码还在屏上时不再发下一个：它不可再次获取，覆盖掉就丢了
+  const locked = busy || accessCode !== null;
 
   return (
     <div className="app-shell">
@@ -119,7 +124,7 @@ export const CoursePage: React.FC<Props> = ({
                 className="light-button"
                 type="button"
                 onClick={() => setAddingLesson(true)}
-                disabled={busy}
+                disabled={locked}
               >
                 添加课节
               </button>
@@ -127,7 +132,7 @@ export const CoursePage: React.FC<Props> = ({
                 className="light-button"
                 type="button"
                 onClick={makeCode}
-                disabled={busy || lessons.length === 0}
+                disabled={locked || lessons.length === 0}
               >
                 创建授权码
               </button>
@@ -135,7 +140,7 @@ export const CoursePage: React.FC<Props> = ({
                 className="dark-button"
                 type="button"
                 onClick={publish}
-                disabled={busy || lessons.length === 0}
+                disabled={locked || lessons.length === 0}
               >
                 {busy ? '处理中…' : '发布课程'}
               </button>
