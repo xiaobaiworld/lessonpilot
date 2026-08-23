@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>KnownMap 管理后台已迁移</title>
+    <!--
+      旧入口重定向。阶段 6/7 只重定向，不物理删除（6E）：
+      收藏了旧地址的人要能被带到新位置，而不是撞 404。
+
+      用 meta refresh + JS 双保险：静态站没有服务端可发 301，
+      而 JS 被禁用时 meta refresh 仍然生效。
+    -->
+    <meta http-equiv="refresh" content="0; url=/admin/" />
+    <script>
+      // replace 而非 assign：不在历史里留一条会弹回旧页的记录
+      location.replace('/admin/' + location.hash);
+    </script>
+    <style>
+      body {
+        margin: 0;
+        display: grid;
+        place-items: center;
+        min-height: 100vh;
+        background: #f5f1e7;
+        color: #16251f;
+        font-family: "Avenir Next", "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+      main {
+        max-width: 380px;
+        padding: 32px;
+        border: 1px solid #b9beb5;
+        background: #fffdf8;
+        text-align: center;
+      }
+      h1 {
+        margin: 0 0 12px;
+        font-size: 20px;
+        font-weight: 600;
+      }
+      p {
+        margin: 0 0 18px;
+        color: #4f6259;
+        font-size: 14px;
+        line-height: 1.7;
+      }
+      a {
+        color: #1d5c43;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>管理后台已迁移</h1>
+      <p>新地址是 <code>/admin/</code>。这个页面会自动跳转。</p>
+      <p><a href="/admin/">立即前往</a></p>
+    </main>
+  </body>
+</html>

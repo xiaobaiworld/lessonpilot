@@ -195,6 +195,7 @@ V1_ALLOWED_PATTERNS=(
   'public/trial-intake.js'
   'public/assets/*'
   'public/teacher-web/*'
+  'public/admin.html'
   'public/admin/index.html'
   'public/admin/assets/*'
   'public/teacher/index.html'
@@ -305,6 +306,13 @@ build_v1_apps() {
     mkdir -p "$output/public/$app"
     cp -R "$source_dir/v1/web/$app/dist/." "$output/public/$app/"
   done
+
+  # 旧入口重定向。阶段 6/7 只重定向不删除（6E）：收藏了旧地址的人
+  # 要被带到新位置，而不是撞 404。
+  mkdir -p "$output/public/teacher-web"
+  cp "$source_dir/v1/web/legacy-redirect/admin.html" "$output/public/admin.html"
+  cp "$source_dir/v1/web/legacy-redirect/editor.html" \
+    "$output/public/teacher-web/editor.html"
 
   # 学生插件的生产包也从同一提交构建，目标写死为 production
   log "building v1 extension (production target)"
