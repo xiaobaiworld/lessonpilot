@@ -4,6 +4,12 @@ import path from 'path';
 
 export default defineConfig({
   root: '.',
+  /*
+   * 资源用相对路径。默认的 base '/' 会生成 /assets/... 这类站点根绝对
+   * 路径，而应用挂在 /admin/ 或 /teacher/ 下，发布出去就是白屏。
+   * dev server 挂在根路径，所以这个问题本机测不出来。
+   */
+  base: './',
   plugins: [react()],
   server: {
     port: 5174,
