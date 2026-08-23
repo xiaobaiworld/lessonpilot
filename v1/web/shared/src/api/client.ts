@@ -1,105 +1,75 @@
+import { APIError } from './types';
+
 /**
- * v1 Web 应用 HTTP 客户端
+ * HTTP 客户端。
+ *
+ * 只做四件事：拼 URL、带 Cookie、超时、把非 2xx 转成 APIError。
+ * 不做自动重试 —— 教师端的操作都是有意识的单次动作（登录、发布、创建
+ * 授权码），静默重试会让用户多等几秒且可能重复提交。
  */
-
-import { APIError, APIResponse, ErrorType, RequestContext } from './types';
-
-export interface ClientConfig {
-  baseURL: string;
-  timeout?: number;
-  maxRetries?: number;
-}
-
-function generateRequestId(): string {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-}
-
 export class APIClient {
-  private baseURL: string;
-  private timeout: number;
-  private maxRetries: number;
-
-  constructor(config: ClientConfig) {
-    this.baseURL = config.baseURL;
-    this.timeout = config.timeout ?? 30000;
-    this.maxRetries = config.maxRetries ?? 3;
-  }
+  constructor(
+    private baseURL: string,
+    private timeoutMs = 15000
+  ) {}
 
   private async request<T>(
     method: string,
     path: string,
-    body?: unknown,
-    headers?: Record<string, string>
+    body?: unknown
   ): Promise<T> {
-    const url = `${this.baseURL}${path}`;
-    const requestId = generateRequestId();
-
-    const options: RequestInit = {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Request-ID': requestId,
-        ...(headers || {}),
-      },
-    };
-
-    if (body) {
-      options.body = JSON.stringify(body);
-    }
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), this.timeoutMs);
 
     try {
-      const response = await Promise.race([
-        fetch(url, options),
-        new Promise<Response>((_, reject) =>
-          setTimeout(
-            () => reject(new Error('Request timeout')),
-            this.timeout
-          )
-        ),
-      ]);
+      const res = await fetch(`${this.baseURL}${path}`, {
+        method,
+        signal: controller.signal,
+        // 会话走 HttpOnly Cookie，不在前端持有 token
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: body === undefined ? undefined : JSON.stringify(body),
+      });
 
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
         throw new APIError(
-          response.status >= 500 ? 'ServerError' : 'ClientError',
-          response.status,
-          data
+          res.status >= 500 ? 'ServerError' : 'ClientError',
+          res.status,
+          data ?? undefined,
+          data?.detail ?? data?.error?.message
         );
       }
 
-      return await response.json();
-    } catch (error) {
-      if (error instanceof APIError) throw error;
-      throw new APIError('NetworkError', undefined, {}, (error as Error).message);
+      // 204 等无内容响应
+      return res.status === 204 ? (undefined as T) : await res.json();
+    } catch (err) {
+      if (err instanceof APIError) throw err;
+      const aborted = err instanceof Error && err.name === 'AbortError';
+      throw new APIError(
+        'NetworkError',
+        undefined,
+        undefined,
+        aborted ? '请求超时' : (err as Error)?.message
+      );
+    } finally {
+      clearTimeout(timer);
     }
   }
 
-  async get<T>(path: string, headers?: Record<string, string>): Promise<T> {
-    return this.request<T>('GET', path, undefined, headers);
+  get<T>(path: string) {
+    return this.request<T>('GET', path);
   }
 
-  async post<T>(
-    path: string,
-    body: unknown,
-    headers?: Record<string, string>
-  ): Promise<T> {
-    return this.request<T>('POST', path, body, headers);
+  post<T>(path: string, body?: unknown) {
+    return this.request<T>('POST', path, body ?? {});
   }
 
-  async put<T>(
-    path: string,
-    body: unknown,
-    headers?: Record<string, string>
-  ): Promise<T> {
-    return this.request<T>('PUT', path, body, headers);
+  put<T>(path: string, body?: unknown) {
+    return this.request<T>('PUT', path, body ?? {});
   }
 
-  async delete<T>(path: string, headers?: Record<string, string>): Promise<T> {
-    return this.request<T>('DELETE', path, undefined, headers);
+  delete<T>(path: string) {
+    return this.request<T>('DELETE', path);
   }
-}
-
-// 工厂函数
-export function createAPIClient(baseURL: string): APIClient {
-  return new APIClient({ baseURL });
 }

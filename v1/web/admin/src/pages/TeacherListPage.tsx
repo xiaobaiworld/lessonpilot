@@ -1,109 +1,148 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Topbar,
   SectionHead,
-  EmptyState,
-  LoadingSpinner,
-  ErrorBanner,
-  useApiRequest,
+  CredentialDialog,
+  AuthField,
+  errorMessage,
 } from '@v1/web/shared';
-import { useAdminStore, Teacher } from '../store';
-import { AdminAPI } from '../api';
+import { AdminAPI, Admin, Teacher } from '../api';
 
-interface TeacherListPageProps {
+interface Props {
   api: AdminAPI;
-  onLogout: () => void;
-  onCreateTeacher: () => void;
-  onResetPassword: (teacher: Teacher) => void;
+  admin: Admin;
+  onSignedOut: () => void;
 }
 
-export const TeacherListPage: React.FC<TeacherListPageProps> = ({
-  api,
-  onLogout,
-  onCreateTeacher,
-  onResetPassword,
-}) => {
-  const { session, teachers, setTeachers } = useAdminStore();
-  const { loading, error, execute } = useApiRequest<Teacher[]>();
+/** 待展示的一次性密码，附带它属于谁 */
+interface Credential {
+  who: string;
+  password: string;
+}
+
+export const TeacherListPage: React.FC<Props> = ({ api, admin, onSignedOut }) => {
+  const [teachers, setTeachers] = useState<Teacher[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [credential, setCredential] = useState<Credential | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  const load = useCallback(async () => {
+    setError(null);
+    try {
+      setTeachers(await api.listTeachers());
+    } catch (err) {
+      setError(errorMessage(err));
+      setTeachers([]);
+    }
+  }, [api]);
 
   useEffect(() => {
-    if (!session) return;
-    execute(() => api.getTeachers(session.token)).then((data) => {
-      if (data) setTeachers(data);
-    });
-  }, [session, api, setTeachers, execute]);
+    load();
+  }, [load]);
 
-  if (!session) return null;
+  const signOut = async () => {
+    try {
+      await api.logout();
+    } finally {
+      onSignedOut();
+    }
+  };
+
+  const create = async (loginName: string, displayName: string) => {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await api.createTeacher(loginName, displayName);
+      setCredential({
+        who: res.teacher.login_name,
+        password: res.temporary_password,
+      });
+      setCreating(false);
+      await load();
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const reset = async (teacher: Teacher) => {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await api.resetPassword(teacher.id);
+      setCredential({ who: teacher.login_name, password: res.temporary_password });
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <div className="app-shell">
-      <Topbar
-        subtitle="管理后台"
-        account={session.email}
-        onLogout={onLogout}
-      />
+      <Topbar subtitle="管理后台" account={admin.display_name} onLogout={signOut} />
 
       <main className="view workspace-home">
         <SectionHead
           title="教师账号"
-          count={teachers.length > 0 ? `共 ${teachers.length} 位教师` : undefined}
+          count={teachers?.length ? `共 ${teachers.length} 位` : undefined}
         >
-          <button className="dark-button" type="button" onClick={onCreateTeacher}>
+          <button
+            className="dark-button"
+            type="button"
+            onClick={() => setCreating(true)}
+            disabled={busy}
+          >
             新建教师
           </button>
         </SectionHead>
 
-        {error && <ErrorBanner error={error} />}
+        {error && <p className="field-error">{error}</p>}
 
-        {loading && <LoadingSpinner message="正在读取教师列表" />}
+        {teachers === null && <p className="table-state">正在读取教师列表…</p>}
 
-        {!loading && teachers.length === 0 && (
-          <EmptyState message="还没有教师账号">
-            <button className="dark-button" type="button" onClick={onCreateTeacher}>
-              创建第一个教师账号
-            </button>
-          </EmptyState>
-        )}
+        {teachers?.length === 0 && <p className="table-state">还没有教师账号</p>}
 
-        {!loading && teachers.length > 0 && (
+        {teachers && teachers.length > 0 && (
           <div className="table-wrap">
             <table>
               <thead>
                 <tr>
                   <th>登录名</th>
-                  <th>昵称</th>
+                  <th>教师名称</th>
                   <th>状态</th>
                   <th>已发布课程</th>
-                  <th>操作</th>
+                  <th>
+                    <span className="visually-hidden">操作</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {teachers.map((teacher) => (
-                  <tr key={teacher.id}>
-                    <td>{teacher.login_name}</td>
-                    <td>{teacher.display_name}</td>
+                {teachers.map((t) => (
+                  <tr key={t.id}>
+                    <td>{t.login_name}</td>
+                    <td>{t.display_name}</td>
                     <td>
                       <span
-                        className={
-                          teacher.status === 'active'
-                            ? 'status-pill is-active'
-                            : 'status-pill is-muted'
-                        }
+                        className={`status-pill ${
+                          t.status === 'active' ? 'is-active' : 'is-muted'
+                        }`}
                       >
-                        {teacher.status === 'active' ? '启用' : '停用'}
+                        {t.status === 'active' ? '启用' : '停用'}
                       </span>
                     </td>
-                    <td className="num">{teacher.published_course_count}</td>
+                    <td className="num">{t.published_course_count}</td>
                     <td>
-                      <div className="row-actions">
-                        <button
-                          className="text-button"
-                          type="button"
-                          onClick={() => onResetPassword(teacher)}
-                        >
-                          重置密码
-                        </button>
-                      </div>
+                      <button
+                        className="text-button"
+                        type="button"
+                        onClick={() => reset(t)}
+                        disabled={busy}
+                      >
+                        重置密码
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -112,6 +151,78 @@ export const TeacherListPage: React.FC<TeacherListPageProps> = ({
           </div>
         )}
       </main>
+
+      {creating && (
+        <CreateTeacherDialog
+          busy={busy}
+          onCancel={() => setCreating(false)}
+          onSubmit={create}
+        />
+      )}
+
+      {credential && (
+        <CredentialDialog
+          title={`${credential.who} 的初始密码`}
+          secret={credential.password}
+          onClose={() => setCredential(null)}
+        />
+      )}
+    </div>
+  );
+};
+
+interface DialogProps {
+  busy: boolean;
+  onCancel: () => void;
+  onSubmit: (loginName: string, displayName: string) => void;
+}
+
+/** 两个字段的表单，不值得单独占一页 */
+const CreateTeacherDialog: React.FC<DialogProps> = ({ busy, onCancel, onSubmit }) => {
+  const [loginName, setLoginName] = useState('');
+  const [displayName, setDisplayName] = useState('');
+
+  return (
+    <div className="modal-backdrop" role="dialog" aria-modal="true">
+      <div className="modal-panel">
+        <h2>新建教师账号</h2>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            onSubmit(loginName, displayName);
+          }}
+        >
+          <AuthField
+            id="new-login-name"
+            label="登录名"
+            value={loginName}
+            onChange={setLoginName}
+            autoComplete="off"
+            disabled={busy}
+          />
+          <AuthField
+            id="new-display-name"
+            label="教师名称"
+            value={displayName}
+            onChange={setDisplayName}
+            autoComplete="off"
+            disabled={busy}
+          />
+          <div className="modal-actions">
+            <button
+              className="light-button"
+              type="button"
+              onClick={onCancel}
+              disabled={busy}
+            >
+              取消
+            </button>
+            <button className="dark-button" type="submit" disabled={busy}>
+              {busy ? '创建中…' : '创建'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

@@ -91,12 +91,6 @@
   font-weight: 700;
 }
 
-/* 行内操作 */
-.row-actions {
-  display: flex;
-  gap: 14px;
-  white-space: nowrap;
-}
 
 /* 一次性凭据：粉笔黄边框表示"现在必须处理"，不是完成态 */
 .credential-panel {
@@ -163,12 +157,6 @@
   letter-spacing: 0;
 }
 
-.modal-note {
-  margin: 0 0 24px;
-  color: var(--ink-soft);
-  font-size: 13px;
-  line-height: 1.75;
-}
 
 .modal-actions,
 .credential-actions {
@@ -217,24 +205,17 @@
   gap: 14px;
 }
 
-/* 表单面板 */
-.form-panel {
-  width: min(520px, 100%);
-  padding: 32px;
-  border: 1px solid var(--line-dark);
-  background: var(--paper-bright);
-}
 
-.form-panel form {
-  display: grid;
-  gap: 18px;
-}
 
-.form-panel .dark-button,
-.auth-panel .dark-button {
-  justify-self: start;
-  min-width: 112px;
-  justify-content: center;
+
+/* 成功提示 */
+.notice {
+  margin: 0 0 24px;
+  padding: 13px 15px;
+  background: var(--green-pale);
+  color: var(--green);
+  font-size: 13px;
+  line-height: 1.65;
 }
 
 /* 读屏器专用 */

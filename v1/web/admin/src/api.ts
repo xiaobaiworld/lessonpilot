@@ -1,109 +1,71 @@
-/**
- * 管理员应用 API 服务
- * 调用后端管理员 API
- */
+import { APIClient } from '@v1/web/shared';
 
-import { APIClient, APIError } from '@v1/web/shared';
-import { AdminSession, Teacher } from './store';
+/** 与 backend/app/schemas/admin.py 对齐 */
 
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface LoginResponse {
-  token: string;
-  admin_id: string;
-  email: string;
-  expires_at: number;
-}
-
-export interface CreateTeacherResponse {
-  teacher_id: string;
+export interface Admin {
+  id: string;
   login_name: string;
+  display_name: string;
+  status: string;
+}
+
+export interface Teacher {
+  id: string;
+  login_name: string;
+  display_name: string;
+  status: string;
+  published_course_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TeacherMutation {
+  teacher: Teacher;
   temporary_password: string;
 }
 
-export interface ResetPasswordResponse {
-  teacher_id: string;
-  temporary_password: string;
-}
+const BASE = '/api/v1/admin';
 
+/**
+ * 会话走 HttpOnly Cookie，前端不持有也读不到 token，
+ * 所以这些方法都不需要传凭据参数。
+ */
 export class AdminAPI {
-  constructor(private client: APIClient) {}
+  constructor(private http: APIClient) {}
 
-  async login(email: string, password: string): Promise<AdminSession> {
-    const response = await this.client.post<LoginResponse>('/api/v1/admin/auth/login', {
-      email,
+  async login(loginName: string, password: string): Promise<Admin> {
+    const res = await this.http.post<{ admin: Admin }>(`${BASE}/auth/login`, {
+      login_name: loginName,
       password,
     });
-
-    return {
-      token: response.token,
-      adminId: response.admin_id,
-      email: response.email,
-      expiresAt: response.expires_at,
-    };
+    return res.admin;
   }
 
-  async getMe(token: string): Promise<{ admin_id: string; email: string }> {
-    return this.client.get('/api/v1/admin/auth/me', {
-      Authorization: `Bearer ${token}`,
+  /** 恢复会话；未登录时后端返回 401，由调用方转为登录页 */
+  async me(): Promise<Admin> {
+    const res = await this.http.get<{ admin: Admin }>(`${BASE}/auth/me`);
+    return res.admin;
+  }
+
+  logout(): Promise<{ logged_out: boolean }> {
+    return this.http.post(`${BASE}/auth/logout`);
+  }
+
+  /** 后端返回裸数组，不是 { teachers: [] } */
+  listTeachers(): Promise<Teacher[]> {
+    return this.http.get<Teacher[]>(`${BASE}/teachers`);
+  }
+
+  createTeacher(loginName: string, displayName: string): Promise<TeacherMutation> {
+    return this.http.post<TeacherMutation>(`${BASE}/teachers`, {
+      login_name: loginName,
+      display_name: displayName,
     });
   }
 
-  async logout(token: string): Promise<void> {
-    await this.client.post(
-      '/api/v1/admin/auth/logout',
-      {},
-      { Authorization: `Bearer ${token}` }
-    );
-  }
-
-  async getTeachers(token: string): Promise<Teacher[]> {
-    const response = await this.client.get<{ teachers: Teacher[] }>(
-      '/api/v1/admin/teachers',
-      { Authorization: `Bearer ${token}` }
-    );
-    return response.teachers;
-  }
-
-  async createTeacher(
-    token: string,
-    loginName: string,
-    displayName: string
-  ): Promise<CreateTeacherResponse> {
-    return this.client.post<CreateTeacherResponse>(
-      '/api/v1/admin/teachers',
-      {
-        login_name: loginName,
-        display_name: displayName,
-      },
-      { Authorization: `Bearer ${token}` }
-    );
-  }
-
-  async resetPassword(token: string, teacherId: string): Promise<ResetPasswordResponse> {
-    return this.client.post<ResetPasswordResponse>(
-      `/api/v1/admin/teachers/${teacherId}/reset-password`,
-      {},
-      { Authorization: `Bearer ${token}` }
-    );
-  }
-
-  async suspendTeacher(token: string, teacherId: string): Promise<void> {
-    await this.client.post(
-      `/api/v1/admin/teachers/${teacherId}/suspend`,
-      {},
-      { Authorization: `Bearer ${token}` }
-    );
-  }
-
-  async restoreTeacher(token: string, teacherId: string): Promise<void> {
-    await this.client.post(
-      `/api/v1/admin/teachers/${teacherId}/restore`,
-      {},
-      { Authorization: `Bearer ${token}` }
+  resetPassword(teacherId: string): Promise<TeacherMutation> {
+    return this.http.post<TeacherMutation>(
+      `${BASE}/teachers/${teacherId}/reset-password`
     );
   }
 }

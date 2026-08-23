@@ -1,42 +1,29 @@
 import React, { useState } from 'react';
-import {
-  AuthPanel,
-  AuthField,
-  PasswordField,
-  ErrorHandler,
-} from '@v1/web/shared';
-import { useTeacherStore } from '../store';
-import { TeacherAPI } from '../api';
+import { AuthPanel, AuthField, PasswordField, errorMessage } from '@v1/web/shared';
+import { TeacherAPI, Teacher } from '../api';
 
-interface TeacherLoginPageProps {
+interface Props {
   api: TeacherAPI;
-  onLoginSuccess: () => void;
+  onSignedIn: (teacher: Teacher) => void;
 }
 
-export const TeacherLoginPage: React.FC<TeacherLoginPageProps> = ({
-  api,
-  onLoginSuccess,
-}) => {
-  const { setSession } = useTeacherStore();
+export const TeacherLoginPage: React.FC<Props> = ({ api, onSignedIn }) => {
   const [loginName, setLoginName] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setBusy(true);
     setError(null);
-
     try {
-      const session = await api.login(loginName, password);
-      setSession(session);
-      onLoginSuccess();
+      onSignedIn(await api.login(loginName, password));
     } catch (err) {
-      setError(ErrorHandler.getDisplayMessage(err));
+      setError(errorMessage(err));
       setPassword('');
     } finally {
-      setLoading(false);
+      setBusy(false);
     }
   };
 
@@ -44,7 +31,7 @@ export const TeacherLoginPage: React.FC<TeacherLoginPageProps> = ({
     <AuthPanel
       eyebrow="KnownMap 互动课程工具"
       title="登录互动课程工具"
-      onSubmit={handleLogin}
+      onSubmit={submit}
       error={error}
     >
       <AuthField
@@ -53,16 +40,16 @@ export const TeacherLoginPage: React.FC<TeacherLoginPageProps> = ({
         value={loginName}
         onChange={setLoginName}
         autoComplete="username"
-        disabled={loading}
+        disabled={busy}
       />
       <PasswordField
         id="login-password"
         value={password}
         onChange={setPassword}
-        disabled={loading}
+        disabled={busy}
       />
-      <button className="dark-button" type="submit" disabled={loading}>
-        {loading ? '登录中…' : '登录'}
+      <button className="dark-button" type="submit" disabled={busy}>
+        {busy ? '登录中…' : '登录'}
       </button>
     </AuthPanel>
   );

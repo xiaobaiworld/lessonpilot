@@ -1,43 +1,30 @@
 import React, { useState } from 'react';
-import {
-  AuthPanel,
-  AuthField,
-  PasswordField,
-  ErrorHandler,
-} from '@v1/web/shared';
-import { useAdminStore } from '../store';
-import { AdminAPI } from '../api';
+import { AuthPanel, AuthField, PasswordField, errorMessage } from '@v1/web/shared';
+import { AdminAPI, Admin } from '../api';
 
-interface AdminLoginPageProps {
+interface Props {
   api: AdminAPI;
-  onLoginSuccess: () => void;
+  onSignedIn: (admin: Admin) => void;
 }
 
-export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
-  api,
-  onLoginSuccess,
-}) => {
-  const { setSession } = useAdminStore();
-  const [email, setEmail] = useState('');
+export const AdminLoginPage: React.FC<Props> = ({ api, onSignedIn }) => {
+  const [loginName, setLoginName] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setBusy(true);
     setError(null);
-
     try {
-      const session = await api.login(email, password);
-      setSession(session);
-      onLoginSuccess();
+      onSignedIn(await api.login(loginName, password));
     } catch (err) {
-      // 登录失败不区分账号不存在或密码错误，与后端抗枚举策略一致
-      setError(ErrorHandler.getDisplayMessage(err));
+      // 不区分账号不存在与密码错误，与后端抗枚举策略一致
+      setError(errorMessage(err));
       setPassword('');
     } finally {
-      setLoading(false);
+      setBusy(false);
     }
   };
 
@@ -45,26 +32,25 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
     <AuthPanel
       eyebrow="KnownMap 管理后台"
       title="超级管理员登录"
-      onSubmit={handleLogin}
+      onSubmit={submit}
       error={error}
     >
       <AuthField
-        id="admin-email"
-        label="邮箱"
-        type="email"
-        value={email}
-        onChange={setEmail}
+        id="admin-login-name"
+        label="用户名"
+        value={loginName}
+        onChange={setLoginName}
         autoComplete="username"
-        disabled={loading}
+        disabled={busy}
       />
       <PasswordField
         id="admin-password"
         value={password}
         onChange={setPassword}
-        disabled={loading}
+        disabled={busy}
       />
-      <button className="dark-button" type="submit" disabled={loading}>
-        {loading ? '登录中…' : '登录'}
+      <button className="dark-button" type="submit" disabled={busy}>
+        {busy ? '登录中…' : '登录'}
       </button>
     </AuthPanel>
   );

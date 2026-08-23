@@ -1,128 +1,113 @@
+import { APIClient } from '@v1/web/shared';
+
 /**
- * 教师应用 API 服务
+ * 与后端 schema 对齐：
+ * backend/app/schemas/{auth,course,lesson,access_code}.py
+ * 会话走 HttpOnly Cookie，前端不持有 token。
  */
 
-import { APIClient } from '@v1/web/shared';
-import { TeacherSession, Course, Lesson } from './store';
-
-export interface TeacherLoginResponse {
-  token: string;
-  teacher_id: string;
+export interface Teacher {
+  id: string;
   login_name: string;
-  expires_at: number;
+  display_name: string;
+  status: string;
 }
 
-export interface CourseDetailResponse {
+export interface CourseSummary {
   id: string;
   title: string;
-  status: 'draft' | 'active' | 'archived';
-  lessons: Array<{
-    id: string;
-    sequence: number;
-    title: string;
-    node_count: number;
-  }>;
-  published_count: number;
+  description: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Lesson {
+  id: string;
+  course_id: string;
+  title: string;
+  /** 后端字段是 sort_order，不是 sequence */
+  sort_order: number;
+  video_ref: { platform: 'bilibili'; videoId: string };
+  has_draft: boolean;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CourseDetail extends CourseSummary {
+  lessons: Lesson[];
+}
+
+/** 发布返回的是课程包本身 */
+export interface CoursePackage {
+  schemaVersion: 2;
+  courseId: string;
+  title: string;
+  lessons: { lessonId: string; title: string; nodes: unknown[] }[];
+  updatedAt: string;
+}
+
+export interface AccessCode {
+  access_code: string;
+  course_id: string;
+  course_title: string;
+  code_type: 'short_term' | 'long_term';
+  created_at: string;
+  expires_at: string | null;
 }
 
 export class TeacherAPI {
-  constructor(private client: APIClient) {}
+  constructor(private http: APIClient) {}
 
-  async login(loginName: string, password: string): Promise<TeacherSession> {
-    const response = await this.client.post<TeacherLoginResponse>(
-      '/api/v1/teacher/auth/login',
-      { login_name: loginName, password }
-    );
-
-    return {
-      token: response.token,
-      teacherId: response.teacher_id,
-      loginName: response.login_name,
-      expiresAt: response.expires_at,
-    };
+  async login(loginName: string, password: string): Promise<Teacher> {
+    const res = await this.http.post<{ teacher: Teacher }>('/api/v1/auth/login', {
+      login_name: loginName,
+      password,
+    });
+    return res.teacher;
   }
 
-  async logout(token: string): Promise<void> {
-    await this.client.post(
-      '/api/v1/teacher/auth/logout',
-      {},
-      { Authorization: `Bearer ${token}` }
+  async me(): Promise<Teacher> {
+    const res = await this.http.get<{ teacher: Teacher }>('/api/v1/auth/me');
+    return res.teacher;
+  }
+
+  logout(): Promise<{ logged_out: boolean }> {
+    return this.http.post('/api/v1/auth/logout');
+  }
+
+  async listCourses(): Promise<CourseSummary[]> {
+    const res = await this.http.get<{ items: CourseSummary[] }>(
+      '/api/v1/teacher/courses'
+    );
+    return res.items;
+  }
+
+  getCourse(courseId: string): Promise<CourseDetail> {
+    return this.http.get<CourseDetail>(`/api/v1/teacher/courses/${courseId}`);
+  }
+
+  createCourse(title: string, description?: string): Promise<CourseSummary> {
+    return this.http.post<CourseSummary>('/api/v1/teacher/courses', {
+      title,
+      description: description || null,
+    });
+  }
+
+  publish(courseId: string): Promise<CoursePackage> {
+    return this.http.post<CoursePackage>(
+      `/api/v1/teacher/courses/${courseId}/publish`
     );
   }
 
-  async getCourses(token: string): Promise<Course[]> {
-    const response = await this.client.get<{ courses: CourseDetailResponse[] }>(
-      '/api/v1/teacher/courses',
-      { Authorization: `Bearer ${token}` }
-    );
-
-    return response.courses.map((c) => ({
-      id: c.id,
-      title: c.title,
-      status: c.status,
-      published_count: c.published_count,
-      lessons: c.lessons,
-    }));
-  }
-
-  async getCourse(token: string, courseId: string): Promise<Course> {
-    const response = await this.client.get<CourseDetailResponse>(
-      `/api/v1/teacher/courses/${courseId}`,
-      { Authorization: `Bearer ${token}` }
-    );
-
-    return {
-      id: response.id,
-      title: response.title,
-      status: response.status,
-      published_count: response.published_count,
-      lessons: response.lessons,
-    };
-  }
-
-  async createCourse(
-    token: string,
-    title: string
-  ): Promise<Course> {
-    const response = await this.client.post<CourseDetailResponse>(
-      '/api/v1/teacher/courses',
-      { title },
-      { Authorization: `Bearer ${token}` }
-    );
-
-    return {
-      id: response.id,
-      title: response.title,
-      status: response.status,
-      published_count: response.published_count,
-      lessons: response.lessons,
-    };
-  }
-
-  async updateCourse(
-    token: string,
+  createAccessCode(
     courseId: string,
-    updates: { title?: string; status?: string }
-  ): Promise<Course> {
-    const response = await this.client.put<CourseDetailResponse>(
-      `/api/v1/teacher/courses/${courseId}`,
-      updates,
-      { Authorization: `Bearer ${token}` }
-    );
-
-    return {
-      id: response.id,
-      title: response.title,
-      status: response.status,
-      published_count: response.published_count,
-      lessons: response.lessons,
-    };
-  }
-
-  async deleteCourse(token: string, courseId: string): Promise<void> {
-    await this.client.delete(
-      `/api/v1/teacher/courses/${courseId}`,
-      { Authorization: `Bearer ${token}` }
+    codeType: 'short_term' | 'long_term' = 'long_term'
+  ): Promise<AccessCode> {
+    return this.http.post<AccessCode>(
+      `/api/v1/teacher/courses/${courseId}/access-codes`,
+      { code_type: codeType }
     );
   }
 }
