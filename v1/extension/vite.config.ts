@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import { writeFileSync, mkdirSync, copyFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { TARGETS, TargetName, buildManifest } from './build/targets';
+import { TARGETS, TargetName, buildManifest } from './manifest/targets';
 
 /**
  * MV3 打包。

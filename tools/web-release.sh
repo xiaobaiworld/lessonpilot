@@ -95,6 +95,24 @@ if [[ "$PUBLISH_PROFILE" == "teacher-platform-v1" ]]; then
 elif [[ "$PUBLISH_PROFILE" == "sales-static-v1" ]]; then
   SOURCE_FILES=("${SALES_SOURCE_FILES[@]}")
   PUBLIC_FILES=("${SALES_PUBLIC_FILES[@]}")
+elif [[ "$PUBLISH_PROFILE" == "v1-apps" ]]; then
+  # v1 应用是 Vite 构建产物，不是仓库里的已跟踪文件。
+  # 归档整个 v1/ 后在归档目录里构建，「从精确提交发布」这条不变量不变。
+  # 销售页仍按原样带上：3F 要求它不随框架迁移改写。
+  SOURCE_FILES=(
+    "${SALES_SOURCE_FILES[@]}"
+    # v1 的 index.css 直接 @import 这份样式表（视觉真源，不另抄一份），
+    # 所以它必须在归档里，否则构建时 postcss 解析不到。
+    # 阶段 8 删除旧系统时把它移进 v1/ 并更新 import 路径。
+    "teacher-web/styles.css"
+    "v1"
+  )
+  # 构建产物的清单在构建后生成，这里只列静态部分
+  PUBLIC_FILES=(
+    "${SALES_PUBLIC_FILES[@]}"
+    "public/admin/index.html"
+    "public/teacher/index.html"
+  )
 else
   fail "unsupported publish profile: $PUBLISH_PROFILE"
 fi
@@ -149,14 +167,79 @@ release_id_for_commit() {
   printf '%s-%s\n' "$(date -u +%Y%m%dT%H%M%SZ)" "${commit:0:12}"
 }
 
+# 列出这次发布要校验的全部文件。
+#
+# 静态 profile 用固定白名单：清单是发布契约的一部分，多一个文件就该失败。
+# v1 profile 无法预先列出——Vite 给产物加内容哈希——所以改为发布后按
+# public/ 下的实际文件生成。「每个发布的文件都有 SHA-256」这条不变量不变，
+# 变的只是清单从写死变成实测。
+released_files() {
+  local output="$1"
+
+  if [[ "$PUBLISH_PROFILE" == "v1-apps" ]]; then
+    (cd "$output" && find public -type f | LC_ALL=C sort)
+  else
+    printf '%s\n' "${PUBLIC_FILES[@]}"
+  fi
+}
+
+# v1 profile 的白名单按路径模式校验。
+#
+# 文件名带内容哈希所以不能逐个写死，但路径形状必须受控：出现意料之外的
+# 路径就是构建配置改了或有东西被误拷进来，这时该失败而不是照发。
+V1_ALLOWED_PATTERNS=(
+  'public/index.html'
+  'public/robots.txt'
+  'public/subtitle-context.js'
+  'public/demo-captions.js'
+  'public/trial-intake.js'
+  'public/assets/*'
+  'public/teacher-web/*'
+  'public/admin/index.html'
+  'public/admin/assets/*'
+  'public/teacher/index.html'
+  'public/teacher/assets/*'
+  'public/downloads/student-plugin/*'
+)
+
+validate_v1_release_paths() {
+  local output="$1"
+  local relative_path
+  local pattern
+  local matched
+  local unexpected=()
+
+  while IFS= read -r relative_path; do
+    matched=0
+    for pattern in "${V1_ALLOWED_PATTERNS[@]}"; do
+      # shellcheck disable=SC2053  # 有意做 glob 匹配
+      if [[ "$relative_path" == $pattern ]]; then
+        matched=1
+        break
+      fi
+    done
+    [[ "$matched" == 1 ]] || unexpected+=("$relative_path")
+  done < <(released_files "$output")
+
+  if [[ "${#unexpected[@]}" -gt 0 ]]; then
+    printf '[web-release] unexpected file in release: %s\n' "${unexpected[@]}" >&2
+    fail "release contains ${#unexpected[@]} path(s) outside the v1 allowlist"
+  fi
+
+  # 两个应用的入口必须都在，否则切换后有一半是 404
+  [[ -f "$output/public/admin/index.html" ]] || fail "admin entry missing from release"
+  [[ -f "$output/public/teacher/index.html" ]] || fail "teacher entry missing from release"
+}
+
 write_checksums() {
   local output="$1"
+  local relative_path
 
   (
     cd "$output"
-    for relative_path in "${PUBLIC_FILES[@]}"; do
+    while IFS= read -r relative_path; do
       shasum -a 256 "$relative_path"
-    done
+    done < <(released_files "$output")
   ) >"$output/SHA256SUMS"
 }
 
@@ -167,7 +250,7 @@ build_file_metadata() {
   local sha256
   local bytes
 
-  for relative_path in "${PUBLIC_FILES[@]}"; do
+  while IFS= read -r relative_path; do
     sha256="$(shasum -a 256 "$output/$relative_path" | awk '{print $1}')"
     bytes="$(wc -c <"$output/$relative_path" | tr -d ' ')"
     files="$(
@@ -178,9 +261,70 @@ build_file_metadata() {
         '. + [{path: $path, sha256: $sha256, bytes: $bytes}]' \
         <<<"$files"
     )"
-  done
+  done < <(released_files "$output")
 
   printf '%s\n' "$files"
+}
+
+# 在归档目录里构建 v1 应用，产物放进发布目录。
+#
+# 构建必须在归档目录里跑，不能用工作树 —— 否则发布的内容和记录的提交
+# 不是同一份，出问题时无法按提交回溯。
+#
+# 依赖用 npm ci 而非 npm install：ci 严格按锁文件安装，同一提交两次构建
+# 得到同一批依赖，产物摘要才可复现。
+build_v1_apps() {
+  local source_dir="$1"
+  local output="$2"
+  local app
+
+  require_command node
+  require_command npm
+
+  [[ -f "$source_dir/v1/package-lock.json" ]] ||
+    fail "v1/package-lock.json missing in archived commit; cannot build reproducibly"
+
+  log "installing v1 dependencies from lockfile"
+  (cd "$source_dir/v1" && npm ci --silent) ||
+    fail "v1 dependency install failed"
+
+  # 构建前先跑测试。发布一个测试不过的候选没有意义，
+  # 而在这里失败比在切换后失败便宜得多。
+  log "running v1 tests"
+  (cd "$source_dir/v1" && npm test --silent) ||
+    fail "v1 tests failed; refusing to build a release"
+
+  for app in admin teacher; do
+    log "building v1 $app"
+    (cd "$source_dir/v1/web/$app" && npm run build --silent) ||
+      fail "v1 $app build failed"
+
+    [[ -f "$source_dir/v1/web/$app/dist/index.html" ]] ||
+      fail "v1 $app build produced no index.html"
+
+    mkdir -p "$output/public/$app"
+    cp -R "$source_dir/v1/web/$app/dist/." "$output/public/$app/"
+  done
+
+  # 学生插件的生产包也从同一提交构建，目标写死为 production
+  log "building v1 extension (production target)"
+  (cd "$source_dir/v1/extension" && KNOWNMAP_TARGET=production npm run build --silent) ||
+    fail "v1 extension build failed"
+
+  local ext_manifest="$source_dir/v1/extension/dist/production/manifest.json"
+  [[ -f "$ext_manifest" ]] || fail "v1 extension build produced no manifest"
+
+  # 生产包绝不能带本机地址：带着它发出去等于给每个安装者开一条通往
+  # 自己机器的通道。这里硬拦，不依赖构建配置写对。
+  if grep -qE '127\.0\.0\.1|localhost' "$source_dir/v1/extension/dist/production"/**/*.js \
+      "$ext_manifest" 2>/dev/null; then
+    fail "production extension build contains a localhost reference; refusing to publish"
+  fi
+
+  mkdir -p "$output/public/downloads/student-plugin"
+  (cd "$source_dir/v1/extension/dist/production" &&
+    zip -q -r -X "$output/public/downloads/student-plugin/knownmap-v1.zip" .) ||
+    fail "v1 extension packaging failed"
 }
 
 build_release() {
@@ -234,7 +378,15 @@ build_release() {
       cp "$source_file" "$public_file"
     done
   fi
+  if [[ "$PUBLISH_PROFILE" == "v1-apps" ]]; then
+    build_v1_apps "$source_dir" "$output"
+  fi
   printf 'User-agent: *\nDisallow: /\n' >"$output/public/robots.txt"
+
+  if [[ "$PUBLISH_PROFILE" == "v1-apps" ]]; then
+    # 校验放在 robots.txt 之后：它也算发布文件，要一起过白名单
+    validate_v1_release_paths "$output"
+  fi
 
   write_checksums "$output"
   files="$(build_file_metadata "$output")"
