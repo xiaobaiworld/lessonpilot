@@ -128,13 +128,32 @@ KNOWNMAP_PUBLISH_PROFILE=v1-apps tools/web-release.sh build <ref> <输出目录>
 
 切换前用 `contracts/release-gate.ts` 核对版本支持矩阵。
 
-## 需要生产权限才能做的
+## 生产：已核对，未切换
 
-- **生产切换**：发布链路已就绪并在本机端到端验证（构建、旧入口重定向、
-  两个应用渲染），执行需要阿里云部署权限；
-- **6C/6D 的生产侧留证**：启动校验与恢复演练都已接进部署脚本，需在 ECS 上
-  实际跑一次；
-- **阶段 8 旧系统退役**：按计划在阶段 7 观察期之后，这是时间约束。
+SSH 凭据本机就有（别名是 `aliyun-us`，与文档约定的 `aliyun` 不同，脚本已加
+连通性预检并提示设置 `KNOWNMAP_SSH_HOST`）。已完成的只读工作：
+
+- **6D 生产恢复演练**：对两份真实生产备份跑通恢复与归属对账，
+  见 `doc/status/v1-stage-6d-production-restore-drill-2026-08-23.md`；
+- **6B 闸门核对**：`cd v1 && npm run gate` 从生产读迁移版本与应用状态，
+  当前如实报告差距（v1 应用未部署）；`--candidate <目录>` 核对候选发布。
+
+### 未执行切换
+
+切换会改变 `knownmap.com` 的对外行为且不易回退。本次工作中已明确要求
+「检查只在本机做，部署的事情后面再完成」，因此只做只读核对。
+
+要切换时：
+
+```bash
+KNOWNMAP_SSH_HOST=aliyun-us KNOWNMAP_PUBLISH_PROFILE=v1-apps   tools/web-release.sh deploy <ref>
+```
+
+切换后随之生效的还有：备份保留期 30 天、部署时执行恢复演练、
+6C 启动校验（生产 `.env` 需满足新规则：非占位符、≥32 字符密钥、
+CORS 不含本机来源、日志非 DEBUG）、`/api/v1/meta/version` 版本探针。
+
+**阶段 8 旧系统退役**按计划在阶段 7 观察期之后，是时间约束。
 
 ## 已知问题
 
