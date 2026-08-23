@@ -1,5 +1,11 @@
 import { defineConfig } from 'vite';
-import { writeFileSync, readFileSync, mkdirSync, copyFileSync } from 'node:fs';
+import {
+  writeFileSync,
+  readFileSync,
+  mkdirSync,
+  copyFileSync,
+  existsSync,
+} from 'node:fs';
 import { resolve } from 'node:path';
 import { TARGETS, TargetName, buildManifest } from './manifest/targets';
 
@@ -73,6 +79,38 @@ export default defineConfig({
           resolve(__dirname, 'popup/popup.css'),
           resolve(outDir, 'popup/popup.css')
         );
+
+        /*
+         * 产物自检：manifest 与 HTML 引用的每个文件都必须真的存在。
+         *
+         * popup 曾因为 HTML 里还写着 ./index.ts 而永久白屏，构建照样成功。
+         * 构建成功不代表引用解析得到，所以在这里当场核对。
+         */
+        const manifest = buildManifest(target) as {
+          background: { service_worker: string };
+          content_scripts: { js: string[]; css: string[] }[];
+          action: { default_popup: string };
+        };
+
+        const referenced = [
+          manifest.background.service_worker,
+          ...manifest.content_scripts.flatMap((s) => [...s.js, ...s.css]),
+          manifest.action.default_popup,
+          // HTML 自己引用的资源
+          ...[...popupHtml.matchAll(/(?:src|href)="\.\/([^"]+)"/g)].map(
+            (m) => `popup/${m[1]}`
+          ),
+        ];
+
+        const missing = referenced.filter(
+          (path) => !existsSync(resolve(outDir, path))
+        );
+        if (missing.length > 0) {
+          throw new Error(
+            `产物缺少被引用的文件：${missing.join('、')}。` +
+              '构建成功不代表引用正确，请检查 manifest 与 HTML 的路径。'
+          );
+        }
       },
     },
   ],
