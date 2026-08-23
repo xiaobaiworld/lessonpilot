@@ -230,6 +230,16 @@ validate_v1_release_paths() {
   # 两个应用的入口必须都在，否则切换后有一半是 404
   [[ -f "$output/public/admin/index.html" ]] || fail "admin entry missing from release"
   [[ -f "$output/public/teacher/index.html" ]] || fail "teacher entry missing from release"
+
+  # 应用挂在 /admin/ 与 /teacher/ 子路径下，资源引用必须是相对的。
+  # 站点根绝对路径（/assets/...）在子路径下全部 404，页面白屏，
+  # 而这在 dev server（挂在根路径）上测不出来。
+  local app
+  for app in admin teacher; do
+    if grep -qE '(src|href)="/(assets|[a-z])' "$output/public/$app/index.html"; then
+      fail "$app/index.html 使用站点根绝对资源路径；在 /$app/ 下会全部 404"
+    fi
+  done
 }
 
 write_checksums() {

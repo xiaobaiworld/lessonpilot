@@ -247,3 +247,20 @@ test('销售页不随 v1 迁移改写', () => {
   );
   assert.ok(profile.includes('SALES_SOURCE_FILES'), 'v1 发布应原样带上销售页');
 });
+
+test('发布校验拦下站点根绝对资源路径', () => {
+  // 应用挂在 /admin/ 与 /teacher/ 子路径下，绝对路径资源全部 404，
+  // 页面白屏。dev server 挂在根路径，所以这个问题只在发布产物上才出现。
+  assert.match(v1Script, /使用站点根绝对资源路径/);
+  assert.match(v1Script, /for app in admin teacher; do/);
+});
+
+test('两个应用都设了相对 base', () => {
+  for (const app of ['admin', 'teacher']) {
+    const config = fs.readFileSync(
+      path.join(root, `v1/web/${app}/vite.config.ts`),
+      'utf8'
+    );
+    assert.match(config, /base: '\.\/'/, `${app} 缺少相对 base`);
+  }
+});
