@@ -32,12 +32,14 @@ export class APIClient {
       });
 
       if (!res.ok) {
+        // 后端错误体形如 { error: { code, message } }；422 是 FastAPI 校验，用 detail
         const data = await res.json().catch(() => null);
         throw new APIError(
           res.status >= 500 ? 'ServerError' : 'ClientError',
           res.status,
-          data ?? undefined,
-          data?.detail ?? data?.error?.message
+          data?.error?.code,
+          data?.error?.message ??
+            (typeof data?.detail === 'string' ? data.detail : undefined)
         );
       }
 
@@ -50,7 +52,7 @@ export class APIClient {
         'NetworkError',
         undefined,
         undefined,
-        aborted ? '请求超时' : (err as Error)?.message
+        aborted ? '请求超时' : undefined
       );
     } finally {
       clearTimeout(timer);

@@ -3,6 +3,7 @@ import {
   Topbar,
   SectionHead,
   CredentialDialog,
+  AuthField,
   errorMessage,
 } from '@v1/web/shared';
 import { TeacherAPI, Teacher, CourseDetail } from '../api';
@@ -13,6 +14,7 @@ interface Props {
   courseId: string;
   onBack: () => void;
   onSignedOut: () => void;
+  onEditLesson: (lessonId: string, lessonTitle: string) => void;
 }
 
 export const CoursePage: React.FC<Props> = ({
@@ -21,11 +23,13 @@ export const CoursePage: React.FC<Props> = ({
   courseId,
   onBack,
   onSignedOut,
+  onEditLesson,
 }) => {
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [accessCode, setAccessCode] = useState<string | null>(null);
+  const [addingLesson, setAddingLesson] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
@@ -41,11 +45,18 @@ export const CoursePage: React.FC<Props> = ({
     load();
   }, [load]);
 
-  const signOut = async () => {
+
+  const addLesson = async (title: string, bvid: string) => {
+    setBusy(true);
+    setError(null);
     try {
-      await api.logout();
+      await api.createLesson(courseId, title, bvid);
+      setAddingLesson(false);
+      await load();
+    } catch (err) {
+      setError(errorMessage(err));
     } finally {
-      onSignedOut();
+      setBusy(false);
     }
   };
 
@@ -85,7 +96,7 @@ export const CoursePage: React.FC<Props> = ({
       <Topbar
         subtitle="互动课程工具"
         account={teacher.display_name}
-        onLogout={signOut}
+        onLogout={onSignedOut}
       />
 
       <main className="view workspace-home">
@@ -107,6 +118,14 @@ export const CoursePage: React.FC<Props> = ({
               <button
                 className="light-button"
                 type="button"
+                onClick={() => setAddingLesson(true)}
+                disabled={busy}
+              >
+                添加课节
+              </button>
+              <button
+                className="light-button"
+                type="button"
                 onClick={makeCode}
                 disabled={busy || lessons.length === 0}
               >
@@ -124,7 +143,7 @@ export const CoursePage: React.FC<Props> = ({
 
             {lessons.length === 0 ? (
               <p className="table-state">
-                这门课程还没有课节。课节导入与节点编辑在阶段 4 接入。
+                这门课程还没有课节，先添加一个 B 站视频
               </p>
             ) : (
               <div className="table-wrap">
@@ -135,7 +154,9 @@ export const CoursePage: React.FC<Props> = ({
                       <th>课节名称</th>
                       <th>B 站视频</th>
                       <th>草稿</th>
-                      <th>状态</th>
+                      <th>
+                        <span className="visually-hidden">操作</span>
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -143,9 +164,17 @@ export const CoursePage: React.FC<Props> = ({
                       <tr key={lesson.id}>
                         <td className="num">{lesson.sort_order}</td>
                         <td>{lesson.title}</td>
-                        <td>{lesson.video_ref.videoId}</td>
+                        <td>{lesson.video_ref.video_id}</td>
                         <td>{lesson.has_draft ? '有' : '—'}</td>
-                        <td>{lesson.status}</td>
+                        <td>
+                          <button
+                            className="text-button"
+                            type="button"
+                            onClick={() => onEditLesson(lesson.id, lesson.title)}
+                          >
+                            编辑节点
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -156,6 +185,14 @@ export const CoursePage: React.FC<Props> = ({
         )}
       </main>
 
+      {addingLesson && (
+        <AddLessonDialog
+          busy={busy}
+          onCancel={() => setAddingLesson(false)}
+          onSubmit={addLesson}
+        />
+      )}
+
       {accessCode && (
         <CredentialDialog
           title="发给学生的授权码"
@@ -163,6 +200,76 @@ export const CoursePage: React.FC<Props> = ({
           onClose={() => setAccessCode(null)}
         />
       )}
+    </div>
+  );
+};
+
+/** 从 B 站链接或裸 BVID 里取出 BVID，取不到就原样返回让后端校验报错 */
+function extractBvid(input: string): string {
+  const m = input.match(/BV[a-zA-Z0-9]+/);
+  return m ? m[0] : input.trim();
+}
+
+const AddLessonDialog: React.FC<{
+  busy: boolean;
+  onCancel: () => void;
+  onSubmit: (title: string, bvid: string) => void;
+}> = ({ busy, onCancel, onSubmit }) => {
+  const [title, setTitle] = useState('');
+  const [video, setVideo] = useState('');
+  const bvid = extractBvid(video);
+
+  return (
+    <div className="modal-backdrop" role="dialog" aria-modal="true">
+      <div className="modal-panel">
+        <h2>添加课节</h2>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            onSubmit(title, bvid);
+          }}
+        >
+          <AuthField
+            id="lesson-title"
+            label="课节名称"
+            value={title}
+            onChange={setTitle}
+            autoComplete="off"
+            disabled={busy}
+          />
+          <label className="field-group" htmlFor="lesson-video">
+            <span>B 站视频链接或 BV 号</span>
+            <input
+              id="lesson-video"
+              type="text"
+              value={video}
+              onChange={(e) => setVideo(e.target.value)}
+              placeholder="https://www.bilibili.com/video/BV1Ac41187Lm"
+              autoComplete="off"
+              disabled={busy}
+              required
+            />
+            <small>
+              {video && bvid !== video.trim()
+                ? `将使用 ${bvid}`
+                : '粘贴整条链接也可以，会自动取出 BV 号'}
+            </small>
+          </label>
+          <div className="modal-actions">
+            <button
+              className="light-button"
+              type="button"
+              onClick={onCancel}
+              disabled={busy}
+            >
+              取消
+            </button>
+            <button className="dark-button" type="submit" disabled={busy}>
+              {busy ? '添加中…' : '添加'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

@@ -1,0 +1,218 @@
+import React from 'react';
+import { ScriptNode } from '../api';
+
+interface Props {
+  node: ScriptNode;
+  disabled: boolean;
+  onChange: (node: ScriptNode) => void;
+}
+
+/** 各字段名由后端 schema 固定，见 backend/app/schemas/script.py */
+export const NodeForm: React.FC<Props> = ({ node, disabled, onChange }) => {
+  const setDisplay = (patch: Record<string, unknown>) =>
+    onChange({ ...node, display: { ...node.display, ...patch } });
+
+  const setEval = (patch: Record<string, unknown>) =>
+    onChange({ ...node, evaluation: { ...(node.evaluation ?? {}), ...patch } });
+
+  const d = node.display as Record<string, any>;
+  const e = (node.evaluation ?? {}) as Record<string, any>;
+
+  return (
+    <div className="node-fields">
+      <Field
+        label="标题"
+        value={d.title ?? ''}
+        onChange={(v) => setDisplay({ title: v })}
+        disabled={disabled}
+      />
+
+      {node.interaction === 'notice' && (
+        <Area
+          label="正文"
+          value={d.body ?? ''}
+          onChange={(v) => setDisplay({ body: v })}
+          disabled={disabled}
+        />
+      )}
+
+      {node.interaction !== 'notice' && (
+        <Area
+          label="题目"
+          value={d.prompt ?? ''}
+          onChange={(v) => setDisplay({ prompt: v })}
+          disabled={disabled}
+        />
+      )}
+
+      {node.interaction === 'choice' && (
+        <ChoiceFields
+          options={d.options ?? []}
+          answer={e.answer ?? ''}
+          explanation={e.explanation ?? ''}
+          disabled={disabled}
+          onOptions={(options) => setDisplay({ options })}
+          onAnswer={(answer) => setEval({ answer })}
+          onExplanation={(explanation) => setEval({ explanation })}
+        />
+      )}
+
+      {node.interaction === 'blank' && (
+        <>
+          <Field
+            label="可接受答案（多个用 | 分隔）"
+            value={(e.acceptedAnswers ?? []).join(' | ')}
+            onChange={(v) =>
+              setEval({
+                acceptedAnswers: v
+                  .split('|')
+                  .map((s) => s.trim())
+                  .filter(Boolean),
+              })
+            }
+            disabled={disabled}
+            hint="比对时会去空白并忽略大小写"
+          />
+          <Area
+            label="解析"
+            value={e.explanation ?? ''}
+            onChange={(v) => setEval({ explanation: v })}
+            disabled={disabled}
+          />
+        </>
+      )}
+
+      {node.interaction === 'free_text' && (
+        <Area
+          label="参考答案"
+          value={e.referenceFeedback ?? ''}
+          onChange={(v) => setEval({ referenceFeedback: v })}
+          disabled={disabled}
+          hint="学生作答后展示，不做自动判分"
+        />
+      )}
+    </div>
+  );
+};
+
+const ChoiceFields: React.FC<{
+  options: { id: string; label: string }[];
+  answer: string;
+  explanation: string;
+  disabled: boolean;
+  onOptions: (o: { id: string; label: string }[]) => void;
+  onAnswer: (a: string) => void;
+  onExplanation: (s: string) => void;
+}> = ({
+  options,
+  answer,
+  explanation,
+  disabled,
+  onOptions,
+  onAnswer,
+  onExplanation,
+}) => {
+  const nextId = () =>
+    String.fromCharCode(97 + options.length); // a, b, c...
+
+  return (
+    <>
+      <div className="choice-options">
+        <span className="node-field-label">选项（选中正确答案）</span>
+        {options.map((opt, i) => (
+          <label key={opt.id} className="choice-row">
+            <input
+              type="radio"
+              name={`answer-${opt.id}-${i}`}
+              checked={answer === opt.id}
+              onChange={() => onAnswer(opt.id)}
+              disabled={disabled}
+              aria-label={`选项 ${opt.id} 为正确答案`}
+            />
+            <input
+              type="text"
+              value={opt.label}
+              onChange={(ev) =>
+                onOptions(
+                  options.map((o, j) =>
+                    j === i ? { ...o, label: ev.target.value } : o
+                  )
+                )
+              }
+              placeholder={`选项 ${opt.id.toUpperCase()}`}
+              disabled={disabled}
+            />
+            {options.length > 2 && (
+              <button
+                className="text-button"
+                type="button"
+                onClick={() => {
+                  const kept = options.filter((_, j) => j !== i);
+                  onOptions(kept);
+                  if (answer === opt.id) onAnswer(kept[0]?.id ?? '');
+                }}
+                disabled={disabled}
+              >
+                移除
+              </button>
+            )}
+          </label>
+        ))}
+        {options.length < 6 && (
+          <button
+            className="text-button"
+            type="button"
+            onClick={() => onOptions([...options, { id: nextId(), label: '' }])}
+            disabled={disabled}
+          >
+            + 增加选项
+          </button>
+        )}
+      </div>
+      <Area
+        label="解析"
+        value={explanation}
+        onChange={onExplanation}
+        disabled={disabled}
+      />
+    </>
+  );
+};
+
+const Field: React.FC<{
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  disabled: boolean;
+  hint?: string;
+}> = ({ label, value, onChange, disabled, hint }) => (
+  <label className="field-group">
+    <span>{label}</span>
+    <input
+      type="text"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      disabled={disabled}
+    />
+    {hint && <small>{hint}</small>}
+  </label>
+);
+
+const Area: React.FC<{
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  disabled: boolean;
+  hint?: string;
+}> = ({ label, value, onChange, disabled, hint }) => (
+  <label className="field-group">
+    <span>{label}</span>
+    <textarea
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      disabled={disabled}
+      rows={3}
+    />
+    {hint && <small>{hint}</small>}
+  </label>
+);

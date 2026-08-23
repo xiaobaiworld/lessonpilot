@@ -40,13 +40,6 @@ export const CoursesPage: React.FC<Props> = ({
     load();
   }, [load]);
 
-  const signOut = async () => {
-    try {
-      await api.logout();
-    } finally {
-      onSignedOut();
-    }
-  };
 
   const create = async (title: string) => {
     setBusy(true);
@@ -67,7 +60,7 @@ export const CoursesPage: React.FC<Props> = ({
       <Topbar
         subtitle="互动课程工具"
         account={teacher.display_name}
-        onLogout={signOut}
+        onLogout={onSignedOut}
       />
 
       <main className="view workspace-home">

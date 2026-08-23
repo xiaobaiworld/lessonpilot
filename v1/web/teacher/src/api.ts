@@ -28,7 +28,7 @@ export interface Lesson {
   title: string;
   /** 后端字段是 sort_order，不是 sequence */
   sort_order: number;
-  video_ref: { platform: 'bilibili'; videoId: string };
+  video_ref: { platform: 'bilibili'; video_id: string };
   has_draft: boolean;
   status: string;
   created_at: string;
@@ -37,6 +37,31 @@ export interface Lesson {
 
 export interface CourseDetail extends CourseSummary {
   lessons: Lesson[];
+}
+
+/**
+ * 互动节点。四种 family/interaction 组合由后端 schema 固定：
+ * attention/notice、practice/choice、practice/blank、practice/free_text
+ */
+export type NodeKind = 'notice' | 'choice' | 'blank' | 'free_text';
+
+export interface ScriptNode {
+  id: string;
+  enabled: boolean;
+  family: 'attention' | 'practice';
+  interaction: NodeKind;
+  trigger: { kind: 'time_cross'; timeSeconds: number; captionId?: string | null };
+  display: Record<string, unknown>;
+  evaluation: Record<string, unknown> | null;
+  effects: { pause: true };
+}
+
+export interface ScriptDraft {
+  schema_version: number;
+  config: { nodes: ScriptNode[] };
+  lesson_id: string;
+  node_count: number;
+  updated_at: string;
 }
 
 /** 发布返回的是课程包本身 */
@@ -88,10 +113,31 @@ export class TeacherAPI {
     return this.http.get<CourseDetail>(`/api/v1/teacher/courses/${courseId}`);
   }
 
+  /** BVID 形如 BV1Ac41187Lm，后端按 ^BV[a-zA-Z0-9]+$ 校验 */
+  createLesson(courseId: string, title: string, bvid: string): Promise<Lesson> {
+    return this.http.post<Lesson>(`/api/v1/teacher/courses/${courseId}/lessons`, {
+      title,
+      video_ref: { platform: 'bilibili', video_id: bvid },
+    });
+  }
+
   createCourse(title: string, description?: string): Promise<CourseSummary> {
     return this.http.post<CourseSummary>('/api/v1/teacher/courses', {
       title,
       description: description || null,
+    });
+  }
+
+  /** 草稿不存在时后端返回空 nodes，不是 404 */
+  getDraft(lessonId: string): Promise<ScriptDraft> {
+    return this.http.get<ScriptDraft>(`/api/v1/teacher/lessons/${lessonId}/draft`);
+  }
+
+  /** 整份覆盖保存。后端做原子校验，任一节点不合法就整份拒绝 */
+  saveDraft(lessonId: string, nodes: ScriptNode[]): Promise<ScriptDraft> {
+    return this.http.put<ScriptDraft>(`/api/v1/teacher/lessons/${lessonId}/draft`, {
+      schema_version: 1,
+      config: { nodes },
     });
   }
 
