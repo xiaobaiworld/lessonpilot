@@ -101,6 +101,7 @@ elif [[ "$PUBLISH_PROFILE" == "v1-apps" ]]; then
   # 销售页仍按原样带上：3F 要求它不随框架迁移改写。
   SOURCE_FILES=(
     "${SALES_SOURCE_FILES[@]}"
+    "link.html"
     # v1 的 index.css 直接 @import 这份样式表（视觉真源，不另抄一份），
     # 所以它必须在归档里，否则构建时 postcss 解析不到。
     # 阶段 8 删除旧系统时把它移进 v1/ 并更新 import 路径。
@@ -195,6 +196,7 @@ released_files() {
 # 路径就是构建配置改了或有东西被误拷进来，这时该失败而不是照发。
 V1_ALLOWED_PATTERNS=(
   'public/index.html'
+  'public/link.html'
   'public/robots.txt'
   'public/subtitle-context.js'
   'public/demo-captions.js'
@@ -236,6 +238,7 @@ validate_v1_release_paths() {
   # 两个应用的入口必须都在，否则切换后有一半是 404
   [[ -f "$output/public/admin/index.html" ]] || fail "admin entry missing from release"
   [[ -f "$output/public/teacher/index.html" ]] || fail "teacher entry missing from release"
+  [[ -f "$output/public/link.html" ]] || fail "link navigation missing from release"
 
   # 应用挂在 /admin/ 与 /teacher/ 子路径下，资源引用必须是相对的。
   # 站点根绝对路径（/assets/...）在子路径下全部 404，页面白屏，
@@ -403,6 +406,7 @@ build_release() {
     done
   fi
   if [[ "$PUBLISH_PROFILE" == "v1-apps" ]]; then
+    cp "$source_dir/link.html" "$output/public/link.html"
     build_v1_apps "$source_dir" "$output"
   fi
   printf 'User-agent: *\nDisallow: /\n' >"$output/public/robots.txt"
@@ -548,6 +552,7 @@ verify_public_site() {
       /admin/ \
       /teacher/ \
       /admin.html \
+      /link.html \
       /teacher-web/editor.html \
       /downloads/student-plugin/knownmap-v1.zip; do
       status="$(curl -sS -o /dev/null -w '%{http_code}' "$SITE_URL$path?release=$release_id")"

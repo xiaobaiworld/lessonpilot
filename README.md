@@ -16,7 +16,7 @@ KnownMap 把老师已有的 B 站录播课变成可在原视频页面运行的�
 | --- | --- |
 | 系统整体 | [`doc/SYSTEM-OVERVIEW.md`](doc/SYSTEM-OVERVIEW.md) |
 | 现在该做什么 | [`next.md`](next.md) |
-| 常用网页链接 | [`link.html`](link.html)（结果/设置页仍需飞书授权，不随生产发布） |
+| 常用网页链接 | [`link.html`](link.html)（生产地址 `/link.html`；结果/设置页仍需飞书授权） |
 | 文档分类与权威顺序 | [`doc/INDEX.md`](doc/INDEX.md) |
 | 踩过什么坑（动手前必读） | [`doc/lessons.md`](doc/lessons.md) |
 | 为什么这样设计 | [`doc/design/v1/`](doc/design/v1/) |
@@ -83,7 +83,8 @@ KnownMap 把老师已有的 B 站录播课变成可在原视频页面运行的�
 
 销售页是 [https://knownmap.com](https://knownmap.com)，管理员端是
 [https://knownmap.com/admin/](https://knownmap.com/admin/)，教师端是
-[https://knownmap.com/teacher/](https://knownmap.com/teacher/)。生产使用 `v1-apps` profile 将两个 Web 应用、
+[https://knownmap.com/teacher/](https://knownmap.com/teacher/)，常用链接导航是
+[https://knownmap.com/link.html](https://knownmap.com/link.html)。生产使用 `v1-apps` profile 将两个 Web 应用、
 FastAPI、数据库迁移、销售页和学生插件绑定为一个可回滚 release。
 
 当用户说“发布到网站”或“发布到 Web 网站”时，使用统一教师平台入口：

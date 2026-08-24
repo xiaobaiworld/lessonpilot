@@ -39,8 +39,9 @@ test('所有新窗口链接都有安全的 rel 属性', () => {
   }
 });
 
-test('链接导航不在生产静态发布白名单中', () => {
+test('链接导航已进入 v1 生产发布白名单和探针', () => {
   const releaseScript = fs.readFileSync('tools/web-release.sh', 'utf8');
-  assert.doesNotMatch(releaseScript, /public\/link\.html/);
-  assert.doesNotMatch(releaseScript, /source_dir\/link\.html/);
+  assert.match(releaseScript, /public\/link\.html/);
+  assert.match(releaseScript, /source_dir\/link\.html/);
+  assert.match(releaseScript, /\/link\.html/);
 });

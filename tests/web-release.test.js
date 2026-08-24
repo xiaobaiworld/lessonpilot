@@ -71,6 +71,7 @@ test('v1 production verification covers new apps, redirects and both plugin URLs
     '/admin/',
     '/teacher/',
     '/admin.html',
+    '/link.html',
     '/teacher-web/editor.html',
     '/downloads/student-plugin/knownmap-v1.zip',
     '/downloads/student-plugin/knownmapplugin.zip'
@@ -225,7 +226,7 @@ test('生产插件包发布前检查本机地址', () => {
   assert.match(v1Script, /KNOWNMAP_TARGET=production/);
 });
 
-test('v1 白名单覆盖两个应用入口且不含仓库源码路径', () => {
+test('v1 白名单覆盖应用和链接导航且不含仓库源码路径', () => {
   const patterns = v1Script
     .slice(v1Script.indexOf('V1_ALLOWED_PATTERNS=('))
     .split(')')[0];
@@ -233,6 +234,7 @@ test('v1 白名单覆盖两个应用入口且不含仓库源码路径', () => {
   for (const required of [
     'public/admin/index.html',
     'public/teacher/index.html',
+    'public/link.html',
     'public/admin/assets/*',
     'public/teacher/assets/*',
     'public/robots.txt'
@@ -248,6 +250,16 @@ test('v1 白名单覆盖两个应用入口且不含仓库源码路径', () => {
 test('v1 发布缺任一应用入口时失败', () => {
   assert.match(v1Script, /admin entry missing from release/);
   assert.match(v1Script, /teacher entry missing from release/);
+  assert.match(v1Script, /link navigation missing from release/);
+});
+
+test('v1 发布从精确提交归档链接导航', () => {
+  const profile = v1Script.slice(
+    v1Script.indexOf('elif [[ "$PUBLISH_PROFILE" == "v1-apps" ]]'),
+    v1Script.indexOf('  fail "unsupported publish profile')
+  );
+  assert.match(profile, /"link\.html"/);
+  assert.match(v1Script, /cp "\$source_dir\/link\.html" "\$output\/public\/link\.html"/);
 });
 
 test('v1 校验和按实测文件生成，静态 profile 仍用固定白名单', () => {
