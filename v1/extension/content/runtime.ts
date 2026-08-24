@@ -39,6 +39,50 @@ export interface WindowView {
   destroy(): void;
 }
 
+export type VideoMode = 'course' | 'original';
+
+export interface VideoModeStorage {
+  getItem(key: string): string | null;
+  setItem(key: string, value: string): void;
+}
+
+export interface VideoModeStore {
+  read(): VideoMode;
+  write(mode: VideoMode): VideoMode;
+}
+
+export interface ModeControl {
+  setMode(mode: VideoMode): void;
+  destroy(): void;
+}
+
+const VIDEO_MODE_STORAGE_KEY = 'lessonpilot.video-mode';
+
+export function createVideoModeStore(
+  storage: VideoModeStorage | null
+): VideoModeStore {
+  return {
+    read() {
+      try {
+        return storage?.getItem(VIDEO_MODE_STORAGE_KEY) === 'original'
+          ? 'original'
+          : 'course';
+      } catch {
+        return 'course';
+      }
+    },
+    write(mode) {
+      const next = mode === 'original' ? 'original' : 'course';
+      try {
+        storage?.setItem(VIDEO_MODE_STORAGE_KEY, next);
+      } catch {
+        // 页面阻止 localStorage 时仍允许本次会话切换。
+      }
+      return next;
+    },
+  };
+}
+
 export interface RuntimeDeps {
   messenger: Messenger;
   /** 等播放器出现。返回 null 表示等不到，此时不接线也不留 UI */
@@ -49,6 +93,8 @@ export interface RuntimeDeps {
     onSkip(): void;
     onClose(): void;
   }): WindowView;
+  modeStore: VideoModeStore;
+  createModeControl(onToggle: () => void): ModeControl;
   /** 多候选时让学生选。返回 null 表示学生选择先不学 */
   chooseCandidate(candidates: RuntimeCandidate[]): Promise<RuntimeCandidate | null>;
   now(): Date;
@@ -58,6 +104,8 @@ export class CourseRuntime {
   private session: LearningSession | null = null;
   private view: WindowView | null = null;
   private player: PlayerHandle | null = null;
+  private modeControl: ModeControl | null = null;
+  private videoMode: VideoMode = 'course';
   private teardown: (() => void)[] = [];
   private lastSavedSecond = -1;
 
@@ -108,12 +156,15 @@ export class CourseRuntime {
     this.session.restoreDone(lesson.done ?? []);
 
     this.player = player;
+    this.videoMode = this.deps.modeStore.read();
     this.view = this.deps.createWindow({
       onDraft: (text) => this.session?.updateDraft(text),
       onSubmit: () => this.commit('submit'),
       onSkip: () => this.commit('skip'),
       onClose: () => this.close(),
     });
+    this.modeControl = this.deps.createModeControl(() => this.toggleVideoMode());
+    this.modeControl.setMode(this.videoMode);
 
     this.teardown.push(
       player.onTimeUpdate((seconds) => this.tick(seconds)),
@@ -126,12 +177,14 @@ export class CourseRuntime {
   private tick(seconds: number): void {
     if (!this.session) return;
 
-    const action = this.session.advance(seconds);
-    if (action.type === 'pause') this.player?.pause();
+    if (this.videoMode === 'course') {
+      const action = this.session.advance(seconds);
+      if (action.type === 'pause') this.player?.pause();
 
-    const state = this.session.snapshot().window;
-    if (action.type !== 'none' || state.kind !== 'idle') {
-      this.view?.render(state);
+      const state = this.session.snapshot().window;
+      if (action.type !== 'none' || state.kind !== 'idle') {
+        this.view?.render(state);
+      }
     }
 
     // 位置节流到整秒：timeupdate 每秒触发多次
@@ -181,16 +234,37 @@ export class CourseRuntime {
     if (action.type === 'resume') this.player?.play();
   }
 
+  private toggleVideoMode(): void {
+    if (!this.session || !this.player) return;
+
+    this.videoMode = this.deps.modeStore.write(
+      this.videoMode === 'course' ? 'original' : 'course'
+    );
+    this.modeControl?.setMode(this.videoMode);
+
+    if (this.videoMode === 'original') {
+      const action = this.session.suspend();
+      this.view?.render(this.session.snapshot().window);
+      if (action.type === 'resume') this.player.play();
+      return;
+    }
+
+    this.tick(this.player.currentTime());
+  }
+
   /** 拆掉全部监听和 DOM。SPA 切走时必须调用 */
   stop(): void {
     this.stopped = true;
     for (const off of this.teardown) off();
     this.teardown = [];
     this.view?.destroy();
+    this.modeControl?.destroy();
     this.view = null;
+    this.modeControl = null;
     this.session = null;
     this.player = null;
     this.lastSavedSecond = -1;
+    this.videoMode = 'course';
   }
 
   /** 供测试与诊断读取当前状态，不用于业务判断 */

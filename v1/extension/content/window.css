@@ -1,6 +1,6 @@
 /*
- * 学习窗口样式。取值来自 teacher-web/styles.css 的 :root 色板，
- * 学生看到的窗口与老师编辑时是同一套视觉。
+ * 学习窗口样式。取值来自 v1 共享基础样式的色板，
+ * 学生看到的窗口与老师编辑时使用同一套视觉语言。
  *
  * 走 Shadow DOM 注入，所以这里不需要防 B 站样式覆盖的 !important。
  */
@@ -8,7 +8,7 @@
 .km-panel {
   position: fixed;
   right: 24px;
-  bottom: 24px;
+  bottom: 76px;
   z-index: 2147483000; /* 盖在 B 站自己的浮层之上，但不遮播放器区域 */
   box-sizing: border-box;
   width: min(380px, calc(100vw - 48px));
@@ -113,6 +113,39 @@
 .km-button:hover {
   transform: translateY(-1px);
 }
+
+.km-mode-button {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 2147482999;
+  box-sizing: border-box;
+  min-width: 76px;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid #16251f;
+  border-radius: 6px;
+  background: #fffdf8;
+  box-shadow: 0 8px 24px rgba(36, 49, 42, 0.2);
+  color: #16251f;
+  font: 700 13px/1 "Avenir Next", "PingFang SC", "Microsoft YaHei", sans-serif;
+  cursor: pointer;
+}
+
+.km-mode-button[data-mode='original'] {
+  background: #16251f;
+  color: #fffdf8;
+}
+
+.km-mode-button:hover {
+  border-color: #1d5c43;
+}
+
+.km-mode-button:focus-visible {
+  outline: 2px solid #1d5c43;
+  outline-offset: 2px;
+}
+
 
 @media (prefers-reduced-motion: reduce) {
   .km-button:hover {

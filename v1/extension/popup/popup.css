@@ -19,7 +19,16 @@ body {
 }
 
 .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   font-size: 16px;
+}
+
+.brand-mark {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
 }
 
 /* K 粉笔黄、M 赭石红，见品牌规范 */

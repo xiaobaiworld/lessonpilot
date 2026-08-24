@@ -91,6 +91,8 @@ export class LearningSession {
   private window: WindowState = { kind: 'idle' };
   private triggered = new Set<string>();
   private nodes: RuntimeNode[];
+  private replayableNodeIds: Set<string>;
+  private lastTime = 0;
 
   constructor(
     public readonly courseId: string,
@@ -102,6 +104,11 @@ export class LearningSession {
     // 按时刻排序，同刻按 id 稳定排序，保证两次运行顺序一致
     this.nodes = [...nodes].sort(
       (a, b) => a.timeSeconds - b.timeSeconds || a.id.localeCompare(b.id)
+    );
+    this.replayableNodeIds = new Set(
+      this.nodes
+        .filter((node) => node.interaction === 'notice')
+        .map((node) => node.id)
     );
   }
 
@@ -117,7 +124,9 @@ export class LearningSession {
 
   /** 恢复已作答的节点，刷新后不再重复弹同一个 */
   restoreDone(nodeIds: string[]): void {
-    for (const id of nodeIds) this.triggered.add(id);
+    for (const id of nodeIds) {
+      if (!this.replayableNodeIds.has(id)) this.triggered.add(id);
+    }
   }
 
   /**
@@ -127,6 +136,10 @@ export class LearningSession {
    * 同时弹两个窗口没有正确的收尾顺序。
    */
   advance(seconds: number): HostAction {
+    if (seconds < this.lastTime - 1) {
+      for (const id of this.replayableNodeIds) this.triggered.delete(id);
+    }
+    this.lastTime = seconds;
     if (this.window.kind !== 'idle') return { type: 'none' };
 
     const due = this.nodes.find(
@@ -213,15 +226,34 @@ export class LearningSession {
   }
 
   /**
+   * 暂时退出课程模式。
+   *
+   * 尚未作答的节点需要从 triggered 中撤回，否则学生切回课程模式后会永远
+   * 错过它；已经提交或跳过的节点仍保留完成状态。
+   */
+  suspend(): HostAction {
+    if (this.window.kind === 'idle') return { type: 'none' };
+    if (this.window.kind === 'open') this.triggered.delete(this.window.node.id);
+    this.window = { kind: 'idle' };
+    return { type: 'resume' };
+  }
+
+  /**
    * 学生 seek。
    *
    * 往前拖不补触发已跳过的节点——那会连弹好几个窗口。
    * 往回拖也不重置已触发标记：同一个节点在一次会话里只打断一次。
    */
   seek(seconds: number): HostAction {
-    for (const node of this.nodes) {
-      if (seconds > node.timeSeconds) this.triggered.add(node.id);
+    if (seconds < this.lastTime - 1) {
+      for (const id of this.replayableNodeIds) this.triggered.delete(id);
     }
+    for (const node of this.nodes) {
+      if (seconds > node.timeSeconds && !this.replayableNodeIds.has(node.id)) {
+        this.triggered.add(node.id);
+      }
+    }
+    this.lastTime = seconds;
     return { type: 'none' };
   }
 

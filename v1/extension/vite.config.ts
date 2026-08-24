@@ -56,6 +56,7 @@ export default defineConfig({
       closeBundle() {
         mkdirSync(resolve(outDir, 'content'), { recursive: true });
         mkdirSync(resolve(outDir, 'popup'), { recursive: true });
+        mkdirSync(resolve(outDir, 'assets'), { recursive: true });
 
         writeFileSync(
           resolve(outDir, 'manifest.json'),
@@ -79,6 +80,12 @@ export default defineConfig({
           resolve(__dirname, 'popup/popup.css'),
           resolve(outDir, 'popup/popup.css')
         );
+        for (const size of [16, 24, 48, 128]) {
+          copyFileSync(
+            resolve(__dirname, `assets/icon-${size}.png`),
+            resolve(outDir, `assets/icon-${size}.png`)
+          );
+        }
 
         /*
          * 产物自检：manifest 与 HTML 引用的每个文件都必须真的存在。
@@ -89,13 +96,19 @@ export default defineConfig({
         const manifest = buildManifest(target) as {
           background: { service_worker: string };
           content_scripts: { js: string[]; css: string[] }[];
-          action: { default_popup: string };
+          action: {
+            default_popup: string;
+            default_icon: Record<string, string>;
+          };
+          icons: Record<string, string>;
         };
 
         const referenced = [
           manifest.background.service_worker,
           ...manifest.content_scripts.flatMap((s) => [...s.js, ...s.css]),
           manifest.action.default_popup,
+          ...Object.values(manifest.action.default_icon),
+          ...Object.values(manifest.icons),
           // HTML 自己引用的资源
           ...[...popupHtml.matchAll(/(?:src|href)="\.\/([^"]+)"/g)].map(
             (m) => `popup/${m[1]}`
