@@ -179,7 +179,8 @@ test('release documentation binds publish phrases to deploy, record, and rollbac
 
   assert.match(readme, /发布到网站/);
   assert.match(readme, /发布到 Web 网站/);
-  assert.match(readme, /tools\/web-release\.sh deploy <git-ref>/);
+  assert.match(readme, /KNOWNMAP_PUBLISH_PROFILE=v1-apps/);
+  assert.match(readme, /tools\/teacher-platform-release\.sh deploy <git-ref>/);
   assert.match(readme, /tools\/web-release\.sh verify <release-id>/);
   assert.match(readme, /tools\/web-release\.sh rollback <release-id>/);
   assert.match(records, /gitCommit/);

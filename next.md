@@ -14,12 +14,20 @@
 | 3 教师与管理员 Web 应用 | 已完成，本机真实后端验证通过 |
 | 4 学生插件课程库与本机状态 | 已完成，真实 Chrome 验收通过 |
 | 5 B 站运行时与学习状态机 | 已完成，真实 Chrome 验收通过 |
-| 6 安全、运维、发布与切换 | 本机能做的已完成；生产执行待部署权限 |
-| 7 真实验收与 v1.0.0 | 学生端已在真实 Chrome 验收；生产切换待部署权限 |
-| 8 观察、责任清零与旧系统退役 | 阶段 7 之后 |
+| 6 安全、运维、发布与切换 | 已完成；v1 生产 release 已统一发布 |
+| 7 真实验收与 v1.0.0 | 生产切换已完成；即时 P0 业务验收执行中 |
+| 8 观察、责任清零与旧系统退役 | 待阶段 7 验收和 7 日观察期后执行 |
 
 测试：v1 188 项、后端 140 项、旧系统 385 项；根 `npm test` 已覆盖 legacy 与 v1，
 Ruff、ESLint、TypeScript、生产构建和 `npm run check` 全通。
+
+## 当前执行重点
+
+- 生产 v1 release：`20260824T030156Z-af9fb313f9e4`，候选提交 `af9fb313f9e4`；
+- 飞书已关闭“填写需登录验证”，独立未登录浏览器已提交成功；
+- 下一个需要产品负责人参与的点：在飞书“收集结果”中确认
+  `CUT-103 匿名复验 20260824-1113`；确认后即可完成 `CUT-103` 和 `CUT-401`；
+- 本机内部常用入口汇总在根目录 `link.html`；其中含飞书结果页，因 GitHub 仓库公开，该文件只保留本机，不进入 Git 或生产发布。
 
 ## 已在真实后端跑通的完整链路
 
@@ -129,20 +137,16 @@ KNOWNMAP_PUBLISH_PROFILE=v1-apps tools/web-release.sh build <ref> <输出目录>
 
 切换前用 `contracts/release-gate.ts` 核对版本支持矩阵。
 
-## 生产：已核对，未切换
+## 生产：已切换，正在即时验收
 
-SSH 凭据本机就有（别名是 `aliyun-us`，与文档约定的 `aliyun` 不同，脚本已加
-连通性预检并提示设置 `KNOWNMAP_SSH_HOST`）。已完成的只读工作：
+2026-08-24 已从冻结提交 `af9fb313f9e4` 统一发布 Web、API、迁移和插件，
+release 为 `20260824T030156Z-af9fb313f9e4`。生产 Web/API 软链、metadata、profile 和提交一致，
+`/health` 与版本探针通过，切换前备份已恢复并对账。
 
 - **6D 生产恢复演练**：对两份真实生产备份跑通恢复与归属对账，
   见 `doc/status/v1-stage-6d-production-restore-drill-2026-08-23.md`；
 - **6B 闸门核对**：`cd v1 && npm run gate` 从生产读迁移版本与应用状态，
   当前如实报告差距（v1 应用未部署）；`--candidate <目录>` 核对候选发布。
-
-### 未执行切换
-
-切换会改变 `knownmap.com` 的对外行为且不易回退。本次工作中已明确要求
-「检查只在本机做，部署的事情后面再完成」，因此只做只读核对。
 
 ### 切换前预检（已跑通）
 
@@ -155,16 +159,14 @@ CORS 只含 `knownmap.com` 与 `www.knownmap.com`、`APP_ENV=production` 日志 
 文件库）、`try_files $uri $uri/` + `index index.html` 能解析目录请求（实测
 临时探针 200）、`/admin/` 与 `/teacher/` 空闲、8 份备份且定时器 active。
 
-也就是说切换不会因为配置不合格而失败——这是我最担心的一条，已排除。
-
-要切换时：
+本轮实际切换命令：
 
 ```bash
 KNOWNMAP_SSH_HOST=aliyun-us KNOWNMAP_PUBLISH_PROFILE=v1-apps \
   tools/teacher-platform-release.sh deploy <ref>
 ```
 
-切换后随之生效的还有：备份保留期 30 天、部署时执行恢复演练、
+切换后已随之生效的还有：备份保留期 30 天、部署时执行恢复演练、
 6C 启动校验（生产 `.env` 需满足新规则：非占位符、≥32 字符密钥、
 CORS 不含本机来源、日志非 DEBUG）、`/api/v1/meta/version` 版本探针。
 

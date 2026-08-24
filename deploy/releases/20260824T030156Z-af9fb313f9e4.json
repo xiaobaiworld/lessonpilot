@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "releaseId": "20260824T030156Z-af9fb313f9e4",
+  "environment": "production",
+  "site": "https://knownmap.com",
+  "repository": "xiaobaiworld/lessonpilot",
+  "gitRemote": "https://github.com/xiaobaiworld/lessonpilot.git",
+  "gitCommit": "af9fb313f9e4738a0f9de0814f00f05d4558c151",
+  "gitShortCommit": "af9fb313f9e4",
+  "gitRemoteBranch": "origin",
+  "gitCommitSubject": "fix: 统一新版生产发布链路",
+  "gitCommitTime": "2026-08-24T09:45:55+08:00",
+  "gitTag": "web-prod/20260824T030156Z-af9fb313f9e4",
+  "publishProfile": "v1-apps",
+  "status": "verified",
+  "builtAt": "2026-08-24T03:03:33Z",
+  "deployedAt": "2026-08-24T03:03:37Z",
+  "previousReleaseId": "20260821T020224Z-97cd83806550",
+  "files": [
+    {
+      "path": "admin.html",
+      "sha256": "2b10966c59241bec2c570a1e5f4290dff72a898bfe50ef82b0809b5f908104fc",
+      "bytes": 1722
+    },
+    {
+      "path": "admin/assets/index-CS1BnRAN.js",
+      "sha256": "2dec49e8e0d2e4fc7964fb8818c8502a410b388936c5cb9f4a6b9161b4b90e26",
+      "bytes": 152337
+    },
+    {
+      "path": "admin/assets/index-DYWniRLp.css",
+      "sha256": "e871b7f8ec02deec32f824b0a0f645394fe8e3e6304b2658e3d2855919995029",
+      "bytes": 65801
+    },
+    {
+      "path": "admin/index.html",
+      "sha256": "2e124cf2badda2c149092e8100e3735cda8c78127d60fb3417ac2671b3cce1ca",
+      "bytes": 408
+    },
+    {
+      "path": "assets/knownmap-icon.png",
+      "sha256": "8acae4dc406d44f31ed7b5a329c2d17a6e6d799197c51fdc4f8c2e806829d0b3",
+      "bytes": 3440
+    },
+    {
+      "path": "demo-captions.js",
+      "sha256": "ca9af8b13bae00638b26a1dbca72d1dd58bb9c1c688f10f8d85556979e90685d",
+      "bytes": 12149
+    },
+    {
+      "path": "downloads/student-plugin/knownmap-v1.zip",
+      "sha256": "782fb8dbd8d42a7c4534aa2ec9b553749f7bd198fd29ff6b5362d41a5dc4b465",
+      "bytes": 14839
+    },
+    {
+      "path": "downloads/student-plugin/knownmapplugin.zip",
+      "sha256": "d6e04c290eb06cf88e515de870a5acae01ad2f1c6d393e593086fb1ad6c90847",
+      "bytes": 78232
+    },
+    {
+      "path": "index.html",
+      "sha256": "832afb412e3bc621cb5f5907bcd7c68e2f91500bd16ee7dc695405a22a32b475",
+      "bytes": 46280
+    },
+    {
+      "path": "robots.txt",
+      "sha256": "331ea9090db0c9f6f597bd9840fd5b171830f6e0b3ba1cb24dfa91f0c95aedc1",
+      "bytes": 26
+    },
+    {
+      "path": "subtitle-context.js",
+      "sha256": "a8d210826727de919976a4ac8cac78f90b7a1e8acf7d5d6b3ac6d02ff4d2e1bd",
+      "bytes": 6996
+    },
+    {
+      "path": "teacher-web/assets/knownmap-icon.png",
+      "sha256": "8acae4dc406d44f31ed7b5a329c2d17a6e6d799197c51fdc4f8c2e806829d0b3",
+      "bytes": 3440
+    },
+    {
+      "path": "teacher-web/demo-captions.js",
+      "sha256": "ca9af8b13bae00638b26a1dbca72d1dd58bb9c1c688f10f8d85556979e90685d",
+      "bytes": 12149
+    },
+    {
+      "path": "teacher-web/editor.html",
+      "sha256": "a5ea13dab5e4b1ef148647107677ac4b1c82d785bbaa19d153a8327f5d6a1183",
+      "bytes": 1742
+    },
+    {
+      "path": "teacher-web/forsales.html",
+      "sha256": "832afb412e3bc621cb5f5907bcd7c68e2f91500bd16ee7dc695405a22a32b475",
+      "bytes": 46280
+    },
+    {
+      "path": "teacher-web/subtitle-context.js",
+      "sha256": "a8d210826727de919976a4ac8cac78f90b7a1e8acf7d5d6b3ac6d02ff4d2e1bd",
+      "bytes": 6996
+    },
+    {
+      "path": "teacher-web/trial-intake.js",
+      "sha256": "d46c5bd01b037e041229505c849675b7dfe0c6d3ecdfa8c92459a0cffaa3fca7",
+      "bytes": 2535
+    },
+    {
+      "path": "teacher/assets/index-Be0Z1_Hx.js",
+      "sha256": "1ddd0395d420a4706647434ee7f122a9896194237cd5d7981e648f226cc7637c",
+      "bytes": 171401
+    },
+    {
+      "path": "teacher/assets/index-DYWniRLp.css",
+      "sha256": "e871b7f8ec02deec32f824b0a0f645394fe8e3e6304b2658e3d2855919995029",
+      "bytes": 65801
+    },
+    {
+      "path": "teacher/index.html",
+      "sha256": "c337966739703b8cb1a32c066cca0c8b3b0f821c88cba364e50324c93f5d428b",
+      "bytes": 419
+    },
+    {
+      "path": "trial-intake.js",
+      "sha256": "d46c5bd01b037e041229505c849675b7dfe0c6d3ecdfa8c92459a0cffaa3fca7",
+      "bytes": 2535
+    }
+  ],
+  "verifiedAt": "2026-08-24T03:04:31Z",
+  "verification": {
+    "health": "passed",
+    "homepageSha256": "passed",
+    "privatePaths": "passed",
+    "apiHealth": "passed",
+    "teacherEditor": "passed",
+    "databaseBackup": "passed"
+  },
+  "components": {
+    "backend": {
+      "schemaVersion": 1,
+      "releaseId": "20260824T030156Z-af9fb313f9e4",
+      "environment": "production",
+      "site": "https://knownmap.com",
+      "repository": "xiaobaiworld/lessonpilot",
+      "gitRemote": "https://github.com/xiaobaiworld/lessonpilot.git",
+      "gitCommit": "af9fb313f9e4738a0f9de0814f00f05d4558c151",
+      "gitShortCommit": "af9fb313f9e4",
+      "gitRemoteBranch": "origin/main",
+      "gitCommitSubject": "fix: 统一新版生产发布链路",
+      "gitCommitTime": "2026-08-24T09:45:55+08:00",
+      "gitTag": "web-prod/20260824T030156Z-af9fb313f9e4",
+      "publishProfile": "v1-apps",
+      "component": "fastapi",
+      "status": "verified",
+      "builtAt": "2026-08-24T03:02:09Z",
+      "deployedAt": "2026-08-24T03:04:31Z",
+      "previousReleaseId": null
+    }
+  }
+}

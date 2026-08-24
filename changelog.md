@@ -4,6 +4,11 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### 生产 v1 切换与飞书匿名提交 — 2026-08-24
+
+- 生产已切换到 release `20260824T030156Z-af9fb313f9e4`，Web、API、迁移、插件和发布记录使用同一冻结提交；
+- 飞书表单关闭“填写需登录验证”并重新发布，独立未登录会话已获得“提交成功”；运营结果收件仍按切换计划单独确认；
+
 ### v1 统一生产发布入口 — 2026-08-24
 
 - `teacher-platform-release.sh` 现在显式接收并校验 `v1-apps` profile，把后端、迁移、
