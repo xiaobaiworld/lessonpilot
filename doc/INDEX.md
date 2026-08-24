@@ -21,6 +21,7 @@
 | [`plans/v1-replacement-plan.md`](plans/v1-replacement-plan.md) | 已接受的同仓库 `v1/` 目录隔离替换决策与资产处置依据（`0.2.0`，非工作包真源） |
 | [`plans/v1-code-refactor-execution-plan.md`](plans/v1-code-refactor-execution-plan.md) | 唯一逐工作包实施真源：目录、工具、测试、切换、退役、失败模式和提交边界（`0.3.0`） |
 | [`plans/v1-test-plan.md`](plans/v1-test-plan.md) | 需求级测试矩阵、自动化/人工证据和发布门禁 |
+| [`老版新版切换计划.md`](老版新版切换计划.md) | v1 生产切换、观察期、消费者清零和老版独立退役的执行台账与追加式日志 |
 | [`dev-rules.md`](dev-rules.md) | 项目专有开发规则：权威顺序、编号、契约与模块边界 |
 | [`traceability/v1-requirements.tsv`](traceability/v1-requirements.tsv) | 256 个稳定编号的需求级追踪矩阵 |
 | [`../next.md`](../next.md) | 当前执行切片和人工决策边界 |

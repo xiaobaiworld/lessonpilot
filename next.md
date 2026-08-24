@@ -1,6 +1,6 @@
 # KnownMap 当前下一步
 
-更新时间：2026-08-23
+更新时间：2026-08-24
 
 ## v1 重构进度
 
@@ -168,6 +168,10 @@ KNOWNMAP_SSH_HOST=aliyun-us KNOWNMAP_PUBLISH_PROFILE=v1-apps   tools/web-release
 CORS 不含本机来源、日志非 DEBUG）、`/api/v1/meta/version` 版本探针。
 
 **阶段 8 旧系统退役**按计划在阶段 7 观察期之后，是时间约束。
+
+生产切换、观察期、消费者清零和老版退役的逐项状态统一记录在
+[`doc/老版新版切换计划.md`](doc/老版新版切换计划.md)。每完成一项，同时勾选步骤、追加完成证据和执行日志；
+首次 v1 切换与老版删除不在同一发布动作中完成。
 
 ## 已知问题
 
