@@ -4,6 +4,30 @@
   global.LessonPilotCourseRuntime = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof self !== 'undefined' ? self : globalThis, function createCourseRuntimeModule() {
+  const VIDEO_MODE_STORAGE_KEY = 'lessonpilot.video-mode';
+
+  function createVideoModeStore(storage) {
+    function read() {
+      try {
+        return storage?.getItem(VIDEO_MODE_STORAGE_KEY) === 'original' ? 'original' : 'course';
+      } catch {
+        return 'course';
+      }
+    }
+
+    function write(mode) {
+      const nextMode = mode === 'original' ? 'original' : 'course';
+      try {
+        storage?.setItem(VIDEO_MODE_STORAGE_KEY, nextMode);
+      } catch {
+        // A blocked page storage should not prevent the course from running.
+      }
+      return nextMode;
+    }
+
+    return { read, write };
+  }
+
   function getBvidFromLocation(location) {
     const match = String(location?.pathname ?? '').match(/^\/video\/(BV[a-zA-Z0-9]+)(?:\/|$)/i);
     return match ? match[1] : null;
@@ -52,7 +76,9 @@
     const triggered = new Set(completed);
     let previousTime = 0;
     let activeNodeId = null;
+    let enabled = true;
     function update(currentTime) {
+      if (!enabled) return;
       if (activeNodeId !== null) return;
       if (currentTime < previousTime - 1) {
         triggered.clear();
@@ -69,6 +95,10 @@
       }
       previousTime = currentTime;
     }
+    function setEnabled(nextEnabled) {
+      enabled = nextEnabled === true;
+      if (!enabled) activeNodeId = null;
+    }
     function complete(nodeId) {
       if (nodeId === activeNodeId) {
         if (!replayableNodeIds.has(nodeId)) completed.add(nodeId);
@@ -77,6 +107,7 @@
     }
     return {
       update,
+      setEnabled,
       complete,
       reset: () => {
         triggered.clear();
@@ -169,6 +200,7 @@
     getBvidFromLocation,
     courseMatchesLocation,
     findLessonForLocation,
+    createVideoModeStore,
     createNodeTimeline,
     evaluateNodeAnswer,
     createCoursePageWatcher,

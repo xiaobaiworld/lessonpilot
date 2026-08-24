@@ -28,7 +28,14 @@
 
   function setupCourseUi() {
     if (!course || mascot) return;
-    mascot = new MascotWidget();
+    let modeStore;
+    try {
+      modeStore = runtime.createVideoModeStore(window.localStorage);
+    } catch {
+      modeStore = runtime.createVideoModeStore(null);
+    }
+    let videoMode = modeStore.read();
+    mascot = new MascotWidget({ videoMode });
     mascot.mount();
     const completedNodeIds = Object.entries(learningState?.nodeStates ?? {})
       .filter(([, state]) => state.status === 'completed')
@@ -60,10 +67,25 @@
         mascot?.setState(await player.play());
       });
     }, { completedNodeIds });
+    timeline.setEnabled(videoMode === 'course');
 
     mascot.shell.addEventListener('lessonpilot:mascot-toggle', async () => {
       const state = await player.togglePlayback();
       mascot?.setState(state === 'missing' ? 'idle' : state);
+    });
+    mascot.shell.addEventListener('lessonpilot:video-mode-toggle', async () => {
+      videoMode = modeStore.write(videoMode === 'course' ? 'original' : 'course');
+      mascot?.setVideoMode(videoMode);
+      timeline.setEnabled(videoMode === 'course');
+      if (videoMode === 'original') {
+        timeline.reset();
+        mascot?.hideDialog();
+        mascot?.setState(await player.play());
+        return;
+      }
+      timeline.reset();
+      timeline.update(player.getMainVideo()?.currentTime ?? 0);
+      mascot?.setState(player.getPlaybackState());
     });
     mascot.shell.addEventListener('lessonpilot:pause', () => mascot?.setState(player.pause()));
     playbackStop = player.watchPlayback((state) => mascot?.setState(state));

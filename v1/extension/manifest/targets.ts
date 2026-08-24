@@ -44,7 +44,7 @@ export const TARGETS: Record<TargetName, BuildTarget> = {
   },
 };
 
-export const EXTENSION_VERSION = '1.0.0';
+export const EXTENSION_VERSION = '1.0.1';
 
 export function buildManifest(target: BuildTarget): Record<string, unknown> {
   return {

@@ -5,6 +5,7 @@ const {
   getBvidFromLocation,
   courseMatchesLocation,
   findLessonForLocation,
+  createVideoModeStore,
   createNodeTimeline,
   createCoursePageWatcher,
   evaluateNodeAnswer
@@ -187,6 +188,40 @@ test('timeline does not skip a completed notice node when initialized from saved
   timeline.update(3);
 
   assert.deepEqual(seen, ['overview']);
+});
+
+test('video mode store defaults to course and persists original mode', () => {
+  const values = new Map();
+  const storage = {
+    getItem: (key) => values.get(key) ?? null,
+    setItem: (key, value) => values.set(key, value)
+  };
+  const store = createVideoModeStore(storage);
+
+  assert.equal(store.read(), 'course');
+  store.write('original');
+  assert.equal(store.read(), 'original');
+});
+
+test('timeline does not trigger nodes while disabled and can resume at the current time', () => {
+  const seen = [];
+  const timeline = createNodeTimeline({
+    nodes: [{
+      id: 'notice',
+      enabled: true,
+      interaction: 'notice',
+      trigger: { timeSeconds: 2 }
+    }]
+  }, (node) => seen.push(node.id));
+
+  timeline.setEnabled(false);
+  timeline.update(3);
+  assert.deepEqual(seen, []);
+
+  timeline.setEnabled(true);
+  timeline.reset();
+  timeline.update(3);
+  assert.deepEqual(seen, ['notice']);
 });
 
 test('evaluates choice and blank answers without mutating the course node', () => {

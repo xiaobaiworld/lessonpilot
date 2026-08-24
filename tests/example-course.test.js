@@ -23,8 +23,12 @@ test('bundled example is a valid read-only course package with stable UUID ident
     nodes.slice(0, 2).map((node) => [node.trigger.timeSeconds, node.interaction]),
     [[2, 'notice'], [35, 'notice']]
   );
+  assert.equal(nodes[0].display.title, '重点提示');
+  assert.doesNotMatch(nodes[0].display.title, /00:02/);
   assert.match(nodes[0].display.body, /第一个节点/);
   assert.match(nodes[0].display.body, /第二个节点/);
+  assert.match(nodes[0].display.body, /4 道题/);
   assert.match(nodes[0].display.body, /总结/);
+  assert.match(nodes[0].display.body, /加油/);
   assert.equal(contract.validateCoursePackage(EXAMPLE_COURSE_PACKAGE).ok, true);
 });

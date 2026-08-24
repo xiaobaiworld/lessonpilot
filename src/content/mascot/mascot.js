@@ -112,7 +112,7 @@
   }
 
   class MascotWidget {
-    constructor() {
+    constructor({ videoMode = 'course' } = {}) {
       /** @type {'idle' | 'playing' | 'paused'} */
       this.state = 'idle';
       this.frame = 0;
@@ -129,7 +129,10 @@
       this.controls.id = 'lessonpilot-mascot-controls';
 
       this.pauseButton = this.createControlButton('暂停', 'lessonpilot:pause');
-      this.controls.append(this.pauseButton);
+      this.modeButton = this.createControlButton('原视频', 'lessonpilot:video-mode-toggle');
+      this.modeButton.classList.add('lessonpilot-mascot-mode-btn');
+      this.controls.append(this.pauseButton, this.modeButton);
+      this.setVideoMode(videoMode);
 
       this.root = document.createElement('div');
       this.root.id = 'lessonpilot-mascot-root';
@@ -197,6 +200,13 @@
         state === 'playing' ? '点击暂停' : state === 'paused' ? '点击继续' : '等待视频…';
     }
 
+    setVideoMode(mode) {
+      const nextMode = mode === 'original' ? 'original' : 'course';
+      this.videoMode = nextMode;
+      this.shell.dataset.videoMode = nextMode;
+      this.modeButton.textContent = nextMode === 'original' ? '课程' : '原视频';
+    }
+
     showDialog() {
       this.dialog.hidden = false;
     }
@@ -230,10 +240,15 @@
         feedback.textContent = result.feedback;
         if (result.accepted !== false
           && (result.correct || node.interaction === 'free_text' || node.interaction === 'notice')) {
-          actions.replaceChildren(this.createDialogButton('继续学习', async () => {
+          if (node.interaction === 'notice') {
             this.hideDialog();
             await onContinue();
-          }));
+          } else {
+            actions.replaceChildren(this.createDialogButton('继续学习', async () => {
+              this.hideDialog();
+              await onContinue();
+            }));
+          }
         } else {
           for (const control of actions.querySelectorAll('button')) control.disabled = false;
         }
@@ -251,7 +266,10 @@
         body.appendChild(input);
         actions.appendChild(this.createDialogButton('提交', () => finish(input.value)));
       } else {
-        actions.appendChild(this.createDialogButton('知道了', () => finish(null)));
+        actions.appendChild(this.createDialogButton(
+          node.interaction === 'notice' ? '确认并继续' : '知道了',
+          () => finish(null)
+        ));
       }
       this.showDialog();
     }

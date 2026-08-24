@@ -117,6 +117,7 @@ test('manifest wires the student modules and grants only the fixed local API ori
   const worker = fs.readFileSync('src/background/service-worker.js', 'utf8');
   const contentEntry = fs.readFileSync('src/content/index.js', 'utf8');
   const mascot = fs.readFileSync('src/content/mascot/mascot.js', 'utf8');
+  const mascotCss = fs.readFileSync('src/content/mascot/mascot.css', 'utf8');
   const player = fs.readFileSync('src/content/video/bili-player.js', 'utf8');
   assert.match(worker, /GET_INSTALLED_STUDENT_COURSES/);
   assert.match(worker, /DOWNLOAD_STUDENT_COURSE/);
@@ -126,4 +127,15 @@ test('manifest wires the student modules and grants only the fixed local API ori
   assert.match(contentEntry, /completedNodeIds/);
   assert.match(mascot, /showNode\(node, onSubmit, onContinue\)/);
   assert.match(player, /async function play\(\)/);
+  assert.match(contentEntry, /player\.pause\(\)/);
+  assert.match(mascot, /node\.interaction === 'notice' \? '确认并继续'/);
+  assert.match(mascotCss, /width: min\(520px, calc\(100vw - 32px\)\)/);
+  assert.equal(manifest.version, '0.9.2');
+
+  const v1Targets = fs.readFileSync('v1/extension/manifest/targets.ts', 'utf8');
+  assert.match(v1Targets, /export const EXTENSION_VERSION = '1\.0\.1'/);
+  assert.match(mascot, /lessonpilot:video-mode-toggle/);
+  assert.match(mascot, /确认并继续/);
+  assert.match(mascot, /setVideoMode/);
+  assert.match(mascotCss, /lessonpilot-mascot-mode-btn/);
 });
