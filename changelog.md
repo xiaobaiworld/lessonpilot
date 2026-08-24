@@ -10,6 +10,7 @@ Only record verified changes.
 - 新增 `/teacher-web/student-guide.html`，按顺序说明下载、解压、打开扩展管理页、开启开发者模式、加载已解压插件和安装后领取课程；页面提供固定 ZIP 下载与返回销售页入口，不要求登录；
 - 新增 3 张匿名安装截图，不含用户名、本机路径、账号或扩展 ID；页面兼容当前 Chrome“加载未打包的扩展程序”与部分版本“加载已解压的扩展程序”两种中文标签；
 - 三种 Web 发布 profile 均纳入说明页和截图白名单，生产验证增加说明页 200 探针；本轮只提交 GitHub，不发布到 `knownmap.com`。
+- 根目录 `link.html` 的“本站正式入口”新增“学生使用步骤”，集中导航页可以直接打开插件下载、解压和 Chrome 安装说明。
 
 验证：legacy Node 397 项、v1 Vitest 188 项、后端 pytest 140 项通过；Ruff、ESLint、TypeScript、两端生产构建、精确提交发布构建、文档、契约、依赖锁定和秘密扫描通过。本机 HTTP 页面及 3 张图片均为 200，375×812、768×1024、1280×720 三档浏览器检查和键盘返回路径通过；GitHub PR #14 的 node、backend、contract 三项 CI 全绿。
 

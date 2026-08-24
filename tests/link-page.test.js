@@ -11,6 +11,7 @@ const requiredLinks = [
   'https://knownmap.com/',
   'https://knownmap.com/admin/',
   'https://knownmap.com/teacher/',
+  'https://knownmap.com/teacher-web/student-guide.html',
   'https://knownmap.com/downloads/student-plugin/knownmap-v1.zip',
   'https://my.feishu.cn/share/base/form/shrcnGpoiVzLw8v5sD5K2TV8sFb',
   'https://my.feishu.cn/base/ZI5vbke3Ia9dpPsL4khcko09nwf?table=tblGmuYqdNDy7rSZ&amp;view=vewNhBX7cO'
@@ -20,6 +21,7 @@ test('链接导航包含本站、飞书填写和结果查看入口', () => {
   for (const link of requiredLinks) {
     assert.match(page, new RegExp(`href="${link.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`));
   }
+  assert.match(page, /<strong>学生使用步骤<\/strong>/);
 });
 
 test('链接导航禁止搜索引擎收录并标明结果页权限', () => {
