@@ -1,9 +1,9 @@
 # KnownMap 文档索引
 
-最近审计：2026-08-23
+最近审计：2026-08-24
 
-当前阶段：v1 需求（`1.0.2`）和 v1 设计（01–09）均已冻结，开发计划与测试计划已建立，
-当前处于实现阶段 0（工程基线与干净初始化）。
+当前阶段：v1 已完成生产切换并进入新功能开发；v1 需求现为 `1.0.3`，设计 07 已按
+`FR-LIB-014` 增补学生插件使用说明页。
 
 其它 Agent 开始工作时先读本文件，再按「当前权威」顺序阅读。**只有「当前权威」段的文档指导开发。**
 「当前证据」只证明 v0.9.1 现状，不定义 v1 目标；「历史归档」只用于追溯。
@@ -23,7 +23,7 @@
 | [`plans/v1-test-plan.md`](plans/v1-test-plan.md) | 需求级测试矩阵、自动化/人工证据和发布门禁 |
 | [`老版新版切换计划.md`](老版新版切换计划.md) | v1 生产切换、观察期、消费者清零和老版独立退役的执行台账与追加式日志 |
 | [`dev-rules.md`](dev-rules.md) | 项目专有开发规则：权威顺序、编号、契约与模块边界 |
-| [`traceability/v1-requirements.tsv`](traceability/v1-requirements.tsv) | 256 个稳定编号的需求级追踪矩阵 |
+| [`traceability/v1-requirements.tsv`](traceability/v1-requirements.tsv) | 257 个稳定编号的需求级追踪矩阵 |
 | [`../next.md`](../next.md) | 当前执行切片和人工决策边界 |
 | [`../README.md`](../README.md) | 项目入口、当前状态、运行命令 |
 
@@ -114,6 +114,7 @@
 [`plans/teacher-platform-experience-polish.md`](plans/teacher-platform-experience-polish.md)、
 [`plans/knownmap-brand-lockup-refinement.md`](plans/knownmap-brand-lockup-refinement.md)、
 [`plans/web-production-release-traceability.md`](plans/web-production-release-traceability.md)、
+[`plans/student-plugin-usage-guide-development-plan.md`](plans/student-plugin-usage-guide-development-plan.md)、
 [`../docs/superpowers/plans/2026-08-18-knownmap-brand-update.md`](../docs/superpowers/plans/2026-08-18-knownmap-brand-update.md)、
 [`../docs/superpowers/plans/2026-08-20-teacher-account-admin.md`](../docs/superpowers/plans/2026-08-20-teacher-account-admin.md)。
 

@@ -34,7 +34,7 @@
 | --- | ---: | --- | --- |
 | `01-product-scope.md` | 25 | 已接受 | 待建立 |
 | `03-user-scenarios.md` | 21 | 已接受 | 待建立 |
-| `04-functional-requirements.md` | 117 | 已接受 | 待建立 |
+| `04-functional-requirements.md` | 118 | 已接受 | 待建立 |
 | `05-data-requirements.md` | 30 | 已接受 | 待建立 |
 | `06-interface-integration-requirements.md` | 12 | 已接受 | 待建立 |
 | `07-non-functional-requirements.md` | 0 | 已接受不单独制定 `NFR-*` | 重开前不适用 |
@@ -43,7 +43,7 @@
 | `10-deployment-operations-requirements.md` | 10 | 已接受 | 待建立 |
 | `11-migration-compatibility-requirements.md` | 9 | 已接受 | 待建立 |
 | `12-acceptance-traceability.md` | 8 | 已接受 | 待建立 |
-| **合计** | **256** | 需求与场景层已记录 | 待建立 |
+| **合计** | **257** | 需求与场景层已记录 | 待建立 |
 
 `02-domain-glossary.md` 是术语真源，`README.md` 是索引与状态入口，二者不重复计入业务需求数。
 
@@ -156,7 +156,7 @@
 ## 8. 当前完成条件
 
 1. 8 条 `ACC-*` 均通过人工审核；
-2. 256 个当前稳定编号数量经自动抽取复核（`node tools/build-traceability.mjs`）；
+2. 257 个当前稳定编号数量经自动抽取复核（`node tools/build-traceability.mjs`）；
 3. 所有下游状态如实记录为待建立，没有把旧代码、历史测试或当前生产冒充成 v1 证据；
 4. 需求级矩阵行已建立，覆盖检查已进入自动化门禁。
 

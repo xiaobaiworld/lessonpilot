@@ -2,6 +2,16 @@
 
 更新时间：2026-08-24
 
+## 当前开发切片：学生插件使用说明页
+
+执行计划：`doc/plans/student-plugin-usage-guide-development-plan.md`
+
+当前状态：页面、截图、发布白名单、本机浏览器验收和完整门禁已经完成；根目录 `link.html` 已加入“学生使用步骤”，最新提交已推送，GitHub PR #14 的三项 CI 全部通过，等待合并或进入下一项功能。
+
+验证方式：根 `npm test`、Web 发布 profile 构建、文档检查、秘密扫描、桌面/窄屏本地页面检查。
+
+本切片只提交到 GitHub，不包含 `knownmap.com` 生产部署；生产页面在下一次明确授权的统一发布后才会出现。
+
 ## v1 重构进度
 
 执行计划：`doc/plans/v1-code-refactor-execution-plan.md`
