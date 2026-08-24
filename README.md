@@ -28,7 +28,7 @@ KnownMap 把老师已有的 B 站录播课变成可在原视频页面运行的�
 ## 当前状态
 
 系统已于 2026-08-24 切换到 v1，当前生产 release 为
-`20260824T100341Z-c082600d0f4e`。新系统位于 `v1/`；旧 `backend/`、`teacher-web/`、
+`20260824T105849Z-460f1152ea0b`。新系统位于 `v1/`；旧 `backend/`、`teacher-web/`、
 `src/` 仍作为固定回滚组合和兼容责任保留，要在即时验收、7 日观察、
 两次真实交付和老版消费者清零后才能独立退役（`D-V1-012`）。
 
@@ -50,7 +50,7 @@ KnownMap 把老师已有的 B 站录播课变成可在原视频页面运行的�
 - v2 UUID 多课节课程包、范围授权、公开多课程下载、下载器、运行时和课程列表 UI 已接通；
 - 教师 API 和教师编辑器已部署到 `knownmap.com`；
 - 销售页已经作为 `knownmap.com` 的生产首页发布。
-- 学生插件包发布代码会从精确 commit 组装 `knownmapplugin.zip`，销售页和插件工具栏首页共用固定下载地址；当前生产 release 尚未包含该 ZIP，需在下一次发布后验证。
+- 学生插件包发布代码会从精确 commit 组装 `knownmapplugin.zip`，销售页、学生使用说明页和插件工具栏首页共用固定下载地址；当前生产 release 已包含并验证该 ZIP。
 - 销售页的飞书真实课程试用表单与独立入口模块已完成，公开链接已通过无登录态访问验收。
 
 问答题只保存学生原始回答，并展示老师预设的参考反馈；第一阶段不评分、不调用 AI。
@@ -75,7 +75,7 @@ KnownMap 把老师已有的 B 站录播课变成可在原视频页面运行的�
 | `/teacher-web/` | 历史销售页和教师工作台原型 | 保留作视觉和历史入口 |
 | `/teacher-web/workspace.html` | 历史 1A 连接诊断页 | 保留作协议诊断参考 |
 | `/teacher-web/forsales.html` | 公网销售页 | 第一阶段已完成，也是 `knownmap.com` 当前生产首页 |
-| `/teacher-web/student-guide.html` | 学生插件下载、解压和 Chrome 安装说明 | 开发与本机验收已完成，尚未发布到生产 |
+| `/teacher-web/student-guide.html` | 学生插件下载、解压和 Chrome 安装说明 | 已发布到生产并通过公网与摘要校验 |
 | `/admin/` | v1 管理员端 | 当前生产主入口 |
 | `/teacher/` | v1 教师端 | 当前生产主入口 |
 | `/teacher-web/editor.html` | 老教师入口 | 保留兼容，导向 `/teacher/` |
@@ -125,9 +125,9 @@ tools/teacher-platform-release.sh deploy <git-ref>
 tools/teacher-platform-release.sh status
 ```
 
-当前生产版本为 `20260824T100341Z-c082600d0f4e`，对应 GitHub 提交
-`c082600d0f4e842a7e0875dd7b8b009f995fc1b0` 和标签
-`web-prod/20260824T100341Z-c082600d0f4e`。服务器上的网页、FastAPI、插件和仓库发布记录使用
+当前生产版本为 `20260824T105849Z-460f1152ea0b`，对应 GitHub 提交
+`460f1152ea0b56a1239a60abea5c9f911e1ae392` 和标签
+`web-prod/20260824T105849Z-460f1152ea0b`。服务器上的网页、FastAPI、插件和仓库发布记录使用
 同一个 release ID；SQLite 数据保存在 `/var/lib/knownmap/knownmap.db`，不随代码版本切换。
 
 ## 本地运行

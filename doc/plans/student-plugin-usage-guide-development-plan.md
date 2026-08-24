@@ -1,6 +1,6 @@
 # 学生插件使用说明页开发计划
 
-版本：`0.1.4`
+版本：`0.1.5`
 
 状态：已完成
 
@@ -59,6 +59,7 @@
 | 7. 同步文档并对抗审查 | 已完成 | 需求、设计、追踪矩阵、变更记录已同步；提交前代码与设计清单审查无遗留问题 |
 | 8. 提交、推送并确认 GitHub CI | 已完成 | 功能提交 `0c7b318` 已推送，PR #14 的 node、backend、contract 三项检查全部通过 |
 | 9. 把说明页加入链接导航 | 已完成 | `link.html` 已新增生产 URL；测试先失败后通过，提交 `d30eb86` 已推送，PR #14 三项 CI 全绿 |
+| 10. 合并并发布生产 | 已完成 | PR #14 合并为 `460f1152`；`main` test/pages 全绿；release `20260824T105849Z-460f1152ea0b` 发布并验证 |
 
 ## 5. 计划日志
 
@@ -74,6 +75,8 @@
 - 2026-08-24：功能提交 `0c7b318` 推送到 `codex/student-plugin-usage-guide`，创建 GitHub PR #14；GitHub Actions 的 node-test、backend-test、contract-check 全部通过。本功能开发完成，未执行 `knownmap.com` 生产发布。
 - 2026-08-24：产品负责人要求把学生使用说明页加入网页链接导航；确认修改根目录 `link.html` 的“本站正式入口”，继续在 PR #14 内完成，不执行生产发布。
 - 2026-08-24：链接导航测试先因缺少目标 URL 失败；实现后 focused 9 项、legacy 397 项、v1 188 项、精确提交发布构建、文档/契约/秘密扫描通过。提交 `d30eb86` 推送后，PR #14 的最新 node-test、backend-test、contract-check 全部通过。
+- 2026-08-24：产品负责人明确批准合并和生产发布。PR #14 合并为 `460f1152ea0b56a1239a60abea5c9f911e1ae392`，合并后 `main` 的 test/pages 全绿；生产预检、备份、恢复演练、迁移、统一 Web/API/插件发布和公网探针全部通过。
+- 2026-08-24：生产 release `20260824T105849Z-460f1152ea0b` 已验证。说明页、`link.html`、截图和两个插件 ZIP 均为 200，API 为 v1/production、迁移 `0011_fix_admin_auth_schema`、数据库就绪；说明页与 `link.html` 的线上 SHA-256 均与冻结提交一致，未触发回滚。
 
 ## 6. 文档健康审计
 
