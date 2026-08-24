@@ -9,6 +9,7 @@ DATA_ROOT="${KNOWNMAP_DATA_ROOT:-/var/lib/knownmap}"
 SITE_URL="${KNOWNMAP_SITE_URL:-https://knownmap.com}"
 REPOSITORY="${KNOWNMAP_REPOSITORY:-xiaobaiworld/lessonpilot}"
 ALLOWED_REMOTE_BRANCH="${KNOWNMAP_ALLOWED_REMOTE_BRANCH:-origin/main}"
+WEB_PUBLISH_PROFILE="${KNOWNMAP_PUBLISH_PROFILE:-teacher-platform-v1}"
 SERVICE_NAME="knownmap-teacher-api.service"
 UV_VERSION="0.11.12"
 UV_SHA256="9acdecddacba550ee616c02bb4616d894352022550c5977524556fd5077ce1d4"
@@ -33,6 +34,9 @@ validate_settings() {
   [[ "$SITE_URL" =~ ^https://[A-Za-z0-9._:-]+$ ]] || fail "site URL must be an HTTPS origin"
   [[ "$ALLOWED_REMOTE_BRANCH" =~ ^origin/[A-Za-z0-9._/-]+$ ]] ||
     fail "unsafe allowed remote branch: $ALLOWED_REMOTE_BRANCH"
+  [[ "$WEB_PUBLISH_PROFILE" == "teacher-platform-v1" ||
+    "$WEB_PUBLISH_PROFILE" == "v1-apps" ]] ||
+    fail "unsupported integrated publish profile: $WEB_PUBLISH_PROFILE"
 }
 
 resolve_commit() {
@@ -136,6 +140,7 @@ write_backend_metadata() {
     --arg gitCommitSubject "$subject" \
     --arg gitCommitTime "$commit_time" \
     --arg gitTag "web-prod/$release_id" \
+    --arg publishProfile "$WEB_PUBLISH_PROFILE" \
     --arg builtAt "$built_at" \
     '{
       schemaVersion: 1,
@@ -150,7 +155,7 @@ write_backend_metadata() {
       gitCommitSubject: $gitCommitSubject,
       gitCommitTime: $gitCommitTime,
       gitTag: $gitTag,
-      publishProfile: "teacher-platform-v1",
+      publishProfile: $publishProfile,
       component: "fastapi",
       status: "built",
       builtAt: $builtAt,
@@ -548,6 +553,9 @@ verify_remote() {
   local release_id="$1"
   local expected_commit="$2"
   local body
+  local api_body
+  local path
+  local status
 
   body="$(mktemp "${TMPDIR:-/tmp}/knownmap-api-health.XXXXXX")"
   trap 'rm -f "$body"' RETURN
@@ -556,6 +564,18 @@ verify_remote() {
   /usr/bin/curl -fsS "$SITE_URL/admin.html" >/dev/null
   /usr/bin/curl -fsS "$SITE_URL/teacher-web/editor.html" >/dev/null
   /usr/bin/curl -fsS "$SITE_URL/" >/dev/null
+  if [[ "$WEB_PUBLISH_PROFILE" == "v1-apps" ]]; then
+    for path in /admin/ /teacher/ /downloads/student-plugin/knownmap-v1.zip; do
+      status="$(
+        /usr/bin/curl -sS -o /dev/null -w '%{http_code}' \
+          "$SITE_URL$path?release=$release_id"
+      )"
+      [[ "$status" == "200" ]] || return 1
+    done
+    api_body="$(/usr/bin/curl -fsS "$SITE_URL/api/v1/meta/version")"
+    jq -e '.api_version == "v1" and .database_ready == true' \
+      <<<"$api_body" >/dev/null || return 1
+  fi
   status="$(
     /usr/bin/curl -sS -o /dev/null -w '%{http_code}' \
       "$SITE_URL/api/v1/admin/auth/me"
@@ -686,7 +706,7 @@ deploy_release() {
     fi
   fi
 
-  if ! KNOWNMAP_PUBLISH_PROFILE=teacher-platform-v1 \
+  if ! KNOWNMAP_PUBLISH_PROFILE="$WEB_PUBLISH_PROFILE" \
     KNOWNMAP_RELEASE_ID="$release_id" \
     "$ROOT_DIR/tools/web-release.sh" deploy "$commit"; then
     remote_restore_backend "$previous_target"

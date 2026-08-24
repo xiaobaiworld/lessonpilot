@@ -19,6 +19,17 @@
 tools/teacher-platform-release.sh deploy <git-ref>
 ```
 
+切换到 v1 管理员、教师应用和新版插件时，必须仍使用这个统一入口，并显式选择
+`v1-apps` profile：
+
+```bash
+KNOWNMAP_PUBLISH_PROFILE=v1-apps \
+  tools/teacher-platform-release.sh deploy <git-ref>
+```
+
+该入口用同一提交和 release ID 发布 FastAPI、执行数据库迁移、备份恢复演练并发布
+静态应用；不要直接调用 `web-release.sh deploy` 代替整套生产切换。
+
 需要从尚未合并的受控发布分支部署时，必须明确写出该远程分支：
 
 ```bash

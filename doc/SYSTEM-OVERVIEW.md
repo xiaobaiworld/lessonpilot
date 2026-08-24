@@ -269,11 +269,12 @@ cd v1 && npm run gate -- --candidate <输出目录>
 
 # 切换
 KNOWNMAP_SSH_HOST=<别名> KNOWNMAP_PUBLISH_PROFILE=v1-apps \
-  tools/web-release.sh deploy <ref>
+  tools/teacher-platform-release.sh deploy <ref>
 ```
 
-产出：`/admin/` 与 `/teacher/` 两个应用、旧入口重定向、生产目标插件包，
-销售页原样保留。
+该统一入口先发布后端、执行迁移和恢复演练，再以同一 release ID 原子发布
+`/admin/`、`/teacher/`、旧入口重定向、生产目标插件包和原样销售页；发布后同时验证
+Web、API 与版本探针，避免只切静态文件造成组件混用。
 
 旧入口 `/admin.html` 与 `/teacher-web/editor.html` **重定向而非删除**：
 收藏了旧地址的人要被带到新位置，不是撞 404。

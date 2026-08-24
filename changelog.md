@@ -4,6 +4,15 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### v1 统一生产发布入口 — 2026-08-24
+
+- `teacher-platform-release.sh` 现在显式接收并校验 `v1-apps` profile，把后端、迁移、
+  备份恢复演练、Web 应用和插件放在同一提交、同一 release ID 下发布；
+- 后端 metadata 记录实际 profile，生产验证增加 `/admin/`、`/teacher/`、新版插件 ZIP
+  和 `/api/v1/meta/version`，防止静态页面与 API 版本混用；
+- 修正 v1 静态发布校验：旧页面作为重定向必须返回 200，不再被误判为应当 404 的私有路径；
+- 切换计划、系统总览、当前阶段和部署说明统一改用完整教师平台发布入口。
+
 ### 老版新版切换执行台账 — 2026-08-24
 
 - 新增 `doc/老版新版切换计划.md`，把候选冻结、生产预检、备份与回滚、原子切换、

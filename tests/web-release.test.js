@@ -59,6 +59,31 @@ test('web release script has valid shell syntax and traceability guards', () => 
   assert.match(source, /downloads\/student-plugin/);
 });
 
+test('v1 production verification covers new apps, redirects and both plugin URLs', () => {
+  const source = fs.readFileSync(script, 'utf8');
+  const verifier = source.slice(
+    source.indexOf('verify_public_site()'),
+    source.indexOf('validate_release_in_worktree()')
+  );
+
+  assert.match(verifier, /PUBLISH_PROFILE" == "v1-apps/);
+  for (const path of [
+    '/admin/',
+    '/teacher/',
+    '/admin.html',
+    '/teacher-web/editor.html',
+    '/downloads/student-plugin/knownmap-v1.zip',
+    '/downloads/student-plugin/knownmapplugin.zip'
+  ]) {
+    assert.ok(verifier.includes(path), `v1 public verification missing ${path}`);
+  }
+  const v1Branch = verifier.slice(
+    verifier.indexOf('elif [[ "$PUBLISH_PROFILE" == "v1-apps" ]]'),
+    verifier.indexOf('  else', verifier.indexOf('elif [[ "$PUBLISH_PROFILE" == "v1-apps" ]]'))
+  );
+  assert.doesNotMatch(v1Branch, /private_paths\+=/);
+});
+
 test('build packages the exact commit with only the sales-site whitelist', (t) => {
   const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'knownmap-release-'));
   t.after(() => fs.rmSync(temporary, { recursive: true, force: true }));

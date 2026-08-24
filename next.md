@@ -160,7 +160,8 @@ CORS 只含 `knownmap.com` 与 `www.knownmap.com`、`APP_ENV=production` 日志 
 要切换时：
 
 ```bash
-KNOWNMAP_SSH_HOST=aliyun-us KNOWNMAP_PUBLISH_PROFILE=v1-apps   tools/web-release.sh deploy <ref>
+KNOWNMAP_SSH_HOST=aliyun-us KNOWNMAP_PUBLISH_PROFILE=v1-apps \
+  tools/teacher-platform-release.sh deploy <ref>
 ```
 
 切换后随之生效的还有：备份保留期 30 天、部署时执行恢复演练、

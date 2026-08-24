@@ -40,13 +40,34 @@ test('teacher platform release orchestration has valid shell syntax and traceabi
     'SEED_TEACHER_LOGIN_NAME',
     'backend-release.json',
     'systemctl enable',
-    'KNOWNMAP_PUBLISH_PROFILE=teacher-platform-v1',
+    'KNOWNMAP_PUBLISH_PROFILE="$WEB_PUBLISH_PROFILE"',
     'web-prod/$release_id',
     'chown knownmap:knownmap "/$database_path"',
     'verification.apiHealth'
   ]) {
     assert.ok(source.includes(marker), `missing ${marker}`);
   }
+});
+
+test('integrated release forwards and verifies the selected v1 publish profile', () => {
+  const source = fs.readFileSync(releaseScript, 'utf8');
+
+  assert.match(
+    source,
+    /WEB_PUBLISH_PROFILE="\$\{KNOWNMAP_PUBLISH_PROFILE:-teacher-platform-v1\}"/
+  );
+  assert.match(source, /unsupported integrated publish profile/);
+  assert.match(source, /--arg publishProfile "\$WEB_PUBLISH_PROFILE"/);
+  assert.match(source, /KNOWNMAP_PUBLISH_PROFILE="\$WEB_PUBLISH_PROFILE"/);
+  for (const path of [
+    '/admin/',
+    '/teacher/',
+    '/downloads/student-plugin/knownmap-v1.zip',
+    '/api/v1/meta/version'
+  ]) {
+    assert.ok(source.includes(path), `v1 verification missing ${path}`);
+  }
+  assert.match(source, /\.api_version == "v1" and \.database_ready == true/);
 });
 
 test('teacher platform release never prints or implicitly rotates production credentials', () => {

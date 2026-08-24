@@ -543,6 +543,18 @@ verify_public_site() {
     [[ "$status" == "200" ]] || return 1
     api_status="$(curl -fsS "$SITE_URL/health")"
     jq -e '.status == "ok"' <<<"$api_status" >/dev/null || return 1
+  elif [[ "$PUBLISH_PROFILE" == "v1-apps" ]]; then
+    for path in \
+      /admin/ \
+      /teacher/ \
+      /admin.html \
+      /teacher-web/editor.html \
+      /downloads/student-plugin/knownmap-v1.zip; do
+      status="$(curl -sS -o /dev/null -w '%{http_code}' "$SITE_URL$path?release=$release_id")"
+      [[ "$status" == "200" ]] || return 1
+    done
+    api_status="$(curl -fsS "$SITE_URL/health")"
+    jq -e '.status == "ok"' <<<"$api_status" >/dev/null || return 1
   else
     private_paths+=("/teacher-web/editor.html")
   fi
