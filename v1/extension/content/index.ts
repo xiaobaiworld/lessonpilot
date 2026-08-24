@@ -1,14 +1,22 @@
 import {
   currentVideoId,
+  findVideo,
   waitForVideo,
   attachPlayer,
   watchNavigation,
 } from '../host/bilibili';
 import { LearningWindow } from './window';
 import { CandidatePicker } from './picker';
-import { CourseRuntime, PageController, Messenger } from './runtime';
-import { RuntimeCandidate } from '../shared/library-view';
+import {
+  CourseRuntime,
+  PageController,
+  Messenger,
+  createVideoModeStore,
+} from './runtime';
+import { LibraryView, RuntimeCandidate } from '../shared/library-view';
 import styleText from './window.css?inline';
+import companionStyle from './companion.css?inline';
+import { StudentCompanion } from './companion';
 
 /**
  * 内容脚本入口。只负责把真实依赖填进 CourseRuntime。
@@ -43,6 +51,48 @@ const messenger: Messenger = {
   },
 };
 
+const companion = new StudentCompanion({
+  styleText: companionStyle,
+  loadLibrary: () => send<LibraryView>({ type: 'library' }),
+  redeem: async (code) => {
+    const result = await send<{ installed: unknown[] }>({ type: 'redeem', code });
+    return result
+      ? { ok: true }
+      : { ok: false, message: '课程领取失败，请稍后重试。' };
+  },
+  onTogglePlayback: async () => {
+    const video = findVideo();
+    if (!video) return 'idle';
+    if (video.paused || video.ended) {
+      try {
+        await video.play();
+      } catch {
+        return 'paused';
+      }
+      return 'playing';
+    }
+    video.pause();
+    return 'paused';
+  },
+});
+companion.mount();
+
+const syncCompanionState = () => {
+  const video = findVideo();
+  companion.setState(
+    !video || video.paused || video.ended ? (video ? 'paused' : 'idle') : 'playing'
+  );
+};
+syncCompanionState();
+const companionStateTimer = window.setInterval(syncCompanionState, 1000);
+
+let modeStorage: Storage | null = null;
+try {
+  modeStorage = window.localStorage;
+} catch {
+  modeStorage = null;
+}
+
 const controller = new PageController(
   () =>
     new CourseRuntime({
@@ -52,6 +102,8 @@ const controller = new PageController(
         return video ? attachPlayer(video) : null;
       },
       createWindow: (callbacks) => new LearningWindow(callbacks, styleText),
+      modeStore: createVideoModeStore(modeStorage),
+      createModeControl: (onToggle) => companion.createModeControl(onToggle),
       chooseCandidate: (candidates) =>
         new CandidatePicker(styleText).choose(candidates),
       now: () => new Date(),
@@ -59,4 +111,13 @@ const controller = new PageController(
 );
 
 void controller.navigate(currentVideoId());
-watchNavigation((videoId) => void controller.navigate(videoId));
+const stopNavigation = watchNavigation((videoId) => void controller.navigate(videoId));
+window.addEventListener(
+  'pagehide',
+  () => {
+    stopNavigation();
+    window.clearInterval(companionStateTimer);
+    companion.destroy();
+  },
+  { once: true }
+);

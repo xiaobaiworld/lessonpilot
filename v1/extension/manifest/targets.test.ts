@@ -53,6 +53,20 @@ describe('构建目标', () => {
     expect(BUILD_ARTIFACTS).toContain('popup/index.js');
   });
 
+  it('manifest 使用 V1 自有的完整图标组', () => {
+    const m = buildManifest(TARGETS.production) as any;
+    expect(m.icons).toEqual({
+      '16': 'assets/icon-16.png',
+      '24': 'assets/icon-24.png',
+      '48': 'assets/icon-48.png',
+      '128': 'assets/icon-128.png',
+    });
+    expect(m.action.default_icon).toEqual(m.icons);
+    for (const path of Object.values(m.icons) as string[]) {
+      expect(BUILD_ARTIFACTS).toContain(path);
+    }
+  });
+
   it('manifest 里引用的脚本都在产物清单里', () => {
     const m = buildManifest(TARGETS.production) as any;
     const referenced = [

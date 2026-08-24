@@ -1,4 +1,5 @@
 import { RuntimeNode, WindowState, NodeOutcome } from '../runtime/session';
+import { VideoMode } from './runtime';
 
 /**
  * 学习窗口渲染。
@@ -73,7 +74,7 @@ export class LearningWindow {
     if (node.interaction === 'notice') {
       panel.append(this.paragraph(String(d.body ?? '')));
       panel.append(
-        this.actions([this.button('知道了', 'primary', this.callbacks.onSubmit)])
+        this.actions([this.button('确认并继续', 'primary', this.callbacks.onSubmit)])
       );
       return;
     }
@@ -214,5 +215,53 @@ export class LearningWindow {
     b.textContent = text;
     b.addEventListener('click', onClick);
     return b;
+  }
+}
+
+export class VideoModeControl {
+  private host: HTMLElement;
+  private root: ShadowRoot;
+  private button: HTMLButtonElement;
+  private detachFullscreen: (() => void) | null = null;
+
+  constructor(onToggle: () => void, styleText: string) {
+    this.host = document.createElement('div');
+    this.host.id = 'knownmap-video-mode-control';
+    this.root = this.host.attachShadow({ mode: 'open' });
+
+    const style = document.createElement('style');
+    style.textContent = styleText;
+    this.button = document.createElement('button');
+    this.button.type = 'button';
+    this.button.className = 'km-mode-button';
+    this.button.addEventListener('click', onToggle);
+    this.root.append(style, this.button);
+
+    const onFullscreenChange = () => this.mount();
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    this.detachFullscreen = () =>
+      document.removeEventListener('fullscreenchange', onFullscreenChange);
+    this.mount();
+  }
+
+  setMode(mode: VideoMode): void {
+    const original = mode === 'original';
+    this.button.textContent = original ? '课程模式' : '原视频';
+    this.button.setAttribute(
+      'aria-label',
+      original ? '切换到 KnownMap 课程模式' : '切换到原视频模式'
+    );
+    this.button.dataset.mode = mode;
+  }
+
+  private mount(): void {
+    const parent = document.fullscreenElement ?? document.body;
+    if (this.host.parentNode !== parent) parent.append(this.host);
+  }
+
+  destroy(): void {
+    this.detachFullscreen?.();
+    this.detachFullscreen = null;
+    this.host.remove();
   }
 }

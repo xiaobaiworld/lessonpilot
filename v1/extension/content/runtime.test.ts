@@ -1,5 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
-import { CourseRuntime, PageController, Messenger, RuntimeDeps } from './runtime';
+import {
+  CourseRuntime,
+  PageController,
+  Messenger,
+  RuntimeDeps,
+  createVideoModeStore,
+} from './runtime';
 import { PlayerHandle } from '../host/bilibili';
 import { RuntimeCandidate } from '../shared/library-view';
 
@@ -80,6 +86,7 @@ interface Harness {
   destroys: number;
   attempts: unknown[];
   positions: number[];
+  modeChanges: string[];
   deps: RuntimeDeps;
 }
 
@@ -88,7 +95,9 @@ function harness(overrides: Partial<RuntimeDeps> = {}, lessonNodes = [node('n1',
   const renders: unknown[] = [];
   const attempts: unknown[] = [];
   const positions: number[] = [];
+  const modeChanges: string[] = [];
   let destroys = 0;
+  let modeControlDestroys = 0;
 
   const messenger: Messenger = {
     candidates: vi.fn(async () => [candidate()]),
@@ -119,6 +128,16 @@ function harness(overrides: Partial<RuntimeDeps> = {}, lessonNodes = [node('n1',
         },
       };
     },
+    modeStore: createVideoModeStore(null),
+    createModeControl: (onToggle) => {
+      (deps as any).toggleMode = onToggle;
+      return {
+        setMode: (mode) => modeChanges.push(mode),
+        destroy: () => {
+          modeControlDestroys++;
+        },
+      };
+    },
     chooseCandidate: async (list) => list[0],
     now: () => new Date('2026-08-23T12:00:00.000Z'),
     ...overrides,
@@ -134,12 +153,69 @@ function harness(overrides: Partial<RuntimeDeps> = {}, lessonNodes = [node('n1',
     },
     attempts,
     positions,
+    modeChanges,
+    get modeControlDestroys() {
+      return modeControlDestroys;
+    },
     deps,
   } as Harness;
   return h;
 }
 
 const callbacksOf = (h: Harness) => (h.deps as any).callbacks;
+const toggleModeOf = (h: Harness) => (h.deps as any).toggleMode();
+
+describe('原视频模式', () => {
+  it('默认使用课程模式，并持久化学生选择', () => {
+    const values = new Map<string, string>();
+    const store = createVideoModeStore({
+      getItem: (key) => values.get(key) ?? null,
+      setItem: (key, value) => values.set(key, value),
+    });
+
+    expect(store.read()).toBe('course');
+    expect(store.write('original')).toBe('original');
+    expect(store.read()).toBe('original');
+    expect(store.write('unknown' as never)).toBe('course');
+  });
+
+  it('原视频模式不触发互动，切回课程模式后按当前位置恢复', async () => {
+    const values = new Map<string, string>([['lessonpilot.video-mode', 'original']]);
+    const h = harness({
+      modeStore: createVideoModeStore({
+        getItem: (key) => values.get(key) ?? null,
+        setItem: (key, value) => values.set(key, value),
+      }),
+    });
+    await h.runtime.start('BV1Ac41187Lm');
+
+    h.player.advanceTo(30);
+    expect(h.player.pauseCalls).toBe(0);
+    expect(h.renders).toHaveLength(0);
+
+    toggleModeOf(h);
+
+    expect(values.get('lessonpilot.video-mode')).toBe('course');
+    expect(h.player.pauseCalls).toBe(1);
+    expect((h.runtime.snapshot()!.window as any).node.id).toBe('n1');
+    expect(h.modeChanges).toEqual(['original', 'course']);
+  });
+
+  it('互动打开时切到原视频会收起并播放，切回后重新显示该互动', async () => {
+    const h = harness();
+    await h.runtime.start('BV1Ac41187Lm');
+    h.player.advanceTo(30);
+    expect(h.player.pauseCalls).toBe(1);
+
+    toggleModeOf(h);
+    expect(h.player.playCalls).toBe(1);
+    expect(h.runtime.snapshot()!.window.kind).toBe('idle');
+
+    toggleModeOf(h);
+    expect(h.player.pauseCalls).toBe(2);
+    expect((h.runtime.snapshot()!.window as any).node.id).toBe('n1');
+  });
+});
 
 describe('无匹配页面不显示任何 UI', () => {
   it('零候选时不等播放器也不建窗口', async () => {
@@ -293,7 +369,11 @@ describe('离线与扩展更新', () => {
 
 describe('seek', () => {
   it('往前拖不补弹跳过的节点', async () => {
-    const h = harness({}, [node('a', 10), node('b', 20), node('c', 300)]);
+    const h = harness({}, [
+      node('a', 10, 'choice'),
+      node('b', 20, 'choice'),
+      node('c', 300, 'choice'),
+    ]);
     await h.runtime.start('BV1Ac41187Lm');
 
     h.player.seekTo(100);
@@ -307,7 +387,7 @@ describe('seek', () => {
   });
 
   it('往回拖不重复打断已触发的节点', async () => {
-    const h = harness({}, [node('n1', 30)]);
+    const h = harness({}, [node('n1', 30, 'choice')]);
     await h.runtime.start('BV1Ac41187Lm');
 
     h.player.advanceTo(30);
@@ -329,7 +409,7 @@ describe('刷新恢复', () => {
         candidates: async () => [candidate()],
         lesson: async () => ({
           installedAt: 'x',
-          nodes: [node('n1', 30), node('n2', 60)],
+          nodes: [node('n1', 30, 'choice'), node('n2', 60, 'choice')],
           done: ['n1'], // 上次已答
           lastPositionSeconds: 45,
         }),

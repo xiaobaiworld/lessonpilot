@@ -142,7 +142,11 @@ async function render(): Promise<void> {
 
   const head = el('header', 'head');
   const brand = el('strong', 'brand');
+  const brandMark = el('img', 'brand-mark');
+  brandMark.src = '../assets/icon-48.png';
+  brandMark.alt = 'KnownMap';
   brand.append(
+    brandMark,
     Object.assign(el('span', 'k'), { textContent: 'K' }),
     document.createTextNode('nown'),
     Object.assign(el('span', 'm'), { textContent: 'M' }),

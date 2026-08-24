@@ -50,7 +50,10 @@ describe('触发', () => {
   });
 
   it('刷新后已作答的节点不再弹', () => {
-    const s = session([node('n1', 30), node('n2', 60)]);
+    const s = session([
+      node('n1', 30, 'choice', { answer: 'a' }),
+      node('n2', 60, 'choice', { answer: 'a' }),
+    ]);
     s.restoreDone(['n1']);
     s.advance(60);
     expect((s.snapshot().window as any).node.id).toBe('n2');
@@ -144,11 +147,24 @@ describe('关窗与继续', () => {
   it('本来就空闲时关窗不发多余的继续指令', () => {
     expect(session([]).close()).toEqual({ type: 'none' });
   });
+
+  it('暂时切回原视频时收起未完成节点，恢复课程后仍可再次触发', () => {
+    const s = session([node('n1', 10)]);
+    s.advance(10);
+
+    expect(s.suspend()).toEqual({ type: 'resume' });
+    expect(s.snapshot().window.kind).toBe('idle');
+    expect(s.advance(10)).toEqual({ type: 'pause' });
+  });
 });
 
 describe('seek', () => {
   it('往前拖不补弹跳过的节点', () => {
-    const s = session([node('n1', 10), node('n2', 20), node('n3', 300)]);
+    const s = session([
+      node('n1', 10, 'choice', { answer: 'a' }),
+      node('n2', 20, 'choice', { answer: 'a' }),
+      node('n3', 300, 'choice', { answer: 'a' }),
+    ]);
     s.seek(100);
     expect(s.advance(100)).toEqual({ type: 'none' });
     expect(s.advance(300)).toEqual({ type: 'pause' });
@@ -156,11 +172,21 @@ describe('seek', () => {
   });
 
   it('往回拖不重复打断已触发的节点', () => {
-    const s = session([node('n1', 30)]);
+    const s = session([node('n1', 30, 'choice', { answer: 'a' })]);
     s.advance(30);
     s.close();
     s.seek(0);
     expect(s.advance(30)).toEqual({ type: 'none' });
+  });
+
+  it('重新播放视频时重点提示节点可以再次弹出', () => {
+    const s = session([node('n1', 30, 'notice')]);
+    s.advance(30);
+    s.submit('t');
+    s.close();
+    s.seek(0);
+    expect(s.advance(30)).toEqual({ type: 'pause' });
+    expect((s.snapshot().window as any).node.id).toBe('n1');
   });
 });
 

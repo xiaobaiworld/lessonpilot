@@ -44,7 +44,7 @@ export const TARGETS: Record<TargetName, BuildTarget> = {
   },
 };
 
-export const EXTENSION_VERSION = '1.0.1';
+export const EXTENSION_VERSION = '1.0.2';
 
 export function buildManifest(target: BuildTarget): Record<string, unknown> {
   return {
@@ -62,6 +62,18 @@ export function buildManifest(target: BuildTarget): Record<string, unknown> {
     action: {
       default_title: '打开 KnownMap',
       default_popup: 'popup/index.html',
+      default_icon: {
+        '16': 'assets/icon-16.png',
+        '24': 'assets/icon-24.png',
+        '48': 'assets/icon-48.png',
+        '128': 'assets/icon-128.png',
+      },
+    },
+    icons: {
+      '16': 'assets/icon-16.png',
+      '24': 'assets/icon-24.png',
+      '48': 'assets/icon-48.png',
+      '128': 'assets/icon-128.png',
     },
     background: {
       service_worker: 'background/service-worker.js',
@@ -90,4 +102,8 @@ export const BUILD_ARTIFACTS = [
   'content/window.css',
   'popup/index.html',
   'popup/index.js',
+  'assets/icon-16.png',
+  'assets/icon-24.png',
+  'assets/icon-48.png',
+  'assets/icon-128.png',
 ] as const;
