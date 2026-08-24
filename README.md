@@ -27,8 +27,8 @@ KnownMap 把老师已有的 B 站录播课变成可在原视频页面运行的�
 
 ## 当前状态
 
-系统已于 2026-08-24 切换到 v1 生产 release
-`20260824T030156Z-af9fb313f9e4`。新系统位于 `v1/`；旧 `backend/`、`teacher-web/`、
+系统已于 2026-08-24 切换到 v1，当前生产 release 为
+`20260824T100341Z-c082600d0f4e`。新系统位于 `v1/`；旧 `backend/`、`teacher-web/`、
 `src/` 仍作为固定回滚组合和兼容责任保留，要在即时验收、7 日观察、
 两次真实交付和老版消费者清零后才能独立退役（`D-V1-012`）。
 
@@ -124,9 +124,9 @@ tools/teacher-platform-release.sh deploy <git-ref>
 tools/teacher-platform-release.sh status
 ```
 
-当前生产版本为 `20260824T030156Z-af9fb313f9e4`，对应 GitHub 提交
-`af9fb313f9e4738a0f9de0814f00f05d4558c151` 和标签
-`web-prod/20260824T030156Z-af9fb313f9e4`。服务器上的网页、FastAPI、插件和仓库发布记录使用
+当前生产版本为 `20260824T100341Z-c082600d0f4e`，对应 GitHub 提交
+`c082600d0f4e842a7e0875dd7b8b009f995fc1b0` 和标签
+`web-prod/20260824T100341Z-c082600d0f4e`。服务器上的网页、FastAPI、插件和仓库发布记录使用
 同一个 release ID；SQLite 数据保存在 `/var/lib/knownmap/knownmap.db`，不随代码版本切换。
 
 ## 本地运行

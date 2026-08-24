@@ -23,7 +23,7 @@ Ruff、ESLint、TypeScript、生产构建和 `npm run check` 全通。
 
 ## 当前执行重点
 
-- 生产 v1 release：`20260824T030156Z-af9fb313f9e4`，候选提交 `af9fb313f9e4`；
+- 生产 v1 release：`20260824T100341Z-c082600d0f4e`，提交 `c082600d0f4e`；
 - 飞书已关闭“填写需登录验证”，独立未登录浏览器已提交成功；
 - 下一个需要产品负责人参与的点：在飞书“收集结果”中确认
   `CUT-103 匿名复验 20260824-1113`；确认后即可完成 `CUT-103` 和 `CUT-401`；
@@ -139,8 +139,8 @@ KNOWNMAP_PUBLISH_PROFILE=v1-apps tools/web-release.sh build <ref> <输出目录>
 
 ## 生产：已切换，正在即时验收
 
-2026-08-24 已从冻结提交 `af9fb313f9e4` 统一发布 Web、API、迁移和插件，
-release 为 `20260824T030156Z-af9fb313f9e4`。生产 Web/API 软链、metadata、profile 和提交一致，
+2026-08-24 已从冻结提交 `c082600d0f4e` 统一发布 Web、API、迁移和插件，
+release 为 `20260824T100341Z-c082600d0f4e`。生产 Web/API 软链、metadata、profile 和提交一致，
 `/health` 与版本探针通过，切换前备份已恢复并对账。
 
 - **6D 生产恢复演练**：对两份真实生产备份跑通恢复与归属对账，
