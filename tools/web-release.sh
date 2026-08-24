@@ -11,10 +11,14 @@ PUBLISH_PROFILE="${KNOWNMAP_PUBLISH_PROFILE:-sales-static-v1}"
 
 SALES_SOURCE_FILES=(
   "teacher-web/forsales.html"
+  "teacher-web/student-guide.html"
   "teacher-web/subtitle-context.js"
   "teacher-web/demo-captions.js"
   "teacher-web/trial-intake.js"
   "teacher-web/assets/knownmap-icon.png"
+  "teacher-web/assets/student-guide/step-download-and-unzip.png"
+  "teacher-web/assets/student-guide/step-open-extensions.png"
+  "teacher-web/assets/student-guide/step-load-unpacked.png"
 )
 
 SALES_PUBLIC_FILES=(
@@ -26,10 +30,14 @@ SALES_PUBLIC_FILES=(
   "public/downloads/student-plugin/knownmapplugin.zip"
   "public/robots.txt"
   "public/teacher-web/forsales.html"
+  "public/teacher-web/student-guide.html"
   "public/teacher-web/subtitle-context.js"
   "public/teacher-web/demo-captions.js"
   "public/teacher-web/trial-intake.js"
   "public/teacher-web/assets/knownmap-icon.png"
+  "public/teacher-web/assets/student-guide/step-download-and-unzip.png"
+  "public/teacher-web/assets/student-guide/step-open-extensions.png"
+  "public/teacher-web/assets/student-guide/step-load-unpacked.png"
 )
 
 TEACHER_SOURCE_FILES=(
@@ -381,7 +389,7 @@ build_release() {
   source_dir="$(mktemp -d "${TMPDIR:-/tmp}/knownmap-source.XXXXXX")"
   trap 'rm -rf "$source_dir"' RETURN
 
-  mkdir -p "$source_dir" "$output/public/assets" "$output/public/teacher-web/assets" "$output/public/downloads/student-plugin"
+  mkdir -p "$source_dir" "$output/public/assets" "$output/public/teacher-web/assets/student-guide" "$output/public/downloads/student-plugin"
   git -C "$ROOT_DIR" archive "$commit" -- "${SOURCE_FILES[@]}" src | tar -x -C "$source_dir"
 
   cp "$source_dir/teacher-web/forsales.html" "$output/public/index.html"
@@ -390,10 +398,14 @@ build_release() {
   cp "$source_dir/teacher-web/trial-intake.js" "$output/public/trial-intake.js"
   cp "$source_dir/teacher-web/assets/knownmap-icon.png" "$output/public/assets/knownmap-icon.png"
   cp "$source_dir/teacher-web/forsales.html" "$output/public/teacher-web/forsales.html"
+  cp "$source_dir/teacher-web/student-guide.html" "$output/public/teacher-web/student-guide.html"
   cp "$source_dir/teacher-web/subtitle-context.js" "$output/public/teacher-web/subtitle-context.js"
   cp "$source_dir/teacher-web/demo-captions.js" "$output/public/teacher-web/demo-captions.js"
   cp "$source_dir/teacher-web/trial-intake.js" "$output/public/teacher-web/trial-intake.js"
   cp "$source_dir/teacher-web/assets/knownmap-icon.png" "$output/public/teacher-web/assets/knownmap-icon.png"
+  cp "$source_dir/teacher-web/assets/student-guide/step-download-and-unzip.png" "$output/public/teacher-web/assets/student-guide/step-download-and-unzip.png"
+  cp "$source_dir/teacher-web/assets/student-guide/step-open-extensions.png" "$output/public/teacher-web/assets/student-guide/step-open-extensions.png"
+  cp "$source_dir/teacher-web/assets/student-guide/step-load-unpacked.png" "$output/public/teacher-web/assets/student-guide/step-load-unpacked.png"
   build_student_plugin_package "$source_dir" "$output/public/downloads/student-plugin/knownmapplugin.zip"
   if [[ "$PUBLISH_PROFILE" == "teacher-platform-v1" ]]; then
     cp "$source_dir/teacher-web/admin.html" "$output/public/admin.html"
@@ -538,6 +550,8 @@ verify_public_site() {
   [[ "$actual_index_sha" == "$expected_index_sha" ]] || return 1
 
   status="$(curl -sS -o /dev/null -w '%{http_code}' "$SITE_URL/downloads/student-plugin/knownmapplugin.zip?release=$release_id")"
+  [[ "$status" == "200" ]] || return 1
+  status="$(curl -sS -o /dev/null -w '%{http_code}' "$SITE_URL/teacher-web/student-guide.html?release=$release_id")"
   [[ "$status" == "200" ]] || return 1
 
   if [[ "$PUBLISH_PROFILE" == "teacher-platform-v1" ]]; then

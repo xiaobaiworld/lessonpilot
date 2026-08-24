@@ -1,6 +1,6 @@
 # KnownMap v1 设计与开发文档
 
-文档版本：`1.0.0`
+文档版本：`1.0.1`
 
 状态：01–09 均已通过人工审核并冻结；测试计划与开发计划已建立；当前处于 v1 实现阶段 0（工程基线与干净初始化）
 
@@ -41,7 +41,7 @@
 | 04 | [`04-domain-data-model.md`](04-domain-data-model.md) | 领域模型、数据结构、字段、身份和约束 | 已接受 |
 | 05 | [`05-data-flow-lifecycle.md`](05-data-flow-lifecycle.md) | 数据流、状态变化、保留、删除和恢复 | 已接受 |
 | 06 | [`06-interface-contracts.md`](06-interface-contracts.md) | API、端点清单、插件消息、课程包、文件和外部集成 | 已接受；`1.0.1` 增补第 4.5 节端点清单 |
-| 07 | [`07-product-interaction-state.md`](07-product-interaction-state.md) | 页面职责、用户流程、交互状态和恢复 | 已接受 |
+| 07 | [`07-product-interaction-state.md`](07-product-interaction-state.md) | 页面职责、用户流程、交互状态和恢复 | 已接受；`1.0.1` 增补学生插件使用说明页 |
 | 08 | [`08-security-operations-design.md`](08-security-operations-design.md) | 权限、秘密、输入、日志、发布、备份和恢复 | 已接受 |
 | 09 | [`09-migration-cutover-design.md`](09-migration-cutover-design.md) | 保留、重写、迁移、切换、回滚和旧入口退役 | 已接受 |
 

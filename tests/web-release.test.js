@@ -72,6 +72,7 @@ test('v1 production verification covers new apps, redirects and both plugin URLs
     '/teacher/',
     '/admin.html',
     '/link.html',
+    '/teacher-web/student-guide.html',
     '/teacher-web/editor.html',
     '/downloads/student-plugin/knownmap-v1.zip',
     '/downloads/student-plugin/knownmapplugin.zip'
@@ -104,8 +105,12 @@ test('build packages the exact commit with only the sales-site whitelist', (t) =
     'public/robots.txt',
     'public/subtitle-context.js',
     'public/teacher-web/assets/knownmap-icon.png',
+    'public/teacher-web/assets/student-guide/step-download-and-unzip.png',
+    'public/teacher-web/assets/student-guide/step-load-unpacked.png',
+    'public/teacher-web/assets/student-guide/step-open-extensions.png',
     'public/teacher-web/demo-captions.js',
     'public/teacher-web/forsales.html',
+    'public/teacher-web/student-guide.html',
     'public/teacher-web/subtitle-context.js',
     'public/teacher-web/trial-intake.js',
     'public/trial-intake.js',
@@ -121,7 +126,7 @@ test('build packages the exact commit with only the sales-site whitelist', (t) =
   assert.equal(metadata.gitCommit, expectedCommit);
   assert.equal(metadata.publishProfile, 'sales-static-v1');
   assert.equal(metadata.site, 'https://knownmap.com');
-  assert.equal(metadata.files.length, 12);
+  assert.equal(metadata.files.length, 16);
 
   const pluginZip = path.join(output, 'public/downloads/student-plugin/knownmapplugin.zip');
   const zipListing = run('unzip', ['-Z1', pluginZip]);
@@ -133,6 +138,8 @@ test('build packages the exact commit with only the sales-site whitelist', (t) =
   for (const forbidden of ['doc', 'src', 'tests', 'teacher-web/editor.html', '.git', '.env']) {
     assert.equal(fs.existsSync(path.join(output, 'public', forbidden)), false, `${forbidden} must stay private`);
   }
+
+  assert.equal(fs.existsSync(path.join(output, 'public/teacher-web/student-guide.html')), true);
 });
 
 test('teacher platform profile packages the editor without publishing the repository', (t) => {

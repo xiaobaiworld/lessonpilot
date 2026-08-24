@@ -37,9 +37,10 @@ const checks = [
       && !forSalesPage.includes('立即购买')
   },
   {
-    label: 'forsales provides the fixed student plugin download path',
-    run: () => forSalesPage.includes('href="/downloads/student-plugin/knownmapplugin.zip"')
-      && forSalesPage.includes('学生插件下载')
+    label: 'forsales leads students to the installation guide before download',
+    run: () => forSalesPage.includes('href="/teacher-web/student-guide.html"')
+      && forSalesPage.includes('学生使用步骤')
+      && !forSalesPage.includes('>学生插件下载</a>')
   },
   {
     label: 'workspace sample stays separate from forsales positioning and conversion copy',

@@ -75,6 +75,7 @@ KnownMap 把老师已有的 B 站录播课变成可在原视频页面运行的�
 | `/teacher-web/` | 历史销售页和教师工作台原型 | 保留作视觉和历史入口 |
 | `/teacher-web/workspace.html` | 历史 1A 连接诊断页 | 保留作协议诊断参考 |
 | `/teacher-web/forsales.html` | 公网销售页 | 第一阶段已完成，也是 `knownmap.com` 当前生产首页 |
+| `/teacher-web/student-guide.html` | 学生插件下载、解压和 Chrome 安装说明 | 开发与本机验收已完成，尚未发布到生产 |
 | `/admin/` | v1 管理员端 | 当前生产主入口 |
 | `/teacher/` | v1 教师端 | 当前生产主入口 |
 | `/teacher-web/editor.html` | 老教师入口 | 保留兼容，导向 `/teacher/` |
@@ -202,14 +203,14 @@ npm test
 
 | 文档 | 职责 |
 | --- | --- |
-| [`doc/requirements/v1/README.md`](doc/requirements/v1/README.md) | v1 需求真源（`1.0.2`，已冻结） |
+| [`doc/requirements/v1/README.md`](doc/requirements/v1/README.md) | v1 需求真源（`1.0.3`，已冻结） |
 | [`doc/design/v1/README.md`](doc/design/v1/README.md) | v1 设计真源（01–09，已冻结） |
 | [`doc/plans/v1-development-plan.md`](doc/plans/v1-development-plan.md) | 阶段 0–8 目标与产品门禁 |
 | [`doc/plans/v1-replacement-plan.md`](doc/plans/v1-replacement-plan.md) | 已接受的 `v1/` 目录隔离替换决策与资产处置依据 |
 | [`doc/plans/v1-code-refactor-execution-plan.md`](doc/plans/v1-code-refactor-execution-plan.md) | 代码目录、工作包顺序与提交边界 |
 | [`doc/plans/v1-test-plan.md`](doc/plans/v1-test-plan.md) | 测试矩阵与发布门禁 |
 | [`doc/dev-rules.md`](doc/dev-rules.md) | 项目专有开发规则 |
-| [`doc/traceability/v1-requirements.tsv`](doc/traceability/v1-requirements.tsv) | 256 个稳定编号的追踪矩阵 |
+| [`doc/traceability/v1-requirements.tsv`](doc/traceability/v1-requirements.tsv) | 257 个稳定编号的追踪矩阵 |
 | [`doc/lessons.md`](doc/lessons.md) | 已踩的坑；开始新功能前先读 |
 | [`next.md`](next.md) | 当前执行切片 |
 

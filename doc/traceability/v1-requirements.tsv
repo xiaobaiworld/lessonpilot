@@ -121,6 +121,7 @@ FR-LIB-010	doc/requirements/v1/04-functional-requirements.md	课程包和迁移�
 FR-LIB-011	doc/requirements/v1/04-functional-requirements.md	已安装课程在离线时保持可发现和可打开	已接受	P0	`SCOPE-05`、`SCOPE-06`；`SCN-STU-03`、`SCN-STU-04`	`FR-RUNTIME-*`、`FR-LEARN-*`					待设计	
 FR-LIB-012	doc/requirements/v1/04-functional-requirements.md	示例课程与真实授权课程明确隔离	已接受	P1	`SCOPE-03`、`SCOPE-04`；`SCN-STU-01`；`TERM-034`	`FR-RUNTIME-*`					待设计	
 FR-LIB-013	doc/requirements/v1/04-functional-requirements.md	并发操作和存储损坏不破坏最近有效课程库	已接受	P0	`SCOPE-05`、`SCOPE-06`；`SCN-STU-03`、`SCN-ERR-02`	`DATA-LOCAL-*`					待设计	
+FR-LIB-014	doc/requirements/v1/04-functional-requirements.md	学生可从销售页进入完整插件安装说明	已接受	P0	`SCOPE-05`；`SCN-STU-01`；`D-V1-004`	—	doc/design/v1/07-product-interaction-state.md §6.0	teacher-web/student-guide.html；teacher-web/forsales.html；tools/web-release.sh	tests/student-plugin-usage-guide.test.js；tests/page-information-architecture.test.js；tests/web-release.test.js	本机 HTTP 桌面/平板/375px 浏览器检查通过	待验证	2026-08-24
 FR-RUNTIME-001	doc/requirements/v1/04-functional-requirements.md	只在受支持环境加载已安装且有效的课程包	已接受	P0	`SCOPE-05`、`SCOPE-06`；`SCN-STU-02`、`SCN-STU-03`	`FR-LIB-*`					待设计	
 FR-RUNTIME-002	doc/requirements/v1/04-functional-requirements.md	使用完整视频引用识别全部匹配课节	已接受	P0	`SCOPE-02`、`SCOPE-05`；`SCN-STU-02`；`FR-COURSE-007`	—					待设计	
 FR-RUNTIME-003	doc/requirements/v1/04-functional-requirements.md	多个课节匹配同一视频时由学生明确选择	已接受	P0	`SCOPE-05`；`SCN-STU-02`；`FR-COURSE-008`	`FR-LIB-*`					待设计	

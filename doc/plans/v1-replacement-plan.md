@@ -58,7 +58,7 @@ doc/  tools/  tests/fixtures/v1/ 新旧共享
 | --- | --- | --- |
 | `doc/requirements/v1/`、`doc/design/v1/` | **不动**，v1 直接用 | 已冻结，本来就是为 v1 写的 |
 | `doc/decisions/`、`doc/lessons.md`、`doc/INDEX.md`、`doc/dev-rules.md` | **不动** | 与目录结构无关 |
-| `doc/traceability/v1-requirements.tsv` | **不动**，实现时回填证据列 | 256 个编号已覆盖 |
+| `doc/traceability/v1-requirements.tsv` | **不动**，实现时回填证据列 | 257 个编号已覆盖 |
 | `doc/archive/` | **不动** | 只作追溯 |
 
 过渡期需要同步的是引用旧路径或旧命令的规则与计划：`dev-rules.md`、`next.md`、开发/测试/执行计划；
@@ -220,7 +220,7 @@ doc/  tools/  tests/fixtures/v1/ 新旧共享
 
 1. 阶段 7 真实老师和真实学生闭环通过（`D-V1-005`）；
 2. v1 在指定 Chrome 与 B 站上完成人工验收，证据在 `tests/manual/v1/`；
-3. 追踪矩阵 256 个编号没有 P0 项停留在待验证或阻塞；
+3. 追踪矩阵 257 个编号没有 P0 项停留在待验证或阻塞；
 4. v1 插件固定 ZIP 已发布并能从精确提交重复构建；
 5. v1 已完成生产切换，并经过预先定义的观察期和至少一个完整真实交付周期；
 6. 上一套完整 Web/API/插件/Schema 组合的回退和恢复演练已通过；
