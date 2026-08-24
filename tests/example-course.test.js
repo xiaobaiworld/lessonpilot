@@ -17,6 +17,14 @@ test('bundled example is a valid read-only course package with stable UUID ident
     'a9a6f97e-475f-47e0-8412-993cc0f14ad8'
   );
   assert.equal(EXAMPLE_COURSE_PACKAGE.lessons[0].videoRef.videoId, 'BV1WW4y1e7GL');
-  assert.equal(EXAMPLE_COURSE_PACKAGE.lessons[0].nodes.length, 5);
+  const nodes = EXAMPLE_COURSE_PACKAGE.lessons[0].nodes;
+  assert.equal(nodes.length, 6);
+  assert.deepEqual(
+    nodes.slice(0, 2).map((node) => [node.trigger.timeSeconds, node.interaction]),
+    [[2, 'notice'], [35, 'notice']]
+  );
+  assert.match(nodes[0].display.body, /第一个节点/);
+  assert.match(nodes[0].display.body, /第二个节点/);
+  assert.match(nodes[0].display.body, /总结/);
   assert.equal(contract.validateCoursePackage(EXAMPLE_COURSE_PACKAGE).ok, true);
 });
