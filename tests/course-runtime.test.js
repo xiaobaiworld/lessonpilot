@@ -150,6 +150,45 @@ test('timeline skips nodes already completed in persisted learning state', () =>
   assert.deepEqual(seen, ['second']);
 });
 
+test('timeline replays completed notice nodes after rewinding to the start', () => {
+  const seen = [];
+  const noticeCourse = {
+    nodes: [{
+      id: 'overview',
+      enabled: true,
+      interaction: 'notice',
+      trigger: { timeSeconds: 2 }
+    }]
+  };
+  const timeline = createNodeTimeline(noticeCourse, (node) => seen.push(node.id));
+
+  timeline.update(3);
+  timeline.complete('overview');
+  timeline.update(0);
+  timeline.update(3);
+
+  assert.deepEqual(seen, ['overview', 'overview']);
+});
+
+test('timeline does not skip a completed notice node when initialized from saved state', () => {
+  const seen = [];
+  const noticeCourse = {
+    nodes: [{
+      id: 'overview',
+      enabled: true,
+      interaction: 'notice',
+      trigger: { timeSeconds: 2 }
+    }]
+  };
+  const timeline = createNodeTimeline(noticeCourse, (node) => seen.push(node.id), {
+    completedNodeIds: ['overview']
+  });
+
+  timeline.update(3);
+
+  assert.deepEqual(seen, ['overview']);
+});
+
 test('evaluates choice and blank answers without mutating the course node', () => {
   const choice = {
     interaction: 'choice',

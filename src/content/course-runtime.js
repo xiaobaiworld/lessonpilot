@@ -41,7 +41,14 @@
   }
 
   function createNodeTimeline(course, onNode, { completedNodeIds = [] } = {}) {
-    const completed = new Set(completedNodeIds);
+    const replayableNodeIds = new Set(
+      (course.nodes ?? [])
+        .filter((node) => node.interaction === 'notice')
+        .map((node) => node.id)
+    );
+    const completed = new Set(
+      completedNodeIds.filter((nodeId) => !replayableNodeIds.has(nodeId))
+    );
     const triggered = new Set(completed);
     let previousTime = 0;
     let activeNodeId = null;
@@ -64,7 +71,7 @@
     }
     function complete(nodeId) {
       if (nodeId === activeNodeId) {
-        completed.add(nodeId);
+        if (!replayableNodeIds.has(nodeId)) completed.add(nodeId);
         activeNodeId = null;
       }
     }
