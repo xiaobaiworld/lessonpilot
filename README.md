@@ -16,6 +16,7 @@ KnownMap 把老师已有的 B 站录播课变成可在原视频页面运行的�
 | --- | --- |
 | 系统整体 | [`doc/SYSTEM-OVERVIEW.md`](doc/SYSTEM-OVERVIEW.md) |
 | 现在该做什么 | [`next.md`](next.md) |
+| 常用网页链接 | [`link.html`](link.html)（结果/设置页仍需飞书授权，不随生产发布） |
 | 文档分类与权威顺序 | [`doc/INDEX.md`](doc/INDEX.md) |
 | 踩过什么坑（动手前必读） | [`doc/lessons.md`](doc/lessons.md) |
 | 为什么这样设计 | [`doc/design/v1/`](doc/design/v1/) |
