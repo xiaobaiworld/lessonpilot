@@ -97,7 +97,7 @@ describe('初始状态', () => {
     expect(again?.clientId).toBe(first?.clientId);
   });
 
-  it('只安装一次示例课程，不创建授权来源', async () => {
+  it('重复初始化示例课程会更新内容但不创建授权来源', async () => {
     const example = { ...course('example'), source: 'example' as const, readOnly: true };
     await lib.ensureExampleCourse(example);
     await lib.recordAttempt('example', 'example-l1', 'n1', {
@@ -108,10 +108,35 @@ describe('初始状态', () => {
     await lib.ensureExampleCourse({ ...example, title: '不应覆盖' });
 
     const root = await lib.read();
-    expect(root.installedCourses.example.title).toBe('课程 example');
+    expect(root.installedCourses.example.title).toBe('不应覆盖');
     expect(root.installedCourses.example.readOnly).toBe(true);
     expect(root.localLearningState.example['example-l1'].attempts.n1).toHaveLength(1);
     expect(root.authorizationSourceCache.sources).toEqual([]);
+  });
+
+  it('示例课程更新时替换课程内容但保留已有学习进度', async () => {
+    const first = { ...course('example'), source: 'example' as const, readOnly: true };
+    await lib.ensureExampleCourse(first);
+    await lib.recordAttempt('example', 'example-l1', 'n1', {
+      at: 't',
+      answer: 'x',
+      correct: true,
+    });
+
+    const updated = {
+      ...first,
+      lessons: [
+        {
+          ...first.lessons[0],
+          nodes: [{ id: 'n1-new' }],
+        },
+      ],
+    };
+    await lib.ensureExampleCourse(updated);
+
+    const root = await lib.read();
+    expect(root.installedCourses.example.lessons[0].nodes).toEqual([{ id: 'n1-new' }]);
+    expect(root.localLearningState.example['example-l1'].attempts.n1).toHaveLength(1);
   });
 
   it('示例 courseId 冲突时不覆盖真实授权课程', async () => {

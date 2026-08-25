@@ -202,12 +202,14 @@ export class CourseLibrary {
    * 确保随插件发布的只读示例课程存在。
    *
    * 示例课程不属于任何授权来源，也不能覆盖同 courseId 的真实授权课程。
-   * 只在首次写入时落盘，之后保留学生已有的示例学习进度。
+   * 示例课程包更新时替换课程内容，但保留学生已有的学习进度。
    */
   ensureExampleCourse(course: InstalledCourse): Promise<StorageRoot> {
     return this.serialize(async () => {
       const root = await this.rawRead();
-      if (root.installedCourses[course.courseId]) return root;
+      const existing = root.installedCourses[course.courseId];
+      // 同 courseId 的真实授权课程优先，示例包不能覆盖它。
+      if (existing && existing.source !== 'example') return root;
 
       root.installedCourses[course.courseId] = {
         ...course,
