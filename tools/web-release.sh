@@ -8,6 +8,7 @@ DEPLOY_ROOT="${KNOWNMAP_DEPLOY_ROOT:-/var/www/knownmap}"
 SITE_URL="${KNOWNMAP_SITE_URL:-https://knownmap.com}"
 REPOSITORY="${KNOWNMAP_REPOSITORY:-xiaobaiworld/lessonpilot}"
 PUBLISH_PROFILE="${KNOWNMAP_PUBLISH_PROFILE:-sales-static-v1}"
+RELEASE_SCOPE="${KNOWNMAP_RELEASE_SCOPE:-full}"
 
 SALES_SOURCE_FILES=(
   "teacher-web/forsales.html"
@@ -145,6 +146,8 @@ validate_settings() {
   [[ "$SSH_HOST" =~ ^[A-Za-z0-9._@-]+$ ]] || fail "unsafe SSH host: $SSH_HOST"
   [[ "$DEPLOY_ROOT" =~ ^/[A-Za-z0-9._/-]+$ ]] || fail "unsafe deploy root: $DEPLOY_ROOT"
   [[ "$SITE_URL" =~ ^https://[A-Za-z0-9._:-]+$ ]] || fail "site URL must be an HTTPS origin"
+  [[ "$RELEASE_SCOPE" == "full" || "$RELEASE_SCOPE" == "plugin" ]] ||
+    fail "unsupported release scope: $RELEASE_SCOPE"
 
   # 提前验连通性。SSH 别名在各人机器上可能不同（本机是 aliyun-us），
   # 直接跑下去会在半途拿到一句 "Connection closed" 而看不出原因。
@@ -316,11 +319,16 @@ build_v1_apps() {
   (cd "$source_dir/v1" && npm ci --silent) ||
     fail "v1 dependency install failed"
 
-  # 构建前先跑测试。发布一个测试不过的候选没有意义，
-  # 而在这里失败比在切换后失败便宜得多。
-  log "running v1 tests"
-  (cd "$source_dir/v1" && npm test --silent) ||
-    fail "v1 tests failed; refusing to build a release"
+  if [[ "$RELEASE_SCOPE" == "plugin" ]]; then
+    # 插件发布只跑 extension 范围；页面或综合发布仍走完整 V1 测试。
+    log "running v1 extension tests"
+    (cd "$source_dir/v1" && npm test --silent -- extension) ||
+      fail "v1 extension tests failed; refusing to build a release"
+  else
+    log "running v1 tests"
+    (cd "$source_dir/v1" && npm test --silent) ||
+      fail "v1 tests failed; refusing to build a release"
+  fi
 
   for app in admin teacher; do
     log "building v1 $app"
@@ -360,6 +368,12 @@ build_v1_apps() {
   (cd "$source_dir/v1/extension/dist/production" &&
     zip -q -r -X "$output/public/downloads/student-plugin/knownmap-v1.zip" .) ||
     fail "v1 extension packaging failed"
+  cp \
+    "$output/public/downloads/student-plugin/knownmap-v1.zip" \
+    "$output/public/downloads/student-plugin/knownmapplugin.zip"
+
+  jq -e '.version | test("^[0-9]+\\.[0-9]+\\.[0-9]+$")' "$ext_manifest" >/dev/null ||
+    fail "v1 extension manifest version is invalid"
 }
 
 build_release() {
@@ -406,7 +420,9 @@ build_release() {
   cp "$source_dir/teacher-web/assets/student-guide/step-download-and-unzip.png" "$output/public/teacher-web/assets/student-guide/step-download-and-unzip.png"
   cp "$source_dir/teacher-web/assets/student-guide/step-open-extensions.png" "$output/public/teacher-web/assets/student-guide/step-open-extensions.png"
   cp "$source_dir/teacher-web/assets/student-guide/step-load-unpacked.png" "$output/public/teacher-web/assets/student-guide/step-load-unpacked.png"
-  build_student_plugin_package "$source_dir" "$output/public/downloads/student-plugin/knownmapplugin.zip"
+  if [[ "$PUBLISH_PROFILE" != "v1-apps" ]]; then
+    build_student_plugin_package "$source_dir" "$output/public/downloads/student-plugin/knownmapplugin.zip"
+  fi
   if [[ "$PUBLISH_PROFILE" == "teacher-platform-v1" ]]; then
     cp "$source_dir/teacher-web/admin.html" "$output/public/admin.html"
     cp "$source_dir/teacher-web/admin.js" "$output/public/teacher-web/admin.js"
@@ -528,11 +544,16 @@ REMOTE
 verify_public_site() {
   local release_id="$1"
   local expected_index_sha="$2"
+  local expected_plugin_sha="${3:-}"
+  local expected_plugin_version="${4:-}"
   local body
   local actual_index_sha
   local path
   local status
   local api_status
+  local verification_dir
+  local plugin_v1
+  local plugin_compat
   local private_paths=(
     "/doc/"
     "/src/"
@@ -541,16 +562,24 @@ verify_public_site() {
     "/.env"
   )
 
-  body="$(mktemp "${TMPDIR:-/tmp}/knownmap-index.XXXXXX")"
-  trap 'rm -f "$body"' RETURN
+  require_command cmp
+  require_command unzip
+
+  verification_dir="$(mktemp -d "${TMPDIR:-/tmp}/knownmap-public-verification.XXXXXX")"
+  body="$verification_dir/index.html"
+  plugin_v1="$verification_dir/knownmap-v1.zip"
+  plugin_compat="$verification_dir/knownmapplugin.zip"
+  trap 'rm -rf "$verification_dir"' RETURN
 
   [[ "$(curl -fsS "$SITE_URL/healthz")" == "ok" ]] || return 1
   curl -fsS -H 'Cache-Control: no-cache' "$SITE_URL/?release=$release_id" -o "$body"
   actual_index_sha="$(shasum -a 256 "$body" | awk '{print $1}')"
   [[ "$actual_index_sha" == "$expected_index_sha" ]] || return 1
 
-  status="$(curl -sS -o /dev/null -w '%{http_code}' "$SITE_URL/downloads/student-plugin/knownmapplugin.zip?release=$release_id")"
-  [[ "$status" == "200" ]] || return 1
+  if [[ "$PUBLISH_PROFILE" != "v1-apps" ]]; then
+    status="$(curl -sS -o /dev/null -w '%{http_code}' "$SITE_URL/downloads/student-plugin/knownmapplugin.zip?release=$release_id")"
+    [[ "$status" == "200" ]] || return 1
+  fi
   status="$(curl -sS -o /dev/null -w '%{http_code}' "$SITE_URL/teacher-web/student-guide.html?release=$release_id")"
   [[ "$status" == "200" ]] || return 1
 
@@ -568,10 +597,26 @@ verify_public_site() {
       /admin.html \
       /link.html \
       /teacher-web/editor.html \
-      /downloads/student-plugin/knownmap-v1.zip; do
+      /downloads/student-plugin/knownmap-v1.zip \
+      /downloads/student-plugin/knownmapplugin.zip; do
       status="$(curl -sS -o /dev/null -w '%{http_code}' "$SITE_URL$path?release=$release_id")"
       [[ "$status" == "200" ]] || return 1
     done
+    curl -fsS "$SITE_URL/downloads/student-plugin/knownmap-v1.zip?release=$release_id" \
+      -o "$plugin_v1" || return 1
+    curl -fsS "$SITE_URL/downloads/student-plugin/knownmapplugin.zip?release=$release_id" \
+      -o "$plugin_compat" || return 1
+    cmp -s "$plugin_v1" "$plugin_compat" || return 1
+    [[ -n "$expected_plugin_sha" ]] || return 1
+    [[ "$(shasum -a 256 "$plugin_compat" | awk '{print $1}')" == "$expected_plugin_sha" ]] ||
+      return 1
+    unzip -p "$plugin_compat" manifest.json |
+      jq -e --arg expected_version "$expected_plugin_version" '
+        .version == $expected_version
+        and .action.default_popup == "popup/index.html"
+        and (.permissions | index("storage") != null)
+        and (.permissions | index("downloads") != null)
+      ' >/dev/null || return 1
     api_status="$(curl -fsS "$SITE_URL/health")"
     jq -e '.status == "ok"' <<<"$api_status" >/dev/null || return 1
   else
@@ -584,7 +629,7 @@ verify_public_site() {
   done
 
   trap - RETURN
-  rm -f "$body"
+  rm -rf "$verification_dir"
 }
 
 validate_release_in_worktree() {
@@ -657,15 +702,19 @@ deploy_release() {
   local previous_release_id
   local deployed_at
   local expected_index_sha
+  local expected_plugin_sha
+  local expected_plugin_version
   local verified_at
   local record_file
   local event
 
   validate_settings
   require_command curl
+  require_command cmp
   require_command jq
   require_command rsync
   require_command ssh
+  require_command unzip
 
   commit="$(resolve_commit "$ref")"
   require_github_commit "$commit"
@@ -728,7 +777,19 @@ mv -Tf "$temporary_link" "$deploy_root/current"
 REMOTE
 
   expected_index_sha="$(shasum -a 256 "$build_dir/public/index.html" | awk '{print $1}')"
-  if ! verify_public_site "$release_id" "$expected_index_sha"; then
+  expected_plugin_sha="$(
+    shasum -a 256 "$build_dir/public/downloads/student-plugin/knownmapplugin.zip" |
+      awk '{print $1}'
+  )"
+  expected_plugin_version="$(
+    unzip -p "$build_dir/public/downloads/student-plugin/knownmapplugin.zip" manifest.json |
+      jq -r .version
+  )"
+  if ! verify_public_site \
+      "$release_id" \
+      "$expected_index_sha" \
+      "$expected_plugin_sha" \
+      "$expected_plugin_version"; then
     if [[ -n "$previous_target" ]]; then
       switch_remote_target "$previous_target" "restore-$release_id"
     fi
@@ -914,6 +975,8 @@ rollback_release() {
   local previous_release_id
   local commit
   local expected_index_sha
+  local expected_plugin_sha=""
+  local expected_plugin_version=""
   local verified_at
   local event
 
@@ -936,9 +999,23 @@ rollback_release() {
     ssh -o BatchMode=yes "$SSH_HOST" \
       "sha256sum '$target/index.html' | cut -d ' ' -f1"
   )"
+  if [[ "$PUBLISH_PROFILE" == "v1-apps" ]]; then
+    expected_plugin_sha="$(
+      ssh -o BatchMode=yes "$SSH_HOST" \
+        "sha256sum '$target/downloads/student-plugin/knownmapplugin.zip' | cut -d ' ' -f1"
+    )"
+    expected_plugin_version="$(
+      ssh -o BatchMode=yes "$SSH_HOST" \
+        "unzip -p '$target/downloads/student-plugin/knownmapplugin.zip' manifest.json | jq -r .version"
+    )"
+  fi
 
   switch_remote_target "$target" "rollback-$release_id"
-  if ! verify_public_site "$release_id" "$expected_index_sha"; then
+  if ! verify_public_site \
+      "$release_id" \
+      "$expected_index_sha" \
+      "$expected_plugin_sha" \
+      "$expected_plugin_version"; then
     switch_remote_target "$previous_target" "restore-rollback-$release_id"
     event="$(
       jq -nc \

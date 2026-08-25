@@ -11,6 +11,10 @@ export type TargetName = 'local' | 'production';
 export interface BuildTarget {
   name: TargetName;
   apiOrigin: string;
+  /** V1 教师应用所在的 origin，弹窗只拼接固定的 /teacher/ 路径 */
+  teacherOrigin: string;
+  /** 旧版“在线更新学生插件”使用的兼容下载名 */
+  studentPluginDownloadUrl: string;
   /** 除 B 站外额外需要的 host permission */
   extraHostPermissions: string[];
   /**
@@ -32,19 +36,25 @@ export const TARGETS: Record<TargetName, BuildTarget> = {
   local: {
     name: 'local',
     apiOrigin: 'http://127.0.0.1:8000',
+    teacherOrigin: 'http://localhost:5174',
+    studentPluginDownloadUrl:
+      'https://knownmap.com/downloads/student-plugin/knownmapplugin.zip',
     extraHostPermissions: ['http://127.0.0.1:8000/*'],
     harnessMatches: ['http://127.0.0.1/*'],
   },
   production: {
     name: 'production',
     apiOrigin: 'https://knownmap.com',
+    teacherOrigin: 'https://knownmap.com',
+    studentPluginDownloadUrl:
+      'https://knownmap.com/downloads/student-plugin/knownmapplugin.zip',
     extraHostPermissions: ['https://knownmap.com/*'],
     // 生产包绝不注入夹具来源
     harnessMatches: [],
   },
 };
 
-export const EXTENSION_VERSION = '1.0.3';
+export const EXTENSION_VERSION = '1.0.5';
 
 export function buildManifest(target: BuildTarget): Record<string, unknown> {
   return {
@@ -52,8 +62,8 @@ export function buildManifest(target: BuildTarget): Record<string, unknown> {
     name: target.name === 'local' ? 'KnownMap（本机）' : 'KnownMap',
     version: EXTENSION_VERSION,
     description: '把 B 站课程变成可互动的学习路径。',
-    // 只申请真正用到的权限：课程库读写需要 storage，其余都不需要
-    permissions: ['storage'],
+    // 课程库读写需要 storage，恢复旧版在线更新需要 downloads
+    permissions: ['storage', 'downloads'],
     host_permissions: [
       'https://www.bilibili.com/*',
       ...target.extraHostPermissions,

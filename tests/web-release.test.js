@@ -233,6 +233,37 @@ test('生产插件包发布前检查本机地址', () => {
   assert.match(v1Script, /KNOWNMAP_TARGET=production/);
 });
 
+test('v1 两个插件下载名来自同一份生产包并按候选摘要和版本校验', () => {
+  const buildFn = v1Script.slice(
+    v1Script.indexOf('build_v1_apps() {'),
+    v1Script.indexOf('build_release() {')
+  );
+  const verifier = v1Script.slice(
+    v1Script.indexOf('verify_public_site()'),
+    v1Script.indexOf('validate_release_in_worktree()')
+  );
+
+  assert.match(
+    buildFn,
+    /cp\s+\\?\s*"\$output\/public\/downloads\/student-plugin\/knownmap-v1\.zip"\s+\\?\s*"\$output\/public\/downloads\/student-plugin\/knownmapplugin\.zip"/
+  );
+  assert.match(verifier, /cmp -s "\$plugin_v1" "\$plugin_compat"/);
+  assert.match(verifier, /== "\$expected_plugin_sha"/);
+  assert.match(verifier, /\.version == \$expected_version/);
+  assert.match(verifier, /\.action\.default_popup == "popup\/index\.html"/);
+});
+
+test('v1 插件发布只跑插件范围测试，综合发布仍跑完整测试', () => {
+  const buildFn = v1Script.slice(
+    v1Script.indexOf('build_v1_apps() {'),
+    v1Script.indexOf('build_release() {')
+  );
+
+  assert.match(buildFn, /RELEASE_SCOPE" == "plugin"/);
+  assert.match(buildFn, /npm test --silent -- extension/);
+  assert.match(buildFn, /npm test --silent\)/);
+});
+
 test('v1 白名单覆盖应用和链接导航且不含仓库源码路径', () => {
   const patterns = v1Script
     .slice(v1Script.indexOf('V1_ALLOWED_PATTERNS=('))
