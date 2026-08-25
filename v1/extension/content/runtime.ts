@@ -108,6 +108,7 @@ export class CourseRuntime {
   private videoMode: VideoMode = 'course';
   private teardown: (() => void)[] = [];
   private lastSavedSecond = -1;
+  private pausedByRuntime = false;
 
   /*
    * start() 里有多个 await（取候选、等学生选、等播放器出现）。
@@ -179,7 +180,11 @@ export class CourseRuntime {
 
     if (this.videoMode === 'course') {
       const action = this.session.advance(seconds);
-      if (action.type === 'pause') this.player?.pause();
+      if (action.type === 'pause') {
+        const player = this.player;
+        this.pausedByRuntime = player?.isPlaying() ?? false;
+        if (this.pausedByRuntime) player?.pause();
+      }
 
       const state = this.session.snapshot().window;
       if (action.type !== 'none' || state.kind !== 'idle') {
@@ -230,8 +235,10 @@ export class CourseRuntime {
   private close(): void {
     if (!this.session) return;
     const action = this.session.close();
+    const shouldResume = this.pausedByRuntime;
+    this.pausedByRuntime = false;
     this.view?.render(this.session.snapshot().window);
-    if (action.type === 'resume') this.player?.play();
+    if (action.type === 'resume' && shouldResume) this.player?.play();
   }
 
   private toggleVideoMode(): void {
@@ -244,8 +251,10 @@ export class CourseRuntime {
 
     if (this.videoMode === 'original') {
       const action = this.session.suspend();
+      const shouldResume = this.pausedByRuntime;
+      this.pausedByRuntime = false;
       this.view?.render(this.session.snapshot().window);
-      if (action.type === 'resume') this.player.play();
+      if (action.type === 'resume' && shouldResume) this.player.play();
       return;
     }
 
@@ -264,6 +273,7 @@ export class CourseRuntime {
     this.session = null;
     this.player = null;
     this.lastSavedSecond = -1;
+    this.pausedByRuntime = false;
     this.videoMode = 'course';
   }
 

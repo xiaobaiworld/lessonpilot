@@ -17,6 +17,7 @@ const PLAYER_SELECTORS = [
 
 export interface PlayerHandle {
   currentTime(): number;
+  isPlaying(): boolean;
   pause(): void;
   play(): void;
   /** 返回取消订阅函数 */
@@ -63,6 +64,7 @@ export function findVideo(doc: Document = document): HTMLVideoElement | null {
 export function attachPlayer(video: HTMLVideoElement): PlayerHandle {
   return {
     currentTime: () => video.currentTime,
+    isPlaying: () => !video.paused && !video.ended,
     pause: () => {
       if (!video.paused) video.pause();
     },

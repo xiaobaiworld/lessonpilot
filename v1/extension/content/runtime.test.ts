@@ -37,6 +37,9 @@ class FakePlayer implements PlayerHandle {
     this.paused = false;
     this.playCalls++;
   }
+  isPlaying() {
+    return !this.paused;
+  }
   onTimeUpdate(fn: (s: number) => void) {
     this.timeHandlers.push(fn);
     return () => {
@@ -214,6 +217,23 @@ describe('原视频模式', () => {
     toggleModeOf(h);
     expect(h.player.pauseCalls).toBe(2);
     expect((h.runtime.snapshot()!.window as any).node.id).toBe('n1');
+  });
+});
+
+describe('互动节点播放控制', () => {
+  it('节点触发前视频已暂停时，关闭节点不自动恢复播放', async () => {
+    const h = harness();
+    h.player.paused = true;
+    await h.runtime.start('BV1Ac41187Lm');
+
+    h.player.advanceTo(30);
+    expect(h.player.pauseCalls).toBe(0);
+    expect((h.runtime.snapshot()!.window as any).kind).toBe('open');
+
+    callbacksOf(h).onSubmit();
+    callbacksOf(h).onClose();
+
+    expect(h.player.playCalls).toBe(0);
   });
 });
 

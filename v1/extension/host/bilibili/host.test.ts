@@ -88,6 +88,21 @@ describe('attachPlayer', () => {
     expect(attachPlayer(v).currentTime()).toBe(42);
   });
 
+  it('只把未暂停且未结束的视频视为正在播放', () => {
+    const v = fakeVideo(800, 450);
+    const p = attachPlayer(v);
+
+    v.paused = false;
+    expect(p.isPlaying()).toBe(true);
+
+    v.paused = true;
+    expect(p.isPlaying()).toBe(false);
+
+    v.paused = false;
+    Object.defineProperty(v, 'ended', { value: true });
+    expect(p.isPlaying()).toBe(false);
+  });
+
   it('已暂停时不重复调 pause', () => {
     const v = fakeVideo(800, 450);
     attachPlayer(v).pause();
