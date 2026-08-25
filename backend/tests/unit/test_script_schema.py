@@ -89,12 +89,38 @@ def test_accepts_all_four_initial_node_types_and_preserves_plugin_field_names() 
 def test_accepts_optional_notice_context_fields() -> None:
     payload = four_node_request()
     payload["config"]["nodes"][0]["display"].update(
-        {"captionQuote": "remember this", "highlights": [{"text": "important"}]}
+        {
+            "captionQuote": "remember this",
+            "highlights": [{"text": "important"}],
+            "eyebrow": "把答案说得具体",
+            "intro": "这节课练习具体表达。",
+            "sections": [
+                {"label": "先理解", "body": "理解表达方法。"},
+                {"label": "再练习", "body": "完成练习题。"},
+                {"label": "最后巩固", "body": "总结学习重点。"},
+            ],
+            "summary": {"title": "本节重点", "body": "掌握情境、行动和结果。加油。"},
+        }
     )
 
     result = ScriptDraftRequest.model_validate(payload)
 
     assert result.config.nodes[0].display.caption_quote == "remember this"
+    assert result.config.nodes[0].display.sections[0].label == "先理解"
+
+
+def test_rejects_empty_structured_notice_fields() -> None:
+    payload = four_node_request()
+    payload["config"]["nodes"][0]["display"].update(
+        {
+            "intro": " ",
+            "sections": [{"label": "先理解", "body": "内容"}],
+            "summary": {"title": "本节重点", "body": "总结"},
+        }
+    )
+
+    with pytest.raises(ValidationError):
+        ScriptDraftRequest.model_validate(payload)
 
 
 @pytest.mark.parametrize(

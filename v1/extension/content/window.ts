@@ -1,5 +1,6 @@
 import { RuntimeNode, WindowState, NodeOutcome } from '../runtime/session';
 import { VideoMode } from './runtime';
+import { getNoticeSummary } from './notice';
 
 /**
  * 学习窗口渲染。
@@ -72,10 +73,7 @@ export class LearningWindow {
     panel.append(this.heading(String(d.title ?? '')));
 
     if (node.interaction === 'notice') {
-      panel.append(this.paragraph(String(d.body ?? '')));
-      panel.append(
-        this.actions([this.button('确认并继续', 'primary', this.callbacks.onSubmit)])
-      );
+      this.renderNotice(panel, d);
       return;
     }
 
@@ -114,6 +112,62 @@ export class LearningWindow {
         this.button('跳过', 'ghost', this.callbacks.onSkip),
         this.button('提交', 'primary', this.callbacks.onSubmit),
       ])
+    );
+  }
+
+  private renderNotice(panel: HTMLElement, display: Record<string, any>): void {
+    const summary = getNoticeSummary(display);
+    if (!summary) {
+      panel.append(this.paragraph(String(display.body ?? '')));
+      panel.append(
+        this.actions([this.button('确认并继续', 'primary', this.callbacks.onSubmit)])
+      );
+      return;
+    }
+
+    panel.classList.add('km-notice-panel');
+
+    const eyebrow = summary.eyebrow
+      ? this.textBlock('div', 'km-notice-eyebrow', summary.eyebrow)
+      : null;
+    if (eyebrow) panel.insertBefore(eyebrow, panel.children[1] ?? null);
+
+    panel.append(this.textBlock('p', 'km-notice-intro', summary.intro));
+
+    const sections = document.createElement('div');
+    sections.className = 'km-notice-sections';
+    for (const section of summary.sections) {
+      const row = document.createElement('section');
+      row.className = 'km-notice-section';
+
+      const rail = document.createElement('div');
+      rail.className = 'km-notice-rail';
+      rail.setAttribute('aria-hidden', 'true');
+
+      const content = document.createElement('div');
+      content.className = 'km-notice-section-copy';
+      content.append(
+        this.textBlock('h3', 'km-notice-section-title', section.label),
+        this.textBlock('p', 'km-notice-section-body', section.body)
+      );
+      row.append(rail, content);
+      sections.append(row);
+    }
+    panel.append(sections);
+
+    const callout = document.createElement('aside');
+    callout.className = 'km-notice-summary';
+    callout.append(
+      this.textBlock('strong', 'km-notice-summary-title', summary.summary.title),
+      this.textBlock('p', 'km-notice-summary-body', summary.summary.body)
+    );
+    panel.append(callout);
+
+    panel.append(
+      this.actions(
+        [this.button('确认并继续', 'primary', this.callbacks.onSubmit)],
+        'km-notice-actions'
+      )
     );
   }
 
@@ -197,9 +251,16 @@ export class LearningWindow {
     return p;
   }
 
-  private actions(buttons: HTMLElement[]): HTMLElement {
+  private textBlock(tag: string, className: string, text: string): HTMLElement {
+    const element = document.createElement(tag);
+    element.className = className;
+    element.textContent = text;
+    return element;
+  }
+
+  private actions(buttons: HTMLElement[], className = ''): HTMLElement {
     const row = document.createElement('div');
-    row.className = 'km-actions';
+    row.className = `km-actions ${className}`.trim();
     row.append(...buttons);
     return row;
   }

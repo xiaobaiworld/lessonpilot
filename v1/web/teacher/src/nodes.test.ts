@@ -67,6 +67,36 @@ describe('findEmptyField', () => {
     expect(findEmptyField(n)).toBeNull();
   });
 
+  it('结构化重点提示填写完整后放行', () => {
+    const n = createNode('notice', 0);
+    n.display = {
+      title: '重点',
+      body: '旧版回退正文',
+      eyebrow: '把答案说得具体',
+      intro: '这节课练习具体表达。',
+      sections: [
+        { label: '先理解', body: '理解表达方法。' },
+        { label: '再练习', body: '完成练习题。' },
+        { label: '最后巩固', body: '总结学习重点。' },
+      ],
+      summary: { title: '本节重点', body: '掌握方法。加油。' },
+    };
+    expect(findEmptyField(n)).toBeNull();
+  });
+
+  it('结构化重点提示缺一项时阻止保存', () => {
+    const n = createNode('notice', 0);
+    n.display = {
+      title: '重点',
+      body: '旧版回退正文',
+      eyebrow: '把答案说得具体',
+      intro: '这节课练习具体表达。',
+      sections: [{ label: '先理解', body: '理解表达方法。' }],
+      summary: { title: '本节重点', body: '掌握方法。' },
+    };
+    expect(findEmptyField(n)).toBe('结构化重点提示');
+  });
+
   it('填满后放行：选择题', () => {
     const n = createNode('choice', 0);
     n.display = {
