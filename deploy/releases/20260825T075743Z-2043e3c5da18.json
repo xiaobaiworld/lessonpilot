@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 1,
+  "releaseId": "20260825T075743Z-2043e3c5da18",
+  "environment": "production",
+  "site": "https://knownmap.com",
+  "repository": "xiaobaiworld/lessonpilot",
+  "gitRemote": "https://github.com/xiaobaiworld/lessonpilot.git",
+  "gitCommit": "2043e3c5da180e8230cb14317f4549922c15c43d",
+  "gitShortCommit": "2043e3c5da18",
+  "gitRemoteBranch": "origin",
+  "gitCommitSubject": "fix: 为 CI 显式安装后端检查工具",
+  "gitCommitTime": "2026-08-25T15:52:52+08:00",
+  "gitTag": "web-prod/20260825T075743Z-2043e3c5da18",
+  "publishProfile": "v1-apps",
+  "status": "verified",
+  "builtAt": "2026-08-25T07:59:47Z",
+  "deployedAt": "2026-08-25T07:59:51Z",
+  "previousReleaseId": "20260825T025025Z-2446e49269ba",
+  "files": [
+    {
+      "path": "admin/assets/index-CQgQyDpk.js",
+      "sha256": "f1c8ad8e4515fef13fa7d0f032332fa0d5eb466ff8412876a1c5cc698b86670b",
+      "bytes": 152431
+    },
+    {
+      "path": "admin/assets/index-DzchMxJ6.css",
+      "sha256": "fbc3e390b526a4fbae3d3afae7a4370971a3984ff766756bf13a8a17256f4776",
+      "bytes": 65768
+    },
+    {
+      "path": "admin/index.html",
+      "sha256": "27a98dfb204b0d9cc4311062418b20b967b5cf7e22ffae7cb6c3a3d80306645e",
+      "bytes": 408
+    },
+    {
+      "path": "assets/knownmap-icon.png",
+      "sha256": "8acae4dc406d44f31ed7b5a329c2d17a6e6d799197c51fdc4f8c2e806829d0b3",
+      "bytes": 3440
+    },
+    {
+      "path": "assets/student-guide/step-download-and-unzip.png",
+      "sha256": "1e2614ee545c6eaed5aa7ccee058a1dc190f6f259ef1efadbd7419554de8e4af",
+      "bytes": 43449
+    },
+    {
+      "path": "assets/student-guide/step-load-unpacked.png",
+      "sha256": "0d2cb013ab065b1c979bdeb2fb0b991042d53c870d9074961d7597aea5ccfe97",
+      "bytes": 58967
+    },
+    {
+      "path": "assets/student-guide/step-open-extensions.png",
+      "sha256": "5d36c147f8ec74bb110e31d26efd324541c9e8a562d5d3a9683bdf63099e50a9",
+      "bytes": 57623
+    },
+    {
+      "path": "demo-captions.js",
+      "sha256": "ca9af8b13bae00638b26a1dbca72d1dd58bb9c1c688f10f8d85556979e90685d",
+      "bytes": 12149
+    },
+    {
+      "path": "downloads/student-plugin/knownmap-v1.zip",
+      "sha256": "4e8398ed58211cbbd8851ea1bfde239b54c1ec8169ba2cdd21fd63508277dc0c",
+      "bytes": 39571
+    },
+    {
+      "path": "downloads/student-plugin/knownmapplugin.zip",
+      "sha256": "4e8398ed58211cbbd8851ea1bfde239b54c1ec8169ba2cdd21fd63508277dc0c",
+      "bytes": 39571
+    },
+    {
+      "path": "index.html",
+      "sha256": "c076333a568deca31d0e00209961d78a21be4bfbfb71e30e2e35bf345f65b165",
+      "bytes": 46374
+    },
+    {
+      "path": "link.html",
+      "sha256": "c25f95a31a403f2221257d0e205927af88c1f6cf87d03d7aea834a51439058be",
+      "bytes": 5357
+    },
+    {
+      "path": "robots.txt",
+      "sha256": "331ea9090db0c9f6f597bd9840fd5b171830f6e0b3ba1cb24dfa91f0c95aedc1",
+      "bytes": 26
+    },
+    {
+      "path": "student-guide.html",
+      "sha256": "0dfb4dd69a66a9564f563e676085e75adfbb477219b38272258be4064d3196e1",
+      "bytes": 11104
+    },
+    {
+      "path": "subtitle-context.js",
+      "sha256": "a8d210826727de919976a4ac8cac78f90b7a1e8acf7d5d6b3ac6d02ff4d2e1bd",
+      "bytes": 6996
+    },
+    {
+      "path": "teacher/assets/index-DzchMxJ6.css",
+      "sha256": "fbc3e390b526a4fbae3d3afae7a4370971a3984ff766756bf13a8a17256f4776",
+      "bytes": 65768
+    },
+    {
+      "path": "teacher/assets/index-Unxy0XAD.js",
+      "sha256": "9446be1b84228e2ec98d9f4e50851d36f90318b4736fe5aadf99437e6b9d1844",
+      "bytes": 175116
+    },
+    {
+      "path": "teacher/index.html",
+      "sha256": "c2c76310f4be5af2323deb461dc9f78b70e35be267b28a65ef0aaa821e24d78b",
+      "bytes": 419
+    },
+    {
+      "path": "trial-intake.js",
+      "sha256": "d46c5bd01b037e041229505c849675b7dfe0c6d3ecdfa8c92459a0cffaa3fca7",
+      "bytes": 2535
+    }
+  ],
+  "verifiedAt": "2026-08-25T08:00:52Z",
+  "verification": {
+    "health": "passed",
+    "homepageSha256": "passed",
+    "privatePaths": "passed",
+    "apiHealth": "passed",
+    "teacherEditor": "passed",
+    "databaseBackup": "passed"
+  },
+  "components": {
+    "backend": {
+      "schemaVersion": 1,
+      "releaseId": "20260825T075743Z-2043e3c5da18",
+      "environment": "production",
+      "site": "https://knownmap.com",
+      "repository": "xiaobaiworld/lessonpilot",
+      "gitRemote": "https://github.com/xiaobaiworld/lessonpilot.git",
+      "gitCommit": "2043e3c5da180e8230cb14317f4549922c15c43d",
+      "gitShortCommit": "2043e3c5da18",
+      "gitRemoteBranch": "origin/main",
+      "gitCommitSubject": "fix: 为 CI 显式安装后端检查工具",
+      "gitCommitTime": "2026-08-25T15:52:52+08:00",
+      "gitTag": "web-prod/20260825T075743Z-2043e3c5da18",
+      "publishProfile": "v1-apps",
+      "component": "fastapi",
+      "status": "verified",
+      "builtAt": "2026-08-25T07:57:50Z",
+      "deployedAt": "2026-08-25T08:00:52Z",
+      "previousReleaseId": null
+    }
+  }
+}
