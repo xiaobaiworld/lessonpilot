@@ -26,6 +26,10 @@ jobs:
       - name: Install locked v1 environment
         run: npm ci --prefix v1
 
+      # npm test 的端点一致性检查会通过 uv 启动 v1 FastAPI。
+      - name: Install locked backend tooling
+        run: python -m pip install uv==0.11.12
+
       # 用 npm test 而不是直接写 glob：测试同时有 .test.js（CommonJS）和
       # .test.mjs（ESM，文档一致性检查需要 import 工具模块），并通过根入口覆盖
       # v1 Vitest；单个 glob 会静默漏掉一类。
@@ -68,6 +72,9 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
+
+      - name: Install locked backend tooling
+        run: python -m pip install uv==0.11.12
 
       - name: Install locked Node environment
         run: npm ci
