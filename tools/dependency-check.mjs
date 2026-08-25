@@ -70,14 +70,14 @@ export function checkNode() {
 
 export function checkPython() {
   const problems = [];
-  const pyproject = 'backend/pyproject.toml';
+  const pyproject = 'v1/backend/pyproject.toml';
   if (!existsSync(pyproject)) {
     return { problems: [`缺少 ${pyproject}`], direct: 0 };
   }
   const text = readFileSync(pyproject, 'utf8');
 
-  if (!existsSync('backend/uv.lock')) {
-    problems.push('缺少 backend/uv.lock：没有锁文件无法重现安装结果');
+  if (!existsSync('v1/backend/uv.lock')) {
+    problems.push('缺少 v1/backend/uv.lock：没有锁文件无法重现安装结果');
   }
 
   // 抽取 dependencies 与 dependency-groups 里的依赖行
@@ -111,7 +111,7 @@ export function checkLockSync() {
   // uv 能离线判断锁文件是否与 pyproject 一致
   try {
     execFileSync('uv', ['lock', '--check'], {
-      cwd: 'backend',
+      cwd: 'v1/backend',
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
     });
@@ -120,7 +120,7 @@ export function checkLockSync() {
     if (/not found|No such file|ENOENT/i.test(detail)) {
       problems.push('无法执行 uv lock --check（本机无 uv）；CI 必须覆盖此项');
     } else {
-      problems.push(`backend/uv.lock 与 pyproject.toml 不同步：${detail}`);
+      problems.push(`v1/backend/uv.lock 与 pyproject.toml 不同步：${detail}`);
     }
   }
   return problems;

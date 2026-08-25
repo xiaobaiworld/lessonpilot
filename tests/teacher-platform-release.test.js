@@ -95,7 +95,7 @@ test('first administrator bootstrap is guarded, one-time, and non-persistent', (
   assert.match(source, /openssl rand -hex 18/);
   assert.match(source, /local admin_password_file/);
   assert.match(source, /install -m 600 \/dev\/null "\$admin_password_file"/);
-  assert.match(source, /select\(func\.count\(\)\)\.select_from\(Admin\)/);
+  assert.match(source, /select\(func\.count\(\)\)\.select_from\(AdminAccount\)/);
   assert.match(source, /SEED_ADMIN_LOGIN_NAME=admin/);
   assert.match(source, /SEED_ADMIN_PASSWORD="\$admin_password"/);
   assert.match(source, /python" -m app\.seed admin/);
@@ -122,16 +122,16 @@ test('backend deploy uses a checksum-pinned uv and a frozen per-release environm
     /UV_SHA256="9acdecddacba550ee616c02bb4616d894352022550c5977524556fd5077ce1d4"/
   );
   assert.match(source, /sha256sum -c/);
-  assert.match(source, /UV_PROJECT_ENVIRONMENT="\$release\/backend\/\.venv"/);
+  assert.match(source, /UV_PROJECT_ENVIRONMENT="\$release\/v1\/backend\/\.venv"/);
   assert.match(source, /sync --frozen --no-dev/);
-  assert.match(source, /test -x "\$app_root\/current\/backend\/\.venv\/bin\/uvicorn"/);
+  assert.match(source, /test -x "\$app_root\/current\/v1\/backend\/\.venv\/bin\/uvicorn"/);
   assert.match(
     source,
-    /ln -s "\$app_root\/venv" "\$previous_target\/backend\/\.venv"/
+    /ln -s "\$app_root\/venv" "\$previous_target\/v1\/backend\/\.venv"/
   );
   assert.match(
     source,
-    /ln -s "\$app_root\/venv" "\$target\/backend\/\.venv"/
+    /ln -s "\$app_root\/venv" "\$target\/v1\/backend\/\.venv"/
   );
 });
 
@@ -153,7 +153,7 @@ test('release packages deployment configuration from the exact target commit', (
 
   assert.match(
     source,
-    /git -C "\$ROOT_DIR" archive "\$commit" -- backend deploy\/teacher-platform/
+    /git -C "\$ROOT_DIR" archive "\$commit" -- v1\/backend deploy\/teacher-platform/
   );
   assert.match(
     source,
@@ -170,11 +170,11 @@ test('teacher API service runs privately with persistent database access', () =>
 
   assert.match(service, /User=knownmap/);
   assert.match(service, /Group=knownmap/);
-  assert.match(service, /WorkingDirectory=\/opt\/knownmap\/current\/backend/);
+  assert.match(service, /WorkingDirectory=\/opt\/knownmap\/current\/v1\/backend/);
   assert.match(service, /EnvironmentFile=\/etc\/knownmap\/teacher-platform\.env/);
   assert.match(
     service,
-    /ExecStart=\/opt\/knownmap\/current\/backend\/\.venv\/bin\/uvicorn/
+    /ExecStart=\/opt\/knownmap\/current\/v1\/backend\/\.venv\/bin\/uvicorn/
   );
   assert.match(service, /--host 127\.0\.0\.1 --port 8000/);
   assert.match(service, /ProtectSystem=strict/);
@@ -199,7 +199,7 @@ test('nginx exposes the same-origin API and keeps the site root static', () => {
   assert.match(nginx, /Permissions-Policy/);
   assert.match(nginx, /location = \/health \{/);
   assert.match(nginx, /proxy_pass http:\/\/127\.0\.0\.1:8000\/health;/);
-  assert.match(nginx, /location = \/api\/v1\/auth\/login \{/);
+  assert.match(nginx, /location = \/api\/v1\/teacher\/auth\/login \{/);
   assert.match(nginx, /location = \/api\/v1\/admin\/auth\/login \{/);
   assert.equal(
     (nginx.match(/limit_req zone=knownmap_login burst=5 nodelay;/g) || []).length,
@@ -277,7 +277,7 @@ test('Dependabot monitors Python and GitHub Actions dependencies', () => {
   const dependabot = fs.readFileSync(dependabotFile, 'utf8');
 
   assert.match(dependabot, /package-ecosystem: "pip"/);
-  assert.match(dependabot, /directory: "\/backend"/);
+  assert.match(dependabot, /directory: "\/v1\/backend"/);
   assert.match(dependabot, /package-ecosystem: "github-actions"/);
   assert.match(dependabot, /directory: "\/"/);
   assert.match(dependabot, /interval: "weekly"/);

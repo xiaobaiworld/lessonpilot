@@ -42,11 +42,21 @@ const pkg = (over: Record<string, unknown> = {}) => ({
   ...over,
 });
 
-const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), {
+const json = (body: unknown, status = 200) => {
+  const value =
+    status === 200 && body && typeof body === 'object' && 'courses' in body
+      ? {
+          data: {
+            redemption: { sourceRef: 'redemption-1' },
+            courses: (body as any).courses.map((course: unknown) => ({ package: course })),
+          },
+        }
+      : body;
+  return new Response(JSON.stringify(value), {
     status,
     headers: { 'Content-Type': 'application/json' },
   });
+};
 
 let area: FakeArea;
 let deps: RedeemDeps;

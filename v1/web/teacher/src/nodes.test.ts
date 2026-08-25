@@ -3,7 +3,7 @@ import { NODE_KINDS, createNode, formatTime, parseTime, findEmptyField } from '.
 
 /**
  * family / interaction 的组合和各自的 evaluation 形状由后端 schema 用 const
- * 固定死，写错就整份草稿被拒。这些断言照 backend/app/schemas/script.py 写。
+ * 固定死，写错就整份草稿被拒。这些断言照 v1 后端草稿校验写。
  */
 describe('createNode', () => {
   it('四种节点的 family 与 interaction 组合正确', () => {

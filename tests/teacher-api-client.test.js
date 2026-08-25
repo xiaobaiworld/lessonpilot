@@ -118,7 +118,7 @@ test('teacher editor loads auth, API, draft, publish and access-code controls', 
 test('teacher editor presents a production-like interactive course tool login', () => {
   const page = fs.readFileSync('teacher-web/editor.html', 'utf8');
   const app = fs.readFileSync('teacher-web/app.js', 'utf8');
-  const envExample = fs.readFileSync('backend/.env.example', 'utf8');
+  const envExample = fs.readFileSync('v1/backend/.env.example', 'utf8');
 
   assert.ok(page.includes('id="login-name" name="login_name" autocomplete="username"'));
   assert.ok(!page.includes('value="teacher-test-01"'));
@@ -145,7 +145,7 @@ test('teacher editor presents a production-like interactive course tool login', 
   assert.ok(app.includes("reason.code === 'AUTH_INVALID_CREDENTIALS'"));
   assert.ok(app.includes("'用户名或密码错误'"));
   assert.ok(app.includes("window.scrollTo({ top: 0, behavior: 'auto' })"));
-  assert.ok(envExample.includes('SEED_TEACHER_PASSWORD=password'));
+  assert.equal(envExample.includes('SEED_TEACHER_PASSWORD=password'), false);
   assert.equal(page.includes('knownmap-local-2026'), false);
   assert.ok(app.includes('let captions = [];'));
   assert.equal(app.includes('Today we are going to talk about'), false);

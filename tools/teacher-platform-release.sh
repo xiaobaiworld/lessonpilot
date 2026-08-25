@@ -93,7 +93,7 @@ run_commit_tests() {
   if ! (
     cd "$worktree"
     node --test tests/*.test.js
-    cd backend
+    cd v1/backend
     uv run pytest -q
   ); then
     git -C "$ROOT_DIR" worktree remove --force "$worktree" >/dev/null 2>&1 || true
@@ -110,10 +110,10 @@ build_backend_package() {
 
   source_dir="$(mktemp -d "${TMPDIR:-/tmp}/knownmap-backend-source.XXXXXX")"
   trap 'rm -rf "$source_dir"' RETURN
-  mkdir -p "$output"
-  git -C "$ROOT_DIR" archive "$commit" -- backend deploy/teacher-platform |
+  mkdir -p "$output/v1"
+  git -C "$ROOT_DIR" archive "$commit" -- v1/backend deploy/teacher-platform |
     tar -x -C "$source_dir"
-  cp -a "$source_dir/backend" "$output/backend"
+  cp -a "$source_dir/v1/backend" "$output/v1/backend"
   cp -a "$source_dir/deploy" "$output/deploy"
   trap - RETURN
   rm -rf "$source_dir"
@@ -178,12 +178,12 @@ set -euo pipefail
 app_root="$1"
 target="$2"
 service_name="$3"
-test -d "$target/backend"
-if [[ ! -e "$target/backend/.venv" &&
+test -d "$target/v1/backend"
+if [[ ! -e "$target/v1/backend/.venv" &&
       -x "$app_root/venv/bin/uvicorn" ]]; then
-  ln -s "$app_root/venv" "$target/backend/.venv"
+  ln -s "$app_root/venv" "$target/v1/backend/.venv"
 fi
-test -x "$target/backend/.venv/bin/uvicorn"
+test -x "$target/v1/backend/.venv/bin/uvicorn"
 temporary_link="$app_root/.current-restore"
 ln -s "$target" "$temporary_link"
 mv -Tf "$temporary_link" "$app_root/current"
@@ -247,7 +247,7 @@ getent group knownmap >/dev/null || groupadd --system knownmap
 id -u knownmap >/dev/null 2>&1 || useradd --system --gid knownmap --home-dir /nonexistent --shell /usr/sbin/nologin knownmap
 install -d -m 755 "$app_root/releases" "$app_root/tools" /etc/knownmap
 install -d -o knownmap -g knownmap -m 750 "$data_root"
-test -d "$release/backend"
+test -d "$release/v1/backend"
 
 if [[ ! -x "$uv_bin" ]]; then
   uv_tmp="$(mktemp -d /tmp/knownmap-uv.XXXXXX)"
@@ -281,9 +281,9 @@ ENV
   rm -f "$env_tmp"
 fi
 
-test -d "$release/backend"
-cd "$release/backend"
-UV_PROJECT_ENVIRONMENT="$release/backend/.venv" \
+test -d "$release/v1/backend"
+cd "$release/v1/backend"
+UV_PROJECT_ENVIRONMENT="$release/v1/backend/.venv" \
   "$uv_bin" sync --frozen --no-dev --no-editable
 
 set -a
@@ -296,7 +296,7 @@ fi
 chown -R root:knownmap "$release"
 find "$release" -type d -exec chmod 755 {} +
 find "$release" -type f -exec chmod 644 {} +
-find "$release/backend/.venv/bin" -type f -exec chmod 755 {} +
+find "$release/v1/backend/.venv/bin" -type f -exec chmod 755 {} +
 
 if [[ ! -f /var/lib/knownmap/knownmap.db ]]; then
   [[ "$seed_password_file" != "-" ]] ||
@@ -307,13 +307,13 @@ if [[ ! -f /var/lib/knownmap/knownmap.db ]]; then
   seed_password="$(cat "$seed_password_file")"
   rm -f "$seed_password_file"
   seed_password_file="-"
-  "$release/backend/.venv/bin/alembic" -c "$release/backend/alembic.ini" upgrade head
+  "$release/v1/backend/.venv/bin/alembic" -c "$release/v1/backend/alembic.ini" upgrade head
   SEED_TEACHER_LOGIN_NAME=teacher-test-01 \
   SEED_TEACHER_PASSWORD="$seed_password" \
   SEED_TEACHER_DISPLAY_NAME='KnownMap 教师' \
-    "$release/backend/.venv/bin/python" -m app.seed
+    "$release/v1/backend/.venv/bin/python" -m app.seed
 else
-  "$release/backend/.venv/bin/alembic" -c "$release/backend/alembic.ini" upgrade head
+  "$release/v1/backend/.venv/bin/alembic" -c "$release/v1/backend/alembic.ini" upgrade head
   if [[ "$seed_password_file" != "-" ]]; then
     seed_password="$(cat "$seed_password_file")"
     rm -f "$seed_password_file"
@@ -321,7 +321,7 @@ else
     SEED_TEACHER_LOGIN_NAME=teacher-test-01 \
     SEED_TEACHER_PASSWORD="$seed_password" \
     SEED_TEACHER_DISPLAY_NAME='KnownMap 教师' \
-      "$release/backend/.venv/bin/python" -m app.seed
+      "$release/v1/backend/.venv/bin/python" -m app.seed
   fi
 fi
 if [[ -f "/$database_path" ]]; then
@@ -329,10 +329,10 @@ if [[ -f "/$database_path" ]]; then
   chmod 660 "/$database_path"
 fi
 
-if [[ -n "$previous_target" && -d "$previous_target/backend" &&
-      ! -e "$previous_target/backend/.venv" &&
+if [[ -n "$previous_target" && -d "$previous_target/v1/backend" &&
+      ! -e "$previous_target/v1/backend/.venv" &&
       -x "$app_root/venv/bin/uvicorn" ]]; then
-  ln -s "$app_root/venv" "$previous_target/backend/.venv"
+  ln -s "$app_root/venv" "$previous_target/v1/backend/.venv"
 fi
 
 temporary_link="$app_root/.current-$release_id"
@@ -359,7 +359,7 @@ id -u knownmap >/dev/null 2>&1 || useradd --system --gid knownmap --home-dir /no
 install -d -m 755 "$app_root/releases"
 test ! -e "$app_root/releases/$release_id"
 mkdir "$app_root/releases/$release_id"
-install -d -m 755 "$app_root/releases/$release_id/backend"
+install -d -m 755 "$app_root/releases/$release_id/v1/backend"
 REMOTE
 }
 
@@ -371,7 +371,7 @@ install_systemd_service() {
 set -euo pipefail
 app_root="$1"
 service_name="$2"
-test -x "$app_root/current/backend/.venv/bin/uvicorn"
+test -x "$app_root/current/v1/backend/.venv/bin/uvicorn"
 systemctl daemon-reload
 systemctl enable "$service_name" >/dev/null
 systemctl restart "$service_name"
@@ -449,23 +449,23 @@ app_root="$1"
 env_file="/etc/knownmap/teacher-platform.env"
 release="$app_root/current"
 
-test -x "$release/backend/.venv/bin/python"
+test -x "$release/v1/backend/.venv/bin/python"
 set -a
 . "$env_file"
 set +a
-cd "$release/backend"
-"$release/backend/.venv/bin/python" - <<'PY'
+cd "$release/v1/backend"
+"$release/v1/backend/.venv/bin/python" - <<'PY'
 from sqlalchemy import func, select
 
 from app.config import Settings
-from app.db import create_database_engine, create_session_factory
-from app.models.admin import Admin
+from app.infrastructure.database.session import create_database_engine, create_session_factory
+from app.modules.identity.models import AdminAccount
 
 settings = Settings()
 engine = create_database_engine(settings)
 session_factory = create_session_factory(engine)
 with session_factory() as session:
-    print(session.scalar(select(func.count()).select_from(Admin)) or 0)
+    print(session.scalar(select(func.count()).select_from(AdminAccount)) or 0)
 PY
 REMOTE
 }
@@ -501,24 +501,24 @@ cleanup() {
 }
 trap cleanup EXIT
 
-test -x "$release/backend/.venv/bin/python"
+test -x "$release/v1/backend/.venv/bin/python"
 set -a
 . "$env_file"
 set +a
-cd "$release/backend"
+cd "$release/v1/backend"
 admin_count="$(
-  "$release/backend/.venv/bin/python" - <<'PY'
+  "$release/v1/backend/.venv/bin/python" - <<'PY'
 from sqlalchemy import func, select
 
 from app.config import Settings
-from app.db import create_database_engine, create_session_factory
-from app.models.admin import Admin
+from app.infrastructure.database.session import create_database_engine, create_session_factory
+from app.modules.identity.models import AdminAccount
 
 settings = Settings()
 engine = create_database_engine(settings)
 session_factory = create_session_factory(engine)
 with session_factory() as session:
-    print(session.scalar(select(func.count()).select_from(Admin)) or 0)
+    print(session.scalar(select(func.count()).select_from(AdminAccount)) or 0)
 PY
 )"
 
@@ -532,7 +532,7 @@ rm -f "$admin_password_file"
 SEED_ADMIN_LOGIN_NAME=admin \
 SEED_ADMIN_PASSWORD="$admin_password" \
 SEED_ADMIN_DISPLAY_NAME='KnownMap 管理员' \
-  "$release/backend/.venv/bin/python" -m app.seed admin
+  "$release/v1/backend/.venv/bin/python" -m app.seed admin
 unset admin_password
 printf 'created\n'
 REMOTE
@@ -660,7 +660,7 @@ deploy_release() {
 
   previous_target="$(remote_current_backend)"
   prepare_remote_backend "$release_id"
-  rsync -az --delete "$backend_build/backend/" "$SSH_HOST:$APP_ROOT/releases/$release_id/backend/"
+  rsync -az --delete "$backend_build/v1/backend/" "$SSH_HOST:$APP_ROOT/releases/$release_id/v1/backend/"
   scp -q "$backend_build/backend-release.json" \
     "$SSH_HOST:$APP_ROOT/releases/$release_id/backend-release.json"
   if ! install_remote_backend "$release_id" "$seed_password" "$previous_target"; then
@@ -758,13 +758,13 @@ service_name="$2"
 target="$(readlink -f "$app_root/current" 2>/dev/null || true)"
 echo "Current backend: ${target:-none}"
 systemctl is-active "$service_name"
-if [[ -f "$app_root/current/backend-release.json" ]]; then
+if [[ -f "$app_root/current/v1/backend-release.json" ]]; then
   jq -r '
     "Release ID: \(.releaseId)",
     "Git commit: \(.gitCommit)",
     "Status: \(.status)",
     "Site: \(.site)"
-  ' "$app_root/current/backend-release.json"
+  ' "$app_root/current/v1/backend-release.json"
 fi
 REMOTE
 }

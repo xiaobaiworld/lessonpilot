@@ -219,8 +219,8 @@ print(json.dumps(out))
   let raw;
   try {
     raw = execFileSync('uv', ['run', 'python', '-c', script], {
-      cwd: join(root, 'backend'),
-      input: JSON.stringify(input.map(([k, s, f]) => [k, join('..', s), join('..', f)])),
+      cwd: join(root, 'v1/backend'),
+      input: JSON.stringify(input.map(([k, s, f]) => [k, join('../..', s), join('../..', f)])),
       encoding: 'utf8',
       stdio: ['pipe', 'pipe', 'pipe'],
     });

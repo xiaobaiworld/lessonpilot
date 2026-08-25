@@ -1,8 +1,6 @@
 """Tests for v1 security primitives."""
 
 import pytest
-import os
-from datetime import datetime, timedelta, timezone
 from .primitives import (
     PasswordManager,
     TokenDigester,
@@ -19,22 +17,22 @@ def password_manager():
 
 @pytest.fixture
 def token_digester():
-    return TokenDigester(b'a' * 32)  # Use a fixed key for testing
+    return TokenDigester(b"a" * 32)  # Use a fixed key for testing
 
 
 def test_password_hashing(password_manager):
     """Hash and verify a password."""
-    password = 'secure_password_123'
+    password = "secure_password_123"
     hash_digest = password_manager.hash_password(password)
 
     assert password_manager.verify_password(password, hash_digest)
-    assert not password_manager.verify_password('wrong_password', hash_digest)
+    assert not password_manager.verify_password("wrong_password", hash_digest)
 
 
 def test_password_rejects_empty(password_manager):
     """Empty password raises SecurityError."""
     with pytest.raises(SecurityError):
-        password_manager.hash_password('')
+        password_manager.hash_password("")
 
 
 def test_token_digest_roundtrip(token_digester):
@@ -74,12 +72,12 @@ def test_random_generator():
     """Random data generation."""
     hex_str = RandomGenerator.hex_string(16)
     assert len(hex_str) == 32  # 16 bytes = 32 hex chars
-    assert all(c in '0123456789abcdef' for c in hex_str)
+    assert all(c in "0123456789abcdef" for c in hex_str)
 
     bytes_data = RandomGenerator.bytes_data(16)
     assert len(bytes_data) == 16
     assert isinstance(bytes_data, bytes)
 
 
-if __name__ == '__main__':
-    pytest.main([__file__, '-v'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

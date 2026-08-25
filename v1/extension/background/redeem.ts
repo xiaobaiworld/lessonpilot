@@ -11,6 +11,11 @@ export interface RedeemDeps {
   timeoutMs?: number;
 }
 
+function randomSecret(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(32));
+  return Array.from(bytes, (value) => value.toString(16).padStart(2, '0')).join('');
+}
+
 export type RedeemResult =
   | { ok: true; installed: InstalledCourse[] }
   | { ok: false; code: RedeemErrorCode; message: string };
@@ -68,6 +73,18 @@ export async function redeemAccessCode(
   const trimmed = code.trim();
   if (!trimmed) return fail('EMPTY_CODE');
 
+  let identity;
+  try {
+    identity = await deps.library.ensureIdentity(() => ({
+      clientId: crypto.randomUUID(),
+      proof: randomSecret(),
+      proofSalt: randomSecret(),
+    }));
+  } catch {
+    return fail('STORAGE');
+  }
+  if (!identity) return fail('STORAGE');
+
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), deps.timeoutMs ?? 15000);
   // 调用方取消也要中断在途请求
@@ -75,11 +92,22 @@ export async function redeemAccessCode(
 
   let response: Response;
   try {
-    response = await deps.fetch(`${deps.apiOrigin}/api/v1/public/course-download`, {
+    response = await deps.fetch(`${deps.apiOrigin}/api/v1/student/redemptions`, {
       method: 'POST',
       signal: controller.signal,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ access_code: trimmed }),
+      body: JSON.stringify({
+        schemaVersion: 1,
+        idempotencyKey: crypto.randomUUID(),
+        accessCode: trimmed,
+        localIdentityId: identity.clientId,
+        localProof: identity.proof,
+        client: {
+          extensionVersion:
+            (globalThis as any).chrome?.runtime?.getManifest?.().version ?? '0.0.0',
+          browserFamily: 'chrome',
+        },
+      }),
     });
   } catch (err) {
     const aborted = err instanceof Error && err.name === 'AbortError';
@@ -101,19 +129,21 @@ export async function redeemAccessCode(
     return fail('MALFORMED', '响应不是 JSON');
   }
 
+  const data = typeof body === 'object' && body !== null ? (body as any).data : null;
   const courses =
-    typeof body === 'object' && body !== null && Array.isArray((body as any).courses)
-      ? (body as any).courses
+    typeof data === 'object' && data !== null && Array.isArray(data.courses)
+      ? data.courses
       : null;
   if (!courses) return fail('MALFORMED', '响应缺少 courses');
   if (courses.length === 0) return fail('EMPTY_RESULT');
 
-  const sourceId = `redeem-${deps.now().getTime()}-${codeHint(trimmed)}`;
+  const sourceId = String(data.redemption?.sourceRef ?? '');
+  if (!sourceId) return fail('MALFORMED', '响应缺少兑换引用');
 
   // 先全部验完再写任何一条：验到一半失败不留半装状态
   const checked: InstalledCourse[] = [];
   for (const raw of courses) {
-    const result = checkCoursePackage(raw, sourceId);
+    const result = checkCoursePackage(raw?.package, sourceId);
     if (!result.ok) return fail('MALFORMED', result.reason);
     checked.push(result.value);
   }

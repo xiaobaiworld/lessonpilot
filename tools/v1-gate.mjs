@@ -25,14 +25,9 @@ const checks = [
     description: 'HTTP endpoint inventory vs backend implementation',
   },
   {
-    name: 'contract-check',
-    tool: 'node tools/contract-check.mjs',
-    description: 'JSON Schema contracts (course package, messages, storage)',
-  },
-  {
     name: 'module-check',
-    tool: 'node tools/module-check.mjs',
-    description: 'Module boundary isolation (backend/app -> v1/backend/app)',
+    tool: 'node tools/v1-module-check.mjs',
+    description: 'v1 module and table ownership',
   },
   {
     name: 'v1-contract-check',

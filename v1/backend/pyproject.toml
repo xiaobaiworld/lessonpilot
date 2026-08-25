@@ -1,0 +1,39 @@
+[project]
+name = "knownmap-v1-backend"
+version = "0.1.0"
+description = "KnownMap v1 FastAPI backend"
+requires-python = ">=3.12"
+dependencies = [
+  "alembic>=1.15,<2",
+  "fastapi>=0.115,<1",
+  "pydantic-settings>=2.7,<3",
+  "pwdlib[argon2]>=0.2,<1",
+  "sqlalchemy>=2.0,<3",
+  "structlog>=25,<26",
+  "uvicorn[standard]>=0.34,<1",
+]
+
+[dependency-groups]
+dev = [
+  "httpx>=0.28,<1",
+  "jsonschema>=4.23,<5",
+  "pytest>=9.0.3,<10",
+  "pytest-cov>=6,<7",
+  "ruff>=0.13,<0.14",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "app"]
+python_files = ["test_*.py"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]

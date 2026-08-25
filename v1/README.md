@@ -1,70 +1,36 @@
-# v1 Directory Structure - Stage 0 Scaffold (0A)
+# KnownMap v1
 
-建立日期：2026-08-23
+`v1/` 是当前系统，不再是脚手架或候选目录。
 
-## 目录职责（设计 03 第 7.0 节）
+| 目录 | 功能 |
+| --- | --- |
+| `backend/` | 独立 FastAPI + SQLite 后端、Alembic 初始迁移和 pytest |
+| `web/admin/` | 管理员登录、教师账号管理 |
+| `web/teacher/` | 课程、课节、草稿、预览、发布和授权码 |
+| `web/shared/` | Web 公共 HTTP 客户端与 UI |
+| `extension/` | 学生课程库、兑换、B 站运行时和本机学习状态 |
+| `contracts/` | 课程包、插件消息、本机存储与版本清单 |
 
-### 后端模块 (`v1/backend/app/modules/`)
+后端六模块位于 `backend/app/modules/`：
 
-- **identity**: 管理员与教师认证、会话、工作空间（stage 1）
-- **workspace_course**: 课程、课节、草稿、revision（stage 1）
-- **authoring_release**: 课程级原子发布、快照、可见性（stage 2）
-- **entitlement_delivery**: 授权码、权利、兑换、学生凭证（stage 2）
-- **admin_support**: 审计、诊断、运维端点（stage 6）
-- **runtime_audit**: 学生会话（只读）、学习结果（stage 5）
-
-### 基础设施 (`v1/backend/app/infrastructure/`)
-
-- **database**: Alembic 迁移、空库初始化、旧 schema 拒绝
-- **security**: Argon2、HMAC、密钥管理、环境校验
-- **logging**: 结构化日志、PII 清洗、审计日志
-
-### 前端应用 (`v1/web/`)
-
-- **teacher**: 课程制作、编辑、预览、发布工作台（stage 3）
-- **admin**: 教师管理、授权审计、诊断（stage 6 集成到 stage 3）
-- **shared**: 通用组件、API 客户端、表单处理
-
-### 扩展 (`v1/extension/`)
-
-- **background**: 网络与存储唯一边界、消息中继（stage 4）
-- **popup**: 课程库 UI、授权输入（stage 4）
-- **content**: B 站页面 content script（stage 5）
-- **host/bilibili**: 学习窗口渲染、节点状态机（stage 5）
-- **storage**: 本机存储 schema v2（stage 4）
-
-### 跨平台契约 (`v1/contracts/`)
-
-- **course-package.schema.json**: 课程交付格式 v2
-- **extension-messages.schema.json**: 插件消息格式 v2
-- **extension-storage.schema.json**: 本机存储格式 v2
-- **openapi.schema.json**: HTTP API 规范（设计文档 06）
-- **versions.json**: 版本支持矩阵
-
-## 当前状态
-
-- ✅ 目录骨架建立
-- ✅ 工作空间 package.json 配置
-- ✅ 各模块初始 docstring 和职责说明
-- ✅ 旧系统 (`backend/`, `teacher-web/`) 保持未改动；旧插件 `src/` 已删除
-- ⏳ 下一步：`0B` 建立空库初始化和旧 schema 拒绝门禁
-
-## 验证命令
+- `identity`：管理员、教师、会话；
+- `workspace_course`：工作空间、课程、课节和视频引用；
+- `authoring_release`：草稿、预览、课程级发布和可交付状态；
+- `entitlement_delivery`：授权码、授权范围、兑换和更新；
+- `admin_support`：教师接入、权利确认和试用跟进；
+- `runtime_audit`：健康、版本、日志和操作审计模型。
 
 ```bash
-# 检查旧系统是否仍然完整
-git diff HEAD -- backend teacher-web src | wc -l  # 应返回 0
+cd backend
+uv sync --frozen
+uv run alembic upgrade head
+uv run pytest
 
-# 检查 v1 目录未被 git 追踪（待提交）
-git status --short | grep "^??"
-
-# 列出所有 v1 Python 模块
-find v1/backend -name '__init__.py' | sort
+cd ..
+npm ci
+npm test
+npm run type-check
+npm run build
 ```
 
-## 设计基线
-
-- 需求：[../doc/requirements/v1/README.md](../doc/requirements/v1/README.md)
-- 设计：[../doc/design/v1/README.md](../doc/design/v1/README.md)
-- 模块边界：[../doc/design/v1/03-system-architecture.md](../doc/design/v1/03-system-architecture.md) 第 7.0 节
-- 代码执行计划：[../doc/plans/v1-code-refactor-execution-plan.md](../doc/plans/v1-code-refactor-execution-plan.md) 工作包 0A
+需求与设计真源分别在 `../doc/requirements/v1/` 和 `../doc/design/v1/`。

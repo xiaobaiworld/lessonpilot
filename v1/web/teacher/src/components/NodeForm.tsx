@@ -7,7 +7,7 @@ interface Props {
   onChange: (node: ScriptNode) => void;
 }
 
-/** 各字段名由后端 schema 固定，见 backend/app/schemas/script.py */
+/** 各字段名由后端校验固定，见 v1/backend/app/modules/authoring_release/application_service.py */
 export const NodeForm: React.FC<Props> = ({ node, disabled, onChange }) => {
   const setDisplay = (patch: Record<string, unknown>) =>
     onChange({ ...node, display: { ...node.display, ...patch } });

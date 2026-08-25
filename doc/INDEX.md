@@ -152,13 +152,13 @@
 
 | 位置 | 内容 |
 | --- | --- |
-| `backend/app/` | FastAPI 服务端 |
+| `v1/backend/app/` | 当前 FastAPI 服务端（六个业务模块） |
 | `v1/extension/` | 学生 Chrome MV3 插件 |
 | `contracts/` | 课程包与插件消息 JSON Schema 门禁 |
-| `teacher-web/` | 教师与管理员 Web 应用 |
+| `v1/web/` | 教师与管理员 Web 应用 |
 | `tools/` | 构建、发布、文档检查与追踪矩阵工具 |
 | `tests/` | Node 自动化测试；`tests/manual/` 为人工验收记录 |
-| `backend/tests/` | 后端 pytest |
+| `v1/backend/tests/` | 后端 pytest 与空库闭环测试 |
 
 检查与测试命令见 [`dev-rules.md` 第 8 节](dev-rules.md#8-检查与测试命令)。
 

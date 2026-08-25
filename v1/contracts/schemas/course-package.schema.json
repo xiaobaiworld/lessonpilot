@@ -1,142 +1,91 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://knownmap.local/schema/v2/course-package.schema.json",
-  "title": "KnownMap Course Package v2.0.0",
-  "description": "Versioned course delivery format delivered to students via access code redemption",
+  "title": "KnownMap Course Package v2",
   "type": "object",
-  "required": ["schemaVersion", "courseId", "releaseId", "lessons", "metadata"],
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "courseId",
+    "releaseId",
+    "releaseNumber",
+    "title",
+    "lessons",
+    "updatedAt"
+  ],
   "properties": {
-    "schemaVersion": {
-      "type": "string",
-      "pattern": "^2\\.\\d+\\.\\d+$",
-      "description": "Must be major version 2; minor/patch versions are backwards-compatible within a release"
-    },
-    "courseId": {
-      "type": "string",
-      "format": "uuid",
-      "description": "v1 Course UUID - immutable across all releases"
-    },
-    "releaseId": {
-      "type": "string",
-      "format": "uuid",
-      "description": "CourseRelease UUID - uniquely identifies this published snapshot"
-    },
-    "releaseNumber": {
-      "type": "integer",
-      "minimum": 1,
-      "description": "Monotonic release counter within this course"
-    },
-    "title": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 255,
-      "description": "Course title at release time"
-    },
+    "schemaVersion": { "const": 2 },
+    "courseId": { "type": "string", "format": "uuid" },
+    "releaseId": { "type": "string", "format": "uuid" },
+    "releaseNumber": { "type": "integer", "minimum": 1 },
+    "title": { "type": "string", "minLength": 1, "maxLength": 255 },
+    "updatedAt": { "type": "string", "format": "date-time" },
     "lessons": {
       "type": "array",
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["lessonId", "title", "videoReference", "nodes"],
+        "additionalProperties": false,
+        "required": ["lessonId", "title", "videoRef", "nodes"],
         "properties": {
-          "lessonId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "sequence": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Display order within course"
-          },
-          "title": {
-            "type": "string",
-            "minLength": 1
-          },
-          "description": {
-            "type": "string"
-          },
-          "videoReference": {
+          "lessonId": { "type": "string", "format": "uuid" },
+          "title": { "type": "string", "minLength": 1, "maxLength": 255 },
+          "videoRef": {
             "type": "object",
-            "required": ["platform", "videoPlatformId"],
+            "additionalProperties": false,
+            "required": ["platform", "videoId"],
             "properties": {
-              "platform": {
-                "type": "string",
-                "enum": ["bilibili", "youtube", "local_file"],
-                "description": "Supported video platforms for student runtime"
-              },
-              "videoPlatformId": {
-                "type": "string",
-                "description": "BVID for Bilibili, video ID for YouTube, SHA-256 for local"
-              }
+              "platform": { "const": "bilibili" },
+              "videoId": { "type": "string", "pattern": "^BV[0-9A-Za-z]{10}$" }
             }
           },
           "nodes": {
             "type": "array",
-            "minItems": 0,
-            "description": "Interactive nodes placed at specific timestamps",
-            "items": {
-              "$ref": "#/definitions/Node"
-            }
-          }
-        }
-      }
-    },
-    "metadata": {
-      "type": "object",
-      "properties": {
-        "createdAt": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "releasedAt": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "durationSeconds": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "supportedFeatures": {
-          "type": "array",
-          "items": {
-            "type": "string"
+            "minItems": 1,
+            "items": { "$ref": "#/definitions/node" }
           }
         }
       }
     }
   },
   "definitions": {
-    "Node": {
+    "node": {
       "type": "object",
-      "required": ["nodeId", "type", "timestampSeconds"],
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "enabled",
+        "family",
+        "interaction",
+        "trigger",
+        "display",
+        "evaluation",
+        "effects"
+      ],
       "properties": {
-        "nodeId": {
-          "type": "string",
-          "format": "uuid"
-        },
-        "type": {
-          "type": "string",
-          "enum": ["remark", "highlight", "question", "feedback"],
-          "description": "Node type determines rendering and interaction at runtime"
-        },
-        "timestampSeconds": {
-          "type": "number",
-          "minimum": 0,
-          "description": "When to trigger this node during video playback"
-        },
-        "title": {
-          "type": "string"
-        },
-        "content": {
-          "type": "string",
-          "description": "Node content (text, markdown, or serialized rich content)"
-        },
-        "metadata": {
+        "id": { "type": "string", "minLength": 1 },
+        "enabled": { "const": true },
+        "family": { "enum": ["attention", "practice"] },
+        "interaction": { "enum": ["notice", "choice", "blank", "free_text"] },
+        "trigger": {
           "type": "object",
-          "additionalProperties": true
+          "additionalProperties": false,
+          "required": ["kind", "timeSeconds"],
+          "properties": {
+            "kind": { "const": "time_cross" },
+            "timeSeconds": { "type": "number", "minimum": 0 },
+            "captionId": { "type": ["string", "null"] }
+          }
+        },
+        "display": { "type": "object" },
+        "evaluation": { "type": ["object", "null"] },
+        "effects": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["pause"],
+          "properties": { "pause": { "const": true } }
         }
       }
     }
-  },
-  "additionalProperties": false
+  }
 }

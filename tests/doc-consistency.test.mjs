@@ -24,10 +24,10 @@ import {
 } from '../tools/secret-scan.mjs';
 import { runAll as checkDependencies } from '../tools/dependency-check.mjs';
 import {
-  MODEL_OWNER,
-  MODULES,
+  V1_MODULES as MODULES,
+  V1_TABLE_OWNER,
   analyze as analyzeModules,
-} from '../tools/module-check.mjs';
+} from '../tools/v1-module-check.mjs';
 import { ID_PREFIXES, RESERVED_FAMILIES, extractDefinitions } from '../tools/lib/requirement-ids.mjs';
 
 const TSV = 'doc/traceability/v1-requirements.tsv';
@@ -186,92 +186,17 @@ test('端点清单的状态取值受限', () => {
   assert.deepEqual(invalid, [], `状态取值非法：\n${invalid.join('\n')}`);
 });
 
-test('后端没有新增的跨模块表访问', () => {
-  const { newViolations } = analyzeModules('.');
-  const lines = newViolations.map(
-    (v) => `${v.file} [${MODULES[v.fileModule]}] -> ${v.model} [${MODULES[v.modelModule]}] (${v.kinds.join(', ')})`,
-  );
-  assert.deepEqual(
-    lines,
-    [],
-    `违反设计 03 第 7 节的模块边界。跨模块动作必须经拥有方的应用服务：\n${lines.join('\n')}`,
-  );
+test('v1 后端表归属唯一且没有跨模块仓储访问', () => {
+  const { violations, seenTables } = analyzeModules('.');
+  assert.deepEqual(violations, [], `v1 模块边界失败：\n${violations.join('\n')}`);
+  assert.equal(seenTables.size, Object.keys(V1_TABLE_OWNER).length);
 });
 
-test('模块越界白名单没有过期', () => {
-  const { staleKnown } = analyzeModules('.');
-  const lines = staleKnown.map((e) => `${e.file} -> ${e.accesses.join(', ')}`);
-  assert.deepEqual(
-    lines,
-    [],
-    `以下越界已修复，应从 KNOWN_VIOLATIONS 删除，否则白名单会变成永久豁免：\n${lines.join('\n')}`,
-  );
-});
-
-test('每个后端服务与仓储都登记了所属模块', () => {
-  const { unregisteredFiles } = analyzeModules('.');
-  assert.deepEqual(
-    unregisteredFiles,
-    [],
-    `新增服务或仓储必须在 FILE_OWNER 登记模块归属：\n${unregisteredFiles.join('\n')}`,
-  );
-});
-
-test('每个数据模型都登记了所属模块', () => {
-  const { unregisteredModels } = analyzeModules('.');
-  assert.deepEqual(
-    unregisteredModels,
-    [],
-    `新增模型必须同时更新 MODEL_OWNER 和设计 03 第 7.0 节表归属表：\n${unregisteredModels.join('\n')}`,
-  );
-});
-
-test('表归属登记与设计 03 第 7.0 节一致', () => {
-  const design = readFileSync('doc/design/v1/03-system-architecture.md', 'utf8');
-  const start = design.indexOf('### 7.0 表归属');
-  assert.notEqual(start, -1, '设计 03 缺少第 7.0 节表归属');
-  const section = design.slice(start, design.indexOf('### 7.1', start));
-
-  // 表名由模型名推导校验：设计文档用表名，工具用模型类名，两者必须指向同一模块
-  const tableOf = {
-    Admin: 'admins',
-    AdminSession: 'admin_sessions',
-    Teacher: 'teachers',
-    TeacherSession: 'teacher_sessions',
-    Workspace: 'workspaces',
-    Course: 'courses',
-    Lesson: 'lessons',
-    ScriptDraft: 'script_drafts',
-    PublishedScript: 'published_scripts',
-    AccessCode: 'access_codes',
-    AccessGrant: 'access_grants',
-    OperationLog: 'operation_logs',
-  };
-  for (const [model, module] of Object.entries(MODEL_OWNER)) {
-    const table = tableOf[model];
-    assert.ok(table, `测试未覆盖模型 ${model}，请补 tableOf 映射`);
-    const row = section.split('\n').find((line) => line.includes(`\`${table}\``));
-    assert.ok(row, `设计 03 第 7.0 节未登记表 ${table}`);
-    assert.ok(
-      row.includes(MODULES[module]),
-      `表 ${table} 在设计文档归属与 MODEL_OWNER 不一致：文档行「${row.trim()}」，工具登记「${MODULES[module]}」`,
-    );
-  }
-});
-
-test('模块键与代码重构计划的目标目录名一致', () => {
-  // 阶段 1 会把后端改成 modules/<domain>/。若工具的模块键与计划的目录名不一致，
-  // 届时要么改目录要么改工具，白白多一次重命名，且中间状态无法检查。
-  const plan = readFileSync('doc/plans/v1-code-refactor-execution-plan.md', 'utf8');
-  const start = plan.indexOf('## 5. 目标代码边界');
-  assert.notEqual(start, -1, '代码重构计划缺少第 5 节目标代码边界');
-  const section = plan.slice(start, plan.indexOf('## 6.', start));
-
-  const modulesBlock = section.slice(section.indexOf('modules/'));
+test('v1 六个模块目录与设计名称一致', () => {
   for (const key of Object.keys(MODULES)) {
     assert.ok(
-      new RegExp(`^\\s+${key}/\\s*$`, 'm').test(modulesBlock),
-      `计划第 5 节 modules/ 下缺少目录 ${key}/；模块键与目标目录名必须一致`,
+      existsSync(`v1/backend/app/modules/${key}`),
+      `缺少 v1 后端模块目录 ${key}`,
     );
   }
 });
@@ -312,16 +237,16 @@ test('契约校验器依赖已在两侧声明并锁定', () => {
   assert.match(ajv, /^\d+\.\d+\.\d+$/, `ajv 必须锁定精确版本，当前为「${ajv}」`);
   assert.ok(existsSync('package-lock.json'), '缺少 package-lock.json');
 
-  const pyproject = readFileSync('backend/pyproject.toml', 'utf8');
-  assert.match(pyproject, /jsonschema>=/, 'backend/pyproject.toml 未声明 jsonschema');
-  assert.ok(existsSync('backend/uv.lock'), '缺少 backend/uv.lock');
+  const pyproject = readFileSync('v1/backend/pyproject.toml', 'utf8');
+  assert.match(pyproject, /jsonschema>=/, 'v1/backend/pyproject.toml 未声明 jsonschema');
+  assert.ok(existsSync('v1/backend/uv.lock'), '缺少 v1/backend/uv.lock');
 });
 
 test('后端静态检查工具已声明且进入 CI 门禁', () => {
   // ruff 此前只有 [tool.ruff] 配置而没有声明依赖：本机能跑是因为解析到环境里已有的
   // 版本，但 CI 用 uv sync --frozen 时 uv run ruff 会失败。
-  const pyproject = readFileSync('backend/pyproject.toml', 'utf8');
-  assert.match(pyproject, /"ruff>=/, 'backend/pyproject.toml 未声明 ruff 依赖');
+  const pyproject = readFileSync('v1/backend/pyproject.toml', 'utf8');
+  assert.match(pyproject, /"ruff>=/, 'v1/backend/pyproject.toml 未声明 ruff 依赖');
 
   const workflow = readFileSync('.github/workflows/test.yml', 'utf8');
   for (const command of ['ruff check .', 'ruff format --check .']) {
@@ -341,7 +266,7 @@ test('CI 的契约检查 job 同时具备 Node 与 Python', () => {
   const job = workflow.slice(start);
   assert.match(job, /setup-node/, 'contract-check job 缺少 Node');
   assert.match(job, /setup-python/, 'contract-check job 缺少 Python');
-  assert.match(job, /contract-check\.mjs/, 'contract-check job 未运行契约检查');
+  assert.match(job, /check:contract/, 'contract-check job 未运行 v1 契约检查');
 });
 
 test('契约 Schema 合法、可编译且版本清单一致', () => {

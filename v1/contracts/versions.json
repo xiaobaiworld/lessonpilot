@@ -8,10 +8,10 @@
       "spec_file": "schemas/openapi.schema.json",
       "status": "implemented",
       "stage": "1A",
-      "note": "后端实际路由前缀为 /api/v1/*；前端契约由 web/*/src/api.ts 对齐 backend/app/schemas/*.py",
+      "note": "后端实际路由前缀为 /api/v1/*；前端契约由 web/*/src/api.ts 对齐 v1/backend/app/modules/*/schemas.py",
       "endpoints": 41,
       "checkTool": "node tools/endpoint-check.mjs",
-      "implementedBy": "backend/app/api/v1/ + v1/web/{admin,teacher}/src/api.ts"
+      "implementedBy": "v1/backend/app/modules/*/routes.py + v1/web/{admin,teacher}/src/api.ts"
     },
     "course_package": {
       "version": "2.0.0",
@@ -86,8 +86,8 @@
       "version": "1.0.0",
       "status": "implemented",
       "stage": "1A",
-      "migrations": "0011_fix_admin_auth_schema (当前 head)",
-      "note": "0012-0014 的 v1 表已随阶段 0-2 合并；本机以干净库初始化。"
+      "migrations": "c9b7a7b60da5 (唯一 v1 head)",
+      "note": "v1 后端只从空库执行单一初始迁移，不包含旧后端迁移链。"
     }
   },
   "supportMatrix": [
@@ -101,8 +101,8 @@
       "extensionStorage": "2.0.0",
       "webBuild": "1.0.0",
       "extensionBuild": "1.0.0",
-      "backendMigration": "0011_fix_admin_auth_schema",
-      "note": "阶段 7 真实验收通过后才可标 released。"
+      "backendMigration": "c9b7a7b60da5",
+      "note": "开发阶段以自动化测试通过作为验收门槛。"
     }
   ],
   "compatibility": {
@@ -117,6 +117,6 @@
   "checkTools": {
     "endpoint-check": "node tools/endpoint-check.mjs",
     "contract-check": "node tools/contract-check.mjs",
-    "module-check": "node tools/module-check.mjs"
+    "module-check": "node tools/v1-module-check.mjs"
   }
 }

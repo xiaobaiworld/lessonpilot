@@ -31,6 +31,7 @@ export const LessonPage: React.FC<Props> = ({
   onSignedOut,
 }) => {
   const [nodes, setNodes] = useState<ScriptNode[] | null>(null);
+  const [revision, setRevision] = useState<number | null>(null);
   const [dirty, setDirty] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -44,11 +45,13 @@ export const LessonPage: React.FC<Props> = ({
     try {
       const draft = await api.getDraft(lessonId);
       setNodes(draft.config.nodes);
+      setRevision(draft.revision);
       setDirty(false);
     } catch (err) {
       // 还没存过草稿是正常起点，不是错误
       if (err instanceof APIError && err.code === 'DRAFT_NOT_FOUND') {
         setNodes([]);
+        setRevision(null);
         setDirty(false);
         return;
       }
@@ -128,12 +131,26 @@ export const LessonPage: React.FC<Props> = ({
     setBusy(true);
     setError(null);
     try {
-      const draft = await api.saveDraft(lessonId, sorted);
+      const draft = await api.saveDraft(lessonId, sorted, revision);
       setNodes(draft.config.nodes);
+      setRevision(draft.revision);
       setDirty(false);
       setNotice(`已保存 ${draft.node_count} 个节点`);
     } catch (err) {
       // 后端整份校验，失败时本地内容保留，不清空用户的输入
+      setError(errorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const testPreview = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      await api.testPreview(lessonId);
+      setNotice('当前草稿的测试预览已通过');
+    } catch (err) {
       setError(errorMessage(err));
     } finally {
       setBusy(false);
@@ -168,6 +185,14 @@ export const LessonPage: React.FC<Props> = ({
               : `${nodes.length} 个互动节点${dirty ? '（有未保存改动）' : ''}`
           }
         >
+          <button
+            className="light-button"
+            type="button"
+            onClick={testPreview}
+            disabled={busy || dirty || revision === null}
+          >
+            测试预览
+          </button>
           <button
             className="dark-button"
             type="button"

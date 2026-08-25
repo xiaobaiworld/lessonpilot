@@ -70,20 +70,11 @@ FastAPI 是一个部署单元、一个事务边界，内部分六个业务模块
 - 对外错误使用稳定代码和 `request_id`，不返回内部异常、路径或堆栈。
 
 表归属见 [`design/v1/03-system-architecture.md` 第 7.0 节](design/v1/03-system-architecture.md#70-表归属)，
-机器可读副本在 `tools/module-check.mjs`。模型类仅作类型标注（例如把已认证的 `Teacher`
+机器可读副本在 `tools/v1-module-check.mjs`。模型类仅作类型标注（例如把已认证的 `Teacher`
 对象作为参数类型）不算跨模块访问；`select`、`session.get`、按列过滤和构造实例才算。
 
-当前 `backend/app/` 是冻结旧系统，仍按技术分层平铺，已有 9 处越界登记在 `KNOWN_VIOLATIONS`
-并附修法。它们作为现状反例和回归基线保留，不在旧目录实施结构重构；**旧系统新增越界仍会导致测试失败**：
-
-- 需要另一个模块的数据时，调用该模块的应用服务，不 import 它的模型或仓储；
-- 新增服务或仓储必须在 `FILE_OWNER` 登记模块归属；
-- 新增模型必须同时更新 `MODEL_OWNER` 和设计 03 第 7.0 节的表归属表；
-- 只有确因 P0、安全或生产可用性修复顺带消除旧越界时，才从 `KNOWN_VIOLATIONS` 删除该条；
-  白名单过期同样会失败，防止它继续扩张。
-
-v1 后端从 `v1/backend/app/modules/<domain>/` 干净建立，阶段 1 起按目录判定归属且**零豁免**；
-旧系统白名单不能复制到 v1。跨模块事务通过拥有方应用服务组合，约束本身不变。
+当前后端只位于 `v1/backend/app/modules/<domain>/`，按目录判定归属且零豁免。
+根 `backend/` 已删除；需要另一个模块的数据时调用该模块的应用服务，不恢复旧白名单。
 
 ## 6. 客户端边界
 
@@ -111,16 +102,15 @@ v1 后端从 `v1/backend/app/modules/<domain>/` 干净建立，阶段 1 起按�
 npm test                                  # 前端、插件与文档一致性测试
 node tools/doc-check.mjs                  # 编号可解析、链接、矩阵覆盖、权威唯一
 node tools/endpoint-check.mjs             # 端点清单与后端实现对照
-node tools/module-check.mjs               # 模块边界：跨模块表访问
-node tools/contract-check.mjs             # 契约 Schema、版本清单、夹具、双端一致
+node tools/v1-module-check.mjs            # v1 模块与表归属
+npm run check:contract                    # v1 契约 Schema 与版本清单
 node tools/secret-scan.mjs                # 仓库秘密扫描（SEC-SECRET-003）
 node tools/dependency-check.mjs           # 依赖锁定与约束（DEV-DEP-001 离线部分）
-cd backend && uv run ruff check .         # 后端 lint
-cd backend && uv run ruff format --check . # 后端格式
-node tools/module-check.mjs --list        # 查看表归属与文件归属登记
+cd v1/backend && uv run ruff check .      # 后端 lint
+cd v1/backend && uv run ruff format --check . # 后端格式
 node tools/build-traceability.mjs         # 重新生成追踪矩阵
 node tools/build-traceability.mjs --check # 校验矩阵与需求文档一致
-cd backend && uv run pytest               # 后端测试
+cd v1/backend && uv run pytest            # 后端测试
 ```
 
 新增或修改 HTTP 端点前先在
@@ -133,12 +123,10 @@ cd backend && uv run pytest               # 后端测试
 用 `npm test` 而不是直接写 `node --test tests/*.test.js`：测试同时有 `.test.js`（CommonJS）
 和 `.test.mjs`（ESM，文档一致性检查需要 `import` 工具模块），单个 glob 会静默漏掉一类。
 
-阶段 0 建立 `v1/` 后，根 `npm test` 必须升级为仓库总入口，同时覆盖冻结旧 Node 测试、文档检查和
-v1 Node/TypeScript 测试；测试发现本身必须有清单或反例自测。旧后端使用
-`cd backend && uv run pytest` 保留基线，v1 后端使用 `cd v1/backend && uv run pytest`；
-依赖、端点、模块、契约、秘密和发布清单检查必须显式扫描 v1，不能以旧目录全绿代替 v1 证据。
+根 `npm test` 是仓库总入口，覆盖 Node/TypeScript 与文档相关测试；后端使用
+`cd v1/backend && uv run pytest`。依赖、端点、模块、契约、秘密和发布清单检查都以 v1 为真源。
 
-依赖：Node 侧 `npm ci`（`ajv` 用于契约校验），后端 `uv sync`（含 `jsonschema`、`ruff`）。
+依赖：Node 侧 `npm ci`（`ajv` 用于契约校验），后端 `cd v1/backend && uv sync --frozen`。
 两侧都必须从仓库内解析，不依赖开发机全局安装（`DEV-DEP-001`）。
 这条踩过两次：`ajv` 曾只能从 `/Users/bai/node_modules` 解析，`ruff` 曾只有
 `[tool.ruff]` 配置而没有声明依赖 —— 两者在本机都能跑，在 CI 的 `--frozen` 环境都会失败。

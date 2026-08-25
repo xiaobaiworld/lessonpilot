@@ -12,12 +12,11 @@
 // 退出码 0 表示没有「清单外端点」。缺失（清单有、代码没有）在阶段 1–3 属正常进度，
 // 只报告不失败；多余（代码有、清单没有）说明实现绕过了契约设计，必须失败。
 
-import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 
 const INVENTORY = 'doc/design/v1/06-interface-contracts.md';
-const API_DIR = 'backend/app/api/v1';
-
 /** 清单表格行：`| 方法 | \`路径\` | 状态 | 依据 |` */
 const ROW_RE = /^\|\s*(GET|POST|PUT|PATCH|DELETE)\s*\|\s*`([^`]+)`\s*\|\s*([^|]+?)\s*\|\s*([^|]*?)\s*\|/gm;
 
@@ -58,24 +57,30 @@ export function readInventory(root = '.') {
   return rows;
 }
 
-/** 扫描 FastAPI 路由：返回 [{ verb, path, file }]。支持跨行装饰器。 */
+/** 从新版 FastAPI 的 OpenAPI 读取实际端点。 */
 export function readImplementation(root = '.') {
-  const dir = join(root, API_DIR);
-  if (!existsSync(dir)) return [];
+  const backend = join(root, 'v1/backend');
+  const script = [
+    'import json',
+    'from fastapi.testclient import TestClient',
+    'from app.main import app',
+    "print(json.dumps(TestClient(app).get('/openapi.json').json()['paths']))",
+  ].join(';');
+  const result = spawnSync('uv', ['run', 'python', '-c', script], {
+    cwd: backend,
+    encoding: 'utf8',
+    env: { ...process.env, APP_ENV: 'test', LOG_LEVEL: 'ERROR' },
+  });
+  if (result.status !== 0) throw new Error(result.stderr || '无法读取 v1 OpenAPI');
+  const paths = JSON.parse(result.stdout.trim().split('\n').at(-1));
   const found = [];
-  for (const name of readdirSync(dir).sort()) {
-    if (!name.endsWith('.py') || name === '__init__.py') continue;
-    const text = readFileSync(join(dir, name), 'utf8');
-
-    const routerArgs = text.match(/APIRouter\(([\s\S]*?)\)/);
-    const prefixMatch = routerArgs?.[1].match(/prefix="([^"]*)"/);
-    const prefix = prefixMatch ? prefixMatch[1] : '';
-
-    for (const m of text.matchAll(/@router\.(get|post|put|patch|delete)\(\s*"([^"]*)"/g)) {
+  for (const [path, operations] of Object.entries(paths)) {
+    for (const verb of Object.keys(operations)) {
+      if (!['get', 'post', 'put', 'patch', 'delete'].includes(verb)) continue;
       found.push({
-        verb: m[1].toUpperCase(),
-        path: `${prefix}${m[2]}` || '/',
-        file: name,
+        verb: verb.toUpperCase(),
+        path,
+        file: operations[verb].operationId,
       });
     }
   }
@@ -181,7 +186,7 @@ function main() {
     console.log('  旧路径已退役时应从依据列移除该标注。');
   }
 
-  const failures = extra.length + wrongState.length + staleLegacy.length;
+  const failures = missing.length + extra.length + wrongState.length + staleLegacy.length;
   if (failures === 0) {
     console.log('\n清单与实现一致：没有未登记端点，状态与旧路径标注准确。');
     return;

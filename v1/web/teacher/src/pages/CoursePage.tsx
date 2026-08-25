@@ -31,6 +31,7 @@ export const CoursePage: React.FC<Props> = ({
   const [accessCode, setAccessCode] = useState<string | null>(null);
   const [addingLesson, setAddingLesson] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [rightsAccepted, setRightsAccepted] = useState(false);
 
   const load = useCallback(async () => {
     setError(null);
@@ -65,6 +66,11 @@ export const CoursePage: React.FC<Props> = ({
     setError(null);
     setNotice(null);
     try {
+      if (!rightsAccepted) {
+        setError('发布前请确认你有权使用课程内容。');
+        return;
+      }
+      await api.attestRights(courseId);
       const pkg = await api.publish(courseId);
       setNotice(`已发布 ${pkg.lessons.length} 个课节，学生可用授权码下载。`);
       await load();
@@ -145,6 +151,16 @@ export const CoursePage: React.FC<Props> = ({
                 {busy ? '处理中…' : '发布课程'}
               </button>
             </SectionHead>
+
+            <label>
+              <input
+                type="checkbox"
+                checked={rightsAccepted}
+                onChange={(event) => setRightsAccepted(event.target.checked)}
+                disabled={locked}
+              />{' '}
+              我确认有权使用并发布这门课程中的内容
+            </label>
 
             {lessons.length === 0 ? (
               <p className="table-state">

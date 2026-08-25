@@ -1,1 +1,0 @@
-"""KnownMap teacher platform backend."""

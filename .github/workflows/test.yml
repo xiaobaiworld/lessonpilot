@@ -59,20 +59,20 @@ jobs:
           python-version: '3.13'
 
       - name: Install locked backend environment
-        working-directory: backend
+        working-directory: v1/backend
         run: |
           python -m pip install uv==0.11.12
           uv sync --frozen --all-groups
 
       # 静态检查在测试之前：lint 错误比测试失败更快定位，且 0F 要求零错误。
       - name: Lint backend
-        working-directory: backend
+        working-directory: v1/backend
         run: |
           uv run ruff check .
           uv run ruff format --check .
 
       - name: Run backend tests
-        working-directory: backend
+        working-directory: v1/backend
         run: uv run pytest
 
   contract-check:
@@ -92,14 +92,14 @@ jobs:
         run: npm ci
 
       - name: Install locked backend environment
-        working-directory: backend
+        working-directory: v1/backend
         run: |
           python -m pip install uv==0.11.12
           uv sync --frozen --all-groups
 
       # 四项：Schema 可编译、版本清单一致、夹具行为符合命名、Python/Node 结论一致。
       - name: Check cross-language contracts
-        run: node tools/contract-check.mjs
+        run: npm run check:contract
 
       - name: Check documents, endpoints and module boundaries
         run: |
@@ -124,5 +124,5 @@ jobs:
       # --skip-editable 跳过本项目自身：它不在 PyPI 上，没有可查的公告。
       # 不用 --strict：它会把这个必然的跳过当成失败。
       - name: Audit Python dependencies
-        working-directory: backend
+        working-directory: v1/backend
         run: uv run --with pip-audit pip-audit --skip-editable

@@ -53,10 +53,10 @@
                     └───────────┬──────────────┘
                                 │ HTTP + HttpOnly Cookie
                     ┌───────────▼──────────────┐
-                    │   后端  backend/          │
+                    │   后端  v1/backend/       │
                     │   FastAPI + SQLite        │
                     └───────────┬──────────────┘
-                                │ 授权码兑换（公开端点）
+                                │ 本机证明 + 授权码兑换
                     ┌───────────▼──────────────┐
    学生装插件    →   │  Chrome 扩展 v1/extension │
                     │  ↓ 注入                   │
@@ -68,7 +68,7 @@
 | --- | --- | --- |
 | 管理应用 | `v1/web/admin/` | 超级管理员创建教师账号、重置密码 |
 | 教师应用 | `v1/web/teacher/` | 课程与课节、导入字幕、编辑节点、发布、发授权码 |
-| 后端 | `backend/` | 认证、归属、草稿与发布、授权码、公开下载 |
+| 后端 | `v1/backend/` | 认证、归属、草稿、发布、授权、兑换和更新 |
 | 学生插件 | `v1/extension/` | 兑换授权码、本机课程库、在 B 站页面运行 |
 
 共享代码在 `v1/web/shared/`（HTTP 客户端、表单组件、字幕解析、时间轴）。
@@ -98,7 +98,7 @@
 ### 学生这一侧
 
 ```
-授权码 → 公开下载端点 → 课程包
+授权码 + 本机证明 → 学生兑换端点 → 课程包
           ↓ 落盘前完整复验
         本机课程库 chrome.storage.local['knownmapV1']
           ├─ installedCourses     已安装课程，锁定到某一次发布
@@ -165,13 +165,8 @@
 ## 6. 目录
 
 ```
-backend/            FastAPI + SQLite。认证、课程、发布、授权码
-  app/api/v1/         路由：协议、权限、错误映射
-  app/services/       业务逻辑与事务
-  app/repositories/   数据访问，不决定权限
-  alembic/            迁移
-
-v1/                 v1 系统（阶段 0 起在同仓库独立建立）
+v1/                 当前系统
+  backend/            FastAPI + SQLite；六个业务模块、单一初始迁移
   contracts/          JSON Schema 真源、版本清单、发布闸门
   web/shared/         HTTP 客户端、表单组件、字幕解析、时间轴
   web/admin/          管理应用
@@ -188,15 +183,15 @@ teacher-web/        v0.9.1 旧教师 Web，冻结。styles.css 是 v1 复用的�
 contracts/          阶段 0 JSON Schema 门禁（课程包、插件消息）
 
 tools/              发布、检查、扫描
-tests/              旧系统测试；tests/manual/v1/ 是真实浏览器验收
+tests/              仓库门禁与发布测试；后端测试在 v1/backend/tests/
 doc/                需求、设计、决策、经验、状态
 deploy/             生产脚本、备份与恢复演练、发布记录
 ```
 
-### 为什么旧系统还在
+### 旧后端如何回看
 
-`D-V1-012` 定了 v1 从干净初始化开始，不在原目录逐文件改造。旧系统冻结但保持
-可运行，直到 v1 完成真实切换与观察期。旧学生插件源码 `src/` 已删除，生产插件只从 `v1/extension/` 构建。
+根 `backend/` 已在空库闭环和全部测试通过后删除。旧实现由 Git 历史保存，不在
+工作树保留第二套可运行后端。
 
 `v1/web/*/src/index.css` 通过 `@import` 引用 `teacher-web/styles.css`——那是
 已上线验证的视觉真源，抄一份出来会立刻变成负债。阶段 8 时把它移进 `v1/`。
@@ -207,16 +202,16 @@ deploy/             生产脚本、备份与恢复演练、发布记录
 
 ```bash
 # 后端
-cd backend && uv sync && cp .env.example .env
+cd v1/backend && uv sync --frozen && cp .env.example .env
 uv run alembic upgrade head
-uv run uvicorn app.main:app --port 8000
+uv run uvicorn app.main:app --port 8001
 
 # 账号（密码只经环境变量，不入仓库）
 SEED_ADMIN_LOGIN_NAME=admin SEED_ADMIN_PASSWORD=<密码> \
   SEED_ADMIN_DISPLAY_NAME=超级管理员 uv run python -m app.seed admin
 
 # 两个应用
-cd v1 && npm install
+cd v1 && npm ci
 npm run dev:admin      # http://localhost:5173
 npm run dev:teacher    # http://localhost:5174
 
@@ -225,7 +220,7 @@ cd v1/extension && npm run build:local
 # chrome://extensions 开发者模式加载 dist/local
 ```
 
-`backend/.env` 的 `CORS_ORIGINS` 需包含 5173 和 5174，否则 Cookie 会话的跨源
+`v1/backend/.env` 的 `CORS_ORIGINS` 需包含 5173 和 5174，否则 Cookie 会话的跨源
 请求全部失败。该文件被 Git 忽略。
 
 ---
@@ -233,9 +228,9 @@ cd v1/extension && npm run build:local
 ## 8. 验证
 
 ```bash
-cd v1 && npm test          # v1 单元与集成
-cd backend && uv run pytest
-npm test                   # 旧系统回归
+cd v1 && npm test          # Web 与插件单元/集成
+cd v1/backend && uv run pytest
+npm test                   # 仓库总测试
 npm run check              # 契约、模块边界、端点、密钥、依赖
 ```
 

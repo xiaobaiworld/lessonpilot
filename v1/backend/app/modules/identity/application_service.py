@@ -1,209 +1,193 @@
-"""v1 Application Service layer - Stage 1E
+import secrets
+from datetime import datetime, timezone
+from uuid import uuid4
 
-Responsibility:
-- Encapsulate business logic
-- Own transactions
-- Provide stable operations for routes and cross-module callers
-- Route only does protocol/permission/error mapping
+from sqlalchemy.orm import Session
 
-Pattern: Routes call services, not repositories directly.
-Services call services for cross-module operations.
-Repositories do not decide permissions.
-"""
+from app.infrastructure.security.primitives import PasswordManager, TimeManager, TokenDigester
+from app.modules.identity import repository
+from app.modules.identity.models import (
+    AdminAccount,
+    AdminSession,
+    AdminStatus,
+    TeacherAccount,
+    TeacherSession,
+    TeacherStatus,
+)
 
-from typing import Optional, Tuple
-from datetime import datetime, timezone, timedelta
-from .models import AdminAccount, AdminSession, TeacherAccount, TeacherSession, Workspace
-from infrastructure.security.primitives import PasswordManager, TokenDigester, TimeManager
+_PASSWORD_MANAGER = PasswordManager()
+_DUMMY_PASSWORD_HASH = _PASSWORD_MANAGER.hash_password(secrets.token_urlsafe(32))
 
 
 class IdentityApplicationService:
-    """v1 identity domain application service.
-
-    Encapsulates all identity operations:
-    - Admin login, logout, credential reset
-    - Teacher login, logout, credential reset
-    - Session lifecycle management
-    - Workspace binding to teacher
-    """
-
-    def __init__(self, session_factory, password_manager: PasswordManager, token_digester: TokenDigester):
-        self.session_factory = session_factory
-        self.password_manager = password_manager
-        self.token_digester = token_digester
-
-    def admin_login(self, email: str, password: str) -> Tuple[bool, Optional[str], Optional[dict]]:
-        """Authenticate admin by email/password.
-
-        Returns (success, error, session_data).
-        session_data: { admin_id, token, expires_at }
-        """
-        with self.session_factory() as db:
-            admin = db.query(AdminAccount).filter_by(email=email).first()
-
-            if not admin or not self.password_manager.verify_password(password, admin.password_hash):
-                return False, "Invalid email or password", None
-
-            if admin.status != "active":
-                return False, f"Account is {admin.status}", None
-
-            # Generate session
-            token_hex, token_digest = self.token_digester.generate_token()
-            expires_at = TimeManager.future(hours=24)
-
-            session = AdminSession(
-                id=self._generate_id(),
-                admin_id=admin.id,
-                token_digest=token_digest,
-                expires_at=expires_at,
-            )
-            db.add(session)
-            db.commit()
-
-            return True, None, {
-                "admin_id": admin.id,
-                "token": token_hex,  # Return once; never stored
-                "expires_at": expires_at.isoformat(),
-            }
-
-    def admin_logout(self, session_id: str) -> Tuple[bool, Optional[str]]:
-        """Revoke an admin session."""
-        with self.session_factory() as db:
-            session = db.query(AdminSession).filter_by(id=session_id).first()
-            if not session:
-                return False, "Session not found"
-
-            session.revoked_at = TimeManager.utc_now()
-            db.commit()
-            return True, None
-
-    def teacher_login(self, login_name: str, password: str) -> Tuple[bool, Optional[str], Optional[dict]]:
-        """Authenticate teacher by login_name/password.
-
-        Returns (success, error, session_data).
-        session_data: { teacher_id, token, expires_at }
-        """
-        with self.session_factory() as db:
-            teacher = db.query(TeacherAccount).filter_by(login_name=login_name).first()
-
-            if not teacher or not self.password_manager.verify_password(password, teacher.password_hash):
-                return False, "Invalid login or password", None
-
-            if teacher.status != "active":
-                return False, f"Account is {teacher.status}", None
-
-            # Generate session
-            token_hex, token_digest = self.token_digester.generate_token()
-            expires_at = TimeManager.future(hours=24)
-
-            session = TeacherSession(
-                id=self._generate_id(),
-                teacher_id=teacher.id,
-                token_digest=token_digest,
-                expires_at=expires_at,
-            )
-            db.add(session)
-            db.commit()
-
-            return True, None, {
-                "teacher_id": teacher.id,
-                "token": token_hex,  # Return once; never stored
-                "expires_at": expires_at.isoformat(),
-            }
-
-    def teacher_logout(self, session_id: str) -> Tuple[bool, Optional[str]]:
-        """Revoke a teacher session."""
-        with self.session_factory() as db:
-            session = db.query(TeacherSession).filter_by(id=session_id).first()
-            if not session:
-                return False, "Session not found"
-
-            session.revoked_at = TimeManager.utc_now()
-            db.commit()
-            return True, None
-
-    def reset_teacher_password(self, teacher_id: str, new_password: str) -> Tuple[bool, Optional[str]]:
-        """Reset teacher password and invalidate all existing sessions.
-
-        Changes credential_version to immediately expire all sessions.
-        """
-        with self.session_factory() as db:
-            teacher = db.query(TeacherAccount).filter_by(id=teacher_id).first()
-            if not teacher:
-                return False, "Teacher not found"
-
-            # Hash new password
-            new_hash = self.password_manager.hash_password(new_password)
-
-            # Invalidate all sessions by bumping credential_version
-            teacher.password_hash = new_hash
-            teacher.credential_version += 1
-            teacher.updated_at = TimeManager.utc_now()
-
-            # Revoke all existing sessions
-            for session in teacher.sessions:
-                if session.revoked_at is None:
-                    session.revoked_at = TimeManager.utc_now()
-
-            db.commit()
-            return True, None
-
-    def verify_teacher_session(self, teacher_id: str, session_id: str, token_digest: str) -> Tuple[bool, Optional[str]]:
-        """Verify a teacher session token.
-
-        Returns (valid, error).
-        Checks: session exists, not expired, not revoked, token matches.
-        """
-        with self.session_factory() as db:
-            session = db.query(TeacherSession).filter_by(
-                id=session_id,
-                teacher_id=teacher_id,
-            ).first()
-
-            if not session:
-                return False, "Session not found"
-
-            if TimeManager.is_expired(session.expires_at):
-                return False, "Session expired"
-
-            if session.revoked_at is not None:
-                return False, "Session revoked"
-
-            if not self.token_digester.verify_token("", token_digest):  # Assuming token digest passed
-                return False, "Invalid token"
-
-            return True, None
+    def __init__(self, session: Session, session_secret: str, ttl_seconds: int = 86400):
+        self.session = session
+        self.session_secret = session_secret
+        self.passwords = _PASSWORD_MANAGER
+        self.tokens = TokenDigester(self.session_secret.encode("utf-8"))
+        self.ttl_seconds = ttl_seconds
+        self._dummy_password_hash = _DUMMY_PASSWORD_HASH
 
     @staticmethod
-    def _generate_id() -> str:
-        """Generate a v1 UUID."""
-        import uuid
-        return str(uuid.uuid4())
+    def normalize_login_name(login_name: str) -> str:
+        return login_name.strip()
 
+    def seed_admin(self, login_name: str, display_name: str, password: str) -> AdminAccount:
+        normalized = self.normalize_login_name(login_name)
+        if existing := repository.get_admin_by_login_name(self.session, normalized):
+            return existing
+        admin = AdminAccount(
+            id=str(uuid4()),
+            login_name=normalized,
+            display_name=display_name.strip(),
+            password_hash=self.passwords.hash_password(password),
+            status=AdminStatus.active,
+        )
+        self.session.add(admin)
+        self.session.commit()
+        return admin
 
-class OperationAuditService:
-    """v1 operation audit service.
+    def admin_login(self, login_name: str, password: str) -> tuple[AdminAccount, str] | None:
+        admin = repository.get_admin_by_login_name(
+            self.session, self.normalize_login_name(login_name)
+        )
+        stored_hash = admin.password_hash if admin else self._dummy_password_hash
+        password_matches = self.passwords.verify_password(password, stored_hash)
+        if not admin or admin.status != AdminStatus.active or not password_matches:
+            return None
+        raw_token, digest = self.tokens.generate_token()
+        self.session.add(
+            AdminSession(
+                id=str(uuid4()),
+                admin_id=admin.id,
+                token_digest=digest,
+                credential_version=admin.credential_version,
+                expires_at=TimeManager.future(hours=self.ttl_seconds / 3600),
+            )
+        )
+        self.session.commit()
+        return admin, raw_token
 
-    Records immutable audit facts for:
-    - Admin operations
-    - Teacher operations
-    - Sensitive state changes
-    """
+    def teacher_login(self, login_name: str, password: str) -> tuple[TeacherAccount, str] | None:
+        teacher = repository.get_teacher_by_login_name(
+            self.session, self.normalize_login_name(login_name)
+        )
+        stored_hash = teacher.password_hash if teacher else self._dummy_password_hash
+        password_matches = self.passwords.verify_password(password, stored_hash)
+        if not teacher or teacher.status != TeacherStatus.active or not password_matches:
+            return None
+        raw_token, digest = self.tokens.generate_token()
+        self.session.add(
+            TeacherSession(
+                id=str(uuid4()),
+                teacher_id=teacher.id,
+                token_digest=digest,
+                credential_version=teacher.credential_version,
+                expires_at=TimeManager.future(hours=self.ttl_seconds / 3600),
+            )
+        )
+        self.session.commit()
+        return teacher, raw_token
 
-    def __init__(self, session_factory):
-        self.session_factory = session_factory
+    def resolve_admin(self, raw_token: str | None) -> AdminAccount | None:
+        if not raw_token:
+            return None
+        try:
+            digest = self.tokens.digest_only(raw_token)
+        except Exception:  # noqa: BLE001 - 非法 Cookie 统一按未登录处理
+            return None
+        row = repository.get_admin_session_by_digest(self.session, digest)
+        if not row or row.revoked_at or TimeManager.is_expired(row.expires_at):
+            return None
+        admin = row.account
+        if admin.status != AdminStatus.active or row.credential_version != admin.credential_version:
+            return None
+        return admin
 
-    def record_login(self, actor_type: str, actor_id: str, success: bool, error: Optional[str] = None):
-        """Record a login attempt (admin or teacher)."""
-        # Placeholder: in real implementation, writes to OperationAudit table
-        pass
+    def resolve_teacher(self, raw_token: str | None) -> TeacherAccount | None:
+        if not raw_token:
+            return None
+        try:
+            digest = self.tokens.digest_only(raw_token)
+        except Exception:  # noqa: BLE001 - 非法 Cookie 统一按未登录处理
+            return None
+        row = repository.get_teacher_session_by_digest(self.session, digest)
+        if not row or row.revoked_at or TimeManager.is_expired(row.expires_at):
+            return None
+        teacher = row.account
+        if (
+            teacher.status != TeacherStatus.active
+            or row.credential_version != teacher.credential_version
+        ):
+            return None
+        return teacher
 
-    def record_password_reset(self, admin_id: str, target_teacher_id: str):
-        """Record that an admin reset a teacher's password."""
-        # Placeholder
-        pass
+    def revoke_admin_session(self, raw_token: str | None) -> None:
+        row = self._admin_session(raw_token)
+        if row:
+            row.revoked_at = datetime.now(timezone.utc)
+            self.session.commit()
 
-    def record_account_state_change(self, target_id: str, old_status: str, new_status: str):
-        """Record account suspension/recovery/archival."""
-        # Placeholder
-        pass
+    def revoke_teacher_session(self, raw_token: str | None) -> None:
+        row = self._teacher_session(raw_token)
+        if row:
+            row.revoked_at = datetime.now(timezone.utc)
+            self.session.commit()
+
+    def _admin_session(self, raw_token: str | None) -> AdminSession | None:
+        if not raw_token:
+            return None
+        try:
+            return repository.get_admin_session_by_digest(
+                self.session, self.tokens.digest_only(raw_token)
+            )
+        except Exception:  # noqa: BLE001
+            return None
+
+    def _teacher_session(self, raw_token: str | None) -> TeacherSession | None:
+        if not raw_token:
+            return None
+        try:
+            return repository.get_teacher_session_by_digest(
+                self.session, self.tokens.digest_only(raw_token)
+            )
+        except Exception:  # noqa: BLE001
+            return None
+
+    def create_teacher(self, login_name: str, display_name: str) -> tuple[TeacherAccount, str]:
+        normalized = self.normalize_login_name(login_name)
+        if repository.get_teacher_by_login_name(self.session, normalized):
+            raise ValueError("TEACHER_LOGIN_NAME_EXISTS")
+        temporary_password = secrets.token_urlsafe(18)
+        teacher = TeacherAccount(
+            id=str(uuid4()),
+            login_name=normalized,
+            display_name=display_name.strip(),
+            password_hash=self.passwords.hash_password(temporary_password),
+            status=TeacherStatus.active,
+        )
+        self.session.add(teacher)
+        self.session.flush()
+        return teacher, temporary_password
+
+    def reset_teacher_password(self, teacher_id: str) -> tuple[TeacherAccount, str] | None:
+        teacher = repository.get_teacher_by_id(self.session, teacher_id)
+        if not teacher:
+            return None
+        temporary_password = secrets.token_urlsafe(18)
+        teacher.password_hash = self.passwords.hash_password(temporary_password)
+        teacher.credential_version += 1
+        teacher.updated_at = datetime.now(timezone.utc)
+        self.session.commit()
+        return teacher, temporary_password
+
+    def set_teacher_status(self, teacher_id: str, status: TeacherStatus) -> TeacherAccount | None:
+        teacher = repository.get_teacher_by_id(self.session, teacher_id)
+        if not teacher:
+            return None
+        teacher.status = status
+        if status != TeacherStatus.active:
+            teacher.credential_version += 1
+        teacher.updated_at = datetime.now(timezone.utc)
+        self.session.commit()
+        return teacher

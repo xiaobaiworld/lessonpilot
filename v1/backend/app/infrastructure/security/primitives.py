@@ -16,10 +16,10 @@ import hashlib
 import hmac
 import time
 from datetime import datetime, timedelta, timezone
-from typing import Tuple
 
 try:
     import argon2
+
     HAS_ARGON2 = True
 except ImportError:
     HAS_ARGON2 = False
@@ -27,6 +27,7 @@ except ImportError:
 
 class SecurityError(Exception):
     """Base security primitive error."""
+
     pass
 
 
@@ -63,10 +64,10 @@ class TokenDigester:
     def __init__(self, secret: bytes | None = None):
         """Initialize with a stable secret (from environment or provided)."""
         if secret is None:
-            secret_str = os.getenv('V1_SESSION_SECRET')
+            secret_str = os.getenv("V1_SESSION_SECRET")
             if not secret_str:
                 raise SecurityError("V1_SESSION_SECRET not set")
-            secret = secret_str.encode('utf-8')
+            secret = secret_str.encode("utf-8")
         elif not isinstance(secret, bytes):
             raise SecurityError("Secret must be bytes or None (loads from env)")
 
@@ -125,6 +126,8 @@ class TimeManager:
     @staticmethod
     def is_expired(expiry_time: datetime) -> bool:
         """Check if a datetime has passed."""
+        if expiry_time.tzinfo is None:
+            expiry_time = expiry_time.replace(tzinfo=timezone.utc)
         return TimeManager.utc_now() > expiry_time
 
 
@@ -144,9 +147,9 @@ class RandomGenerator:
 
 # Module exports for cross-module use
 __all__ = [
-    'PasswordManager',
-    'TokenDigester',
-    'TimeManager',
-    'RandomGenerator',
-    'SecurityError',
+    "PasswordManager",
+    "TokenDigester",
+    "TimeManager",
+    "RandomGenerator",
+    "SecurityError",
 ]

@@ -1,7 +1,13 @@
 node_modules/
+.venv/
+.pytest_cache/
+.ruff_cache/
+__pycache__/
 dist/
 build/
 *.tsbuildinfo
+*.db
+*.sqlite*
 .DS_Store
 .env
 .env.local

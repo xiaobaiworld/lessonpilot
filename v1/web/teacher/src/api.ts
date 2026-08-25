@@ -2,7 +2,7 @@ import { APIClient } from '@v1/web/shared';
 
 /**
  * 与后端 schema 对齐：
- * backend/app/schemas/{auth,course,lesson,access_code}.py
+ * v1/backend/app/modules 下各模块的 schemas.py
  * 会话走 HttpOnly Cookie，前端不持有 token。
  */
 
@@ -58,6 +58,7 @@ export interface ScriptNode {
 
 export interface ScriptDraft {
   schema_version: number;
+  revision: number;
   config: { nodes: ScriptNode[] };
   lesson_id: string;
   node_count: number;
@@ -65,28 +66,26 @@ export interface ScriptDraft {
 }
 
 /** 发布返回的是课程包本身 */
-export interface CoursePackage {
-  schemaVersion: 2;
-  courseId: string;
-  title: string;
-  lessons: { lessonId: string; title: string; nodes: unknown[] }[];
-  updatedAt: string;
+export interface CourseRelease {
+  id: string;
+  course_id: string;
+  release_number: number;
+  lessons: { lesson_id: string; title: string }[];
 }
 
 export interface AccessCode {
   access_code: string;
-  course_id: string;
-  course_title: string;
-  code_type: 'short_term' | 'long_term';
+  id: string;
+  display_tail: string;
+  status: string;
   created_at: string;
-  expires_at: string | null;
 }
 
 export class TeacherAPI {
   constructor(private http: APIClient) {}
 
   async login(loginName: string, password: string): Promise<Teacher> {
-    const res = await this.http.post<{ teacher: Teacher }>('/api/v1/auth/login', {
+    const res = await this.http.post<{ teacher: Teacher }>('/api/v1/teacher/auth/login', {
       login_name: loginName,
       password,
     });
@@ -94,12 +93,12 @@ export class TeacherAPI {
   }
 
   async me(): Promise<Teacher> {
-    const res = await this.http.get<{ teacher: Teacher }>('/api/v1/auth/me');
+    const res = await this.http.get<{ teacher: Teacher }>('/api/v1/teacher/auth/me');
     return res.teacher;
   }
 
   logout(): Promise<{ logged_out: boolean }> {
-    return this.http.post('/api/v1/auth/logout');
+    return this.http.post('/api/v1/teacher/auth/logout');
   }
 
   async listCourses(): Promise<CourseSummary[]> {
@@ -134,26 +133,46 @@ export class TeacherAPI {
   }
 
   /** 整份覆盖保存。后端做原子校验，任一节点不合法就整份拒绝 */
-  saveDraft(lessonId: string, nodes: ScriptNode[]): Promise<ScriptDraft> {
+  saveDraft(
+    lessonId: string,
+    nodes: ScriptNode[],
+    revision: number | null
+  ): Promise<ScriptDraft> {
     return this.http.put<ScriptDraft>(`/api/v1/teacher/lessons/${lessonId}/draft`, {
       schema_version: 1,
+      revision,
       config: { nodes },
     });
   }
 
-  publish(courseId: string): Promise<CoursePackage> {
-    return this.http.post<CoursePackage>(
-      `/api/v1/teacher/courses/${courseId}/publish`
+  async testPreview(lessonId: string): Promise<void> {
+    const preview = await this.http.post<{ id: string }>(
+      `/api/v1/teacher/lessons/${lessonId}/preview-sessions`,
+      {}
     );
+    // ponytail: 开发阶段按测试回合确认；接真实播放器后由插件回传 succeeded。
+    await this.http.post(`/api/v1/teacher/preview-sessions/${preview.id}/end`, {
+      succeeded: true,
+    });
   }
 
-  createAccessCode(
-    courseId: string,
-    codeType: 'short_term' | 'long_term' = 'long_term'
-  ): Promise<AccessCode> {
-    return this.http.post<AccessCode>(
-      `/api/v1/teacher/courses/${courseId}/access-codes`,
-      { code_type: codeType }
-    );
+  attestRights(courseId: string): Promise<{ id: string }> {
+    return this.http.post(`/api/v1/teacher/courses/${courseId}/rights-attestation`, {
+      statement_version: '1',
+      accepted: true,
+    });
+  }
+
+  publish(courseId: string): Promise<CourseRelease> {
+    return this.http.post<CourseRelease>(`/api/v1/teacher/courses/${courseId}/releases`, {
+      idempotency_key: crypto.randomUUID(),
+    });
+  }
+
+  createAccessCode(courseId: string): Promise<AccessCode> {
+    return this.http.post<AccessCode>('/api/v1/teacher/access-codes', {
+      idempotency_key: crypto.randomUUID(),
+      grants: [{ course_id: courseId, scope: 'course' }],
+    });
   }
 }

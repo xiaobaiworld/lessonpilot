@@ -1,6 +1,6 @@
 import { APIClient } from '@v1/web/shared';
 
-/** 与 backend/app/schemas/admin.py 对齐 */
+/** 与 v1/backend/app/modules/identity/schemas.py 对齐 */
 
 export interface Admin {
   id: string;
