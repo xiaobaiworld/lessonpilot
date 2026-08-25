@@ -1,170 +1,247 @@
-/* 色板取自 teacher-web/styles.css，与教师端和学习窗口一致 */
-
-body {
-  width: 360px;
-  margin: 0;
-  padding: 16px;
-  background: #f5f1e7;
-  color: #16251f;
-  font-family: "Avenir Next", "PingFang SC", "Microsoft YaHei", sans-serif;
-  font-size: 13px;
-  line-height: 1.6;
+:root {
+  color-scheme: light;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-.head {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  margin-bottom: 16px;
+* {
+  box-sizing: border-box;
+}
+
+body {
+  width: 380px;
+  min-height: 560px;
+  margin: 0;
+  color: #18191c;
+  background: #f6f7f8;
+}
+
+.shell {
+  min-height: 560px;
+  padding: 18px;
 }
 
 .brand {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.brand img {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+}
+
+.brand div {
+  display: grid;
+  flex: 1;
+}
+
+.brand strong {
   font-size: 16px;
 }
 
-.brand-mark {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
+.brand div span {
+  color: #9499a0;
+  font-size: 12px;
 }
 
-/* K 粉笔黄、M 赭石红，见品牌规范 */
-.brand .k {
-  color: #d9a51e;
-}
-.brand .m {
-  color: #a9654e;
+.role-badge {
+  padding: 5px 9px;
+  border-radius: 999px;
+  color: #087443;
+  background: #e7f8ef;
+  font-size: 12px;
+  font-weight: 700;
 }
 
-.head small {
-  color: #4f6259;
+.intro {
+  padding: 16px;
+  border-radius: 16px;
+  color: #fff;
+  background: linear-gradient(140deg, #17202a, #0d4f5e);
+  box-shadow: 0 12px 26px rgba(20, 58, 67, 0.18);
+}
+
+.eyebrow {
+  margin: 0 0 5px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+
+.intro h1 {
+  margin: 0;
+  font-size: 21px;
+  line-height: 1.3;
+}
+
+.intro > p:last-child {
+  margin: 8px 0 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 13px;
+  line-height: 1.55;
 }
 
 .redeem {
-  display: flex;
+  display: grid;
   gap: 8px;
-  margin-bottom: 16px;
+  margin-top: 16px;
+}
+
+.redeem-label {
+  color: #61666d;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .redeem-input {
-  flex: 1;
-  min-width: 0;
-  height: 36px;
-  padding: 0 11px;
-  border: 1px solid #b9beb5;
-  border-radius: 4px;
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #c9ccd0;
+  border-radius: 10px;
+  outline: none;
   background: #fff;
-  font: inherit;
+  font: 14px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+  text-transform: uppercase;
 }
 
 .redeem-input:focus {
-  outline: 2px solid #1d5c43;
-  outline-offset: -1px;
+  border-color: #00aeec;
+  box-shadow: 0 0 0 3px rgba(0, 174, 236, 0.14);
 }
 
-.primary {
-  min-height: 36px;
-  padding: 0 14px;
+.primary,
+.update-button {
+  padding: 12px;
   border: 0;
-  border-radius: 6px;
-  background: #16251f;
-  color: #fffdf8;
-  font: inherit;
-  font-weight: 700;
+  border-radius: 10px;
+  color: #fff;
+  background: #00aeec;
   cursor: pointer;
+  font: 700 14px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  text-align: center;
 }
 
-.primary:disabled {
+.primary:hover,
+.update-button:hover {
+  background: #0098d1;
+}
+
+.primary:disabled,
+.update-button:disabled {
   opacity: 0.55;
-  cursor: not-allowed;
+  cursor: wait;
 }
 
-.error {
-  margin: 0 0 14px;
-  padding: 10px 12px;
-  background: #f6e2de;
-  color: #a74232;
-  border-radius: 4px;
-}
-
-.notice {
-  margin: 14px 0 0;
-  padding: 10px 12px;
-  background: #f5e7b0;
-  color: #6b4f04;
-  border-radius: 4px;
+.status {
+  min-height: 20px;
+  margin: 8px 0 4px;
+  color: #61666d;
   font-size: 12px;
+  line-height: 1.5;
+}
+
+.courses {
+  margin-top: 14px;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.section-heading h2,
+.teacher-entry h2,
+.plugin-update h2 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.section-heading span {
+  color: #9499a0;
+  font-size: 11px;
 }
 
 .empty {
   margin: 0;
-  padding: 28px 16px;
-  border: 1px dashed #aebbb3;
-  border-radius: 6px;
-  color: #69786f;
-  text-align: center;
+  padding: 13px;
+  border: 1px dashed #c9ccd0;
+  border-radius: 12px;
+  color: #9499a0;
+  background: #fff;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
-.course {
-  margin-bottom: 14px;
-  padding: 14px;
-  border: 1px solid #16251f;
-  border-radius: 6px;
-  background: #fffdf8;
+.course-list {
+  display: grid;
+  gap: 10px;
+}
+
+.course-card {
+  display: grid;
+  gap: 7px;
+  padding: 13px;
+  border: 1px solid #e3e5e7;
+  border-radius: 12px;
+  background: #fff;
 }
 
 .course-title {
-  display: block;
-  margin-bottom: 6px;
-  font-size: 15px;
+  font-size: 13px;
+  font-weight: 800;
 }
 
 .course-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 10px;
-  color: #4f6259;
+  gap: 8px;
+  color: #61666d;
   font-size: 11px;
 }
 
-.course-code {
+.course-code,
+.lesson-count {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 .bar {
   height: 5px;
-  margin-bottom: 12px;
-  border-radius: 3px;
-  background: #e5e2d8;
   overflow: hidden;
+  border-radius: 3px;
+  background: #e3e5e7;
 }
 
 .bar-fill {
   height: 100%;
-  background: #1d5c43;
+  background: #00aeec;
 }
 
 .lessons {
-  margin: 0 0 10px;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .lesson {
   display: flex;
-  gap: 10px;
   align-items: baseline;
   justify-content: space-between;
+  gap: 10px;
   padding: 6px 0;
-  border-top: 1px solid #e1e0d7;
+  border-top: 1px solid #eef0f2;
 }
 
 .lesson-link {
-  color: #1d5c43;
+  color: #008ac5;
+  font-size: 12px;
+  line-height: 1.45;
   text-decoration: none;
 }
 
@@ -172,32 +249,30 @@ body {
   text-decoration: underline;
 }
 
-.lesson.done .lesson-link {
-  color: #69786f;
+.lesson.done .lesson-link,
+.lesson-count {
+  color: #9499a0;
 }
 
 .lesson-count {
-  color: #4f6259;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  flex: none;
   font-size: 11px;
 }
 
 .course-actions {
   display: flex;
   gap: 14px;
-  padding-top: 10px;
-  border-top: 1px solid #e1e0d7;
+  padding-top: 7px;
+  border-top: 1px solid #eef0f2;
 }
 
 .link-button {
   padding: 0;
   border: 0;
   background: transparent;
-  color: #1d5c43;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 700;
+  color: #008ac5;
   cursor: pointer;
+  font: 700 12px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 .link-button:hover {
@@ -205,6 +280,81 @@ body {
 }
 
 .link-button.danger {
-  color: #a74232;
   margin-left: auto;
+  color: #d14343;
+}
+
+.teacher-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 13px;
+  border: 1px solid #e3e5e7;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.teacher-entry .eyebrow,
+.plugin-update .eyebrow {
+  color: #9499a0;
+}
+
+.teacher-entry a {
+  flex: none;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: #18191c;
+  background: #eef0f2;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.teacher-entry a:hover {
+  background: #e3e5e7;
+}
+
+.plugin-update {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px 14px;
+  margin-top: 12px;
+  padding: 13px;
+  border: 1px solid #e3e5e7;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.plugin-update .update-button {
+  padding: 9px 11px;
+  font-size: 12px;
+}
+
+.update-status {
+  grid-column: 1 / -1;
+  min-height: 18px;
+  margin: 0;
+  color: #61666d;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.error {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: #a74232;
+  background: #f6e2de;
+}
+
+.notice {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: #6b4f04;
+  background: #f5e7b0;
+  font-size: 12px;
 }

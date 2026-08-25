@@ -1,13 +1,13 @@
 <!doctype html><meta charset="utf-8"><title>销售页响应式与节点数实测（WEB-04、D-005）</title>
 <h1 style="font:600 15px system-ui">销售页响应式与节点数实测</h1>
 <p style="font:13px system-ui;max-width:62em">
-在真实浏览器里量 <code>teacher-web/forsales.html</code>，检查 1440 / 900 / 375px 三档
+在真实浏览器里量 <code>v1/public-site/index.html</code>，检查 1440 / 900 / 375px 三档
 是否有元素逃出视口（WEB-04），以及节点类型是否仍是契约规定的四种（D-005）。<br>
 时间线在窄屏本来就设计成横向滚动（<code>.timeline-editor{overflow-x:auto}</code>），
 所以祖先里有横向滚动容器的元素不计入溢出，否则会把既有设计误判成缺陷。<br>
 需要本地起静态服务后打开，例如 <code>python3 -m http.server 4173</code>。
 期望三行都是「越界元素=无」，且两个数量都是 4。</p><pre id="out">checking…</pre>
-<iframe id="f" src="../../teacher-web/forsales.html" style="width:375px;height:3000px;border:0"></iframe>
+<iframe id="f" src="../../v1/public-site/index.html" style="width:375px;height:3000px;border:0"></iframe>
 <script>
 const L=[];const f=document.getElementById('f');
 f.addEventListener('load',()=>setTimeout(()=>{

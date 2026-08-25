@@ -24,13 +24,6 @@ jobs:
         with:
           node-version: '22'
 
-      # The workspace page loads the shared contract from teacher-web/shared/, which
-      # is assembled rather than committed (D-010). Some tests assert the assembler
-      # and the page agree on that file list, so build it before running them.
-      - name: Assemble shared contract
-        run: node tools/assemble-workspace.js
-
-      # 契约校验依赖（ajv）从仓库内解析，不能依赖开发机全局 node_modules。
       - name: Install dependencies
         run: npm ci
 
@@ -84,22 +77,13 @@ jobs:
         with:
           node-version: '22'
 
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
-        with:
-          python-version: '3.13'
-
       - name: Install locked Node environment
         run: npm ci
 
-      - name: Install locked backend environment
-        working-directory: backend
+      - name: Check v1 contracts and version matrix
         run: |
-          python -m pip install uv==0.11.12
-          uv sync --frozen --all-groups
-
-      # 四项：Schema 可编译、版本清单一致、夹具行为符合命名、Python/Node 结论一致。
-      - name: Check cross-language contracts
-        run: node tools/contract-check.mjs
+          node v1/contracts/check-contracts.mjs
+          node v1/contracts/check-versions.mjs
 
       - name: Check documents, endpoints and module boundaries
         run: |

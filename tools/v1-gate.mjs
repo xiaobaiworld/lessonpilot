@@ -11,7 +11,7 @@
  * - doc-check: doc/INDEX.md current-authority section consistency
  * - secret-scan: no hardcoded secrets, credentials, or PII
  *
- * This script verifies that both legacy and v1 code paths are covered.
+ * This script verifies the current V1 code paths.
  * It does not run tests; use `npm test` or `pytest` for those.
  */
 
@@ -23,11 +23,6 @@ const checks = [
     name: 'endpoint-check',
     tool: 'node tools/endpoint-check.mjs',
     description: 'HTTP endpoint inventory vs backend implementation',
-  },
-  {
-    name: 'contract-check',
-    tool: 'node tools/contract-check.mjs',
-    description: 'JSON Schema contracts (course package, messages, storage)',
   },
   {
     name: 'module-check',

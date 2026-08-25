@@ -1,9 +1,9 @@
 # KnownMap 文档索引
 
-最近审计：2026-08-24
+最近审计：2026-08-25
 
 当前阶段：v1 已完成生产切换并进入新功能开发；v1 需求现为 `1.0.3`，设计 07 已按
-`FR-LIB-014` 增补学生插件使用说明页。
+`FR-LIB-014` 增补学生插件使用说明页；设计 10 已建立新增节点统一生命周期和接口边界。
 
 其它 Agent 开始工作时先读本文件，再按「当前权威」顺序阅读。**只有「当前权威」段的文档指导开发。**
 「当前证据」只证明 v0.9.1 现状，不定义 v1 目标；「历史归档」只用于追溯。
@@ -40,10 +40,11 @@
 | 07 | [`design/v1/07-product-interaction-state.md`](design/v1/07-product-interaction-state.md) | 页面职责、教师/学生流程、交互状态和失败恢复 |
 | 08 | [`design/v1/08-security-operations-design.md`](design/v1/08-security-operations-design.md) | 权限、秘密、输入、隐私、发布、备份和恢复边界 |
 | 09 | [`design/v1/09-migration-cutover-design.md`](design/v1/09-migration-cutover-design.md) | 旧数据处理、干净初始化、切换、回滚和旧入口退役 |
+| 10 | [`design/v1/10-node-extension-standard.md`](design/v1/10-node-extension-standard.md) | 新增节点定义卡、完整生命周期、接口边界、本地记录、兼容和验收门禁 |
 
 ### v1 已接受决策
 
-`D-V1-001` 至 `D-V1-012`，全部在 [`decisions/`](decisions/)：
+`D-V1-001` 至 `D-V1-013`，全部在 [`decisions/`](decisions/)：
 
 | 编号 | 决策 |
 | --- | --- |
@@ -59,6 +60,7 @@
 | `D-V1-010` | [课节内容重复安排与同视频多课节边界](decisions/2026-08-22-v1-repeated-video-lessons.md) |
 | `D-V1-011` | 脚本/发布聚合 JSON 与本机学习记录策略，见 [数据持久化策略](decisions/2026-08-22-v1-data-persistence-strategy.md) |
 | `D-V1-012` | [不迁移无价值旧服务端数据与学生本机数据](decisions/2026-08-22-v1-no-legacy-data-migration.md) |
+| `D-V1-013` | [新增课程节点统一生命周期与接口边界](decisions/2026-08-25-v1-node-extension-lifecycle.md) |
 
 ### 经验与状态
 
@@ -91,7 +93,7 @@
 | [`../docs/knownmap-logo-resources.md`](../docs/knownmap-logo-resources.md) | 品牌资源清单与用法 |
 | [`subtitle-pipeline.md`](subtitle-pipeline.md) | 字幕导入与解析的已验证路径 |
 | [`bili-mascot-spike.md`](bili-mascot-spike.md) | B 站页面挂载探针结论 |
-| [`../tests/manual/bilibili-iframe-current-time/README.md`](../tests/manual/bilibili-iframe-current-time/README.md) | 跨源 iframe 无法可靠读取播放时刻 |
+| [`../archive/legacy-v0.9.1/tests/manual/bilibili-iframe-current-time/README.md`](../archive/legacy-v0.9.1/tests/manual/bilibili-iframe-current-time/README.md) | 跨源 iframe 无法可靠读取播放时刻 |
 | [`promo-video.md`](promo-video.md) | 宣传视频素材说明 |
 
 ### 研究资料

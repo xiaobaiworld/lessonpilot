@@ -20,6 +20,10 @@
 本文件不冻结具体 HTTP 路径、插件消息名称、数据库列类型或页面布局；这些内容分别在 06、07、08
 中定义。它也不把当前代码的旧单课程下载链路直接当作目标设计。
 
+新增节点的输入、返回值、本地记录、发布包和状态迁移必须先按
+[`10-node-extension-standard.md`](10-node-extension-standard.md) 定义，再映射到本文件的课程发布、
+学生运行和本机学习状态流。普通节点不新增学生端 HTTP 请求。
+
 ## 2. 设计原则
 
 ### 2.1 交付对象先于存储表
@@ -218,6 +222,10 @@ flowchart LR
 - `FR-LIB-001` 至 `FR-LIB-010`：本机课程库、确认、校验、原子安装、更新和状态迁移；
 - `FR-RUNTIME-*`、`DATA-LOCAL-*`、`DATA-LIFE-*`：会话锁定、本机学习状态和保留边界；
 - `INT-PACKAGE-001`、`INT-PACKAGE-002`：兑换结果和插件独立校验/安装边界。
+
+新增节点统一生命周期和专用接口条件见
+[`10-node-extension-standard.md`](10-node-extension-standard.md) 与
+[`../../decisions/2026-08-25-v1-node-extension-lifecycle.md`](../../decisions/2026-08-25-v1-node-extension-lifecycle.md)。
 
 ### 10.2 旧资料承接
 

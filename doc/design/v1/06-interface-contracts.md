@@ -1,6 +1,6 @@
 # 06 v1 接口与集成契约设计
 
-文档版本：`1.0.1`
+文档版本：`1.0.2`
 
 状态：已于 2026-08-22 通过人工审核；本文件把已接受接口需求落为可实现的跨边界契约，不替代业务需求、数据模型或安全运维设计
 
@@ -11,6 +11,10 @@
 需求真源：[`../../requirements/v1/README.md`](../../requirements/v1/README.md)
 
 前置设计：[`03-system-architecture.md`](03-system-architecture.md)、[`04-domain-data-model.md`](04-domain-data-model.md)、[`05-data-flow-lifecycle.md`](05-data-flow-lifecycle.md)
+
+节点扩展的字段、返回值、后端参与条件和接口选择统一见
+[`10-node-extension-standard.md`](10-node-extension-standard.md)。本文件负责冻结具体跨边界契约，
+不为每种节点重复建立一套 API。
 
 ## 1. 目的与边界
 
@@ -108,6 +112,10 @@
 - 读操作返回当前允许的最小字段；写操作返回新修订、状态和稳定 ID；
 - 草稿保存、发布、授权码创建、终止来源等动作分别使用明确操作，不通过一个任意 PATCH 改写多个领域；
 - 写请求失败时返回固定错误码和可重试性，原草稿、发布或授权状态保持不变。
+
+普通新增节点继续使用课节草稿读取/保存和课程发布接口；节点专用 HTTP API 只有在节点具有明确的
+服务端持久化、计算、权限数据、异步外部依赖或跨设备业务事实时才可新增。新增接口必须回链
+`10-node-extension-standard.md`，并在本节端点清单中登记。
 
 最小公共错误码集合：
 

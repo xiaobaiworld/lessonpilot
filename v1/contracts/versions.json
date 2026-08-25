@@ -116,7 +116,7 @@
   },
   "checkTools": {
     "endpoint-check": "node tools/endpoint-check.mjs",
-    "contract-check": "node tools/contract-check.mjs",
+    "contract-check": "node v1/contracts/check-contracts.mjs && node v1/contracts/check-versions.mjs",
     "module-check": "node tools/module-check.mjs"
   }
 }

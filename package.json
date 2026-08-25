@@ -8,13 +8,13 @@
     "node": ">=22"
   },
   "scripts": {
-    "test": "npm run test:legacy && npm run test:v1",
-    "test:legacy": "node --test tests/*.test.js tests/*.test.mjs tests/fixtures/v1/*.test.js",
+    "test": "npm run test:current && npm run test:v1",
+    "test:current": "node --test tests/*.test.js tests/*.test.mjs",
     "test:v1": "npm --prefix v1 test",
     "check:doc": "node tools/doc-check.mjs",
     "check:endpoint": "node tools/endpoint-check.mjs",
     "check:module": "node tools/module-check.mjs",
-    "check:contract": "node tools/contract-check.mjs",
+    "check:contract": "node v1/contracts/check-contracts.mjs && node v1/contracts/check-versions.mjs",
     "check:v1": "node tools/v1-gate.mjs",
     "check": "npm run check:v1 && npm run check:doc && npm run check:endpoint && npm run check:module && npm run check:contract",
     "traceability": "node tools/build-traceability.mjs",

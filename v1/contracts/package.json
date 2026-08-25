@@ -21,6 +21,6 @@
   ],
   "scripts": {
     "test": "node --test ..tests/contracts.test.js",
-    "validate": "node tools/contract-check.mjs"
+    "validate": "node check-contracts.mjs && node check-versions.mjs"
   }
 }

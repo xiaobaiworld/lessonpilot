@@ -1,0 +1,182 @@
+{
+  "schemaVersion": 1,
+  "releaseId": "20260824T142934Z-c0638c50a242",
+  "environment": "production",
+  "site": "https://knownmap.com",
+  "repository": "xiaobaiworld/lessonpilot",
+  "gitRemote": "git@github-2:xiaobaiworld/lessonpilot.git",
+  "gitCommit": "c0638c50a2422a46d0831fc71537ceb16e135619",
+  "gitShortCommit": "c0638c50a242",
+  "gitRemoteBranch": "origin",
+  "gitCommitSubject": "docs: record original video mode release scope",
+  "gitCommitTime": "2026-08-24T22:17:12+08:00",
+  "gitTag": "web-prod/20260824T142934Z-c0638c50a242",
+  "publishProfile": "v1-apps",
+  "status": "verified",
+  "builtAt": "2026-08-24T14:31:36Z",
+  "deployedAt": "2026-08-24T14:31:41Z",
+  "previousReleaseId": "20260824T134425Z-aac81b253b56",
+  "files": [
+    {
+      "path": "admin.html",
+      "sha256": "2b10966c59241bec2c570a1e5f4290dff72a898bfe50ef82b0809b5f908104fc",
+      "bytes": 1722
+    },
+    {
+      "path": "admin/assets/index-CS1BnRAN.js",
+      "sha256": "2dec49e8e0d2e4fc7964fb8818c8502a410b388936c5cb9f4a6b9161b4b90e26",
+      "bytes": 152337
+    },
+    {
+      "path": "admin/assets/index-DYWniRLp.css",
+      "sha256": "e871b7f8ec02deec32f824b0a0f645394fe8e3e6304b2658e3d2855919995029",
+      "bytes": 65801
+    },
+    {
+      "path": "admin/index.html",
+      "sha256": "2e124cf2badda2c149092e8100e3735cda8c78127d60fb3417ac2671b3cce1ca",
+      "bytes": 408
+    },
+    {
+      "path": "assets/knownmap-icon.png",
+      "sha256": "8acae4dc406d44f31ed7b5a329c2d17a6e6d799197c51fdc4f8c2e806829d0b3",
+      "bytes": 3440
+    },
+    {
+      "path": "demo-captions.js",
+      "sha256": "ca9af8b13bae00638b26a1dbca72d1dd58bb9c1c688f10f8d85556979e90685d",
+      "bytes": 12149
+    },
+    {
+      "path": "downloads/student-plugin/knownmap-v1.zip",
+      "sha256": "2a117e929aaaa562e5a362ee08bd687ff07e93b43e112179772d1c9c16e2a853",
+      "bytes": 14839
+    },
+    {
+      "path": "downloads/student-plugin/knownmapplugin.zip",
+      "sha256": "01b3c030bb2b36e7814d671209b11700a066db8865de6fbb005596b7ebe84a9e",
+      "bytes": 79542
+    },
+    {
+      "path": "index.html",
+      "sha256": "1578e63bca317d90e1ff9ea7d607d30a94eb294d88ccecabfb681dbea32f0dea",
+      "bytes": 46216
+    },
+    {
+      "path": "link.html",
+      "sha256": "9b8845bafa9c6e3b7516d00fe0d07f78a52810f7055d8b522c92b288140791cf",
+      "bytes": 5245
+    },
+    {
+      "path": "robots.txt",
+      "sha256": "331ea9090db0c9f6f597bd9840fd5b171830f6e0b3ba1cb24dfa91f0c95aedc1",
+      "bytes": 26
+    },
+    {
+      "path": "subtitle-context.js",
+      "sha256": "a8d210826727de919976a4ac8cac78f90b7a1e8acf7d5d6b3ac6d02ff4d2e1bd",
+      "bytes": 6996
+    },
+    {
+      "path": "teacher-web/assets/knownmap-icon.png",
+      "sha256": "8acae4dc406d44f31ed7b5a329c2d17a6e6d799197c51fdc4f8c2e806829d0b3",
+      "bytes": 3440
+    },
+    {
+      "path": "teacher-web/assets/student-guide/step-download-and-unzip.png",
+      "sha256": "1e2614ee545c6eaed5aa7ccee058a1dc190f6f259ef1efadbd7419554de8e4af",
+      "bytes": 43449
+    },
+    {
+      "path": "teacher-web/assets/student-guide/step-load-unpacked.png",
+      "sha256": "0d2cb013ab065b1c979bdeb2fb0b991042d53c870d9074961d7597aea5ccfe97",
+      "bytes": 58967
+    },
+    {
+      "path": "teacher-web/assets/student-guide/step-open-extensions.png",
+      "sha256": "5d36c147f8ec74bb110e31d26efd324541c9e8a562d5d3a9683bdf63099e50a9",
+      "bytes": 57623
+    },
+    {
+      "path": "teacher-web/demo-captions.js",
+      "sha256": "ca9af8b13bae00638b26a1dbca72d1dd58bb9c1c688f10f8d85556979e90685d",
+      "bytes": 12149
+    },
+    {
+      "path": "teacher-web/editor.html",
+      "sha256": "a5ea13dab5e4b1ef148647107677ac4b1c82d785bbaa19d153a8327f5d6a1183",
+      "bytes": 1742
+    },
+    {
+      "path": "teacher-web/forsales.html",
+      "sha256": "1578e63bca317d90e1ff9ea7d607d30a94eb294d88ccecabfb681dbea32f0dea",
+      "bytes": 46216
+    },
+    {
+      "path": "teacher-web/student-guide.html",
+      "sha256": "0cd0abaa93512a5c6c501feb2032a49eb00137eda6107ed72aa7bc4bb1234233",
+      "bytes": 10820
+    },
+    {
+      "path": "teacher-web/subtitle-context.js",
+      "sha256": "a8d210826727de919976a4ac8cac78f90b7a1e8acf7d5d6b3ac6d02ff4d2e1bd",
+      "bytes": 6996
+    },
+    {
+      "path": "teacher-web/trial-intake.js",
+      "sha256": "d46c5bd01b037e041229505c849675b7dfe0c6d3ecdfa8c92459a0cffaa3fca7",
+      "bytes": 2535
+    },
+    {
+      "path": "teacher/assets/index-Be0Z1_Hx.js",
+      "sha256": "1ddd0395d420a4706647434ee7f122a9896194237cd5d7981e648f226cc7637c",
+      "bytes": 171401
+    },
+    {
+      "path": "teacher/assets/index-DYWniRLp.css",
+      "sha256": "e871b7f8ec02deec32f824b0a0f645394fe8e3e6304b2658e3d2855919995029",
+      "bytes": 65801
+    },
+    {
+      "path": "teacher/index.html",
+      "sha256": "c337966739703b8cb1a32c066cca0c8b3b0f821c88cba364e50324c93f5d428b",
+      "bytes": 419
+    },
+    {
+      "path": "trial-intake.js",
+      "sha256": "d46c5bd01b037e041229505c849675b7dfe0c6d3ecdfa8c92459a0cffaa3fca7",
+      "bytes": 2535
+    }
+  ],
+  "verifiedAt": "2026-08-24T14:32:48Z",
+  "verification": {
+    "health": "passed",
+    "homepageSha256": "passed",
+    "privatePaths": "passed",
+    "apiHealth": "passed",
+    "teacherEditor": "passed",
+    "databaseBackup": "passed"
+  },
+  "components": {
+    "backend": {
+      "schemaVersion": 1,
+      "releaseId": "20260824T142934Z-c0638c50a242",
+      "environment": "production",
+      "site": "https://knownmap.com",
+      "repository": "xiaobaiworld/lessonpilot",
+      "gitRemote": "git@github-2:xiaobaiworld/lessonpilot.git",
+      "gitCommit": "c0638c50a2422a46d0831fc71537ceb16e135619",
+      "gitShortCommit": "c0638c50a242",
+      "gitRemoteBranch": "origin/main",
+      "gitCommitSubject": "docs: record original video mode release scope",
+      "gitCommitTime": "2026-08-24T22:17:12+08:00",
+      "gitTag": "web-prod/20260824T142934Z-c0638c50a242",
+      "publishProfile": "v1-apps",
+      "component": "fastapi",
+      "status": "verified",
+      "builtAt": "2026-08-24T14:29:55Z",
+      "deployedAt": "2026-08-24T14:32:48Z",
+      "previousReleaseId": null
+    }
+  }
+}

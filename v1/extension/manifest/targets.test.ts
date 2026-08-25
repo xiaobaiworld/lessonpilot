@@ -1,7 +1,18 @@
 import { describe, it, expect } from 'vitest';
-import { TARGETS, buildManifest, BUILD_ARTIFACTS } from './targets';
+import { TARGETS, buildManifest, BUILD_ARTIFACTS, EXTENSION_VERSION } from './targets';
 
 describe('构建目标', () => {
+  it('V1.0.5 恢复旧版入口所需的目标配置', () => {
+    expect(EXTENSION_VERSION).toBe('1.0.5');
+    expect(TARGETS.local.teacherOrigin).toBe('http://localhost:5174');
+    expect(TARGETS.production.teacherOrigin).toBe('https://knownmap.com');
+    for (const target of Object.values(TARGETS)) {
+      expect(target.studentPluginDownloadUrl).toBe(
+        'https://knownmap.com/downloads/student-plugin/knownmapplugin.zip'
+      );
+    }
+  });
+
   it('生产包不含本机 host permission', () => {
     const m = buildManifest(TARGETS.production);
     const hosts = m.host_permissions as string[];
@@ -22,8 +33,8 @@ describe('构建目标', () => {
     }
   });
 
-  it('只申请 storage 权限，不要 downloads/tabs 这些用不到的', () => {
-    expect(buildManifest(TARGETS.production).permissions).toEqual(['storage']);
+  it('课程存储与旧版在线更新分别申请 storage 和 downloads', () => {
+    expect(buildManifest(TARGETS.production).permissions).toEqual(['storage', 'downloads']);
   });
 
   it('内容脚本只注入投稿视频页', () => {

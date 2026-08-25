@@ -22,12 +22,15 @@ if (!target) {
 }
 
 const outDir = resolve(__dirname, `dist/${targetName}`);
+const teacherUrl = `${target.teacherOrigin.replace(/\/$/, '')}/teacher/`;
 
 export default defineConfig({
   root: __dirname,
   define: {
     // 字面量替换，产物里看不到变量名
     __API_ORIGIN__: JSON.stringify(target.apiOrigin),
+    __TEACHER_URL__: JSON.stringify(teacherUrl),
+    __STUDENT_PLUGIN_DOWNLOAD_URL__: JSON.stringify(target.studentPluginDownloadUrl),
   },
   build: {
     outDir,

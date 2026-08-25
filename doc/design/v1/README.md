@@ -1,8 +1,9 @@
 # KnownMap v1 设计与开发文档
 
-文档版本：`1.0.2`
+文档版本：`1.0.3`
 
-状态：01–09 均已通过人工审核并冻结；测试计划与开发计划已建立；当前处于 v1 实现阶段 0（工程基线与干净初始化）
+状态：01–10 均已通过人工审核并冻结；测试计划和开发计划已建立；节点扩展标准见 10；
+当前处于 v1 新功能开发阶段
 
 需求真源：[`../../requirements/v1/README.md`](../../requirements/v1/README.md)
 
@@ -44,6 +45,7 @@
 | 07 | [`07-product-interaction-state.md`](07-product-interaction-state.md) | 页面职责、用户流程、交互状态和恢复 | 已接受；`1.0.1` 增补学生插件使用说明页 |
 | 08 | [`08-security-operations-design.md`](08-security-operations-design.md) | 权限、秘密、输入、日志、发布、备份和恢复 | 已接受 |
 | 09 | [`09-migration-cutover-design.md`](09-migration-cutover-design.md) | 保留、重写、迁移、切换、回滚和旧入口退役 | 已接受 |
+| 10 | [`10-node-extension-standard.md`](10-node-extension-standard.md) | 新增节点的定义卡、生命周期、接口边界、本地记录、兼容和验收门禁 | 已接受；`D-V1-013` |
 
 项目专有开发规则固定写入 [`../../dev-rules.md`](../../dev-rules.md)，不为编号另建重复副本。
 测试计划和开发计划分别为 [`../../plans/v1-test-plan.md`](../../plans/v1-test-plan.md) 和

@@ -15,9 +15,11 @@ const backupScript = path.join(root, 'deploy/teacher-platform/knownmap-backup.py
 const backupService = path.join(root, 'deploy/teacher-platform/knownmap-backup.service');
 const backupTimer = path.join(root, 'deploy/teacher-platform/knownmap-backup.timer');
 const testWorkflow = path.join(root, '.github/workflows/test.yml');
-const pagesWorkflow = path.join(root, '.github/workflows/pages.yml');
 const dependabotFile = path.join(root, '.github/dependabot.yml');
-const editorFile = path.join(root, 'teacher-web/editor.html');
+const teacherAppFile = path.join(
+  root,
+  'v1/web/teacher/src/pages/TeacherLoginPage.tsx'
+);
 
 function run(command, args) {
   return childProcess.spawnSync(command, args, {
@@ -34,7 +36,7 @@ test('teacher platform release orchestration has valid shell syntax and traceabi
   for (const marker of [
     'git -C "$ROOT_DIR" archive',
     'git -C "$ROOT_DIR" fetch origin --prune',
-    'node --test tests/*.test.js',
+    'npm test',
     'uv run pytest -q',
     'alembic',
     'SEED_TEACHER_LOGIN_NAME',
@@ -54,7 +56,7 @@ test('integrated release forwards and verifies the selected v1 publish profile',
 
   assert.match(
     source,
-    /WEB_PUBLISH_PROFILE="\$\{KNOWNMAP_PUBLISH_PROFILE:-teacher-platform-v1\}"/
+    /WEB_PUBLISH_PROFILE="\$\{KNOWNMAP_PUBLISH_PROFILE:-v1-apps\}"/
   );
   assert.match(source, /unsupported integrated publish profile/);
   assert.match(source, /--arg publishProfile "\$WEB_PUBLISH_PROFILE"/);
@@ -225,10 +227,10 @@ test('nginx deployment restores the previous file when validation fails', () => 
 });
 
 test('teacher login does not publish the production account name', () => {
-  const editor = fs.readFileSync(editorFile, 'utf8');
+  const editor = fs.readFileSync(teacherAppFile, 'utf8');
 
   assert.doesNotMatch(editor, /value="teacher-test-01"/);
-  assert.match(editor, /autocomplete="username"/);
+  assert.match(editor, /autoComplete="username"/);
 });
 
 test('production database backup is isolated, scheduled and retained', () => {
@@ -251,19 +253,13 @@ test('production database backup is isolated, scheduled and retained', () => {
 });
 
 test('GitHub workflows pin actions and test the production backend lockfile', () => {
-  const workflowSources = [
-    fs.readFileSync(testWorkflow, 'utf8'),
-    fs.readFileSync(pagesWorkflow, 'utf8')
-  ];
+  const workflowSources = [fs.readFileSync(testWorkflow, 'utf8')];
   const combined = workflowSources.join('\n');
 
   assert.doesNotMatch(combined, /uses:\s+actions\/[^@\s]+@v\d+/);
   for (const sha of [
     '11d5960a326750d5838078e36cf38b85af677262',
-    '49933ea5288caeca8642d1e84afbd3f7d6820020',
-    '983d7736d9b0ae728b81ab479565c72886d7745b',
-    '56afc609e74202658d3ffba0e8f6dda462b719fa',
-    'd6db90164ac5ed86f2b6aed7e0febac5b3c0c03e'
+    '49933ea5288caeca8642d1e84afbd3f7d6820020'
   ]) {
     assert.match(combined, new RegExp(sha));
   }

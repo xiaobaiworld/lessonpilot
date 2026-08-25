@@ -16,9 +16,9 @@ const fs = require('node:fs');
 const {
   TRIAL_INTAKE,
   isAllowedFormUrl
-} = require('../teacher-web/trial-intake.js');
+} = require('../v1/public-site/trial-intake.js');
 
-const page = fs.readFileSync('teacher-web/forsales.html', 'utf8');
+const page = fs.readFileSync('v1/public-site/index.html', 'utf8');
 
 /** 剥掉 style/script/svg/注释和标签后，老师真正读到的静态文字。 */
 const visible = (() => {
@@ -95,6 +95,39 @@ test('四种正式节点，不出现第五种（D-005）', () => {
     assert.ok(allCopy.includes(kind), `缺少正式节点「${kind}」`);
   }
   assert.ok(!allCopy.includes('老师补充'), 'D-005 只有四种节点，「老师补充」不是其中之一');
+});
+
+test('片头重点标注同时出现在时间轴和关键节点说明中', () => {
+  const markers = page.match(/class="marker [^"]*"/g) || [];
+  const summaries = page.match(/class="node-summary [^"]*"/g) || [];
+  const rows = page.match(/class="node-row(?: selected)?"/g) || [];
+
+  assert.equal(markers.length, 9, '时间轴应显示新增节点和原有八个节点');
+  assert.equal(summaries.length, 9, '每个时间轴节点都应有连线说明卡片');
+  assert.equal(rows.length, 9, '下方关键节点区域应与时间轴一一对应');
+  assert.match(
+    page,
+    /class="marker attention"[^>]*data-node="1"[^>]*data-seconds="0"[^>]*aria-label="节点 01 00:00，课程介绍"[^>]*>[\s\S]*?<use href="#w-attention"/,
+    '新增节点应复用重点标注 marker 样式并放在开始位置'
+  );
+  assert.match(
+    page,
+    /class="node-summary attention above start-summary"[^>]*>课程介绍<\/span>/,
+    '新增节点应在时间轴上方显示带连线的信息说明'
+  );
+  assert.match(page, /class="boundary-marker start" hidden>开始<\/span>/);
+  assert.match(page, /\.node-summary\.start-summary\{transform:none\}/);
+  assert.match(page, /\.node-summary\.start-summary::after\{left:0;transform:none\}/);
+  assert.match(
+    page,
+    /\.node-summary\.above::after\{top:100%;height:43px\}/,
+    '上方说明卡必须保留连接到时间轴的竖线样式'
+  );
+  assert.match(
+    page,
+    /class="num attention"><b>01<\/b><span>00:00<\/span>[\s\S]*?<strong>课程介绍<\/strong>/,
+    '下方应增加对应的第 01 个课程介绍说明'
+  );
 });
 
 test('学习结果标为示例且尚未完成开发', () => {
