@@ -46,6 +46,15 @@
             "type": "object",
             "description": "Embedded course-package.schema.json snapshot"
           },
+          "source": {
+            "type": "string",
+            "enum": ["example", "authorized"],
+            "description": "Whether the course is bundled by the extension or redeemed"
+          },
+          "readOnly": {
+            "type": "boolean",
+            "description": "Bundled example courses cannot be deleted or replaced"
+          },
           "installedAt": {
             "type": "string",
             "format": "date-time"

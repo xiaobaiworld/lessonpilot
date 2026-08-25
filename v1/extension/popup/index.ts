@@ -43,7 +43,10 @@ function el<K extends keyof HTMLElementTagNameMap>(
 function courseCard(course: CourseView, onRefresh: () => void): HTMLElement {
   const card = el('article', 'course course-card');
 
-  card.append(el('strong', 'course-title', course.title));
+  const heading = el('div', 'course-title-row');
+  heading.append(el('strong', 'course-title', course.title));
+  if (course.readOnly) heading.append(el('span', 'demo-tag', '示例课'));
+  card.append(heading);
 
   const meta = el('div', 'course-meta');
   meta.append(
@@ -99,7 +102,8 @@ function courseCard(course: CourseView, onRefresh: () => void): HTMLElement {
     else showError(r.message);
   });
 
-  actions.append(reset, remove);
+  if (!course.readOnly) actions.append(remove);
+  actions.prepend(reset);
   card.append(actions);
   return card;
 }
@@ -183,9 +187,6 @@ function pluginUpdatePanel(): HTMLElement {
   return section;
 }
 
-const DEMO_COURSE_TITLE = '英语面试表达';
-const DEMO_COURSE_URL = 'https://www.bilibili.com/video/BV1WW4y1e7GL/';
-
 function wordmark(): HTMLElement {
   const title = el('strong', 'wordmark');
   title.append(
@@ -211,24 +212,6 @@ function brandHeader(): HTMLElement {
   return head;
 }
 
-function demoCourseCard(): HTMLElement {
-  const card = el('article', 'course course-card demo-course');
-  const heading = el('div', 'course-title-row');
-  heading.append(
-    el('strong', 'course-title', DEMO_COURSE_TITLE),
-    el('span', 'demo-tag', '测试课')
-  );
-  card.append(heading);
-  card.append(el('p', 'course-meta', '固定 B 站样课，用于核对插件是否能打开原视频。'));
-
-  const open = el('a', 'primary demo-open', '打开 B 站课程');
-  open.href = DEMO_COURSE_URL;
-  open.target = '_blank';
-  open.rel = 'noreferrer';
-  card.append(open);
-  return card;
-}
-
 function introPanel(): HTMLElement {
   const intro = el('section', 'intro');
   intro.append(
@@ -244,12 +227,11 @@ function coursesPanel(courses: CourseView[], onRefresh: () => void): HTMLElement
   const heading = el('div', 'section-heading');
   heading.append(
     el('h2', undefined, '我的课程'),
-    el('span', undefined, `当前 ${courses.length + 1} 门`)
+    el('span', undefined, `当前 ${courses.length} 门`)
   );
   section.append(heading);
 
   const list = el('div', 'course-list');
-  list.append(demoCourseCard());
   for (const course of courses) list.append(courseCard(course, onRefresh));
   section.append(list);
 

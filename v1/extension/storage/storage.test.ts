@@ -56,6 +56,8 @@ const course = (id: string, lessons = 1): InstalledCourse => ({
   })),
   publishedAt: '2026-08-23T00:00:00.000Z',
   installedAt: '2026-08-23T00:00:00.000Z',
+  source: 'authorized',
+  readOnly: false,
   sourceId: `src-${id}`,
 });
 
@@ -93,6 +95,31 @@ describe('初始状态', () => {
     const again = await lib.ensureIdentity(make);
     expect(calls).toBe(1);
     expect(again?.clientId).toBe(first?.clientId);
+  });
+
+  it('只安装一次示例课程，不创建授权来源', async () => {
+    const example = { ...course('example'), source: 'example' as const, readOnly: true };
+    await lib.ensureExampleCourse(example);
+    await lib.recordAttempt('example', 'example-l1', 'n1', {
+      at: 't',
+      answer: 'x',
+      correct: true,
+    });
+    await lib.ensureExampleCourse({ ...example, title: '不应覆盖' });
+
+    const root = await lib.read();
+    expect(root.installedCourses.example.title).toBe('课程 example');
+    expect(root.installedCourses.example.readOnly).toBe(true);
+    expect(root.localLearningState.example['example-l1'].attempts.n1).toHaveLength(1);
+    expect(root.authorizationSourceCache.sources).toEqual([]);
+  });
+
+  it('示例 courseId 冲突时不覆盖真实授权课程', async () => {
+    await lib.installCourse(course('same'), source('same', ['same']));
+    await lib.ensureExampleCourse({ ...course('same'), source: 'example', readOnly: true });
+    const root = await lib.read();
+    expect(root.installedCourses.same.source).toBe('authorized');
+    expect(root.installedCourses.same.readOnly).toBe(false);
   });
 });
 

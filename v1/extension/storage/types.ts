@@ -35,6 +35,8 @@ export interface InstalledLesson {
   nodes: unknown[];
 }
 
+export type CourseSource = 'example' | 'authorized';
+
 /** 已安装课程。锁定到某一次发布，不随远端变化 */
 export interface InstalledCourse {
   courseId: string;
@@ -43,7 +45,11 @@ export interface InstalledCourse {
   /** 发布时刻，用来判断远端是否有更新 */
   publishedAt: string;
   installedAt: string;
-  /** 装它用的授权来源，用于展示与更新，不用于运行时鉴权 */
+  /** 示例课程或真实授权课程 */
+  source: CourseSource;
+  /** 示例课程只读，真实授权课程可由学生删除 */
+  readOnly: boolean;
+  /** 真实课程装它用的授权来源；示例课程使用固定内部标识 */
   sourceId: string;
 }
 

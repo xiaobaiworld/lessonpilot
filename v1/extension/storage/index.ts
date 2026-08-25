@@ -107,7 +107,12 @@ export class CourseLibrary {
           typeof course.title === 'string' &&
           Array.isArray(course.lessons)
         ) {
-          root.installedCourses[courseId] = course as unknown as InstalledCourse;
+          const source = course.source === 'example' ? 'example' : 'authorized';
+          root.installedCourses[courseId] = {
+            ...(course as unknown as InstalledCourse),
+            source,
+            readOnly: source === 'example' || course.readOnly === true,
+          };
         } else {
           drop(`课程 ${courseId} 结构损坏`, course);
         }
@@ -191,6 +196,28 @@ export class CourseLibrary {
       }
     });
     return root.localIdentity;
+  }
+
+  /**
+   * 确保随插件发布的只读示例课程存在。
+   *
+   * 示例课程不属于任何授权来源，也不能覆盖同 courseId 的真实授权课程。
+   * 只在首次写入时落盘，之后保留学生已有的示例学习进度。
+   */
+  ensureExampleCourse(course: InstalledCourse): Promise<StorageRoot> {
+    return this.serialize(async () => {
+      const root = await this.rawRead();
+      if (root.installedCourses[course.courseId]) return root;
+
+      root.installedCourses[course.courseId] = {
+        ...course,
+        source: 'example',
+        readOnly: true,
+      };
+      root.localLearningState[course.courseId] ??= {};
+      await this.rawWrite(root);
+      return root;
+    });
   }
 
   /**

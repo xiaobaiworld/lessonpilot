@@ -121,8 +121,8 @@ test('飞书表单由独立模块提供真实 URL，页面不留占位链接', (
   assert.match(page, /data-trial-intake/);
   assert.match(page, /src="trial-intake\.js\?v=/);
   assert.equal(isAllowedFormUrl(TRIAL_INTAKE.url), true, '模块必须保存已发布的飞书公开 URL');
-  assert.equal(TRIAL_INTAKE.buttonLabel, '填写 1 分钟试用信息');
-  assert.equal(TRIAL_INTAKE.note, '不方便私信？留下课程情况，我会联系你。');
+  assert.equal(TRIAL_INTAKE.buttonLabel, '在线填写试用申请');
+  assert.equal(TRIAL_INTAKE.note, '无需登录飞书 · 提交后由我人工联系。');
 });
 
 /**

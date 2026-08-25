@@ -79,8 +79,8 @@ test('默认配置挂载已发布的公开表单', () => {
   assert.equal(mountTrialIntake(fixture.root), true);
   assert.equal(fixture.container.hidden, false);
   assert.equal(fixture.link.href, TRIAL_INTAKE.url);
-  assert.equal(fixture.link.textContent, '填写 1 分钟试用信息');
-  assert.equal(fixture.note.textContent, '不方便私信？留下课程情况，我会联系你。');
+  assert.equal(fixture.link.textContent, '在线填写试用申请');
+  assert.equal(fixture.note.textContent, '无需登录飞书 · 提交后由我人工联系。');
 });
 
 test('URL 缺失或域名不可信时不显示死链接', () => {

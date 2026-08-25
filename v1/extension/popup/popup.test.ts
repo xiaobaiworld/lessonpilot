@@ -22,13 +22,14 @@ describe('V1.0.5 弹窗保留旧版入口并保留 V1 能力', () => {
     expect(source).toMatch(/brand-letter-m/);
     expect(stylesheet).toMatch(/\.brand-letter-k\s*\{[^}]*color:\s*#e8b428/i);
     expect(stylesheet).toMatch(/\.brand-letter-m\s*\{[^}]*color:\s*#c56e52/i);
+    expect(stylesheet).toMatch(/\.brand\s*>\s*div\s*>\s*span\s*\{[^}]*color:\s*#9499a0/i);
+    expect(stylesheet).not.toMatch(/\.brand\s+div\s+span\s*\{/);
   });
 
-  it('我的课程始终提供英语面试测试课并一键打开固定 B 站链接', () => {
-    expect(source).toMatch(/英语面试表达/);
-    expect(source).toMatch(/BV1WW4y1e7GL/);
-    expect(source).toMatch(/https:\/\/www\.bilibili\.com\/video\/BV1WW4y1e7GL\//);
-    expect(source).toMatch(/测试课/);
+  it('示例课程由课程库返回并按只读课程渲染', () => {
+    expect(source).toMatch(/course\.readOnly/);
+    expect(source).toMatch(/示例课/);
+    expect(source).not.toMatch(/courses\.length \+ 1/);
   });
 
   it('恢复 0.9.2 的学生入口、授权码和课程区结构', () => {
@@ -37,7 +38,7 @@ describe('V1.0.5 弹窗保留旧版入口并保留 V1 能力', () => {
     expect(source).toMatch(/老师发来的课程授权码/);
     expect(source).toMatch(/课程授权码/);
     expect(source).toMatch(/我的课程/);
-    expect(source).toMatch(/当前 \$\{courses\.length \+ 1\} 门/);
+    expect(source).toMatch(/当前 \$\{courses\.length\} 门/);
     expect(source).toMatch(/还没有课程，输入授权码后会显示在这里/);
     expect(source).toMatch(/创建和发布课程/);
     expect(source).toMatch(/插件维护/);

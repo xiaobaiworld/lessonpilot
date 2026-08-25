@@ -19,8 +19,8 @@
 })(typeof window !== 'undefined' ? window : globalThis, function createTrialIntake() {
   const TRIAL_INTAKE = Object.freeze({
     url: 'https://my.feishu.cn/share/base/form/shrcnGpoiVzLw8v5sD5K2TV8sFb',
-    buttonLabel: '填写 1 分钟试用信息',
-    note: '不方便私信？留下课程情况，我会联系你。'
+    buttonLabel: '在线填写试用申请',
+    note: '无需登录飞书 · 提交后由我人工联系。'
   });
 
   function isAllowedFormUrl(value) {

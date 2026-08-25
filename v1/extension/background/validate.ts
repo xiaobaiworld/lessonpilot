@@ -126,6 +126,8 @@ export function checkCoursePackage(
       lessons,
       publishedAt: String(raw.updatedAt),
       installedAt: new Date().toISOString(),
+      source: 'authorized',
+      readOnly: false,
       sourceId,
     },
   };

@@ -4,7 +4,7 @@ import {
   findCandidates,
   removalImpact,
 } from './library-view';
-import { StorageRoot, emptyRoot } from '../storage/types';
+import { StorageRoot, InstalledCourse, emptyRoot } from '../storage/types';
 
 function root(patch: Partial<StorageRoot> = {}): StorageRoot {
   return { ...emptyRoot(), ...patch };
@@ -12,8 +12,13 @@ function root(patch: Partial<StorageRoot> = {}): StorageRoot {
 
 const course = (
   id: string,
-  opts: { lessons?: { id: string; video: string; nodes: string[] }[]; installedAt?: string; sourceId?: string } = {}
-) => ({
+  opts: {
+    lessons?: { id: string; video: string; nodes: string[] }[];
+    installedAt?: string;
+    sourceId?: string;
+    readOnly?: boolean;
+  } = {}
+): InstalledCourse => ({
   courseId: id,
   title: `课程 ${id}`,
   lessons: (opts.lessons ?? [{ id: `${id}-l1`, video: 'BV1Ac41187Lm', nodes: ['n1', 'n2'] }]).map(
@@ -26,6 +31,8 @@ const course = (
   ),
   publishedAt: '2026-08-23T00:00:00.000Z',
   installedAt: opts.installedAt ?? '2026-08-23T00:00:00.000Z',
+  source: opts.readOnly ? 'example' : 'authorized',
+  readOnly: opts.readOnly ?? false,
   sourceId: opts.sourceId ?? `src-${id}`,
 });
 
@@ -141,6 +148,27 @@ describe('findCandidates', () => {
   it('同一视频在多门课程里时返回全部候选，不擅自取第一个', () => {
     const found = findCandidates(two, 'BV1Ac41187Lm');
     expect(found.map((c) => c.courseId).sort()).toEqual(['a', 'b']);
+  });
+
+  it('真实授权课程匹配时排除同视频示例课程', () => {
+    const found = findCandidates(
+      root({
+        installedCourses: {
+          example: course('example', { readOnly: true }),
+          real: course('real'),
+        },
+      }),
+      'BV1Ac41187Lm'
+    );
+    expect(found.map((c) => c.courseId)).toEqual(['real']);
+  });
+
+  it('没有真实课程时仍能运行示例课程', () => {
+    const found = findCandidates(
+      root({ installedCourses: { example: course('example', { readOnly: true }) } }),
+      'BV1Ac41187Lm'
+    );
+    expect(found.map((c) => c.courseId)).toEqual(['example']);
   });
 
   it('前缀相同但不等的 BVID 不算命中', () => {

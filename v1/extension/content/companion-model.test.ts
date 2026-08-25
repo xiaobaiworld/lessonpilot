@@ -13,6 +13,8 @@ const course = (overrides: Partial<CourseView> = {}): CourseView => ({
   nodeCount: 1,
   doneCount: 0,
   percent: 0,
+  source: 'authorized',
+  readOnly: false,
   codeHint: '1234',
   lessons: [
     {

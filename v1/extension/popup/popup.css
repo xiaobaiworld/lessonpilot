@@ -51,7 +51,7 @@ body {
   color: #c56e52;
 }
 
-.brand div span {
+.brand > div > span {
   color: #9499a0;
   font-size: 12px;
 }

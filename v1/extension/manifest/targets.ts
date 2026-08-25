@@ -53,7 +53,7 @@ export const TARGETS: Record<TargetName, BuildTarget> = {
   },
 };
 
-export const EXTENSION_VERSION = '1.0.6';
+export const EXTENSION_VERSION = '1.0.7';
 
 export function buildManifest(target: BuildTarget): Record<string, unknown> {
   return {

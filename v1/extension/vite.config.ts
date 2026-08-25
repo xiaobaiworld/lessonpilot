@@ -124,8 +124,23 @@ export default defineConfig({
         if (missing.length > 0) {
           throw new Error(
             `产物缺少被引用的文件：${missing.join('、')}。` +
-              '构建成功不代表引用正确，请检查 manifest 与 HTML 的路径。'
+            '构建成功不代表引用正确，请检查 manifest 与 HTML 的路径。'
           );
+        }
+
+        // 示例课程必须进入真正的 service worker 产物，而不是只存在于源码或 popup 文案。
+        const backgroundBundle = readFileSync(
+          resolve(outDir, manifest.background.service_worker),
+          'utf8'
+        );
+        for (const marker of [
+          '1dfaf2f0-f826-46e8-afdb-89e2d0468a22',
+          'BV1WW4y1e7GL',
+          'example-overview',
+        ]) {
+          if (!backgroundBundle.includes(marker)) {
+            throw new Error(`示例课程没有进入 service worker 产物：${marker}`);
+          }
         }
       },
     },

@@ -2,6 +2,7 @@ import { CourseLibrary } from '../storage';
 import { redeemAccessCode } from './redeem';
 import { buildLibraryView, findCandidates, removalImpact } from '../shared/library-view';
 import { API_ORIGIN } from './config';
+import { createExampleCourse } from './example-course';
 
 /**
  * background 是唯一的网络与持久化边界。
@@ -11,6 +12,14 @@ import { API_ORIGIN } from './config';
  */
 
 const library = new CourseLibrary(chrome.storage.local);
+const exampleCourse = (() => {
+  try {
+    return createExampleCourse();
+  } catch {
+    // 构建门禁会拦截无效内置课程；运行时仍不能因此阻断真实授权课程。
+    return null;
+  }
+})();
 
 /** 统一响应形状。调用方靠 ok 判断，不靠字段是否存在猜 */
 type Reply = { ok: true; data?: unknown } | { ok: false; code: string; message: string };
@@ -19,6 +28,14 @@ const ok = (data?: unknown): Reply => ({ ok: true, data });
 const err = (code: string, message: string): Reply => ({ ok: false, code, message });
 
 async function handle(message: unknown): Promise<Reply> {
+  if (exampleCourse) {
+    try {
+      await library.ensureExampleCourse(exampleCourse);
+    } catch {
+      // 示例初始化失败不影响真实授权课程，后者仍可继续兑换。
+    }
+  }
+
   if (typeof message !== 'object' || message === null) {
     return err('BAD_MESSAGE', '消息格式不正确。');
   }
@@ -103,6 +120,10 @@ async function handle(message: unknown): Promise<Reply> {
     case 'removeCourse': {
       if (typeof m.courseId !== 'string') return err('BAD_MESSAGE', '缺少课程。');
       try {
+        const root = await library.read();
+        if (root.installedCourses[m.courseId]?.readOnly) {
+          return err('READ_ONLY', '示例课程不可删除，只能重置学习进度。');
+        }
         await library.removeCourse(m.courseId);
         return ok();
       } catch {

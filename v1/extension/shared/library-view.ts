@@ -28,6 +28,8 @@ export interface CourseView {
   /** 0–100 的整数，便于直接渲染，不在视图层再算 */
   percent: number;
   installedAt: string;
+  source: 'example' | 'authorized';
+  readOnly: boolean;
   /** 这门课是哪个授权码带来的，只有尾段 */
   codeHint: string | null;
 }
@@ -87,6 +89,8 @@ export function buildLibraryView(root: StorageRoot): LibraryView {
         doneCount,
         percent: nodeCount === 0 ? 0 : Math.round((doneCount / nodeCount) * 100),
         installedAt: course.installedAt,
+        source: course.source,
+        readOnly: course.readOnly,
         codeHint: hintBySource.get(course.sourceId) ?? null,
       };
     })
@@ -116,7 +120,15 @@ export interface RuntimeCandidate {
 
 export function findCandidates(root: StorageRoot, videoId: string): RuntimeCandidate[] {
   const out: RuntimeCandidate[] = [];
-  for (const course of Object.values(root.installedCourses)) {
+  const courses = Object.values(root.installedCourses);
+  const hasAuthorizedMatch = courses.some(
+    (course) =>
+      !course.readOnly && course.lessons.some((lesson) => lesson.videoId === videoId)
+  );
+
+  for (const course of courses) {
+    // 示例课只用于开箱体验；真实授权课程存在时不让它抢占候选。
+    if (course.readOnly && hasAuthorizedMatch) continue;
     for (const lesson of course.lessons) {
       if (lesson.videoId === videoId) {
         out.push({
@@ -144,7 +156,7 @@ export function removalImpact(
   courseId: string
 ): RemovalImpact | null {
   const course = root.installedCourses[courseId];
-  if (!course) return null;
+  if (!course || course.readOnly) return null;
 
   const progress = root.localLearningState[courseId] ?? {};
   const attemptCount = Object.values(progress).reduce(
