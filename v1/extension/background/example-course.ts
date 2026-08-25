@@ -29,7 +29,7 @@ export const EXAMPLE_COURSE_PACKAGE = {
           enabled: true,
           family: 'attention',
           interaction: 'notice',
-          trigger: { kind: 'time_cross', timeSeconds: 2, captionId: null },
+          trigger: { kind: 'time_cross', timeSeconds: 1, captionId: null },
           display: {
             title: '重点提示',
             body:
@@ -43,7 +43,7 @@ export const EXAMPLE_COURSE_PACKAGE = {
           enabled: true,
           family: 'attention',
           interaction: 'notice',
-          trigger: { kind: 'time_cross', timeSeconds: 35, captionId: null },
+          trigger: { kind: 'time_cross', timeSeconds: 10, captionId: null },
           display: {
             title: '重点提醒',
             body: '请记住：只说“我很努力”还不够，还要说清楚具体经历、采取的行动和最后的结果。',
