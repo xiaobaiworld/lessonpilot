@@ -18,7 +18,7 @@ dev = [
   "httpx>=0.28,<1",
   "pytest>=9.0.3,<10",
   "pytest-cov>=6,<7",
-  "ruff>=0.13,<0.14",
+  "ruff>=0.13,<0.17",
 ]
 
 [tool.pytest.ini_options]
