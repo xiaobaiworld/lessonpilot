@@ -52,14 +52,48 @@ class NoticeHighlight(StrictModel):
     _text = field_validator("text")(_validate_text)
 
 
+class NoticeSummarySection(StrictModel):
+    label: str
+    body: str
+
+    _label = field_validator("label")(_validate_text)
+    _body = field_validator("body")(_validate_text)
+
+
+class NoticeSummary(StrictModel):
+    title: str
+    body: str
+
+    _title = field_validator("title")(_validate_text)
+    _body = field_validator("body")(_validate_text)
+
+
 class NoticeDisplay(StrictModel):
     title: str
     body: str
     caption_quote: str | None = Field(default=None, alias="captionQuote")
     highlights: list[NoticeHighlight] | None = None
+    eyebrow: str | None = None
+    intro: str | None = None
+    sections: list[NoticeSummarySection] | None = Field(default=None, min_length=3, max_length=3)
+    summary: NoticeSummary | None = None
 
     _title = field_validator("title")(_validate_text)
     _body = field_validator("body")(_validate_text)
+
+    @field_validator("eyebrow", "intro")
+    @classmethod
+    def validate_optional_text(cls, value: str | None) -> str | None:
+        return _validate_text(value) if value is not None else value
+
+    @model_validator(mode="after")
+    def validate_structured_summary(self) -> "NoticeDisplay":
+        structured = [self.eyebrow, self.intro, self.sections, self.summary]
+        if any(value is not None for value in structured) and not all(
+            value is not None for value in structured
+        ):
+            raise ValueError("重点提示的结构化字段必须一起填写。")
+        return self
 
 
 class ChoiceOption(StrictModel):
