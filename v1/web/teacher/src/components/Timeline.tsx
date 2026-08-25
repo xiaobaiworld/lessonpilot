@@ -1,121 +1,205 @@
-import React from 'react';
-import { TimelineModel } from '@v1/web/shared/editor';
-import { ScriptNode } from '../api';
+import React, { useMemo, useRef, useState } from 'react';
+import { NODE_ICON_IDS, NodeIcon } from '@v1/web/shared/editor';
+import { ScriptNode, NodeKind } from '../api';
 import { metaOf, formatTime } from '../nodes';
+import { TimelineSegment, assignLanes, buildSegmentTicks } from '../editorModel';
 
 interface Props {
   nodes: ScriptNode[];
-  /**
-   * 课程总时长。
-   *
-   * 只在有真源时才传：字幕最后一句的结束时刻。没有字幕时不显示时间轴——
-   * 随手填一个兜底时长会让刻度、末端标记和节点百分比一致地指向错误位置
-   * （doc/lessons.md 2026-08-20）。
-   */
   durationSeconds: number;
-  /** 点击轨道空白处，在该时刻新建节点 */
-  onPlaceAt: (seconds: number) => void;
-  /** 点击已有节点标记 */
-  onSelect: (nodeId: string) => void;
+  segment: TimelineSegment;
+  armedKind: NodeKind | null;
   selectedId: string | null;
+  onArm: (kind: NodeKind | null) => void;
+  onPlaceAt: (seconds: number, kind?: NodeKind) => void;
+  onSelect: (nodeId: string) => void;
+  onOpen: (nodeId: string) => void;
+  onMove: (nodeId: string, seconds: number) => void;
 }
 
-/** 刻度间隔随时长自适应，避免短视频刻度太密、长视频太疏 */
-function tickInterval(durationSeconds: number): number {
-  if (durationSeconds <= 180) return 30;
-  if (durationSeconds <= 600) return 60;
-  if (durationSeconds <= 1800) return 300;
-  return 600;
-}
+const TIMELINE_SAFE_EDGE = 38;
 
 export const Timeline: React.FC<Props> = ({
   nodes,
   durationSeconds,
+  segment,
+  armedKind,
+  selectedId,
+  onArm,
   onPlaceAt,
   onSelect,
-  selectedId,
+  onOpen,
+  onMove,
 }) => {
-  if (durationSeconds <= 0) return null;
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [dragSeconds, setDragSeconds] = useState<number | null>(null);
+  const ticks = useMemo(() => buildSegmentTicks(segment), [segment]);
+  const visibleNodes = nodes.filter(
+    (node) =>
+      node.trigger.timeSeconds >= segment.startSeconds &&
+      (node.trigger.timeSeconds < segment.endSeconds || segment.index === segment.total)
+  );
+  const lanes = assignLanes(
+    visibleNodes.map((node) => ({ id: node.id, timeSeconds: node.trigger.timeSeconds }))
+  );
 
-  const model = new TimelineModel({
-    durationSeconds,
-    pixelsPerSecond: 1, // 用百分比布局，像素比例不参与渲染
-    tickIntervalSeconds: tickInterval(durationSeconds),
-  });
+  const secondsFromEvent = (clientX: number) => {
+    const rect = trackRef.current?.getBoundingClientRect();
+    if (!rect) return 0;
+    const contentWidth = Math.max(1, rect.width - TIMELINE_SAFE_EDGE * 2);
+    const ratio = Math.max(
+      0,
+      Math.min(1, (clientX - rect.left - TIMELINE_SAFE_EDGE) / contentWidth)
+    );
+    return Math.round(
+      (segment.startSeconds + ratio * (segment.endSeconds - segment.startSeconds)) * 10
+    ) / 10;
+  };
 
-  const placeFromClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const ratio = (e.clientX - rect.left) / rect.width;
-    const seconds = Math.round(Math.max(0, Math.min(1, ratio)) * durationSeconds);
-    onPlaceAt(seconds);
+  const place = (clientX: number) => {
+    if (!armedKind) return;
+    onPlaceAt(secondsFromEvent(clientX));
+    onArm(null);
   };
 
   return (
-    <div className="timeline">
-      <div className="timeline-head">
-        <strong>时间轴</strong>
-        <span>点击轨道在该时刻新建节点，或点标记跳到对应节点</span>
-        <span className="timeline-duration">{formatTime(durationSeconds)}</span>
+    <section className="visual-timeline" aria-label="课节时间线">
+      <div className="visual-timeline-toolbar">
+        <div>
+          <strong>课节时间线</strong>
+          <span>
+            {formatTime(segment.startSeconds)} - {formatTime(segment.endSeconds)} · 共{' '}
+            {formatTime(durationSeconds)}
+          </span>
+        </div>
+        <span className="timeline-placement">
+          {armedKind ? `已选择${metaOf(armedKind).label}，点击时间轴放置` : '选择节点后点击时间轴'}
+        </span>
+      </div>
+
+      <div className="visual-timeline-ruler" aria-hidden="true">
+        {ticks.map((tick) => (
+          <span key={tick.seconds} style={{ left: `${tick.percentage}%` }}>
+            {formatTime(tick.seconds)}
+          </span>
+        ))}
       </div>
 
       <div
-        className="timeline-track"
-        onClick={placeFromClick}
-        role="button"
+        ref={trackRef}
+        className={`visual-timeline-track${armedKind ? ' is-armed' : ''}`}
+        role="group"
         tabIndex={0}
-        aria-label="课程时间轴，点击以在该时刻新建节点"
-        onKeyDown={(e) => {
-          // 键盘用户：Enter 在中点新建，之后可在节点卡里改时刻
-          if (e.key === 'Enter') onPlaceAt(Math.round(durationSeconds / 2));
+        aria-label="课节时间轴"
+        onClick={(event) => {
+          if (event.target === event.currentTarget) place(event.clientX);
+        }}
+        onKeyDown={(event) => {
+          if (event.key === 'Escape') onArm(null);
+          if (event.key === 'Enter' && armedKind) {
+            const rect = event.currentTarget.getBoundingClientRect();
+            place(rect.left + rect.width / 2);
+          }
+        }}
+        onDragOver={(event) => {
+          event.preventDefault();
+          setDragSeconds(secondsFromEvent(event.clientX));
+        }}
+        onDragLeave={() => setDragSeconds(null)}
+        onDrop={(event) => {
+          event.preventDefault();
+          const nodeId = event.dataTransfer.getData('text/node-id');
+          const kind = event.dataTransfer.getData('text/node-kind') as NodeKind;
+          if (nodeId) onMove(nodeId, secondsFromEvent(event.clientX));
+          else if (kind) {
+            onArm(kind);
+            onPlaceAt(secondsFromEvent(event.clientX), kind);
+          }
+          setDragSeconds(null);
         }}
       >
-        {model.getTicks().map((tick) => (
-          <span
-            key={tick.seconds}
-            className="timeline-tick"
-            style={{ left: `${tick.percentage}%` }}
-          >
-            <i />
-            <b>{formatTime(tick.seconds)}</b>
-          </span>
-        ))}
-
-        {nodes.map((node) => {
-          const seconds = node.trigger.timeSeconds;
-          // 超出时长的节点仍要能看到，贴在末端并标出来
-          const overflow = seconds > durationSeconds;
-          const percent = overflow
-            ? 100
-            : model.getPercentagePosition(seconds);
-          const meta = metaOf(node.interaction);
-
-          return (
-            <button
-              key={node.id}
-              type="button"
-              className={
-                `timeline-marker timeline-marker-${node.interaction}` +
-                (selectedId === node.id ? ' is-selected' : '') +
-                (overflow ? ' is-overflow' : '')
-              }
-              style={{ left: `${percent}%` }}
-              title={
-                overflow
-                  ? `${meta.label} ${formatTime(seconds)}（超出课程时长）`
-                  : `${meta.label} ${formatTime(seconds)}`
-              }
-              onClick={(e) => {
-                e.stopPropagation(); // 不要同时触发轨道的新建
-                onSelect(node.id);
+        <div className="visual-timeline-axis" />
+        <div
+          className="visual-timeline-content"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) place(event.clientX);
+          }}
+        >
+          <div className="visual-timeline-grid" aria-hidden="true">
+            {ticks.map((tick) => (
+              <span
+                key={tick.seconds}
+                className="visual-timeline-tick-line"
+                style={{ left: `${tick.percentage}%` }}
+              />
+            ))}
+          </div>
+          <span className="timeline-boundary timeline-boundary-start">开始</span>
+          <span className="timeline-boundary timeline-boundary-end">结束</span>
+          {dragSeconds !== null && (
+            <span
+              className="timeline-drop-indicator"
+              style={{
+                left: `${((dragSeconds - segment.startSeconds) / (segment.endSeconds - segment.startSeconds || 1)) * 100}%`,
               }}
             >
-              <span className="visually-hidden">
-                {meta.label} {formatTime(seconds)}
-              </span>
-            </button>
-          );
-        })}
+              {formatTime(dragSeconds)}
+            </span>
+          )}
+
+          {visibleNodes.map((node) => {
+            const seconds = node.trigger.timeSeconds;
+            const position =
+              ((seconds - segment.startSeconds) / (segment.endSeconds - segment.startSeconds || 1)) *
+              100;
+            const lane = lanes.find((item) => item.id === node.id)?.lane ?? 0;
+            const meta = metaOf(node.interaction);
+            const iconId = NODE_ICON_IDS[node.interaction];
+            const title = String((node.display as Record<string, unknown>).title || meta.label);
+            return (
+              <React.Fragment key={node.id}>
+                <button
+                  type="button"
+                  draggable
+                  className={`timeline-node-marker timeline-node-${node.interaction}${selectedId === node.id ? ' is-selected' : ''}`}
+                  style={{ left: `${position}%` }}
+                  aria-label={`${title} ${formatTime(seconds)}`}
+                  onDragStart={(event) => {
+                    event.dataTransfer.setData('text/node-id', node.id);
+                    event.dataTransfer.effectAllowed = 'move';
+                  }}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onSelect(node.id);
+                  }}
+                  onDoubleClick={() => onOpen(node.id)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === 'Delete') onOpen(node.id);
+                  }}
+                >
+                  <span className="timeline-node-marker-icon">
+                    <NodeIcon iconId={iconId as 'attention' | 'choice' | 'blank' | 'qa'} />
+                  </span>
+                  <small>{formatTime(seconds)}</small>
+                </button>
+                <button
+                  type="button"
+                  className={`timeline-node-summary timeline-node-${node.interaction}${selectedId === node.id ? ' is-selected' : ''}`}
+                  data-lane={lane % 2}
+                  style={{ left: `${position}%` }}
+                  onClick={() => onOpen(node.id)}
+                >
+                  {title}
+                </button>
+              </React.Fragment>
+            );
+          })}
+        </div>
       </div>
-    </div>
+
+      {nodes.length === 0 && (
+        <p className="visual-timeline-empty">还没有互动节点。先选择上方组件，再点击时间轴放置。</p>
+      )}
+    </section>
   );
 };

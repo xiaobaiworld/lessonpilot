@@ -86,9 +86,13 @@ export const TeacherApp: React.FC = () => {
       <LessonPage
         api={api}
         teacher={teacher}
+        courseId={route.course}
         lessonId={route.lesson}
         lessonTitle={route.lessonTitle ?? '课节'}
         onBack={() => go({ course: route.course })}
+        onSelectLesson={(lesson, lessonTitle) =>
+          go({ course: route.course, lesson, lessonTitle })
+        }
         onSignedOut={signOut}
       />
     );

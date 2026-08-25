@@ -12,6 +12,8 @@ interface Props {
    * 时间轴据此渲染。没有字幕时不上报，时间轴就不显示，而不是猜一个数字。
    */
   onDuration: (seconds: number) => void;
+  onCaptions: (captions: Caption[] | null) => void;
+  onFilename?: (filename: string) => void;
   disabled: boolean;
 }
 
@@ -26,6 +28,8 @@ export const SubtitlePicker: React.FC<Props> = ({
   usedSeconds,
   onPick,
   onDuration,
+  onCaptions,
+  onFilename,
   disabled,
 }) => {
   const fileInput = useRef<HTMLInputElement>(null);
@@ -39,11 +43,12 @@ export const SubtitlePicker: React.FC<Props> = ({
     const result = parseSubtitle(await file.text(), file.name);
     if (!result.ok) {
       setError(result.message);
-      setCaptions(null);
       return;
     }
     setCaptions(result.captions);
+    onCaptions(result.captions);
     setFilename(file.name);
+    onFilename?.(file.name);
     const last = result.captions[result.captions.length - 1];
     if (last) onDuration(Math.ceil(last.endSeconds));
   };
@@ -92,6 +97,8 @@ export const SubtitlePicker: React.FC<Props> = ({
           type="button"
           onClick={() => {
             setCaptions(null);
+            onCaptions(null);
+            onFilename?.('');
             setPicking(null);
           }}
         >

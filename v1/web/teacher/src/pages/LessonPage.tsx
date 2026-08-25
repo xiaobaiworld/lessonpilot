@@ -1,10 +1,12 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Topbar, SectionHead, APIError, errorMessage } from '@v1/web/shared';
-import { TeacherAPI, Teacher, ScriptNode, NodeKind } from '../api';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { APIError, Topbar, errorMessage } from '@v1/web/shared';
+import { Caption, NODE_ICON_IDS, NodeIcon } from '@v1/web/shared/editor';
+import { TeacherAPI, Teacher, ScriptNode, NodeKind, CourseDetail } from '../api';
 import {
   NODE_KINDS,
   metaOf,
   createNode,
+  changeNodeKind,
   formatTime,
   parseTime,
   findEmptyField,
@@ -12,62 +14,112 @@ import {
 import { NodeForm } from '../components/NodeForm';
 import { SubtitlePicker } from '../components/SubtitlePicker';
 import { Timeline } from '../components/Timeline';
+import {
+  buildSegments,
+  captionsAround,
+  SEGMENT_LENGTH_OPTIONS,
+} from '../editorModel';
 
 interface Props {
   api: TeacherAPI;
   teacher: Teacher;
+  courseId: string;
   lessonId: string;
   lessonTitle: string;
   onBack: () => void;
+  onSelectLesson: (lessonId: string, lessonTitle: string) => void;
   onSignedOut: () => void;
+}
+
+const LESSON_ORDINALS = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
+
+function lessonOptionLabel(sortOrder: number, title: string): string {
+  const ordinal = LESSON_ORDINALS[sortOrder] ?? String(sortOrder);
+  return `第${ordinal}节：${title}`;
 }
 
 export const LessonPage: React.FC<Props> = ({
   api,
   teacher,
+  courseId,
   lessonId,
   lessonTitle,
   onBack,
+  onSelectLesson,
   onSignedOut,
 }) => {
+  const [course, setCourse] = useState<CourseDetail | null>(null);
   const [nodes, setNodes] = useState<ScriptNode[] | null>(null);
   const [revision, setRevision] = useState<number | null>(null);
+  const [captions, setCaptions] = useState<Caption[]>([]);
+  const [filename, setFilename] = useState('');
   const [dirty, setDirty] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  /** 课程时长的唯一真源是导入的字幕；没导入就不显示时间轴 */
-  const [durationSeconds, setDuration] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [armedKind, setArmedKind] = useState<NodeKind | null>(null);
+  const [dialogNode, setDialogNode] = useState<ScriptNode | null>(null);
+  const [dialogIsNew, setDialogIsNew] = useState(false);
+  const [selectedSegmentId, setSelectedSegmentId] = useState('segment-1');
+  const [segmentSeconds, setSegmentSeconds] = useState<number>(SEGMENT_LENGTH_OPTIONS[0].seconds);
+
+  const currentLesson = course?.lessons.find((lesson) => lesson.id === lessonId);
+  const durationSeconds = captions.length
+    ? Math.ceil(captions[captions.length - 1].endSeconds)
+    : 0;
+  const segments = useMemo(
+    () => buildSegments(durationSeconds, segmentSeconds),
+    [durationSeconds, segmentSeconds]
+  );
+  const selectedSegment =
+    segments.find((segment) => segment.id === selectedSegmentId) ?? segments[0];
+  const selectedNode = nodes?.find((node) => node.id === selectedId);
+  const contextCaptions = selectedNode
+    ? captionsAround(captions, selectedNode.trigger.timeSeconds, selectedNode.trigger.captionId)
+    : [];
 
   const load = useCallback(async () => {
     setError(null);
+    try {
+      const courseDetail = await api.getCourse(courseId);
+      setCourse(courseDetail);
+    } catch (err) {
+      setError(errorMessage(err));
+      setCourse(null);
+    }
+
     try {
       const draft = await api.getDraft(lessonId);
       setNodes(draft.config.nodes);
       setRevision(draft.revision);
       setDirty(false);
+      setSelectedId(null);
     } catch (err) {
-      // 还没存过草稿是正常起点，不是错误
       if (err instanceof APIError && err.code === 'DRAFT_NOT_FOUND') {
         setNodes([]);
         setRevision(null);
-        setDirty(false);
         return;
       }
       setError(errorMessage(err));
       setNodes([]);
+      setRevision(null);
     }
-  }, [api, lessonId]);
+  }, [api, courseId, lessonId]);
 
   useEffect(() => {
+    setCaptions([]);
+    setFilename('');
+    setSelectedSegmentId('segment-1');
+    setSegmentSeconds(SEGMENT_LENGTH_OPTIONS[0].seconds);
+    setDialogNode(null);
+    setArmedKind(null);
     load();
   }, [load]);
 
-  // 有未保存改动时离开页面先提醒
   useEffect(() => {
     if (!dirty) return;
-    const warn = (e: BeforeUnloadEvent) => e.preventDefault();
+    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
     addEventListener('beforeunload', warn);
     return () => removeEventListener('beforeunload', warn);
   }, [dirty]);
@@ -78,56 +130,84 @@ export const LessonPage: React.FC<Props> = ({
     setNotice(null);
   };
 
-  const add = (kind: NodeKind) => {
-    if (!nodes) return;
-    // 新节点排在最后一个之后 30 秒，避免和已有节点同一时刻
-    const last = nodes.reduce((max, n) => Math.max(max, n.trigger.timeSeconds), 0);
-    update([...nodes, createNode(kind, nodes.length === 0 ? 30 : last + 30)]);
-  };
-
-  /** 从时间轴点击某处新建。默认重点标注，最常用且不需要填选项 */
-  const addAt = (seconds: number) => {
-    if (!nodes) return;
-    const node = createNode('notice', seconds);
-    update([...nodes, node]);
-    setSelectedId(node.id);
-  };
-
-  /** 从字幕插入：时刻取那句话的起点，正文/题目预填该句，老师再改 */
-  const addFromCaption = (kind: NodeKind, seconds: number, captionText: string) => {
+  const openNewNode = (kind: NodeKind, seconds: number, captionText = '') => {
     if (!nodes) return;
     const node = createNode(kind, seconds);
+    const nearest = captions.reduce<Caption | null>((best, item) => {
+      if (!best || Math.abs(item.startSeconds - seconds) < Math.abs(best.startSeconds - seconds)) {
+        return item;
+      }
+      return best;
+    }, null);
     const field = kind === 'notice' ? 'body' : 'prompt';
-    update([
-      ...nodes,
-      {
-        ...node,
-        display: { ...node.display, [field]: captionText },
-        trigger: { ...node.trigger, captionId: null },
-      },
-    ]);
+    const prepared: ScriptNode = {
+      ...node,
+      display: { ...node.display, [field]: captionText || nearest?.text || '' },
+      trigger: { ...node.trigger, captionId: nearest?.id ?? null },
+    };
+    setSelectedId(prepared.id);
+    setDialogNode(prepared);
+    setDialogIsNew(true);
+  };
+
+  const saveDialog = (next: ScriptNode) => {
+    if (!nodes) return;
+    const missing = findEmptyField(next);
+    if (missing) {
+      setError(`请先填写「${missing}」。`);
+      return;
+    }
+    if (dialogIsNew) update([...nodes, next]);
+    else update(nodes.map((node) => (node.id === next.id ? next : node)));
+    setSelectedId(next.id);
+    setDialogNode(null);
+    setError(null);
+  };
+
+  const deleteDialogNode = () => {
+    if (!dialogNode || !nodes || !window.confirm('确定删除这个节点吗？')) return;
+    update(nodes.filter((node) => node.id !== dialogNode.id));
+    setSelectedId(null);
+    setDialogNode(null);
+  };
+
+  const moveNode = (nodeId: string, seconds: number) => {
+    if (!nodes) return;
+    const nearest = captions.reduce<Caption | null>((best, item) => {
+      if (!best || Math.abs(item.startSeconds - seconds) < Math.abs(best.startSeconds - seconds)) {
+        return item;
+      }
+      return best;
+    }, null);
+    update(
+      nodes.map((node) =>
+        node.id === nodeId
+          ? {
+              ...node,
+              trigger: {
+                ...node.trigger,
+                timeSeconds: Math.max(0, Math.round(seconds * 10) / 10),
+                captionId: nearest?.id ?? null,
+              },
+            }
+          : node
+      )
+    );
+    setSelectedId(nodeId);
   };
 
   const save = async () => {
     if (!nodes) return;
-
-    // 按时间排序后保存，学生端按顺序触发
     const sorted = [...nodes].sort(
-      (a, b) => a.trigger.timeSeconds - b.trigger.timeSeconds
+      (a, b) => a.trigger.timeSeconds - b.trigger.timeSeconds || a.id.localeCompare(b.id)
     );
-
-    // 先本地挡一遍空字段：后端整份拒绝，逐个提交试错很费时间
     for (let i = 0; i < sorted.length; i++) {
       const missing = findEmptyField(sorted[i]);
       if (missing) {
-        setError(
-          `第 ${i + 1} 个节点（${formatTime(sorted[i].trigger.timeSeconds)}` +
-            ` ${metaOf(sorted[i].interaction).label}）还缺「${missing}」`
-        );
+        setError(`第 ${i + 1} 个节点（${metaOf(sorted[i].interaction).label}）还缺「${missing}」`);
         return;
       }
     }
-
     setBusy(true);
     setError(null);
     try {
@@ -137,7 +217,6 @@ export const LessonPage: React.FC<Props> = ({
       setDirty(false);
       setNotice(`已保存 ${draft.node_count} 个节点`);
     } catch (err) {
-      // 后端整份校验，失败时本地内容保留，不清空用户的输入
       setError(errorMessage(err));
     } finally {
       setBusy(false);
@@ -157,172 +236,293 @@ export const LessonPage: React.FC<Props> = ({
     }
   };
 
-  const sorted = nodes
-    ? [...nodes].sort((a, b) => a.trigger.timeSeconds - b.trigger.timeSeconds)
-    : [];
+  const selectLesson = (nextLessonId: string) => {
+    if (nextLessonId === lessonId) return;
+    if (dirty && !window.confirm('当前课节有未保存修改，确定切换吗？')) return;
+    const target = course?.lessons.find((lesson) => lesson.id === nextLessonId);
+    if (target) onSelectLesson(target.id, target.title);
+  };
 
   return (
     <div className="app-shell">
-      <Topbar
-        subtitle="互动课程工具"
-        account={teacher.display_name}
-        onLogout={onSignedOut}
-      />
-
-      <main className="view workspace-home">
+      <Topbar subtitle="互动课程工具" account={teacher.display_name} onLogout={onSignedOut} />
+      <main className="view workspace-home teacher-editor-page">
         <button className="text-button back-link" type="button" onClick={onBack}>
           ← 返回课程
         </button>
-
         {error && <p className="field-error">{error}</p>}
         {notice && <p className="notice">{notice}</p>}
 
-        <SectionHead
-          title={lessonTitle}
-          count={
-            nodes === null
-              ? undefined
-              : `${nodes.length} 个互动节点${dirty ? '（有未保存改动）' : ''}`
-          }
-        >
-          <button
-            className="light-button"
-            type="button"
-            onClick={testPreview}
-            disabled={busy || dirty || revision === null}
-          >
-            测试预览
-          </button>
-          <button
-            className="dark-button"
-            type="button"
-            onClick={save}
-            disabled={busy || !dirty}
-          >
-            {busy ? '保存中…' : '保存草稿'}
-          </button>
-        </SectionHead>
+        <header className="teacher-editor-head">
+          <div>
+            <p className="eyebrow">课程设计</p>
+            <h1>{course?.title ?? '正在读取课程…'}</h1>
+            <p className="teacher-editor-subtitle">
+              {currentLesson?.title ?? lessonTitle} · {nodes?.length ?? 0} 个互动节点
+              {dirty ? ' · 有未保存修改' : ''}
+            </p>
+          </div>
+          <div className="teacher-editor-actions">
+            <button
+              className="light-button"
+              type="button"
+              onClick={testPreview}
+              disabled={busy || dirty || revision === null}
+            >
+              测试预览
+            </button>
+            <button className="dark-button" type="button" onClick={save} disabled={busy || !dirty}>
+              {busy ? '保存中…' : '保存草稿'}
+            </button>
+          </div>
+        </header>
 
-        {nodes === null && <p className="table-state">正在读取草稿…</p>}
-
-        {nodes && (
-          <>
-            <div className="node-add-row">
-              <span>添加节点：</span>
-              {NODE_KINDS.map((m) => (
-                <button
-                  key={m.kind}
-                  className="light-button"
-                  type="button"
-                  onClick={() => add(m.kind)}
-                  disabled={busy}
-                  title={m.hint}
-                >
-                  {m.label}
-                </button>
-              ))}
-            </div>
-
-            {durationSeconds > 0 && (
-              <Timeline
-                nodes={nodes}
-                durationSeconds={durationSeconds}
-                onPlaceAt={(seconds) => addAt(seconds)}
-                onSelect={(id) => {
-                  setSelectedId(id);
-                  document
-                    .getElementById(`node-${id}`)
-                    ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        <section className="node-plugin-bar" aria-label="添加交互节点">
+          <span className="node-plugin-title">交互节点</span>
+          {NODE_KINDS.map((meta) => {
+            const iconId = NODE_ICON_IDS[meta.kind];
+            return (
+              <button
+                key={meta.kind}
+                type="button"
+                draggable
+                className={`node-plugin node-plugin-${meta.kind}${armedKind === meta.kind ? ' is-active' : ''}`}
+                aria-pressed={armedKind === meta.kind}
+                onClick={() => setArmedKind(armedKind === meta.kind ? null : meta.kind)}
+                onDragStart={(event) => {
+                  event.dataTransfer.setData('text/node-kind', meta.kind);
+                  event.dataTransfer.effectAllowed = 'copy';
                 }}
-                selectedId={selectedId}
-              />
-            )}
+                title={meta.hint}
+              >
+                <NodeIcon iconId={iconId as 'attention' | 'choice' | 'blank' | 'qa'} />
+                <span>{meta.label}</span>
+              </button>
+            );
+          })}
+        </section>
 
+        <div className="teacher-editor-context-row">
+          <strong className="course-context-title">{course?.title ?? '正在读取课程…'}</strong>
+          <select
+            id="lesson-switcher-select"
+            className="lesson-context-select"
+            value={lessonId}
+            onChange={(event) => selectLesson(event.target.value)}
+            disabled={!course || busy}
+            aria-label="选择课节"
+          >
+            {course?.lessons.map((lesson) => (
+              <option key={lesson.id} value={lesson.id}>
+                {lessonOptionLabel(lesson.sort_order, lesson.title)}
+              </option>
+            ))}
+          </select>
+          <div className="segment-pager" aria-label="时间段切换">
+            <button
+              type="button"
+              className="segment-arrow segment-arrow-prev"
+              disabled={!selectedSegment || selectedSegment.index === 1}
+              onClick={() => setSelectedSegmentId(`segment-${selectedSegment.index - 1}`)}
+              aria-label="上一时间段"
+            >
+              ‹
+            </button>
+            <strong>
+              时间段 {selectedSegment?.index ?? 1} / {selectedSegment?.total ?? 1}
+            </strong>
+            <button
+              type="button"
+              className="segment-arrow segment-arrow-next"
+              disabled={!selectedSegment || selectedSegment.index === selectedSegment.total}
+              onClick={() => setSelectedSegmentId(`segment-${selectedSegment.index + 1}`)}
+              aria-label="下一时间段"
+            >
+              ›
+            </button>
+          </div>
+          <label className="segment-length-control">
+            <span>分段长度</span>
+            <select
+              aria-label="时间段长度"
+              value={segmentSeconds}
+              onChange={(event) => {
+                setSegmentSeconds(Number(event.target.value));
+                setSelectedSegmentId('segment-1');
+              }}
+              disabled={busy}
+            >
+              {SEGMENT_LENGTH_OPTIONS.map((option) => (
+                <option key={option.seconds} value={option.seconds}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        {durationSeconds > 0 && selectedSegment ? (
+          <>
+            <Timeline
+              nodes={nodes ?? []}
+              durationSeconds={durationSeconds}
+              segment={selectedSegment}
+              armedKind={armedKind}
+              selectedId={selectedId}
+              onArm={setArmedKind}
+              onPlaceAt={(seconds, kind) => openNewNode(kind ?? armedKind ?? 'notice', seconds)}
+              onSelect={setSelectedId}
+              onOpen={(id) => {
+                const node = nodes?.find((item) => item.id === id);
+                if (node) {
+                  setSelectedId(id);
+                  setDialogNode({ ...node });
+                  setDialogIsNew(false);
+                }
+              }}
+              onMove={moveNode}
+            />
+          </>
+        ) : (
+          <div className="timeline-empty-state">请先导入字幕，时间轴会根据字幕的真实时长生成。</div>
+        )}
+
+        <div className="editor-lower-grid">
+          <aside className="subtitle-rail" aria-label="节点处字幕">
+            <div className="subtitle-rail-head">
+              <strong>节点处字幕</strong>
+              <span>{selectedNode ? formatTime(selectedNode.trigger.timeSeconds) : '未选择节点'}</span>
+            </div>
+            {selectedNode && contextCaptions.length > 0 ? (
+              <ol className="subtitle-context-list">
+                {contextCaptions.map((caption) => (
+                  <li
+                    key={caption.id}
+                    className={caption.id === selectedNode.trigger.captionId ? 'is-center' : ''}
+                  >
+                    <time>{caption.time}</time>
+                    <span>{caption.text}</span>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="subtitle-empty">选择时间轴上的节点查看附近字幕。</p>
+            )}
+          </aside>
+          <div>
             <SubtitlePicker
-              usedSeconds={nodes.map((n) => n.trigger.timeSeconds)}
-              onPick={addFromCaption}
-              onDuration={setDuration}
+              usedSeconds={(nodes ?? []).map((node) => node.trigger.timeSeconds)}
+              onPick={(kind, seconds, text) => openNewNode(kind, seconds, text)}
+              onDuration={() => undefined}
+              onCaptions={(next) => {
+                setCaptions(next ?? []);
+                if (!next) setFilename('');
+              }}
+              onFilename={setFilename}
               disabled={busy}
             />
-
-            {nodes.length === 0 ? (
-              <p className="table-state">
-                还没有互动节点。课程必须至少有一个节点才能发布。
-              </p>
-            ) : (
-              <div className="node-list">
-                {sorted.map((node) => (
-                  <NodeCard
-                    key={node.id}
-                    node={node}
-                    selected={selectedId === node.id}
-                    disabled={busy}
-                    onChange={(next) =>
-                      update(nodes.map((n) => (n.id === node.id ? next : n)))
-                    }
-                    onRemove={() => update(nodes.filter((n) => n.id !== node.id))}
-                  />
-                ))}
-              </div>
-            )}
-          </>
-        )}
+            {filename && <p className="subtitle-source-note">当前字幕来源：{filename}</p>}
+          </div>
+        </div>
       </main>
+
+      {dialogNode && (
+        <NodeDialog
+          node={dialogNode}
+          isNew={dialogIsNew}
+          disabled={busy}
+          onChange={setDialogNode}
+          onSave={saveDialog}
+          onDelete={deleteDialogNode}
+          onCancel={() => setDialogNode(null)}
+        />
+      )}
     </div>
   );
 };
 
-const NodeCard: React.FC<{
+const NodeDialog: React.FC<{
   node: ScriptNode;
-  selected: boolean;
+  isNew: boolean;
   disabled: boolean;
   onChange: (node: ScriptNode) => void;
-  onRemove: () => void;
-}> = ({ node, selected, disabled, onChange, onRemove }) => {
-  const meta = metaOf(node.interaction);
+  onSave: (node: ScriptNode) => void;
+  onDelete: () => void;
+  onCancel: () => void;
+}> = ({ node, isNew, disabled, onChange, onSave, onDelete, onCancel }) => {
   const [timeText, setTimeText] = useState(formatTime(node.trigger.timeSeconds));
   const [timeError, setTimeError] = useState(false);
-
-  const commitTime = () => {
-    const seconds = parseTime(timeText);
-    if (seconds === null) {
-      setTimeError(true);
-      return;
-    }
-    setTimeError(false);
-    onChange({ ...node, trigger: { ...node.trigger, timeSeconds: seconds } });
-  };
+  const iconId = NODE_ICON_IDS[node.interaction];
+  const meta = metaOf(node.interaction);
 
   return (
-    <section
-      id={`node-${node.id}`}
-      className={selected ? 'node-card is-selected' : 'node-card'}
+    <div
+      className="modal-backdrop"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onCancel();
+      }}
     >
-      <header className="node-card-head">
-        <span className={`node-tag node-tag-${node.interaction}`}>{meta.label}</span>
-        <label className="node-time">
-          <span>触发时刻</span>
+      <section className="node-dialog" role="dialog" aria-modal="true" aria-labelledby="node-dialog-title">
+        <header className="node-dialog-head">
+          <div>
+            <span className={`node-dialog-icon node-dialog-${node.interaction}`}>
+              <NodeIcon iconId={iconId as 'attention' | 'choice' | 'blank' | 'qa'} />
+            </span>
+            <div>
+              <p className="eyebrow">节点属性</p>
+              <h2 id="node-dialog-title">{isNew ? '添加交互节点' : '编辑交互节点'}</h2>
+            </div>
+          </div>
+          <span>{meta.label}</span>
+        </header>
+        <label className="dialog-field">
+          <span>节点类型</span>
+          <select
+            value={node.interaction}
+            disabled={disabled}
+            onChange={(event) => onChange(changeNodeKind(node, event.target.value as NodeKind))}
+          >
+            {NODE_KINDS.map((item) => (
+              <option key={item.kind} value={item.kind}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="dialog-field">
+          <span>触发时间</span>
           <input
-            type="text"
             value={timeText}
-            onChange={(e) => setTimeText(e.target.value)}
-            onBlur={commitTime}
             disabled={disabled}
             aria-invalid={timeError}
+            onChange={(event) => setTimeText(event.target.value)}
+            onBlur={() => {
+              const seconds = parseTime(timeText);
+              if (seconds === null) setTimeError(true);
+              else {
+                setTimeError(false);
+                onChange({ ...node, trigger: { ...node.trigger, timeSeconds: seconds } });
+              }
+            }}
           />
         </label>
-        {timeError && <span className="node-time-error">格式应为 mm:ss</span>}
-        <button
-          className="text-button"
-          type="button"
-          onClick={onRemove}
-          disabled={disabled}
-        >
-          删除
-        </button>
-      </header>
-
-      <NodeForm node={node} disabled={disabled} onChange={onChange} />
-    </section>
+        <NodeForm node={node} disabled={disabled} onChange={onChange} />
+        {timeError && <p className="field-error">时间格式应为 mm:ss。</p>}
+        <footer className="node-dialog-actions">
+          <button className="text-button" type="button" onClick={onCancel} disabled={disabled}>
+            取消
+          </button>
+          {!isNew && (
+            <button className="text-button danger-button" type="button" onClick={onDelete} disabled={disabled}>
+              删除节点
+            </button>
+          )}
+          <button className="dark-button" type="button" onClick={() => onSave(node)} disabled={disabled || timeError}>
+            保存节点
+          </button>
+        </footer>
+      </section>
+    </div>
   );
 };

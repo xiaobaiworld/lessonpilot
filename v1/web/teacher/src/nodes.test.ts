@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { NODE_KINDS, createNode, formatTime, parseTime, findEmptyField } from './nodes';
+import {
+  NODE_KINDS,
+  changeNodeKind,
+  createNode,
+  formatTime,
+  parseTime,
+  findEmptyField,
+} from './nodes';
 
 /**
  * family / interaction 的组合和各自的 evaluation 形状由后端 schema 用 const
@@ -133,6 +140,30 @@ describe('findEmptyField', () => {
     n.display = { title: 'T', prompt: 'P' };
     n.evaluation = { acceptedAnswers: [''], normalize: ['trim'], explanation: '解析' };
     expect(findEmptyField(n)).toBe('可接受答案');
+  });
+});
+
+describe('changeNodeKind', () => {
+  it('切换类型只保留标题、正文和定位信息', () => {
+    const original = createNode('choice', 12);
+    original.display = {
+      title: '表达练习',
+      prompt: '选择一个答案',
+      options: [{ id: 'a', label: 'A' }],
+    };
+    original.trigger.captionId = 'caption-2';
+
+    const next = changeNodeKind(original, 'notice');
+
+    expect(next).toMatchObject({
+      id: original.id,
+      interaction: 'notice',
+      family: 'attention',
+      trigger: { timeSeconds: 12, captionId: 'caption-2' },
+      display: { title: '表达练习', body: '选择一个答案' },
+    });
+    expect(next.display).not.toHaveProperty('options');
+    expect(next.evaluation).toBeNull();
   });
 });
 

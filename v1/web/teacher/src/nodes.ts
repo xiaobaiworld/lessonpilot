@@ -100,6 +100,32 @@ export function createNode(kind: NodeKind, timeSeconds: number): ScriptNode {
   }
 }
 
+/** 切换类型时只迁移通用标题和时间，不携带旧类型的无效字段。 */
+export function changeNodeKind(node: ScriptNode, kind: NodeKind): ScriptNode {
+  if (node.interaction === kind) return node;
+  const next = createNode(kind, node.trigger.timeSeconds);
+  const oldDisplay = node.display as Record<string, any>;
+  const title = typeof oldDisplay.title === 'string' ? oldDisplay.title : next.display.title;
+  const sourceText =
+    typeof oldDisplay.prompt === 'string'
+      ? oldDisplay.prompt
+      : typeof oldDisplay.body === 'string'
+        ? oldDisplay.body
+        : '';
+
+  if (kind === 'notice') {
+    next.display = { title, body: sourceText };
+  } else {
+    next.display = { ...next.display, title, prompt: sourceText };
+  }
+  return {
+    ...next,
+    id: node.id,
+    enabled: node.enabled,
+    trigger: { ...next.trigger, captionId: node.trigger.captionId ?? null },
+  };
+}
+
 /**
  * 保存前的本地检查。
  *

@@ -13,5 +13,4 @@ export {
   type Caption,
 } from './editor/SubtitleParser';
 
-// TimelineModel 与 NodeRegistry 等到横向时间轴 UI 落地再从这里导出，
-// 现在没有消费者。
+export * from './editor/icons';
