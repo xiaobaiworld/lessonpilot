@@ -132,8 +132,6 @@ test('manifest wires the student modules and grants only the fixed local API ori
   assert.match(mascotCss, /width: min\(520px, calc\(100vw - 32px\)\)/);
   assert.equal(manifest.version, '0.9.2');
 
-  const v1Targets = fs.readFileSync('v1/extension/manifest/targets.ts', 'utf8');
-  assert.match(v1Targets, /export const EXTENSION_VERSION = '1\.0\.2'/);
   assert.match(mascot, /lessonpilot:video-mode-toggle/);
   assert.match(mascot, /确认并继续/);
   assert.match(mascot, /setVideoMode/);

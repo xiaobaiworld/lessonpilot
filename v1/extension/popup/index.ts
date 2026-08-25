@@ -189,7 +189,10 @@ function brandHeader(): HTMLElement {
   mark.src = '../assets/icon-48.png';
   mark.alt = '';
   const copy = el('div');
-  copy.append(el('strong', undefined, 'KnownMap'), el('span', undefined, '课程助手'));
+  copy.append(
+    el('strong', undefined, 'KnownMap'),
+    el('span', undefined, `课程助手 · v${chrome.runtime.getManifest().version}`)
+  );
   head.append(mark, copy, el('span', 'role-badge', '学生'));
   return head;
 }

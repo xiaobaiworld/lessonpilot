@@ -9,6 +9,7 @@ const stylesheet = readFileSync(resolve(__dirname, 'popup.css'), 'utf8');
 describe('V1.0.5 弹窗保留旧版入口并保留 V1 能力', () => {
   it('恢复 0.9.2 的品牌、教师登录和在线更新入口', () => {
     expect(source).toMatch(/课程助手/);
+    expect(source).toMatch(/chrome\.runtime\.getManifest\(\)\.version/);
     expect(source).toMatch(/教师登录/);
     expect(source).toMatch(/chrome\.downloads\.download/);
     expect(updateSource).toMatch(/knownmapplugin\.zip/);
