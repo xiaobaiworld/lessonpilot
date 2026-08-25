@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "releaseId": "20260825T025025Z-2446e49269ba",
+  "environment": "production",
+  "site": "https://knownmap.com",
+  "repository": "xiaobaiworld/lessonpilot",
+  "gitRemote": "git@github-2:xiaobaiworld/lessonpilot.git",
+  "gitCommit": "2446e49269ba201e6e028f728fe3f2ad22eb175f",
+  "gitShortCommit": "2446e49269ba",
+  "gitRemoteBranch": "origin",
+  "gitCommitSubject": "feat: release student plugin v1.0.5",
+  "gitCommitTime": "2026-08-25T10:47:44+08:00",
+  "gitTag": "web-prod/20260825T025025Z-2446e49269ba",
+  "publishProfile": "v1-apps",
+  "status": "verified",
+  "builtAt": "2026-08-25T02:50:41Z",
+  "deployedAt": "2026-08-25T02:50:44Z",
+  "previousReleaseId": "20260824T152203Z-72d6c4492248",
+  "files": [
+    {
+      "path": "admin.html",
+      "sha256": "2b10966c59241bec2c570a1e5f4290dff72a898bfe50ef82b0809b5f908104fc",
+      "bytes": 1722
+    },
+    {
+      "path": "admin/assets/index-CS1BnRAN.js",
+      "sha256": "2dec49e8e0d2e4fc7964fb8818c8502a410b388936c5cb9f4a6b9161b4b90e26",
+      "bytes": 152337
+    },
+    {
+      "path": "admin/assets/index-DYWniRLp.css",
+      "sha256": "e871b7f8ec02deec32f824b0a0f645394fe8e3e6304b2658e3d2855919995029",
+      "bytes": 65801
+    },
+    {
+      "path": "admin/index.html",
+      "sha256": "2e124cf2badda2c149092e8100e3735cda8c78127d60fb3417ac2671b3cce1ca",
+      "bytes": 408
+    },
+    {
+      "path": "assets/knownmap-icon.png",
+      "sha256": "8acae4dc406d44f31ed7b5a329c2d17a6e6d799197c51fdc4f8c2e806829d0b3",
+      "bytes": 3440
+    },
+    {
+      "path": "demo-captions.js",
+      "sha256": "ca9af8b13bae00638b26a1dbca72d1dd58bb9c1c688f10f8d85556979e90685d",
+      "bytes": 12149
+    },
+    {
+      "path": "downloads/student-plugin/knownmap-v1.zip",
+      "sha256": "1e427f33ea67a019b2173ec46d862cd478d86a3a07b6d11da8d8c263b8d4a7b7",
+      "bytes": 38983
+    },
+    {
+      "path": "downloads/student-plugin/knownmapplugin.zip",
+      "sha256": "1e427f33ea67a019b2173ec46d862cd478d86a3a07b6d11da8d8c263b8d4a7b7",
+      "bytes": 38983
+    },
+    {
+      "path": "index.html",
+      "sha256": "1578e63bca317d90e1ff9ea7d607d30a94eb294d88ccecabfb681dbea32f0dea",
+      "bytes": 46216
+    },
+    {
+      "path": "link.html",
+      "sha256": "9b8845bafa9c6e3b7516d00fe0d07f78a52810f7055d8b522c92b288140791cf",
+      "bytes": 5245
+    },
+    {
+      "path": "robots.txt",
+      "sha256": "331ea9090db0c9f6f597bd9840fd5b171830f6e0b3ba1cb24dfa91f0c95aedc1",
+      "bytes": 26
+    },
+    {
+      "path": "subtitle-context.js",
+      "sha256": "a8d210826727de919976a4ac8cac78f90b7a1e8acf7d5d6b3ac6d02ff4d2e1bd",
+      "bytes": 6996
+    },
+    {
+      "path": "teacher-web/assets/knownmap-icon.png",
+      "sha256": "8acae4dc406d44f31ed7b5a329c2d17a6e6d799197c51fdc4f8c2e806829d0b3",
+      "bytes": 3440
+    },
+    {
+      "path": "teacher-web/assets/student-guide/step-download-and-unzip.png",
+      "sha256": "1e2614ee545c6eaed5aa7ccee058a1dc190f6f259ef1efadbd7419554de8e4af",
+      "bytes": 43449
+    },
+    {
+      "path": "teacher-web/assets/student-guide/step-load-unpacked.png",
+      "sha256": "0d2cb013ab065b1c979bdeb2fb0b991042d53c870d9074961d7597aea5ccfe97",
+      "bytes": 58967
+    },
+    {
+      "path": "teacher-web/assets/student-guide/step-open-extensions.png",
+      "sha256": "5d36c147f8ec74bb110e31d26efd324541c9e8a562d5d3a9683bdf63099e50a9",
+      "bytes": 57623
+    },
+    {
+      "path": "teacher-web/demo-captions.js",
+      "sha256": "ca9af8b13bae00638b26a1dbca72d1dd58bb9c1c688f10f8d85556979e90685d",
+      "bytes": 12149
+    },
+    {
+      "path": "teacher-web/editor.html",
+      "sha256": "a5ea13dab5e4b1ef148647107677ac4b1c82d785bbaa19d153a8327f5d6a1183",
+      "bytes": 1742
+    },
+    {
+      "path": "teacher-web/forsales.html",
+      "sha256": "1578e63bca317d90e1ff9ea7d607d30a94eb294d88ccecabfb681dbea32f0dea",
+      "bytes": 46216
+    },
+    {
+      "path": "teacher-web/student-guide.html",
+      "sha256": "0cd0abaa93512a5c6c501feb2032a49eb00137eda6107ed72aa7bc4bb1234233",
+      "bytes": 10820
+    },
+    {
+      "path": "teacher-web/subtitle-context.js",
+      "sha256": "a8d210826727de919976a4ac8cac78f90b7a1e8acf7d5d6b3ac6d02ff4d2e1bd",
+      "bytes": 6996
+    },
+    {
+      "path": "teacher-web/trial-intake.js",
+      "sha256": "d46c5bd01b037e041229505c849675b7dfe0c6d3ecdfa8c92459a0cffaa3fca7",
+      "bytes": 2535
+    },
+    {
+      "path": "teacher/assets/index-DYWniRLp.css",
+      "sha256": "e871b7f8ec02deec32f824b0a0f645394fe8e3e6304b2658e3d2855919995029",
+      "bytes": 65801
+    },
+    {
+      "path": "teacher/assets/index-dLOaW7dI.js",
+      "sha256": "76cd2806baf16e69a6d962b94cec05cc8b87822f43875a85586b0e6189c53fdf",
+      "bytes": 173980
+    },
+    {
+      "path": "teacher/index.html",
+      "sha256": "04122e33efcfc69112c154063638add40ffafde452061401fa55b6a8eb87d6ce",
+      "bytes": 419
+    },
+    {
+      "path": "trial-intake.js",
+      "sha256": "d46c5bd01b037e041229505c849675b7dfe0c6d3ecdfa8c92459a0cffaa3fca7",
+      "bytes": 2535
+    }
+  ],
+  "verifiedAt": "2026-08-25T02:51:11Z",
+  "verification": {
+    "health": "passed",
+    "homepageSha256": "passed",
+    "privatePaths": "passed"
+  }
+}
