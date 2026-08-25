@@ -95,6 +95,7 @@ if [[ "$PUBLISH_PROFILE" == "teacher-platform-v1" ]]; then
     "${SALES_SOURCE_FILES[@]}"
     "${ADMIN_SOURCE_FILES[@]}"
     "${TEACHER_SOURCE_FILES[@]}"
+    "v1"
   )
   PUBLIC_FILES=(
     "${SALES_PUBLIC_FILES[@]}"
@@ -102,7 +103,7 @@ if [[ "$PUBLISH_PROFILE" == "teacher-platform-v1" ]]; then
     "${TEACHER_PUBLIC_FILES[@]}"
   )
 elif [[ "$PUBLISH_PROFILE" == "sales-static-v1" ]]; then
-  SOURCE_FILES=("${SALES_SOURCE_FILES[@]}")
+  SOURCE_FILES=("${SALES_SOURCE_FILES[@]}" "v1")
   PUBLIC_FILES=("${SALES_PUBLIC_FILES[@]}")
 elif [[ "$PUBLISH_PROFILE" == "v1-apps" ]]; then
   # v1 应用是 Vite 构建产物，不是仓库里的已跟踪文件。
@@ -135,9 +136,28 @@ build_student_plugin_package() {
   local source_dir="$1"
   local output="$2"
 
-  [[ -d "$source_dir/src" ]] || fail "student plugin source directory is missing"
+  require_command node
+  [[ -d "$source_dir/v1/extension" ]] || fail "v1 extension source directory is missing"
+
+  if [[ ! -d "$source_dir/v1/node_modules" ]]; then
+    if [[ -d "$ROOT_DIR/v1/node_modules" ]]; then
+      ln -s "$ROOT_DIR/v1/node_modules" "$source_dir/v1/node_modules"
+    else
+      [[ -f "$source_dir/v1/package-lock.json" ]] ||
+        fail "v1/package-lock.json missing in archived commit; cannot build plugin"
+      log "installing v1 dependencies for student plugin package"
+      (cd "$source_dir/v1" && npm ci --silent) || fail "v1 dependency install failed"
+    fi
+  fi
+
+  log "building v1 extension (production target) for student plugin package"
+  (cd "$source_dir/v1/extension" && KNOWNMAP_TARGET=production npm run build --silent) ||
+    fail "v1 extension build failed"
+
+  local dist="$source_dir/v1/extension/dist/production"
+  [[ -f "$dist/manifest.json" ]] || fail "v1 extension build produced no manifest"
   (
-    cd "$source_dir/src"
+    cd "$dist"
     zip -q -r -X "$output" .
   )
 }
@@ -404,7 +424,7 @@ build_release() {
   trap 'rm -rf "$source_dir"' RETURN
 
   mkdir -p "$source_dir" "$output/public/assets" "$output/public/teacher-web/assets/student-guide" "$output/public/downloads/student-plugin"
-  git -C "$ROOT_DIR" archive "$commit" -- "${SOURCE_FILES[@]}" src | tar -x -C "$source_dir"
+  git -C "$ROOT_DIR" archive "$commit" -- "${SOURCE_FILES[@]}" | tar -x -C "$source_dir"
 
   cp "$source_dir/teacher-web/forsales.html" "$output/public/index.html"
   cp "$source_dir/teacher-web/subtitle-context.js" "$output/public/subtitle-context.js"

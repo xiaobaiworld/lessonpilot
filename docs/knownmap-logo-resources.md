@@ -24,9 +24,9 @@ Logo 不只是装饰。涉及“知识地图”“学习路径”“关键节点
 
 | 形态 | 资源 | 适用场景 |
 | --- | --- | --- |
-| 圆形深绿底 | `src/assets/knownmap/knownmap-circle.svg` | 网页品牌头像、favicon、需要明确品牌容器的入口 |
-| 方形深绿底 | `src/assets/knownmap/knownmap-square.svg` | Chrome 扩展入口、工具栏、方形应用容器 |
-| 透明背景 | `src/assets/knownmap/knownmap-transparent.svg` | 浅色页面、文档、印刷物、自定义背景和不希望带外框的场景 |
+| 圆形深绿底 | `teacher-web/assets/knownmap/knownmap-circle.svg` | 网页品牌头像、favicon、需要明确品牌容器的入口 |
+| 方形深绿底 | `teacher-web/assets/knownmap/knownmap-square.svg` | Chrome 扩展入口、工具栏、方形应用容器 |
+| 透明背景 | `teacher-web/assets/knownmap/knownmap-transparent.svg` | 浅色页面、文档、印刷物、自定义背景和不希望带外框的场景 |
 
 透明背景版的地图边缘和主路径使用品牌深绿色 `#1D5C43`，不使用纯黑；这样在浅色背景上保持清晰，同时与 KnownMap 的品牌色一致。
 
@@ -61,8 +61,8 @@ Logo 不只是装饰。涉及“知识地图”“学习路径”“关键节点
 
 现有扩展和网页资源仍由主 Logo 源文件导出：
 
-- `src/assets/knownmap-logo.svg`：当前主 Logo 源文件；
-- `src/assets/icon-16.png`、`src/assets/icon-24.png`、`src/assets/icon-48.png`、`src/assets/icon-128.png`：扩展图标；
+- `teacher-web/assets/knownmap-logo.svg`：当前主 Logo 源文件；
+- `v1/extension/assets/icon-16.png`、`v1/extension/assets/icon-24.png`、`v1/extension/assets/icon-48.png`、`v1/extension/assets/icon-128.png`：扩展图标；
 - `teacher-web/assets/knownmap-icon.png`：网页图标。
 
-三种形态的 SVG 变体集中在 `src/assets/knownmap/`。后续确认具体页面采用哪一种后，再为该形态补齐对应的 16/24/48/128 PNG 导出，并在页面引用中统一切换。
+三种形态的 SVG 变体集中在 `teacher-web/assets/knownmap/`。后续确认具体页面采用哪一种后，再为该形态补齐对应的 16/24/48/128 PNG 导出，并在页面引用中统一切换。

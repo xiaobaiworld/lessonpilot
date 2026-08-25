@@ -11,7 +11,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const contract = require('../src/shared/course-contract.js');
+const contract = require('../teacher-web/shared/course-contract.js');
 
 const UPDATED_AT = '2026-08-15T00:00:00.000Z';
 

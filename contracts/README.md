@@ -1,6 +1,6 @@
 # v1 跨语言契约真源
 
-按 `ARCH-DEC-02`（[设计 03 第 14 节](../../doc/design/v1/03-system-architecture.md#arch-dec-02跨语言契约真源)）：
+按 `ARCH-DEC-02`（[设计 03 第 14 节](../doc/design/v1/03-system-architecture.md#arch-dec-02跨语言契约真源)）：
 
 | 契约 | 真源 | 位置 |
 | --- | --- | --- |
@@ -21,7 +21,7 @@ HTTP 请求响应有明确的定义方（FastAPI 路由和 Pydantic 模型），
 
 ## 版本规则
 
-见[设计 06 第 10.1 节](../../doc/design/v1/06-interface-contracts.md#101-版本规则)。要点：
+见[设计 06 第 10.1 节](../doc/design/v1/06-interface-contracts.md#101-版本规则)。要点：
 
 - 主版本变化表示字段语义、身份或安全边界不兼容，接收方**安全拒绝**并提示升级；
 - 次版本只增加可选字段，接收方忽略已声明可忽略的字段；
@@ -49,7 +49,7 @@ node tools/contract-check.mjs --no-python   # 跳过双端比对（无 uv 环境
 已进入 `npm test`。CI 有独立的 `contract-check` job 同时装 Node 和 Python ——
 `node-test` job 没有 Python，双端比对在那里会静默跳过。
 
-夹具见 [`tests/fixtures/v1/`](../../tests/fixtures/v1/README.md)：31 个，
+夹具见 [`tests/fixtures/v1/`](../tests/fixtures/v1/)：31 个，
 每个反例只违反一条约束。
 
 ## 当前状态

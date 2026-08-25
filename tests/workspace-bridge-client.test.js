@@ -11,7 +11,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const { createBridgeClient } = require('../teacher-web/workspace-bridge-client.js');
-const protocol = require('../src/shared/bridge-protocol.js');
+const protocol = require('../teacher-web/shared/bridge-protocol.js');
 
 const ORIGIN = 'https://xiaobaiworld.github.io';
 

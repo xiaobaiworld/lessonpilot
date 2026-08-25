@@ -184,8 +184,8 @@ v1/                 v1 系统（阶段 0 起在同仓库独立建立）
     content/            页面接线与学习窗口
     popup/              工具栏首页
 
-teacher-web/        v0.9.1 旧系统，冻结。styles.css 是 v1 复用的视觉真源
-src/                v0.9.1 旧插件，冻结
+teacher-web/        v0.9.1 旧教师 Web，冻结。styles.css 是 v1 复用的视觉真源
+contracts/          阶段 0 JSON Schema 门禁（课程包、插件消息）
 
 tools/              发布、检查、扫描
 tests/              旧系统测试；tests/manual/v1/ 是真实浏览器验收
@@ -196,7 +196,7 @@ deploy/             生产脚本、备份与恢复演练、发布记录
 ### 为什么旧系统还在
 
 `D-V1-012` 定了 v1 从干净初始化开始，不在原目录逐文件改造。旧系统冻结但保持
-可运行，直到 v1 完成真实切换与观察期，阶段 8 才物理删除。
+可运行，直到 v1 完成真实切换与观察期。旧学生插件源码 `src/` 已删除，生产插件只从 `v1/extension/` 构建。
 
 `v1/web/*/src/index.css` 通过 `@import` 引用 `teacher-web/styles.css`——那是
 已上线验证的视觉真源，抄一份出来会立刻变成负债。阶段 8 时把它移进 `v1/`。
@@ -307,5 +307,5 @@ nginx 能把 `/admin/` 这样的目录请求解析到 `index.html`（否则切�
 | 重构分几步走 | [`doc/plans/v1-code-refactor-execution-plan.md`](plans/v1-code-refactor-execution-plan.md) |
 
 **改代码前先读 `doc/lessons.md`**。它记的都是已经付过代价的事，其中好几条
-我在这轮重构里又踩了一遍——包括「Chrome 匹配模式不能带端口」，旧
-`src/manifest.json` 里就写着，我没读到。
+我在这轮重构里又踩了一遍——包括「Chrome 匹配模式不能带端口」，旧插件
+manifest 里就写着，我没读到。

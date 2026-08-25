@@ -25,7 +25,7 @@
   }
 })(typeof window !== 'undefined' ? window : globalThis, function createBridgeClientModule(global) {
   const protocol = global.LessonPilotBridgeProtocol
-    ?? (typeof require === 'function' ? require('../src/shared/bridge-protocol.js') : null);
+    ?? (typeof require === 'function' ? require('./shared/bridge-protocol.js') : null);
 
   /** Operations whose outcome is unknown after a timeout, so they must not retry. */
   const WRITE_OPERATIONS = ['SAVE_CURRENT_COURSE', 'CLEAR_CURRENT_COURSE', 'START_PREVIEW_SESSION'];

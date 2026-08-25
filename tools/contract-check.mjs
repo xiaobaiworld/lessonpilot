@@ -18,7 +18,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import Ajv2020 from 'ajv/dist/2020.js';
 
-const CONTRACTS_DIR = 'src/contracts';
+const CONTRACTS_DIR = 'contracts';
 const VERSIONS_FILE = join(CONTRACTS_DIR, 'versions.json');
 const FIXTURES_DIR = 'tests/fixtures/v1';
 

@@ -66,13 +66,7 @@
     </main>
 
     <!--
-      shared/ is assembled from src/shared/, which is the single source of the course
-      contract (D-010). src/ is deliberately not published to the public site, so the
-      files are copied next to this page instead — by the Pages workflow when
-      publishing, and by `node tools/assemble-workspace.js` for local development.
-      Both environments therefore load the identical path, and the page needs no
-      hostname branching. teacher-web/shared/ is git-ignored: committing it would
-      create a second copy of the contract that could silently drift.
+      冻结的工作台契约与本页一起放在 teacher-web/shared/。
     -->
     <script src="shared/bridge-protocol.js"></script>
     <script src="shared/course-contract.js"></script>

@@ -153,7 +153,8 @@
 | 位置 | 内容 |
 | --- | --- |
 | `backend/app/` | FastAPI 服务端 |
-| `src/` | 学生 Chrome MV3 插件 |
+| `v1/extension/` | 学生 Chrome MV3 插件 |
+| `contracts/` | 课程包与插件消息 JSON Schema 门禁 |
 | `teacher-web/` | 教师与管理员 Web 应用 |
 | `tools/` | 构建、发布、文档检查与追踪矩阵工具 |
 | `tests/` | Node 自动化测试；`tests/manual/` 为人工验收记录 |

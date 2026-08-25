@@ -25,8 +25,7 @@ export interface BuildTarget {
    * 让注入按真实 manifest 规则发生。生产目标为空。
    *
    * 注意模式里不能写端口：Chrome 匹配模式不支持锁定端口，带端口的模式
-   * 非法，整条内容脚本会被拒绝注入且没有报错。旧 manifest 在
-   * src/manifest.json 里记过同一条。所以只能匹配到主机，
+   * 非法，整条内容脚本会被拒绝注入且没有报错。所以只能匹配到主机，
    * 由 currentVideoId() 的路径判断把范围收窄回 /video/BV...。
    */
   harnessMatches: string[];
@@ -54,7 +53,7 @@ export const TARGETS: Record<TargetName, BuildTarget> = {
   },
 };
 
-export const EXTENSION_VERSION = '1.0.5';
+export const EXTENSION_VERSION = '1.0.6';
 
 export function buildManifest(target: BuildTarget): Record<string, unknown> {
   return {

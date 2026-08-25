@@ -28,9 +28,9 @@ KnownMap 把老师已有的 B 站录播课变成可在原视频页面运行的�
 ## 当前状态
 
 系统已于 2026-08-24 切换到 v1，当前生产 release 为
-`20260824T105849Z-460f1152ea0b`。新系统位于 `v1/`；旧 `backend/`、`teacher-web/`、
-`src/` 仍作为固定回滚组合和兼容责任保留，要在即时验收、7 日观察、
-两次真实交付和老版消费者清零后才能独立退役（`D-V1-012`）。
+`20260824T105849Z-460f1152ea0b`。新系统位于 `v1/`。旧学生插件源码 `src/` 已删除，
+学生插件只从 `v1/extension/` 构建。旧 `backend/`、`teacher-web/` 仍作为固定回滚组合
+和兼容责任保留，要在即时验收、7 日观察、两次真实交付和老版消费者清零后才能独立退役（`D-V1-012`）。
 
 生产 Web、API、迁移和插件已由同一冻结提交统一发布；即时 P0 业务验收仍在执行。
 逐步状态和证据见 [`doc/老版新版切换计划.md`](doc/老版新版切换计划.md)，当前下一步见
@@ -170,13 +170,13 @@ python3 -m http.server 4173
 
 互动课程工具可以从 [http://localhost:4173/teacher-web/editor.html](http://localhost:4173/teacher-web/editor.html) 访问。不要把 `teacher-web/` 作为独立 server root，也不要另开第二个端口；资源和测试夹具均按仓库根目录解析。端口 4173 写入了插件来源白名单，换端口会使消息桥拒绝该页面。
 
-首次运行或拉取新代码后，先组装共享契约：
+首次运行或拉取新代码后，确认工作台共享契约文件在位：
 
 ```bash
 node tools/assemble-workspace.js
 ```
 
-它把 `src/shared/` 复制到 `teacher-web/shared/`，使工作台页面在本地和公网加载同一路径。该目录不入版本库：提交副本会形成第二份契约定义并可能与源文件脱节（D-010）。
+它检查 `teacher-web/shared/` 里的冻结契约文件是否存在。
 
 安装依赖并运行自动化测试：
 
@@ -187,10 +187,10 @@ npm test
 
 `npm test` 覆盖 `.test.js`（CommonJS）与 `.test.mjs`（ESM）两类测试文件。
 
-加载当前插件 `0.9.1`：
+加载当前学生插件（v1 `1.0.6`）：
 
 1. 打开 `chrome://extensions/`，启用开发者模式；
-2. 选择“加载已解压的扩展程序”，目录为仓库的 `src/`；
+2. 在 `v1/extension` 执行 `npm run build:local`，选择“加载已解压的扩展程序”，目录为 `v1/extension/dist/local`；
 3. 首次加载或代码更新后点击扩展卡片的“重新加载”，再刷新 B 站页面；
 4. 左键点击工具栏 KnownMap 图标，在学生入口输入老师提供的授权码；也可以在 B 站页面右下书包中领取；
 5. “我的课程”出现完整 B 站链接后，打开匹配视频验证互动节点。
@@ -221,11 +221,11 @@ npm test
 品牌资源：
 
 - [`docs/knownmap-logo-resources.md`](docs/knownmap-logo-resources.md)：Logo 含义、形态、颜色和使用场景；
-- `src/assets/knownmap-logo.svg`：唯一 Logo 源文件；
-- `src/assets/knownmap/knownmap-circle.svg`：圆形深绿底变体；
-- `src/assets/knownmap/knownmap-square.svg`：方形深绿底变体；
-- `src/assets/knownmap/knownmap-transparent.svg`：透明背景变体，边缘使用品牌深绿色；
-- `src/assets/icon-16.png`、`icon-24.png`、`icon-48.png`、`icon-128.png`：扩展资源；
+- `teacher-web/assets/knownmap-logo.svg`：唯一 Logo 源文件；
+- `teacher-web/assets/knownmap/knownmap-circle.svg`：圆形深绿底变体；
+- `teacher-web/assets/knownmap/knownmap-square.svg`：方形深绿底变体；
+- `teacher-web/assets/knownmap/knownmap-transparent.svg`：透明背景变体，边缘使用品牌深绿色；
+- `v1/extension/assets/icon-16.png`、`icon-24.png`、`icon-48.png`、`icon-128.png`：扩展资源；
 - `teacher-web/assets/knownmap-icon.png`：网页导出资源。
 
 解释冲突时按 [`doc/dev-rules.md` 第 1 节](doc/dev-rules.md#1-权威顺序) 的权威顺序：

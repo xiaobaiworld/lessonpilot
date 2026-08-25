@@ -46,7 +46,7 @@
 - ✅ 目录骨架建立
 - ✅ 工作空间 package.json 配置
 - ✅ 各模块初始 docstring 和职责说明
-- ✅ 旧系统 (`backend/`, `teacher-web/`, `src/`) 保持未改动
+- ✅ 旧系统 (`backend/`, `teacher-web/`) 保持未改动；旧插件 `src/` 已删除
 - ⏳ 下一步：`0B` 建立空库初始化和旧 schema 拒绝门禁
 
 ## 验证命令

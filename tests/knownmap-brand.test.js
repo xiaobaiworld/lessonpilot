@@ -24,7 +24,7 @@ function pngDimensions(relativePath) {
 }
 
 test('canonical KnownMap logo defines the approved map-window geometry', () => {
-  const svg = read('src/assets/knownmap-logo.svg');
+  const svg = read('teacher-web/assets/knownmap-logo.svg');
   assert.match(svg, /#103B2B/i);
   assert.match(svg, /#CFE4D8/i);
   assert.match(svg, /#FFFDF8/i);
@@ -39,10 +39,10 @@ test('canonical KnownMap logo defines the approved map-window geometry', () => {
 
 test('all KnownMap logo variants share the reduced internal safe area', () => {
   for (const relativePath of [
-    'src/assets/knownmap-logo.svg',
-    'src/assets/knownmap/knownmap-circle.svg',
-    'src/assets/knownmap/knownmap-square.svg',
-    'src/assets/knownmap/knownmap-transparent.svg'
+    'teacher-web/assets/knownmap-logo.svg',
+    'teacher-web/assets/knownmap/knownmap-circle.svg',
+    'teacher-web/assets/knownmap/knownmap-square.svg',
+    'teacher-web/assets/knownmap/knownmap-transparent.svg'
   ]) {
     assert.match(
       read(relativePath),
@@ -54,10 +54,10 @@ test('all KnownMap logo variants share the reduced internal safe area', () => {
 
 test('KnownMap logo exports exist at all required sizes', () => {
   for (const [relativePath, size] of [
-    ['src/assets/icon-16.png', 16],
-    ['src/assets/icon-24.png', 24],
-    ['src/assets/icon-48.png', 48],
-    ['src/assets/icon-128.png', 128],
+    ['v1/extension/assets/icon-16.png', 16],
+    ['v1/extension/assets/icon-24.png', 24],
+    ['v1/extension/assets/icon-48.png', 48],
+    ['v1/extension/assets/icon-128.png', 128],
     ['teacher-web/assets/knownmap-icon.png', 48]
   ]) {
     assert.deepEqual(pngDimensions(relativePath), { width: size, height: size }, `${relativePath} must be ${size}x${size}`);
@@ -65,14 +65,12 @@ test('KnownMap logo exports exist at all required sizes', () => {
 });
 
 test('user-visible extension and pages use KnownMap and the logo asset', () => {
-  const manifest = JSON.parse(read('src/manifest.json'));
-  assert.equal(manifest.name, 'KnownMap');
-  assert.deepEqual(manifest.icons, {
-    '16': 'assets/icon-16.png',
-    '24': 'assets/icon-24.png',
-    '48': 'assets/icon-48.png',
-    '128': 'assets/icon-128.png'
-  });
+  const manifestSource = read('v1/extension/manifest/targets.ts');
+  assert.match(manifestSource, /name: target\.name === 'local' \? 'KnownMap（本机）' : 'KnownMap'/);
+  assert.match(manifestSource, /'16': 'assets\/icon-16\.png'/);
+  assert.match(manifestSource, /'24': 'assets\/icon-24\.png'/);
+  assert.match(manifestSource, /'48': 'assets\/icon-48\.png'/);
+  assert.match(manifestSource, /'128': 'assets\/icon-128\.png'/);
 
   for (const relativePath of pageFiles) {
     const html = read(relativePath);
@@ -100,12 +98,9 @@ test('teacher application uses the interactive-course-tool name and colored K/M 
   assert.match(css, /\.brand-letter-m\s*\{[^}]*color:\s*#a9654e/i);
 });
 
-test('legacy protocol and storage identifiers remain compatible', () => {
-  // 只断言代码里真实存在的标识。原先还断言旧数据规范里的
-  // `lessonpilot.workspaceDraft.v1`，但该键在代码中已不存在、且登记为「已替代」
-  // （SRC-005），断言它等于把死标识和归档文档一起变成测试依赖。
-  assert.match(read('src/shared/bridge-protocol.js'), /lessonpilot\.workspace\.v1/);
-  assert.match(read('src/shared/bridge-protocol.js'), /lessonpilot\.extension\.v1/);
-  assert.match(read('src/shared/bridge-protocol.js'), /global\.LessonPilotBridgeProtocol/);
-  assert.match(read('src/shared/course-contract.js'), /global\.LessonPilotCourseContract/);
+test('legacy protocol identifiers remain on the frozen workspace contract', () => {
+  assert.match(read('teacher-web/shared/bridge-protocol.js'), /lessonpilot\.workspace\.v1/);
+  assert.match(read('teacher-web/shared/bridge-protocol.js'), /lessonpilot\.extension\.v1/);
+  assert.match(read('teacher-web/shared/bridge-protocol.js'), /global\.LessonPilotBridgeProtocol/);
+  assert.match(read('teacher-web/shared/course-contract.js'), /global\.LessonPilotCourseContract/);
 });

@@ -4,6 +4,14 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### 删除旧学生插件并发布 v1 `1.0.6` — 2026-08-25
+
+- 删除冻结的旧学生插件源码目录 `src/`；生产与本机插件只从 `v1/extension/` 构建；
+- 课程包/插件消息 JSON Schema 门禁迁到仓库根 `contracts/`；工作台冻结契约入库 `teacher-web/shared/`；
+- 学生插件 Manifest 版本升为 `1.0.6`。
+
+验证：根 `npm test`、`node tools/contract-check.mjs` 与 v1 插件生产构建。
+
 ### 插件版本展示 — 2026-08-25
 
 - 学生插件弹窗标题区显示当前 Manifest 版本，版本升级后无需同步修改界面文案；

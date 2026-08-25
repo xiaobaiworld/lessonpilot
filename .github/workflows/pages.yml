@@ -4,9 +4,9 @@ name: pages
 #
 # The publish set is an explicit allowlist, not the repository with exclusions. The
 # repository holds competitor pricing research, sales scripts and commercialisation
-# plans under doc/, plus the extension runtime under src/. With an exclude list,
-# adding a file to doc/ later would leak it by default; with an allowlist, a new file
-# is private until someone deliberately adds it here.
+# plans under doc/. With an exclude list, adding a file to doc/ later would leak it
+# by default; with an allowlist, a new file is private until someone deliberately
+# adds it here.
 #
 # Adding a path below makes it publicly fetchable and indexable, and that is not
 # reversible once crawled. Treat edits to the copy steps as a security change.
@@ -69,7 +69,7 @@ jobs:
           cp teacher-web/workspace-bridge-client.js site/teacher-web/
           cp teacher-web/workspace-diagnostics.js   site/teacher-web/
 
-          # The shared contract, assembled from its single source in src/shared/.
+          # The frozen workspace contract files committed under teacher-web/shared/.
           cp teacher-web/shared/bridge-protocol.js  site/teacher-web/shared/
           cp teacher-web/shared/course-contract.js  site/teacher-web/shared/
 
