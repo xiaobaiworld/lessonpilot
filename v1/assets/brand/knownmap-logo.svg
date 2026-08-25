@@ -1,7 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 260" role="img" aria-labelledby="title desc">
-  <title id="title">KnownMap square icon</title>
-  <desc id="desc">A square deep green map window with a learning path and two colored knowledge nodes.</desc>
-  <rect x="6" y="6" width="248" height="248" rx="28" fill="#103B2B"/>
+  <!-- 色值真源：v1/assets/brand/knownmap-tokens.json（pathStart / pathEnd） -->
+  <title id="title">KnownMap</title>
+  <desc id="desc">A circular map window with a learning path and two colored knowledge nodes.</desc>
+  <circle cx="130" cy="130" r="124" fill="#103B2B"/>
   <g transform="translate(23.4 23.4) scale(0.82)">
     <path d="M31 51l54-20 75 20 61-22v166l-61 23-75-21-54 22z"
           fill="none" stroke="#CFE4D8" stroke-width="8" stroke-linejoin="round"/>

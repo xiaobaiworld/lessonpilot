@@ -8,8 +8,8 @@
     "node": ">=22"
   },
   "scripts": {
-    "test": "npm run test:legacy && npm run test:v1",
-    "test:legacy": "node --test tests/*.test.js tests/*.test.mjs tests/fixtures/v1/*.test.js",
+    "test": "npm run test:repo && npm run test:v1",
+    "test:repo": "node --test tests/*.test.js tests/*.test.mjs",
     "test:v1": "npm --prefix v1 test",
     "check:doc": "node tools/doc-check.mjs",
     "check:endpoint": "node tools/endpoint-check.mjs",

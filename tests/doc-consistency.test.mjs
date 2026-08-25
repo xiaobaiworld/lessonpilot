@@ -16,7 +16,6 @@ import {
 } from '../tools/doc-check.mjs';
 import { buildRows } from '../tools/build-traceability.mjs';
 import { compare as compareEndpoints } from '../tools/endpoint-check.mjs';
-import { runAll as runContractChecks } from '../tools/contract-check.mjs';
 import {
   RULES as SECRET_RULES,
   looksLikePlaceholder,
@@ -207,14 +206,14 @@ test('npm test 覆盖全部测试文件，CI 与文档使用同一命令', () =>
   // node --test tests/*.test.js 从 352 项变成 331 项，且不报错。
   const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
   const script = pkg.scripts?.test ?? '';
-  const legacyScript = pkg.scripts?.['test:legacy'] ?? '';
+  const repoScript = pkg.scripts?.['test:repo'] ?? '';
   const v1Script = pkg.scripts?.['test:v1'] ?? '';
-  assert.match(script, /test:legacy/, `package.json 的 test 入口未调用 legacy 测试；当前为「${script}」`);
+  assert.match(script, /test:repo/, `package.json 的 test 入口未调用仓库测试；当前为「${script}」`);
   assert.match(script, /test:v1/, `package.json 的 test 入口未调用 v1 测试；当前为「${script}」`);
   for (const ext of ['*.test.js', '*.test.mjs']) {
     assert.ok(
-      legacyScript.includes(ext),
-      `package.json 的 test:legacy 脚本未覆盖 ${ext}；当前为「${legacyScript}」`,
+      repoScript.includes(ext),
+      `package.json 的 test:repo 脚本未覆盖 ${ext}；当前为「${repoScript}」`,
     );
   }
   assert.match(v1Script, /--prefix v1 test/, `package.json 的 test:v1 未运行 v1 测试；当前为「${v1Script}」`);
@@ -237,9 +236,7 @@ test('契约校验器依赖已在两侧声明并锁定', () => {
   assert.match(ajv, /^\d+\.\d+\.\d+$/, `ajv 必须锁定精确版本，当前为「${ajv}」`);
   assert.ok(existsSync('package-lock.json'), '缺少 package-lock.json');
 
-  const pyproject = readFileSync('v1/backend/pyproject.toml', 'utf8');
-  assert.match(pyproject, /jsonschema>=/, 'v1/backend/pyproject.toml 未声明 jsonschema');
-  assert.ok(existsSync('v1/backend/uv.lock'), '缺少 v1/backend/uv.lock');
+  assert.ok(existsSync('v1/contracts/check-contracts.mjs'), '缺少 v1 契约校验器');
 });
 
 test('后端静态检查工具已声明且进入 CI 门禁', () => {
@@ -257,42 +254,13 @@ test('后端静态检查工具已声明且进入 CI 门禁', () => {
   }
 });
 
-test('CI 的契约检查 job 同时具备 Node 与 Python', () => {
-  // 双端一致性检查需要两套工具链。若只在 node-test job 里跑，
-  // Python 侧缺失会让它静默跳过 —— 那条阶段 0 门禁就永远不会真正执行。
+test('CI 的契约检查 job 使用当前 v1 校验器', () => {
   const workflow = readFileSync('.github/workflows/test.yml', 'utf8');
   const start = workflow.indexOf('contract-check:');
   assert.notEqual(start, -1, 'CI 缺少 contract-check job');
   const job = workflow.slice(start);
   assert.match(job, /setup-node/, 'contract-check job 缺少 Node');
-  assert.match(job, /setup-python/, 'contract-check job 缺少 Python');
   assert.match(job, /check:contract/, 'contract-check job 未运行 v1 契约检查');
-});
-
-test('契约 Schema 合法、可编译且版本清单一致', () => {
-  const { schemas, versions } = runContractChecks('.', { python: false });
-  assert.deepEqual(schemas, [], `Schema 问题：\n${schemas.join('\n')}`);
-  assert.deepEqual(versions, [], `版本清单问题：\n${versions.join('\n')}`);
-});
-
-test('契约夹具行为与文件名一致', () => {
-  // 反例「应被拒绝却通过了」说明 Schema 缺约束；
-  // 正例「应通过却被拒绝」说明 Schema 过严或夹具写错。两种都不能放过。
-  const { fixtures, fixtureCount } = runContractChecks('.', { python: false });
-  assert.ok(fixtureCount > 0, '没有契约夹具，无法证明任何 Schema 规则生效');
-  assert.deepEqual(fixtures, [], `夹具与命名不符：\n${fixtures.join('\n')}`);
-});
-
-test('Python 与 Node 对同一契约夹具给出一致结论', () => {
-  // 阶段 0 门禁：跨语言契约必须在两侧得出相同结果，否则它不是真正的共同真源。
-  // 无 uv 环境时跳过而非失败 —— 但 CI 里必须跑到（workflow 装了后端依赖）。
-  const { crossLanguage, comparedCount, pythonSkipped } = runContractChecks('.', { python: true });
-  if (pythonSkipped || crossLanguage.some((p) => p.startsWith('Python 侧校验无法执行'))) {
-    console.log('    （跳过：本机无可用 uv/后端环境）');
-    return;
-  }
-  assert.deepEqual(crossLanguage, [], `双端结论不一致：\n${crossLanguage.join('\n')}`);
-  assert.ok(comparedCount > 0, 'Python 侧未比对任何夹具');
 });
 
 test('仓库不含可用秘密', () => {

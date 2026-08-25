@@ -36,10 +36,6 @@ jobs:
         with:
           node-version: '22'
 
-      # Never publish a build whose contract fails its own tests.
-      - name: Assemble shared contract
-        run: node tools/assemble-workspace.js
-
       - name: Install dependencies
         run: npm ci
 
@@ -53,25 +49,14 @@ jobs:
       - name: Stage the publish set
         run: |
           set -euo pipefail
-          mkdir -p site/teacher-web/shared
-
-          # The sales page teachers are meant to read. Self-contained single file
-          # plus the two scripts it loads; nothing here reads doc/, src/ or tests/.
-          cp teacher-web/forsales.html             site/teacher-web/
-          cp teacher-web/subtitle-context.js       site/teacher-web/
-          cp teacher-web/demo-captions.js          site/teacher-web/
-          cp teacher-web/trial-intake.js            site/teacher-web/
-          mkdir -p site/teacher-web/assets
-          cp teacher-web/assets/knownmap-icon.png  site/teacher-web/assets/
-
-          # The 1A diagnostics page and its page-side scripts.
-          cp teacher-web/workspace.html            site/teacher-web/
-          cp teacher-web/workspace-bridge-client.js site/teacher-web/
-          cp teacher-web/workspace-diagnostics.js   site/teacher-web/
-
-          # The frozen workspace contract files committed under teacher-web/shared/.
-          cp teacher-web/shared/bridge-protocol.js  site/teacher-web/shared/
-          cp teacher-web/shared/course-contract.js  site/teacher-web/shared/
+          mkdir -p site/assets
+          cp v1/site/index.html site/index.html
+          cp v1/site/student-guide.html site/student-guide.html
+          cp v1/site/subtitle-context.js site/subtitle-context.js
+          cp v1/site/demo-captions.js site/demo-captions.js
+          cp v1/site/trial-intake.js site/trial-intake.js
+          cp v1/site/link.html site/link.html
+          cp -R v1/site/assets/. site/assets/
 
           # Jekyll would otherwise skip files it considers special.
           touch site/.nojekyll

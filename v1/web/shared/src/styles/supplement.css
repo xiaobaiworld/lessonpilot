@@ -1,8 +1,8 @@
 /**
- * 对 teacher-web/styles.css 的补充。
+ * 对 base.css 的补充。
  *
  * 只放那份样式表确实没有的类。表格和状态标签的取值抄自
- * teacher-web/admin.html 的 <style> 块（它是自包含文件，无法 @import）。
+ * 这里只保留 React 应用需要的补充规则。
  * 其余一切——顶栏、品牌、登录面板、课程卡、按钮、表单——都直接用
  * styles.css 里已有的类，不在这里重复定义。
  */

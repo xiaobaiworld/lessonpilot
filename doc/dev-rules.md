@@ -30,6 +30,7 @@
 | 需求追踪 | [`traceability/v1-requirements.tsv`](traceability/v1-requirements.tsv) |
 | 决策 | [`decisions/`](decisions/)，v1 段为 `D-V1-001` 至 `D-V1-012` |
 | 文档地图 | [`INDEX.md`](INDEX.md) |
+| 插件本机资源（方向已确认，尚未实施） | [`插件文件资源管理.md`](插件文件资源管理.md) |
 
 `doc/archive/` 只用于追溯，不指导开发。标为「当前证据」的文档只证明 v0.9.1 现状，
 不定义 v1 目标。

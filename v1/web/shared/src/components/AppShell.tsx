@@ -1,5 +1,19 @@
 import React from 'react';
 
+/** 字标：K/M 对应 Logo 折线起点 `#E8B428` 与终点 `#C56E52`。 */
+export const KnownMapWordmark: React.FC = () => (
+  <strong className="brand-wordmark" aria-label="KnownMap">
+    <span className="brand-letter-k" aria-hidden="true">
+      K
+    </span>
+    <span aria-hidden="true">nown</span>
+    <span className="brand-letter-m" aria-hidden="true">
+      M
+    </span>
+    <span aria-hidden="true">ap</span>
+  </strong>
+);
+
 export interface TopbarProps {
   /** 品牌下方的副标题，如 "互动课程工具" / "管理后台" */
   subtitle: string;
@@ -9,7 +23,7 @@ export interface TopbarProps {
 }
 
 /**
- * 顶栏。结构与 teacher-web/editor.html 的 header.topbar 一致。
+ * 管理端与教师端共用顶栏。
  *
  * 字标逐字母拆分只为给 K / M 上色（见品牌规范），
  * aria-label 保证读屏器读到完整的 KnownMap。
@@ -18,12 +32,7 @@ export const Topbar: React.FC<TopbarProps> = ({ subtitle, account, onLogout }) =
   <header className="topbar">
     <div className="brand">
       <span>
-        <strong aria-label="KnownMap">
-          <span className="brand-letter-k" aria-hidden="true">K</span>
-          <span aria-hidden="true">nown</span>
-          <span className="brand-letter-m" aria-hidden="true">M</span>
-          <span aria-hidden="true">ap</span>
-        </strong>
+        <KnownMapWordmark />
         <small>{subtitle}</small>
       </span>
     </div>

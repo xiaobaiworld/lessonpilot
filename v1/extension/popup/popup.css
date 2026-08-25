@@ -38,8 +38,17 @@ body {
   flex: 1;
 }
 
-.brand strong {
+.brand strong,
+.wordmark {
   font-size: 16px;
+}
+
+.brand-letter-k {
+  color: #e8b428;
+}
+
+.brand-letter-m {
+  color: #c56e52;
 }
 
 .brand div span {
@@ -47,13 +56,26 @@ body {
   font-size: 12px;
 }
 
-.role-badge {
-  padding: 5px 9px;
+.course-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.demo-tag {
+  flex: none;
+  padding: 3px 8px;
   border-radius: 999px;
-  color: #087443;
-  background: #e7f8ef;
-  font-size: 12px;
+  color: #6b4f04;
+  background: #f5e7b0;
+  font-size: 11px;
   font-weight: 700;
+}
+
+.demo-open {
+  display: block;
+  text-decoration: none;
 }
 
 .intro {

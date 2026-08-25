@@ -183,6 +183,20 @@ function pluginUpdatePanel(): HTMLElement {
   return section;
 }
 
+const DEMO_COURSE_TITLE = '英语面试表达';
+const DEMO_COURSE_URL = 'https://www.bilibili.com/video/BV1WW4y1e7GL/';
+
+function wordmark(): HTMLElement {
+  const title = el('strong', 'wordmark');
+  title.append(
+    el('span', 'brand-letter-k', 'K'),
+    document.createTextNode('nown'),
+    el('span', 'brand-letter-m', 'M'),
+    document.createTextNode('ap')
+  );
+  return title;
+}
+
 function brandHeader(): HTMLElement {
   const head = el('header', 'brand');
   const mark = el('img');
@@ -190,11 +204,29 @@ function brandHeader(): HTMLElement {
   mark.alt = '';
   const copy = el('div');
   copy.append(
-    el('strong', undefined, 'KnownMap'),
+    wordmark(),
     el('span', undefined, `课程助手 · v${chrome.runtime.getManifest().version}`)
   );
-  head.append(mark, copy, el('span', 'role-badge', '学生'));
+  head.append(mark, copy);
   return head;
+}
+
+function demoCourseCard(): HTMLElement {
+  const card = el('article', 'course course-card demo-course');
+  const heading = el('div', 'course-title-row');
+  heading.append(
+    el('strong', 'course-title', DEMO_COURSE_TITLE),
+    el('span', 'demo-tag', '测试课')
+  );
+  card.append(heading);
+  card.append(el('p', 'course-meta', '固定 B 站样课，用于核对插件是否能打开原视频。'));
+
+  const open = el('a', 'primary demo-open', '打开 B 站课程');
+  open.href = DEMO_COURSE_URL;
+  open.target = '_blank';
+  open.rel = 'noreferrer';
+  card.append(open);
+  return card;
 }
 
 function introPanel(): HTMLElement {
@@ -212,18 +244,18 @@ function coursesPanel(courses: CourseView[], onRefresh: () => void): HTMLElement
   const heading = el('div', 'section-heading');
   heading.append(
     el('h2', undefined, '我的课程'),
-    el('span', undefined, `当前 ${courses.length} 门`)
+    el('span', undefined, `当前 ${courses.length + 1} 门`)
   );
   section.append(heading);
 
-  if (courses.length === 0) {
-    section.append(el('p', 'empty', '还没有课程，输入授权码后会显示在这里。'));
-    return section;
-  }
-
   const list = el('div', 'course-list');
+  list.append(demoCourseCard());
   for (const course of courses) list.append(courseCard(course, onRefresh));
   section.append(list);
+
+  if (courses.length === 0) {
+    section.append(el('p', 'empty', '还没有课程，输入授权码后会显示在这里。'));
+  }
   return section;
 }
 

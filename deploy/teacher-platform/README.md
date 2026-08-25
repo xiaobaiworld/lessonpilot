@@ -2,9 +2,8 @@
 
 这套部署把教师工作台和 FastAPI 放到同一台阿里云 ECS：
 
-- 静态工作台：`https://knownmap.com/teacher-web/editor.html`
-- 站点索引：`https://knownmap.com/admin.html`
-- 教师账号管理：`https://knownmap.com/admin.html` 登录后的管理员工作台
+- 教师工作台：`https://knownmap.com/teacher/`
+- 管理员工作台：`https://knownmap.com/admin/`
 - 学生插件下载：`https://knownmap.com/downloads/student-plugin/knownmapplugin.zip`
 - API：`https://knownmap.com/api/v1/`
 - API 进程：仅监听服务器本机 `127.0.0.1:8000`
@@ -19,8 +18,7 @@
 tools/teacher-platform-release.sh deploy <git-ref>
 ```
 
-切换到 v1 管理员、教师应用和新版插件时，必须仍使用这个统一入口，并显式选择
-`v1-apps` profile：
+当前唯一发布 profile 是 `v1-apps`：
 
 ```bash
 KNOWNMAP_PUBLISH_PROFILE=v1-apps \
@@ -39,7 +37,7 @@ KNOWNMAP_ALLOWED_REMOTE_BRANCH=origin/codex/security-hardening \
 
 该命令要求提交已推送到 GitHub，使用同一个 commit 构建网页和后端，保存网页发布记录，
 并将后端代码和按 `uv.lock` 安装的独立虚拟环境放入不可变的
-`/opt/knownmap/releases/<release-id>/backend`。回滚会同时恢复代码和依赖。
+`/opt/knownmap/releases/<release-id>/v1/backend`。回滚会同时恢复代码和依赖。
 
 生产账号密码不会在普通发布时生成、重置或输出。只有首次建库或明确轮换密码时才设置
 `KNOWNMAP_PRODUCTION_TEACHER_PASSWORD`：
@@ -104,7 +102,7 @@ SEED_ADMIN_DISPLAY_NAME='KnownMap 管理员' \
 ```bash
 tools/teacher-platform-release.sh status
 curl -fsS https://knownmap.com/health
-curl -fsS https://knownmap.com/admin.html >/dev/null
+curl -fsS https://knownmap.com/admin/ >/dev/null
 curl -sS -o /dev/null -w '%{http_code}\n' https://knownmap.com/api/v1/admin/auth/me
 ssh aliyun systemctl status knownmap-backup.timer
 ```

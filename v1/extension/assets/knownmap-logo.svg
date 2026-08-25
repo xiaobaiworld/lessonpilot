@@ -9,7 +9,7 @@
           fill="none" stroke="#FFFDF8" stroke-opacity="0.48" stroke-width="8" stroke-linecap="round"/>
     <path d="M55 160l43-38 33 29 61-70"
           fill="none" stroke="#FFFDF8" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="55" cy="160" r="10" fill="#D9A51E"/>
-    <circle cx="192" cy="81" r="10" fill="#A9654E"/>
+    <circle cx="55" cy="160" r="10" fill="#E8B428"/>
+    <circle cx="192" cy="81" r="10" fill="#C56E52"/>
   </g>
 </svg>

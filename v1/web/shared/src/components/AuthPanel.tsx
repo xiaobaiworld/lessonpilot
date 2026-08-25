@@ -1,4 +1,5 @@
 import React from 'react';
+import { KnownMapWordmark } from './AppShell';
 
 export interface AuthPanelProps {
   /** 顶部绿色小标签，如 "KnownMap 互动课程工具" */
@@ -17,8 +18,7 @@ export interface AuthPanelProps {
 /**
  * 登录页外壳。
  *
- * 结构与 teacher-web/editor.html 的 #auth-view 一致：
- * section.auth-view > div.auth-panel > p.eyebrow + h1 + form
+ * 结构为 section.auth-view > div.auth-panel > p.eyebrow + h1 + form。
  * 样式来自 shared/src/styles/auth.css，不在这里写内联样式。
  */
 export const AuthPanel: React.FC<AuthPanelProps> = ({
@@ -31,7 +31,9 @@ export const AuthPanel: React.FC<AuthPanelProps> = ({
 }) => (
   <section className="auth-view" aria-labelledby="auth-title">
     <div className="auth-panel">
-      <p className="eyebrow">{eyebrow}</p>
+      <p className="eyebrow">
+        <KnownMapWordmark /> {eyebrow.replace(/^KnownMap\s*/, '')}
+      </p>
       <h1 id="auth-title">{title}</h1>
       {description && <p>{description}</p>}
       <form onSubmit={onSubmit}>{children}</form>
@@ -55,7 +57,7 @@ export interface AuthFieldProps {
   id: string;
 }
 
-/** 单个表单字段，结构对齐原系统的 label.field-group */
+/** 单个表单字段。 */
 export const AuthField: React.FC<AuthFieldProps> = ({
   label,
   type = 'text',
@@ -90,8 +92,7 @@ export interface PasswordFieldProps {
 
 /**
  * 密码字段，带「显示/隐藏」切换。
- * 原系统有这个能力（#toggle-password），保留它——登录失败时看不见输入内容
- * 是真实的可用性问题。
+ * 显示/隐藏密码解决登录失败时无法核对输入内容的可用性问题。
  */
 export const PasswordField: React.FC<PasswordFieldProps> = ({
   label = '密码',

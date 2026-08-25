@@ -6,12 +6,13 @@ const test = require('node:test');
 const root = path.resolve(__dirname, '..');
 const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), 'utf8');
 const assetPath = (relativePath) => path.join(root, relativePath);
+const tokens = JSON.parse(read('v1/assets/brand/knownmap-tokens.json'));
+const hex = (key) => tokens.colors[key].hex;
 
 const pageFiles = [
-  'teacher-web/index.html',
-  'teacher-web/editor.html',
-  'teacher-web/forsales.html',
-  'teacher-web/workspace.html'
+  'v1/site/index.html',
+  'v1/site/student-guide.html',
+  'v1/site/link.html'
 ];
 
 function pngDimensions(relativePath) {
@@ -23,43 +24,35 @@ function pngDimensions(relativePath) {
   };
 }
 
-test('canonical KnownMap logo defines the approved map-window geometry', () => {
-  const svg = read('teacher-web/assets/knownmap-logo.svg');
-  assert.match(svg, /#103B2B/i);
-  assert.match(svg, /#CFE4D8/i);
-  assert.match(svg, /#FFFDF8/i);
-  assert.match(svg, /#D9A51E/i);
-  assert.match(svg, /#A9654E/i);
-  assert.match(svg, /stroke-opacity=["']0\.48["']/i);
-  assert.match(svg, /M85 34v158M160 53v159/);
-  assert.match(svg, /M55 160l43-38 33 29 61-70/);
-  assert.match(svg, /transform=["']translate\(23\.4 23\.4\) scale\(0\.82\)["']/);
+test('canonical KnownMap logo matches knownmap-tokens.json', () => {
+  const svg = read(tokens.files.canonicalSvg);
+  const [tx, ty] = tokens.canvas.innerTranslate;
+  const scale = tokens.canvas.innerScale;
+  assert.match(svg, new RegExp(hex('containerGreen'), 'i'));
+  assert.match(svg, new RegExp(hex('mapStroke'), 'i'));
+  assert.match(svg, new RegExp(hex('pathStroke'), 'i'));
+  assert.match(svg, new RegExp(hex('pathStart'), 'i'));
+  assert.match(svg, new RegExp(hex('pathEnd'), 'i'));
+  assert.match(svg, new RegExp(`stroke-opacity=["']${tokens.colors.foldStroke.opacity}["']`, 'i'));
+  assert.match(svg, new RegExp(tokens.geometry.foldD.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  assert.match(svg, new RegExp(tokens.geometry.pathD.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  assert.match(svg, new RegExp(`transform=["']translate\\(${tx} ${ty}\\) scale\\(${scale}\\)["']`));
   assert.equal((svg.match(/stroke-opacity=/g) || []).length, 1, 'only the two weakened fold lines should use opacity');
 });
 
 test('all KnownMap logo variants share the reduced internal safe area', () => {
-  for (const relativePath of [
-    'teacher-web/assets/knownmap-logo.svg',
-    'teacher-web/assets/knownmap/knownmap-circle.svg',
-    'teacher-web/assets/knownmap/knownmap-square.svg',
-    'teacher-web/assets/knownmap/knownmap-transparent.svg'
-  ]) {
-    assert.match(
-      read(relativePath),
-      /transform=["']translate\(23\.4 23\.4\) scale\(0\.82\)["']/,
-      `${relativePath} must use the shared 82% internal geometry`
-    );
+  const [tx, ty] = tokens.canvas.innerTranslate;
+  const scale = tokens.canvas.innerScale;
+  const transform = new RegExp(`transform=["']translate\\(${tx} ${ty}\\) scale\\(${scale}\\)["']`);
+  for (const relativePath of [tokens.files.canonicalSvg, ...tokens.files.variants, ...tokens.files.extensionCopies]) {
+    assert.match(read(relativePath), transform, `${relativePath} must use the shared ${scale * 100}% internal geometry`);
+    assert.match(read(relativePath), new RegExp(hex('pathStart'), 'i'), `${relativePath} must use pathStart`);
+    assert.match(read(relativePath), new RegExp(hex('pathEnd'), 'i'), `${relativePath} must use pathEnd`);
   }
 });
 
 test('KnownMap logo exports exist at all required sizes', () => {
-  for (const [relativePath, size] of [
-    ['v1/extension/assets/icon-16.png', 16],
-    ['v1/extension/assets/icon-24.png', 24],
-    ['v1/extension/assets/icon-48.png', 48],
-    ['v1/extension/assets/icon-128.png', 128],
-    ['teacher-web/assets/knownmap-icon.png', 48]
-  ]) {
+  for (const { path: relativePath, size } of tokens.files.png) {
     assert.deepEqual(pngDimensions(relativePath), { width: size, height: size }, `${relativePath} must be ${size}x${size}`);
   }
 });
@@ -75,32 +68,44 @@ test('user-visible extension and pages use KnownMap and the logo asset', () => {
   for (const relativePath of pageFiles) {
     const html = read(relativePath);
     assert.match(html, /KnownMap/);
-    assert.match(html, /assets\/knownmap-icon\.png/);
     const visibleHtml = html
       .replace(/<script[\s\S]*?<\/script>/gi, '')
       .replace(/<style[\s\S]*?<\/style>/gi, '')
       .replace(/<!--[\s\S]*?-->/g, '');
     assert.doesNotMatch(visibleHtml, /LessonPilot|>LP</);
   }
+  assert.match(read('v1/site/index.html'), /assets\/knownmap-icon\.png/);
 });
 
 test('teacher application uses the interactive-course-tool name and colored K/M wordmark', () => {
-  const html = read('teacher-web/editor.html');
-  const app = read('teacher-web/app.js');
-  const css = read('teacher-web/styles.css');
+  const shell = read('v1/web/shared/src/components/AppShell.tsx');
+  const css = read('v1/web/shared/src/styles/base.css');
 
-  assert.match(html, /KnownMap 互动课程工具/);
-  assert.doesNotMatch(html, /课程设计平台/);
-  assert.doesNotMatch(app, /课程设计平台/);
-  assert.match(html, /class=["']brand-letter brand-letter-k["'][^>]*>K</);
-  assert.match(html, /class=["']brand-letter brand-letter-m["'][^>]*>M</);
-  assert.match(css, /\.brand-letter-k\s*\{[^}]*color:\s*#d9a51e/i);
-  assert.match(css, /\.brand-letter-m\s*\{[^}]*color:\s*#a9654e/i);
+  assert.match(shell, /KnownMapWordmark/);
+  assert.match(shell, /className="brand-letter-k"/);
+  assert.match(shell, /className="brand-letter-m"/);
+  assert.match(css, new RegExp(`\\.brand-letter-k\\s*\\{[^}]*color:\\s*${hex('pathStart')}`, 'i'));
+  assert.match(css, new RegExp(`\\.brand-letter-m\\s*\\{[^}]*color:\\s*${hex('pathEnd')}`, 'i'));
+
+  const popupCss = read('v1/extension/popup/popup.css');
+  assert.match(popupCss, new RegExp(`\\.brand-letter-k\\s*\\{[^}]*color:\\s*${hex('pathStart')}`, 'i'));
+  assert.match(popupCss, new RegExp(`\\.brand-letter-m\\s*\\{[^}]*color:\\s*${hex('pathEnd')}`, 'i'));
 });
 
-test('legacy protocol identifiers remain on the frozen workspace contract', () => {
-  assert.match(read('teacher-web/shared/bridge-protocol.js'), /lessonpilot\.workspace\.v1/);
-  assert.match(read('teacher-web/shared/bridge-protocol.js'), /lessonpilot\.extension\.v1/);
-  assert.match(read('teacher-web/shared/bridge-protocol.js'), /global\.LessonPilotBridgeProtocol/);
-  assert.match(read('teacher-web/shared/course-contract.js'), /global\.LessonPilotCourseContract/);
+test('sales and public pages color KnownMap K/M to the logo path endpoints', () => {
+  const pagesWithInlineColor = [
+    'v1/site/index.html',
+    'v1/site/student-guide.html',
+    'v1/site/link.html'
+  ];
+  for (const relativePath of pagesWithInlineColor) {
+    const html = read(relativePath);
+    assert.match(html, /brand-letter-k/, `${relativePath} must color K`);
+    assert.match(html, /brand-letter-m/, `${relativePath} must color M`);
+  }
+  for (const relativePath of pagesWithInlineColor) {
+    const html = read(relativePath);
+    assert.match(html, new RegExp(hex('pathStart'), 'i'), `${relativePath} must use pathStart`);
+    assert.match(html, new RegExp(hex('pathEnd'), 'i'), `${relativePath} must use pathEnd`);
+  }
 });

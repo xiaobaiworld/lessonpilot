@@ -7,79 +7,10 @@ SSH_HOST="${KNOWNMAP_SSH_HOST:-aliyun}"
 DEPLOY_ROOT="${KNOWNMAP_DEPLOY_ROOT:-/var/www/knownmap}"
 SITE_URL="${KNOWNMAP_SITE_URL:-https://knownmap.com}"
 REPOSITORY="${KNOWNMAP_REPOSITORY:-xiaobaiworld/lessonpilot}"
-PUBLISH_PROFILE="${KNOWNMAP_PUBLISH_PROFILE:-sales-static-v1}"
+PUBLISH_PROFILE="${KNOWNMAP_PUBLISH_PROFILE:-v1-apps}"
 RELEASE_SCOPE="${KNOWNMAP_RELEASE_SCOPE:-full}"
 
-SALES_SOURCE_FILES=(
-  "teacher-web/forsales.html"
-  "teacher-web/student-guide.html"
-  "teacher-web/subtitle-context.js"
-  "teacher-web/demo-captions.js"
-  "teacher-web/trial-intake.js"
-  "teacher-web/assets/knownmap-icon.png"
-  "teacher-web/assets/student-guide/step-download-and-unzip.png"
-  "teacher-web/assets/student-guide/step-open-extensions.png"
-  "teacher-web/assets/student-guide/step-load-unpacked.png"
-)
-
-SALES_PUBLIC_FILES=(
-  "public/index.html"
-  "public/subtitle-context.js"
-  "public/demo-captions.js"
-  "public/trial-intake.js"
-  "public/assets/knownmap-icon.png"
-  "public/downloads/student-plugin/knownmapplugin.zip"
-  "public/robots.txt"
-  "public/teacher-web/forsales.html"
-  "public/teacher-web/student-guide.html"
-  "public/teacher-web/subtitle-context.js"
-  "public/teacher-web/demo-captions.js"
-  "public/teacher-web/trial-intake.js"
-  "public/teacher-web/assets/knownmap-icon.png"
-  "public/teacher-web/assets/student-guide/step-download-and-unzip.png"
-  "public/teacher-web/assets/student-guide/step-open-extensions.png"
-  "public/teacher-web/assets/student-guide/step-load-unpacked.png"
-)
-
-TEACHER_SOURCE_FILES=(
-  "teacher-web/editor.html"
-  "teacher-web/styles.css"
-  "teacher-web/subtitle-parser.js"
-  "teacher-web/subtitle-context.js"
-  "teacher-web/node-plugin-registry.js"
-  "teacher-web/timeline-model.js"
-  "teacher-web/editor-logger.js"
-  "teacher-web/visual-node-editor.js"
-  "teacher-web/api-client.js"
-  "teacher-web/auth-session.js"
-  "teacher-web/app.js"
-  "teacher-web/assets/knownmap-icon.png"
-)
-
-ADMIN_SOURCE_FILES=(
-  "teacher-web/admin.html"
-  "teacher-web/admin.js"
-)
-
-TEACHER_PUBLIC_FILES=(
-  "public/teacher-web/editor.html"
-  "public/teacher-web/styles.css"
-  "public/teacher-web/subtitle-parser.js"
-  "public/teacher-web/subtitle-context.js"
-  "public/teacher-web/node-plugin-registry.js"
-  "public/teacher-web/timeline-model.js"
-  "public/teacher-web/editor-logger.js"
-  "public/teacher-web/visual-node-editor.js"
-  "public/teacher-web/api-client.js"
-  "public/teacher-web/auth-session.js"
-  "public/teacher-web/app.js"
-  "public/teacher-web/assets/knownmap-icon.png"
-)
-
-ADMIN_PUBLIC_FILES=(
-  "public/admin.html"
-  "public/teacher-web/admin.js"
-)
+SOURCE_FILES=("v1")
 
 log() {
   printf '[web-release] %s\n' "$*"
@@ -90,76 +21,10 @@ fail() {
   exit 1
 }
 
-if [[ "$PUBLISH_PROFILE" == "teacher-platform-v1" ]]; then
-  SOURCE_FILES=(
-    "${SALES_SOURCE_FILES[@]}"
-    "${ADMIN_SOURCE_FILES[@]}"
-    "${TEACHER_SOURCE_FILES[@]}"
-    "v1"
-  )
-  PUBLIC_FILES=(
-    "${SALES_PUBLIC_FILES[@]}"
-    "${ADMIN_PUBLIC_FILES[@]}"
-    "${TEACHER_PUBLIC_FILES[@]}"
-  )
-elif [[ "$PUBLISH_PROFILE" == "sales-static-v1" ]]; then
-  SOURCE_FILES=("${SALES_SOURCE_FILES[@]}" "v1")
-  PUBLIC_FILES=("${SALES_PUBLIC_FILES[@]}")
-elif [[ "$PUBLISH_PROFILE" == "v1-apps" ]]; then
-  # v1 应用是 Vite 构建产物，不是仓库里的已跟踪文件。
-  # 归档整个 v1/ 后在归档目录里构建，「从精确提交发布」这条不变量不变。
-  # 销售页仍按原样带上：3F 要求它不随框架迁移改写。
-  SOURCE_FILES=(
-    "${SALES_SOURCE_FILES[@]}"
-    "link.html"
-    # v1 的 index.css 直接 @import 这份样式表（视觉真源，不另抄一份），
-    # 所以它必须在归档里，否则构建时 postcss 解析不到。
-    # 阶段 8 删除旧系统时把它移进 v1/ 并更新 import 路径。
-    "teacher-web/styles.css"
-    "v1"
-  )
-  # 构建产物的清单在构建后生成，这里只列静态部分
-  PUBLIC_FILES=(
-    "${SALES_PUBLIC_FILES[@]}"
-    "public/admin/index.html"
-    "public/teacher/index.html"
-  )
-else
-  fail "unsupported publish profile: $PUBLISH_PROFILE"
-fi
+[[ "$PUBLISH_PROFILE" == "v1-apps" ]] || fail "unsupported publish profile: $PUBLISH_PROFILE"
 
 require_command() {
   command -v "$1" >/dev/null 2>&1 || fail "missing required command: $1"
-}
-
-build_student_plugin_package() {
-  local source_dir="$1"
-  local output="$2"
-
-  require_command node
-  [[ -d "$source_dir/v1/extension" ]] || fail "v1 extension source directory is missing"
-
-  if [[ ! -d "$source_dir/v1/node_modules" ]]; then
-    if [[ -d "$ROOT_DIR/v1/node_modules" ]]; then
-      ln -s "$ROOT_DIR/v1/node_modules" "$source_dir/v1/node_modules"
-    else
-      [[ -f "$source_dir/v1/package-lock.json" ]] ||
-        fail "v1/package-lock.json missing in archived commit; cannot build plugin"
-      log "installing v1 dependencies for student plugin package"
-      (cd "$source_dir/v1" && npm ci --silent) || fail "v1 dependency install failed"
-    fi
-  fi
-
-  log "building v1 extension (production target) for student plugin package"
-  (cd "$source_dir/v1/extension" && KNOWNMAP_TARGET=production npm run build --silent) ||
-    fail "v1 extension build failed"
-
-  local dist="$source_dir/v1/extension/dist/production"
-  [[ -f "$dist/manifest.json" ]] || fail "v1 extension build produced no manifest"
-  (
-    cd "$dist"
-    zip -q -r -X "$output" .
-  )
 }
 
 validate_settings() {
@@ -213,12 +78,7 @@ release_id_for_commit() {
 # 变的只是清单从写死变成实测。
 released_files() {
   local output="$1"
-
-  if [[ "$PUBLISH_PROFILE" == "v1-apps" ]]; then
-    (cd "$output" && find public -type f | LC_ALL=C sort)
-  else
-    printf '%s\n' "${PUBLIC_FILES[@]}"
-  fi
+  (cd "$output" && find public -type f | LC_ALL=C sort)
 }
 
 # v1 profile 的白名单按路径模式校验。
@@ -233,8 +93,7 @@ V1_ALLOWED_PATTERNS=(
   'public/demo-captions.js'
   'public/trial-intake.js'
   'public/assets/*'
-  'public/teacher-web/*'
-  'public/admin.html'
+  'public/student-guide.html'
   'public/admin/index.html'
   'public/admin/assets/*'
   'public/teacher/index.html'
@@ -362,13 +221,6 @@ build_v1_apps() {
     cp -R "$source_dir/v1/web/$app/dist/." "$output/public/$app/"
   done
 
-  # 旧入口重定向。阶段 6/7 只重定向不删除（6E）：收藏了旧地址的人
-  # 要被带到新位置，而不是撞 404。
-  mkdir -p "$output/public/teacher-web"
-  cp "$source_dir/v1/web/legacy-redirect/admin.html" "$output/public/admin.html"
-  cp "$source_dir/v1/web/legacy-redirect/editor.html" \
-    "$output/public/teacher-web/editor.html"
-
   # 学生插件的生产包也从同一提交构建，目标写死为 production
   log "building v1 extension (production target)"
   (cd "$source_dir/v1/extension" && KNOWNMAP_TARGET=production npm run build --silent) ||
@@ -423,46 +275,21 @@ build_release() {
   source_dir="$(mktemp -d "${TMPDIR:-/tmp}/knownmap-source.XXXXXX")"
   trap 'rm -rf "$source_dir"' RETURN
 
-  mkdir -p "$source_dir" "$output/public/assets" "$output/public/teacher-web/assets/student-guide" "$output/public/downloads/student-plugin"
+  mkdir -p "$source_dir" "$output/public/assets/student-guide" "$output/public/downloads/student-plugin"
   git -C "$ROOT_DIR" archive "$commit" -- "${SOURCE_FILES[@]}" | tar -x -C "$source_dir"
 
-  cp "$source_dir/teacher-web/forsales.html" "$output/public/index.html"
-  cp "$source_dir/teacher-web/subtitle-context.js" "$output/public/subtitle-context.js"
-  cp "$source_dir/teacher-web/demo-captions.js" "$output/public/demo-captions.js"
-  cp "$source_dir/teacher-web/trial-intake.js" "$output/public/trial-intake.js"
-  cp "$source_dir/teacher-web/assets/knownmap-icon.png" "$output/public/assets/knownmap-icon.png"
-  cp "$source_dir/teacher-web/forsales.html" "$output/public/teacher-web/forsales.html"
-  cp "$source_dir/teacher-web/student-guide.html" "$output/public/teacher-web/student-guide.html"
-  cp "$source_dir/teacher-web/subtitle-context.js" "$output/public/teacher-web/subtitle-context.js"
-  cp "$source_dir/teacher-web/demo-captions.js" "$output/public/teacher-web/demo-captions.js"
-  cp "$source_dir/teacher-web/trial-intake.js" "$output/public/teacher-web/trial-intake.js"
-  cp "$source_dir/teacher-web/assets/knownmap-icon.png" "$output/public/teacher-web/assets/knownmap-icon.png"
-  cp "$source_dir/teacher-web/assets/student-guide/step-download-and-unzip.png" "$output/public/teacher-web/assets/student-guide/step-download-and-unzip.png"
-  cp "$source_dir/teacher-web/assets/student-guide/step-open-extensions.png" "$output/public/teacher-web/assets/student-guide/step-open-extensions.png"
-  cp "$source_dir/teacher-web/assets/student-guide/step-load-unpacked.png" "$output/public/teacher-web/assets/student-guide/step-load-unpacked.png"
-  if [[ "$PUBLISH_PROFILE" != "v1-apps" ]]; then
-    build_student_plugin_package "$source_dir" "$output/public/downloads/student-plugin/knownmapplugin.zip"
-  fi
-  if [[ "$PUBLISH_PROFILE" == "teacher-platform-v1" ]]; then
-    cp "$source_dir/teacher-web/admin.html" "$output/public/admin.html"
-    cp "$source_dir/teacher-web/admin.js" "$output/public/teacher-web/admin.js"
-    for relative_path in "${TEACHER_SOURCE_FILES[@]}"; do
-      source_file="$source_dir/$relative_path"
-      public_file="$output/public/$relative_path"
-      mkdir -p "$(dirname "$public_file")"
-      cp "$source_file" "$public_file"
-    done
-  fi
-  if [[ "$PUBLISH_PROFILE" == "v1-apps" ]]; then
-    cp "$source_dir/link.html" "$output/public/link.html"
-    build_v1_apps "$source_dir" "$output"
-  fi
+  cp "$source_dir/v1/site/index.html" "$output/public/index.html"
+  cp "$source_dir/v1/site/student-guide.html" "$output/public/student-guide.html"
+  cp "$source_dir/v1/site/subtitle-context.js" "$output/public/subtitle-context.js"
+  cp "$source_dir/v1/site/demo-captions.js" "$output/public/demo-captions.js"
+  cp "$source_dir/v1/site/trial-intake.js" "$output/public/trial-intake.js"
+  cp "$source_dir/v1/site/link.html" "$output/public/link.html"
+  cp -R "$source_dir/v1/site/assets/." "$output/public/assets/"
+  build_v1_apps "$source_dir" "$output"
   printf 'User-agent: *\nDisallow: /\n' >"$output/public/robots.txt"
 
-  if [[ "$PUBLISH_PROFILE" == "v1-apps" ]]; then
-    # 校验放在 robots.txt 之后：它也算发布文件，要一起过白名单
-    validate_v1_release_paths "$output"
-  fi
+  # 校验放在 robots.txt 之后：它也算发布文件，要一起过白名单
+  validate_v1_release_paths "$output"
 
   write_checksums "$output"
   files="$(build_file_metadata "$output")"
@@ -596,52 +423,33 @@ verify_public_site() {
   actual_index_sha="$(shasum -a 256 "$body" | awk '{print $1}')"
   [[ "$actual_index_sha" == "$expected_index_sha" ]] || return 1
 
-  if [[ "$PUBLISH_PROFILE" != "v1-apps" ]]; then
-    status="$(curl -sS -o /dev/null -w '%{http_code}' "$SITE_URL/downloads/student-plugin/knownmapplugin.zip?release=$release_id")"
+  for path in \
+    /admin/ \
+    /teacher/ \
+    /student-guide.html \
+    /link.html \
+    /downloads/student-plugin/knownmap-v1.zip \
+    /downloads/student-plugin/knownmapplugin.zip; do
+    status="$(curl -sS -o /dev/null -w '%{http_code}' "$SITE_URL$path?release=$release_id")"
     [[ "$status" == "200" ]] || return 1
-  fi
-  status="$(curl -sS -o /dev/null -w '%{http_code}' "$SITE_URL/teacher-web/student-guide.html?release=$release_id")"
-  [[ "$status" == "200" ]] || return 1
-
-  if [[ "$PUBLISH_PROFILE" == "teacher-platform-v1" ]]; then
-    status="$(curl -sS -o /dev/null -w '%{http_code}' "$SITE_URL/admin.html")"
-    [[ "$status" == "200" ]] || return 1
-    status="$(curl -sS -o /dev/null -w '%{http_code}' "$SITE_URL/teacher-web/editor.html")"
-    [[ "$status" == "200" ]] || return 1
-    api_status="$(curl -fsS "$SITE_URL/health")"
-    jq -e '.status == "ok"' <<<"$api_status" >/dev/null || return 1
-  elif [[ "$PUBLISH_PROFILE" == "v1-apps" ]]; then
-    for path in \
-      /admin/ \
-      /teacher/ \
-      /admin.html \
-      /link.html \
-      /teacher-web/editor.html \
-      /downloads/student-plugin/knownmap-v1.zip \
-      /downloads/student-plugin/knownmapplugin.zip; do
-      status="$(curl -sS -o /dev/null -w '%{http_code}' "$SITE_URL$path?release=$release_id")"
-      [[ "$status" == "200" ]] || return 1
-    done
-    curl -fsS "$SITE_URL/downloads/student-plugin/knownmap-v1.zip?release=$release_id" \
-      -o "$plugin_v1" || return 1
-    curl -fsS "$SITE_URL/downloads/student-plugin/knownmapplugin.zip?release=$release_id" \
-      -o "$plugin_compat" || return 1
-    cmp -s "$plugin_v1" "$plugin_compat" || return 1
-    [[ -n "$expected_plugin_sha" ]] || return 1
-    [[ "$(shasum -a 256 "$plugin_compat" | awk '{print $1}')" == "$expected_plugin_sha" ]] ||
-      return 1
-    unzip -p "$plugin_compat" manifest.json |
-      jq -e --arg expected_version "$expected_plugin_version" '
-        .version == $expected_version
-        and .action.default_popup == "popup/index.html"
-        and (.permissions | index("storage") != null)
-        and (.permissions | index("downloads") != null)
-      ' >/dev/null || return 1
-    api_status="$(curl -fsS "$SITE_URL/health")"
-    jq -e '.status == "ok"' <<<"$api_status" >/dev/null || return 1
-  else
-    private_paths+=("/teacher-web/editor.html")
-  fi
+  done
+  curl -fsS "$SITE_URL/downloads/student-plugin/knownmap-v1.zip?release=$release_id" \
+    -o "$plugin_v1" || return 1
+  curl -fsS "$SITE_URL/downloads/student-plugin/knownmapplugin.zip?release=$release_id" \
+    -o "$plugin_compat" || return 1
+  cmp -s "$plugin_v1" "$plugin_compat" || return 1
+  [[ -n "$expected_plugin_sha" ]] || return 1
+  [[ "$(shasum -a 256 "$plugin_compat" | awk '{print $1}')" == "$expected_plugin_sha" ]] ||
+    return 1
+  unzip -p "$plugin_compat" manifest.json |
+    jq -e --arg expected_version "$expected_plugin_version" '
+      .version == $expected_version
+      and .action.default_popup == "popup/index.html"
+      and (.permissions | index("storage") != null)
+      and (.permissions | index("downloads") != null)
+    ' >/dev/null || return 1
+  api_status="$(curl -fsS "$SITE_URL/health")"
+  jq -e '.status == "ok"' <<<"$api_status" >/dev/null || return 1
 
   for path in "${private_paths[@]}"; do
     status="$(curl -sS -o /dev/null -w '%{http_code}' "$SITE_URL$path")"

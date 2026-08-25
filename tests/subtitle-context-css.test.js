@@ -11,9 +11,9 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 
-const { DEFAULT_CONTEXT_OPTIONS } = require('../teacher-web/subtitle-context.js');
+const { DEFAULT_CONTEXT_OPTIONS } = require('../v1/site/subtitle-context.js');
 /* 销售页是自包含单文件：样式、结构和脚本都在 forsales.html 内。 */
-const page = fs.readFileSync('teacher-web/forsales.html', 'utf8');
+const page = fs.readFileSync('v1/site/index.html', 'utf8');
 const css = page;
 const html = page;
 const js = page;
@@ -69,7 +69,7 @@ test('字幕文本用 textContent 渲染，不拼接 HTML', () => {
 });
 
 test('演示字幕是示例数据，不冒充老师真实课程', () => {
-  const demo = fs.readFileSync('teacher-web/demo-captions.js', 'utf8');
+  const demo = fs.readFileSync('v1/site/demo-captions.js', 'utf8');
   assert.match(demo, /示例课程数据/);
   assert.match(demo, /真实工作台的字幕来自老师本地导入/);
 });

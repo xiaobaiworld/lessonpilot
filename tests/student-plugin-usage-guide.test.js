@@ -1,5 +1,5 @@
 // 定位：验证学生插件使用说明页的导航、安装步骤、截图与可访问性边界。
-// 入口参数：teacher-web/forsales.html、teacher-web/student-guide.html 和说明截图。
+// 入口参数：v1/site 的销售页、学生说明页和说明截图。
 // 返回参数：Node test 通过/失败结果。
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -7,8 +7,8 @@ const path = require('node:path');
 const test = require('node:test');
 
 const root = path.resolve(__dirname, '..');
-const salesPath = path.join(root, 'teacher-web/forsales.html');
-const guidePath = path.join(root, 'teacher-web/student-guide.html');
+const salesPath = path.join(root, 'v1/site/index.html');
+const guidePath = path.join(root, 'v1/site/student-guide.html');
 
 function visibleText(source) {
   return source
@@ -25,7 +25,7 @@ test('销售页把直接下载改为学生使用步骤入口', () => {
   const tool = sales.match(/<div class="cta-tool plugin-download">([\s\S]*?)<\/div>/);
 
   assert.ok(tool, '销售页缺少学生工具入口');
-  assert.match(tool[1], /href="\/teacher-web\/student-guide\.html"/);
+  assert.match(tool[1], /href="\/student-guide\.html"/);
   assert.match(tool[1], />学生使用步骤</);
   assert.doesNotMatch(tool[1], /knownmapplugin\.zip/,
     '销售页入口应先解释安装步骤，不再直接下载 ZIP');
@@ -33,7 +33,7 @@ test('销售页把直接下载改为学生使用步骤入口', () => {
 });
 
 test('说明页覆盖下载、解压和 Chrome 手动安装完整流程', () => {
-  assert.equal(fs.existsSync(guidePath), true, '缺少 teacher-web/student-guide.html');
+  assert.equal(fs.existsSync(guidePath), true, '缺少 v1/site/student-guide.html');
   const page = fs.readFileSync(guidePath, 'utf8');
   const visible = visibleText(page);
 
@@ -86,7 +86,7 @@ test('关键步骤使用匿名 PNG 截图并提供替代文本', () => {
     assert.match(page, new RegExp(`src="${relative.replaceAll('.', '\\.')}`));
     assert.match(page, new RegExp(`alt="${screenshot.alt}"`));
     assert.equal(
-      fs.existsSync(path.join(root, 'teacher-web', relative)),
+      fs.existsSync(path.join(root, 'v1/site', relative)),
       true,
       `缺少截图 ${relative}`
     );

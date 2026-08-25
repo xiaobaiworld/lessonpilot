@@ -1,0 +1,104 @@
+{
+  "$comment": "KnownMap 品牌视觉资源真源。改折线端点、几何、字标 K/M 或资源路径时只改本文件，再同步 SVG、CSS 与 PNG。页面和插件禁止另写一套色。含义说明见 docs/knownmap-logo-resources.md。",
+  "schemaVersion": "1.0.0",
+  "updated": "2026-08-25",
+  "id": "knownmap-brand-tokens",
+  "canvas": {
+    "viewBox": "0 0 260 260",
+    "innerTranslate": [23.4, 23.4],
+    "innerScale": 0.82
+  },
+  "colors": {
+    "containerGreen": {
+      "hex": "#103B2B",
+      "role": "圆形/方形 Logo 容器底"
+    },
+    "brandGreen": {
+      "hex": "#1D5C43",
+      "role": "透明版外轮廓与主路径；网页品牌绿"
+    },
+    "mapStroke": {
+      "hex": "#CFE4D8",
+      "role": "深色底上的地图外轮廓"
+    },
+    "pathStroke": {
+      "hex": "#FFFDF8",
+      "role": "深色底上的学习路径折线描边"
+    },
+    "foldStroke": {
+      "hex": "#FFFDF8",
+      "opacity": 0.48,
+      "role": "深色底折页竖线"
+    },
+    "foldStrokeOnLight": {
+      "hex": "#6E9180",
+      "opacity": 0.72,
+      "role": "透明版折页竖线"
+    },
+    "pathStart": {
+      "hex": "#E8B428",
+      "role": "折线起点圆点；字标字母 K"
+    },
+    "pathEnd": {
+      "hex": "#C56E52",
+      "role": "折线终点圆点；字标字母 M"
+    },
+    "wordmarkInk": {
+      "hex": "#16251F",
+      "role": "KnownMap 其余字母（nown / ap），跟随正文墨色时可忽略本键"
+    }
+  },
+  "geometry": {
+    "foldD": "M85 34v158M160 53v159",
+    "pathD": "M55 160l43-38 33 29 61-70",
+    "pathStart": { "cx": 55, "cy": 160, "r": 10, "fill": "pathStart" },
+    "pathEnd": { "cx": 192, "cy": 81, "r": 10, "fill": "pathEnd" }
+  },
+  "wordmark": {
+    "text": "KnownMap",
+    "k": { "letter": "K", "color": "pathStart" },
+    "m": { "letter": "M", "color": "pathEnd" },
+    "rest": "跟随正文墨色，不上色"
+  },
+  "files": {
+    "canonicalSvg": "v1/assets/brand/knownmap-logo.svg",
+    "tokens": "v1/assets/brand/knownmap-tokens.json",
+    "variants": [
+      "v1/assets/brand/knownmap-circle.svg",
+      "v1/assets/brand/knownmap-square.svg",
+      "v1/assets/brand/knownmap-transparent.svg"
+    ],
+    "extensionCopies": [
+      "v1/extension/assets/knownmap-logo.svg",
+      "v1/extension/assets/knownmap/knownmap-circle.svg",
+      "v1/extension/assets/knownmap/knownmap-square.svg",
+      "v1/extension/assets/knownmap/knownmap-transparent.svg"
+    ],
+    "png": [
+      { "path": "v1/extension/assets/icon-16.png", "size": 16 },
+      { "path": "v1/extension/assets/icon-24.png", "size": 24 },
+      { "path": "v1/extension/assets/icon-48.png", "size": 48 },
+      { "path": "v1/extension/assets/icon-128.png", "size": 128 },
+      { "path": "v1/site/assets/knownmap-icon.png", "size": 48 }
+    ]
+  },
+  "cssSelectors": {
+    "wordmarkK": ".brand-letter-k",
+    "wordmarkM": ".brand-letter-m"
+  },
+  "wordmarkSurfaces": [
+    "v1/extension/popup/",
+    "v1/web/shared/src/components/AppShell.tsx",
+    "v1/web/shared/src/components/AppShell.tsx",
+    "v1/site/index.html",
+    "v1/site/student-guide.html",
+    "v1/site/link.html"
+  ],
+  "rules": [
+    "改色或几何：先改本文件 colors / canvas / geometry，再改全部 SVG 变体与插件副本，再改字标 CSS，最后从 canonicalSvg 重导出 PNG。",
+    "字标 K 必须等于 colors.pathStart.hex，M 必须等于 colors.pathEnd.hex。",
+    "插件 assets 下的 SVG 必须与 v1/assets/brand 变体同色同几何。",
+    "编辑器节点类型色（--chalk、--activity 等）不是 Logo 端点色，不要为改 Logo 去改课程节点语义色。",
+    "不要给 Logo 加渐变、阴影、字母缩写、纯黑描边或新的高饱和主色。"
+  ]
+}

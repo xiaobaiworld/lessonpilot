@@ -18,7 +18,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 
 const visibleCopy = (() => {
-  let s = fs.readFileSync('teacher-web/forsales.html', 'utf8');
+  let s = fs.readFileSync('v1/site/index.html', 'utf8');
   s = s.replace(/<style[\s\S]*?<\/style>/g, '');
   s = s.replace(/<script[\s\S]*?<\/script>/g, '');
   s = s.replace(/<svg[\s\S]*?<\/svg>/g, '');
@@ -28,7 +28,7 @@ const visibleCopy = (() => {
 
 /** 脚本里的中文字面量：toast、confirm 这类点了才显示的文案。 */
 const runtimeCopy = (() => {
-  const page = fs.readFileSync('teacher-web/forsales.html', 'utf8');
+  const page = fs.readFileSync('v1/site/index.html', 'utf8');
   const script = (page.match(/<script>[\s\S]*?<\/script>/g) || []).join('\n');
   return (script.match(/'[^']*[\u4e00-\u9fa5][^']*'/g) || []).join('\n');
 })();
@@ -56,7 +56,7 @@ test('不把鼠标操作当卖点写', () => {
 });
 
 test('不承诺页面上并不存在的交互', () => {
-  const script = fs.readFileSync('teacher-web/forsales.html', 'utf8');
+  const script = fs.readFileSync('v1/site/index.html', 'utf8');
   const promisesDrag = /拖到|拖拽|拖动/.test(visibleCopy);
   const hasDrag = /dragstart|'drop'|dragover/.test(script);
   assert.ok(
@@ -101,7 +101,7 @@ test('不泄漏销售渠道，不提醒老师这是转发来的推销页', () =>
  * workspace.html 早已是这个做法，这里把销售页也锁住。
  */
 test('不被搜索引擎索引或存档', () => {
-  const page = fs.readFileSync('teacher-web/forsales.html', 'utf8');
+  const page = fs.readFileSync('v1/site/index.html', 'utf8');
   const meta = page.match(/<meta name="robots" content="([^"]*)">/);
   assert.ok(meta, '缺少 robots meta；发布后会被收录');
   assert.match(meta[1], /noindex/);
@@ -116,7 +116,7 @@ test('不被搜索引擎索引或存档', () => {
  * 让被单独截图裁走的表格也带着这句话。
  */
 test('学习结果块在数字之前先说明这是产品形态示意', () => {
-  const page = fs.readFileSync('teacher-web/forsales.html', 'utf8');
+  const page = fs.readFileSync('v1/site/index.html', 'utf8');
   const notice = page.indexOf('preview-notice');
   const numbers = page.indexOf('class="summary"');
   assert.ok(notice > -1, '缺少说明框');
@@ -127,14 +127,14 @@ test('学习结果块在数字之前先说明这是产品形态示意', () => {
 });
 
 test('表格自带 caption，被单独截图也带着说明', () => {
-  const page = fs.readFileSync('teacher-web/forsales.html', 'utf8');
+  const page = fs.readFileSync('v1/site/index.html', 'utf8');
   const caption = page.match(/<caption>([^<]*)<\/caption>/);
   assert.ok(caption, '完成情况表必须有 caption');
   assert.match(caption[1], /示例数据/);
 });
 
 test('提示不靠颜色单独承载含义', () => {
-  const page = fs.readFileSync('teacher-web/forsales.html', 'utf8');
+  const page = fs.readFileSync('v1/site/index.html', 'utf8');
   const rule = page.match(/\.preview-notice\{([^}]*)\}/);
   assert.ok(rule, '缺少 .preview-notice 样式');
   // 金色只做边框；它在浅底上只有约 2.1:1，当文字色会不合格。

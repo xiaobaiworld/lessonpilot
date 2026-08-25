@@ -1,5 +1,5 @@
 // 定位: 验证飞书试用入口模块的域名白名单、挂载和失败关闭行为。
-// 入口参数: teacher-web/trial-intake.js 导出的配置与函数。
+// 入口参数: v1/site/trial-intake.js 导出的配置与函数。
 // 返回参数: Node test 通过/失败结果。
 /**
  * 飞书试用申请入口模块测试（WEB-05、D-012、D-013）。
@@ -13,7 +13,7 @@ const {
   TRIAL_INTAKE,
   isAllowedFormUrl,
   mountTrialIntake
-} = require('../teacher-web/trial-intake.js');
+} = require('../v1/site/trial-intake.js');
 
 function createRoot() {
   const link = {

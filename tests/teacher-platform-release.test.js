@@ -17,7 +17,6 @@ const backupTimer = path.join(root, 'deploy/teacher-platform/knownmap-backup.tim
 const testWorkflow = path.join(root, '.github/workflows/test.yml');
 const pagesWorkflow = path.join(root, '.github/workflows/pages.yml');
 const dependabotFile = path.join(root, '.github/dependabot.yml');
-const editorFile = path.join(root, 'teacher-web/editor.html');
 
 function run(command, args) {
   return childProcess.spawnSync(command, args, {
@@ -54,7 +53,7 @@ test('integrated release forwards and verifies the selected v1 publish profile',
 
   assert.match(
     source,
-    /WEB_PUBLISH_PROFILE="\$\{KNOWNMAP_PUBLISH_PROFILE:-teacher-platform-v1\}"/
+    /WEB_PUBLISH_PROFILE="\$\{KNOWNMAP_PUBLISH_PROFILE:-v1-apps\}"/
   );
   assert.match(source, /unsupported integrated publish profile/);
   assert.match(source, /--arg publishProfile "\$WEB_PUBLISH_PROFILE"/);
@@ -222,13 +221,6 @@ test('nginx deployment restores the previous file when validation fails', () => 
   assert.match(source, /knownmap\.previous/);
   assert.match(source, /if ! nginx -t/);
   assert.match(source, /mv -f "\$previous" "\$target"/);
-});
-
-test('teacher login does not publish the production account name', () => {
-  const editor = fs.readFileSync(editorFile, 'utf8');
-
-  assert.doesNotMatch(editor, /value="teacher-test-01"/);
-  assert.match(editor, /autocomplete="username"/);
 });
 
 test('production database backup is isolated, scheduled and retained', () => {

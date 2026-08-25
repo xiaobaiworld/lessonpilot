@@ -110,6 +110,10 @@
 服务端已经校验过一遍，插件仍在落盘前再验一遍：**一旦写进本机，运行时就无条件
 相信它**。网络截断、扩展被换、存储串位产生的畸形数据必须在落盘前挡住。
 
+课程 JSON 目前全部进这份 `chrome.storage.local`（默认 10MB）。图片、短音频等大文件
+不进 ZIP、不进这份 JSON；本机方案见 [`插件文件资源管理.md`](插件文件资源管理.md)
+（方向已确认，尚未实施）。
+
 ---
 
 ## 4. 四类互动节点
@@ -167,20 +171,19 @@
 ```
 v1/                 当前系统
   backend/            FastAPI + SQLite；六个业务模块、单一初始迁移
+  assets/brand/       品牌 token 与 SVG 真源
   contracts/          JSON Schema 真源、版本清单、发布闸门
+  site/               销售页、学生安装页和链接导航
   web/shared/         HTTP 客户端、表单组件、字幕解析、时间轴
   web/admin/          管理应用
   web/teacher/        教师应用
   extension/          Chrome MV3 扩展
-    storage/            本机课程库
+    storage/            本机课程库（JSON；大文件方案见 doc/插件文件资源管理.md）
     background/         唯一的网络与持久化边界
     runtime/            学习会话状态机（纯逻辑，无 DOM）
     host/bilibili/      唯一允许出现 B 站选择器的地方
     content/            页面接线与学习窗口
     popup/              工具栏首页
-
-teacher-web/        v0.9.1 旧教师 Web，冻结。styles.css 是 v1 复用的视觉真源
-contracts/          阶段 0 JSON Schema 门禁（课程包、插件消息）
 
 tools/              发布、检查、扫描
 tests/              仓库门禁与发布测试；后端测试在 v1/backend/tests/
@@ -188,13 +191,10 @@ doc/                需求、设计、决策、经验、状态
 deploy/             生产脚本、备份与恢复演练、发布记录
 ```
 
-### 旧后端如何回看
+### 旧实现如何回看
 
-根 `backend/` 已在空库闭环和全部测试通过后删除。旧实现由 Git 历史保存，不在
-工作树保留第二套可运行后端。
-
-`v1/web/*/src/index.css` 通过 `@import` 引用 `teacher-web/styles.css`——那是
-已上线验证的视觉真源，抄一份出来会立刻变成负债。阶段 8 时把它移进 `v1/`。
+根 `backend/`、`teacher-web/` 和根契约副本已经删除。旧实现由 Git 历史保存，
+不在工作树保留第二套可运行系统。
 
 ---
 
@@ -268,11 +268,8 @@ KNOWNMAP_SSH_HOST=<别名> KNOWNMAP_PUBLISH_PROFILE=v1-apps \
 ```
 
 该统一入口先发布后端、执行迁移和恢复演练，再以同一 release ID 原子发布
-`/admin/`、`/teacher/`、旧入口重定向、生产目标插件包和原样销售页；发布后同时验证
+`/admin/`、`/teacher/`、生产目标插件包和销售页；发布后同时验证
 Web、API 与版本探针，避免只切静态文件造成组件混用。
-
-旧入口 `/admin.html` 与 `/teacher-web/editor.html` **重定向而非删除**：
-收藏了旧地址的人要被带到新位置，不是撞 404。
 
 预检覆盖五项：后端在跑、生产配置能通过 6C 启动校验（不满足会让服务起不来）、
 nginx 能把 `/admin/` 这样的目录请求解析到 `index.html`（否则切换后两个应用

@@ -9,11 +9,10 @@
  *
  * Version manifest: versions.json
  * Version checker: check-versions.mjs
- * Dual-language validation: tools/contract-check.mjs
+ * Schema validation: check-contracts.mjs
  *
  * This file is documentation index and type exports only.
  */
 
 export type { VersionEntry, VersionSupport, SupportMatrixEntry } from './version-manifest';
 export { VERSIONS } from './version-manifest';
-

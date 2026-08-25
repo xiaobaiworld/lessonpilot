@@ -14,6 +14,8 @@
 
 import fs from 'fs';
 import path from 'path';
+import Ajv from 'ajv';
+import addFormats from 'ajv-formats';
 
 const schemaDir = path.join(import.meta.dirname, 'schemas');
 const manifest = JSON.parse(
@@ -28,6 +30,8 @@ const requiredSchemas = [
 
 function validateSchemas() {
   const errors = [];
+  const ajv = new Ajv({ allErrors: true, strict: false });
+  addFormats(ajv);
 
   // Check all required schemas exist and parse as valid JSON
   for (const schemaFile of requiredSchemas) {
@@ -49,6 +53,12 @@ function validateSchemas() {
       }
       if (!schema.title) {
         errors.push(`${schemaFile}: missing title`);
+      }
+
+      try {
+        ajv.compile(schema);
+      } catch (error) {
+        errors.push(`${schemaFile}: invalid JSON Schema (${error.message})`);
       }
 
       console.log(`✓ ${schemaFile}: valid JSON and basic schema structure`);

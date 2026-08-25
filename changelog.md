@@ -4,6 +4,16 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### 删除剩余旧版目录并统一到 `v1/` — 2026-08-25
+
+- 删除根 `contracts/`、旧契约检查器、旧契约夹具和无消费者的 Python `jsonschema` 依赖；
+- 将销售页、学生安装页和链接导航迁到 `v1/site/`，品牌真源迁到 `v1/assets/brand/`，共享样式迁到 `v1/web/shared/src/styles/`；
+- 删除 `teacher-web/`、旧教师页面测试、旧入口重定向、旧工作区组装器和旧 Web 发布 profile；
+- Web 发布与 Pages 只从 v1 构建，当前公开入口为 `/admin/`、`/teacher/` 和 `/student-guide.html`。
+
+验证：根 Node 135 项、v1 Vitest 217 项、后端 pytest 16 项通过；Ruff、ESLint、
+TypeScript、Web 构建、文档、41 端点、19 表模块归属、AJV 契约编译、依赖锁定和秘密扫描通过。
+
 ### 后端迁入 `v1/backend` 并删除旧实现 — 2026-08-25
 
 - `v1/backend/` 现在可独立安装、迁移和启动，使用一份 v1 初始迁移承载六个业务模块与 41 个设计端点；

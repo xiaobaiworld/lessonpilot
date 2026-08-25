@@ -1,17 +1,17 @@
 // 定位: 验证链接导航的必需入口、权限提示与外链安全属性。
-// 入口参数: 根目录 link.html 的静态 HTML 内容。
+// 入口参数: v1/site/link.html 的静态 HTML 内容。
 // 返回参数: Node test 通过/失败结果。
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 
-const page = fs.readFileSync('link.html', 'utf8');
+const page = fs.readFileSync('v1/site/link.html', 'utf8');
 
 const requiredLinks = [
   'https://knownmap.com/',
   'https://knownmap.com/admin/',
   'https://knownmap.com/teacher/',
-  'https://knownmap.com/teacher-web/student-guide.html',
+  'https://knownmap.com/student-guide.html',
   'https://knownmap.com/downloads/student-plugin/knownmap-v1.zip',
   'https://my.feishu.cn/share/base/form/shrcnGpoiVzLw8v5sD5K2TV8sFb',
   'https://my.feishu.cn/base/ZI5vbke3Ia9dpPsL4khcko09nwf?table=tblGmuYqdNDy7rSZ&amp;view=vewNhBX7cO'
@@ -44,6 +44,6 @@ test('所有新窗口链接都有安全的 rel 属性', () => {
 test('链接导航已进入 v1 生产发布白名单和探针', () => {
   const releaseScript = fs.readFileSync('tools/web-release.sh', 'utf8');
   assert.match(releaseScript, /public\/link\.html/);
-  assert.match(releaseScript, /source_dir\/link\.html/);
+  assert.match(releaseScript, /source_dir\/v1\/site\/link\.html/);
   assert.match(releaseScript, /\/link\.html/);
 });

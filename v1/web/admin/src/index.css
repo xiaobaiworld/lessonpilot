@@ -1,6 +1,2 @@
-/*
- * 直接复用已上线验证的样式表，不另抄一份。
- * 阶段 8 删除旧系统时，把 styles.css 移进 v1/ 并更新这一行路径。
- */
-@import '../../../../teacher-web/styles.css';
+@import '../../shared/src/styles/base.css';
 @import '../../shared/src/styles/supplement.css';

@@ -16,9 +16,9 @@ const fs = require('node:fs');
 const {
   TRIAL_INTAKE,
   isAllowedFormUrl
-} = require('../teacher-web/trial-intake.js');
+} = require('../v1/site/trial-intake.js');
 
-const page = fs.readFileSync('teacher-web/forsales.html', 'utf8');
+const page = fs.readFileSync('v1/site/index.html', 'utf8');
 
 /** 剥掉 style/script/svg/注释和标签后，老师真正读到的静态文字。 */
 const visible = (() => {

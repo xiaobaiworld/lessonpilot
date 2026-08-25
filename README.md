@@ -10,10 +10,12 @@ KnownMap 把老师已有的 B 站录播课变成可在原视频页面运行的�
 - 管理端：`v1/web/admin/`；
 - 教师端：`v1/web/teacher/`；
 - 学生插件：`v1/extension/`；
+- 销售与说明页：`v1/site/`；
+- 品牌资源：`v1/assets/brand/`；
 - 机器契约：`v1/contracts/`。
 
-根目录旧 `backend/` 已在新版空库闭环和全部测试通过后删除。旧实现仍可从 Git
-历史查看，不在工作树保留第二套可运行后端。
+根目录旧 `backend/`、`teacher-web/` 和根契约副本均已删除。旧实现仍可从 Git
+历史查看，工作树只保留 v1 当前实现。
 
 ## 本地运行
 

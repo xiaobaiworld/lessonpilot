@@ -5,6 +5,8 @@
 | 目录 | 功能 |
 | --- | --- |
 | `backend/` | 独立 FastAPI + SQLite 后端、Alembic 初始迁移和 pytest |
+| `assets/brand/` | 品牌 token 与 SVG 真源 |
+| `site/` | 销售页、学生安装页和链接导航 |
 | `web/admin/` | 管理员登录、教师账号管理 |
 | `web/teacher/` | 课程、课节、草稿、预览、发布和授权码 |
 | `web/shared/` | Web 公共 HTTP 客户端与 UI |

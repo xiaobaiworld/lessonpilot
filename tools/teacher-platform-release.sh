@@ -9,7 +9,7 @@ DATA_ROOT="${KNOWNMAP_DATA_ROOT:-/var/lib/knownmap}"
 SITE_URL="${KNOWNMAP_SITE_URL:-https://knownmap.com}"
 REPOSITORY="${KNOWNMAP_REPOSITORY:-xiaobaiworld/lessonpilot}"
 ALLOWED_REMOTE_BRANCH="${KNOWNMAP_ALLOWED_REMOTE_BRANCH:-origin/main}"
-WEB_PUBLISH_PROFILE="${KNOWNMAP_PUBLISH_PROFILE:-teacher-platform-v1}"
+WEB_PUBLISH_PROFILE="${KNOWNMAP_PUBLISH_PROFILE:-v1-apps}"
 SERVICE_NAME="knownmap-teacher-api.service"
 UV_VERSION="0.11.12"
 UV_SHA256="9acdecddacba550ee616c02bb4616d894352022550c5977524556fd5077ce1d4"
@@ -34,8 +34,7 @@ validate_settings() {
   [[ "$SITE_URL" =~ ^https://[A-Za-z0-9._:-]+$ ]] || fail "site URL must be an HTTPS origin"
   [[ "$ALLOWED_REMOTE_BRANCH" =~ ^origin/[A-Za-z0-9._/-]+$ ]] ||
     fail "unsafe allowed remote branch: $ALLOWED_REMOTE_BRANCH"
-  [[ "$WEB_PUBLISH_PROFILE" == "teacher-platform-v1" ||
-    "$WEB_PUBLISH_PROFILE" == "v1-apps" ]] ||
+  [[ "$WEB_PUBLISH_PROFILE" == "v1-apps" ]] ||
     fail "unsupported integrated publish profile: $WEB_PUBLISH_PROFILE"
 }
 
@@ -561,8 +560,6 @@ verify_remote() {
   trap 'rm -f "$body"' RETURN
   /usr/bin/curl -fsS "$SITE_URL/health" -o "$body"
   jq -e '.status == "ok"' "$body" >/dev/null || return 1
-  /usr/bin/curl -fsS "$SITE_URL/admin.html" >/dev/null
-  /usr/bin/curl -fsS "$SITE_URL/teacher-web/editor.html" >/dev/null
   /usr/bin/curl -fsS "$SITE_URL/" >/dev/null
   if [[ "$WEB_PUBLISH_PROFILE" == "v1-apps" ]]; then
     for path in /admin/ /teacher/ /downloads/student-plugin/knownmap-v1.zip; do

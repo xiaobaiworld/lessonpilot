@@ -14,7 +14,7 @@ const {
   estimateDisplayWidth,
   estimateLineCount,
   DEFAULT_CONTEXT_OPTIONS
-} = require('../teacher-web/subtitle-context.js');
+} = require('../v1/site/subtitle-context.js');
 
 /** 造一条字幕。text 默认足够长，占满 maxLinesPerCaption 行。 */
 function cue(index, startSeconds, endSeconds, text) {
