@@ -1,6 +1,6 @@
 # KnownMap 文档索引
 
-最近审计：2026-08-24；2026-08-25 增补插件本机资源管理备忘
+最近审计：2026-08-24；2026-08-25 增补插件本机资源管理备忘；2026-08-26 增补 `D-V1-013` 初期发布流程
 
 当前阶段：v1 已完成生产切换并进入新功能开发；v1 需求现为 `1.0.3`，设计 07 已按
 `FR-LIB-014` 增补学生插件使用说明页。插件大资源本机方案见
@@ -27,6 +27,7 @@
 | [`traceability/v1-requirements.tsv`](traceability/v1-requirements.tsv) | 257 个稳定编号的需求级追踪矩阵 |
 | [`../next.md`](../next.md) | 当前执行切片和人工决策边界 |
 | [`../README.md`](../README.md) | 项目入口、当前状态、运行命令 |
+| [`decisions/2026-08-26-early-stage-release-process.md`](decisions/2026-08-26-early-stage-release-process.md) | 初期开发与运行阶段的发布流程（`D-V1-013`）；后期改流程须另写决策 |
 
 ### 后续能力备忘
 
@@ -52,7 +53,7 @@
 
 ### v1 已接受决策
 
-`D-V1-001` 至 `D-V1-012`，全部在 [`decisions/`](decisions/)：
+`D-V1-001` 至 `D-V1-013`，全部在 [`decisions/`](decisions/)：
 
 | 编号 | 决策 |
 | --- | --- |
@@ -68,6 +69,7 @@
 | `D-V1-010` | [课节内容重复安排与同视频多课节边界](decisions/2026-08-22-v1-repeated-video-lessons.md) |
 | `D-V1-011` | 脚本/发布聚合 JSON 与本机学习记录策略，见 [数据持久化策略](decisions/2026-08-22-v1-data-persistence-strategy.md) |
 | `D-V1-012` | [不迁移无价值旧服务端数据与学生本机数据](decisions/2026-08-22-v1-no-legacy-data-migration.md) |
+| `D-V1-013` | [初期开发与运行阶段的发布流程](decisions/2026-08-26-early-stage-release-process.md) |
 
 ### 经验与状态
 
@@ -89,8 +91,8 @@
 | 文档 | 证明什么 |
 | --- | --- |
 | [`security/2026-08-20-production-security-audit.md`](security/2026-08-20-production-security-audit.md) | 仓库、发布链路、阿里云 ECS 与残余风险审计结果 |
-| [`../deploy/releases/README.md`](../deploy/releases/README.md) | Web 生产发布记录与回滚目标 |
-| [`../deploy/teacher-platform/README.md`](../deploy/teacher-platform/README.md) | 教师平台部署步骤与环境事实 |
+| [`../deploy/releases/README.md`](../deploy/releases/README.md) | Web 生产发布记录与回滚目标；版本化仍为 `web-prod/<release-id>` |
+| [`../deploy/teacher-platform/README.md`](../deploy/teacher-platform/README.md) | 教师平台部署步骤与环境事实；初期流程以 `D-V1-013` 为准 |
 
 ### 内容、品牌与技术探针
 

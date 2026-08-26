@@ -2,7 +2,7 @@
 
 版本：1.0
 
-更新时间：2026-08-23
+更新时间：2026-08-26
 
 这份文件回答「这个系统是什么、由哪些部分组成、它们怎么连起来」。
 读完它应当能定位到任何一块代码，并知道它为什么在那里。
@@ -252,28 +252,18 @@ node tests/manual/v1/verify-bilibili-dom.mjs        # 选择器与真实 B 站 D
 
 ## 9. 发布
 
+当前阶段（初期开发与运行）的发布真源是
+[`doc/decisions/2026-08-26-early-stage-release-process.md`](decisions/2026-08-26-early-stage-release-process.md)
+（`D-V1-013`）：本机测试 → GitHub 版本化（`web-prod/<时间-commit>` +
+`deploy/releases/*.json`）→ 本机构建后 copy 到阿里云切换。不在发布热路径上等待 CI、
+不在 ECS 上重复全量测试。后期若改为更严纪律，必须另写决策。
+
 ```bash
-# 切换前预检生产（只读，不打印任何密钥值）
-KNOWNMAP_SSH_HOST=<别名> tools/preflight-check.sh
-
-# 构建候选（在归档的精确提交里跑 npm ci → npm test → 构建）
-KNOWNMAP_PUBLISH_PROFILE=v1-apps tools/web-release.sh build <ref> <输出目录>
-
-# 切换前核对版本支持矩阵
-cd v1 && npm run gate -- --candidate <输出目录>
-
-# 切换
-KNOWNMAP_SSH_HOST=<别名> KNOWNMAP_PUBLISH_PROFILE=v1-apps \
-  tools/teacher-platform-release.sh deploy <ref>
+KNOWNMAP_SSH_HOST=aliyun-us \
+  tools/release.sh deploy <ref>
 ```
 
-该统一入口先发布后端、执行迁移和恢复演练，再以同一 release ID 原子发布
-`/admin/`、`/teacher/`、生产目标插件包和销售页；发布后同时验证
-Web、API 与版本探针，避免只切静态文件造成组件混用。
-
-预检覆盖五项：后端在跑、生产配置能通过 6C 启动校验（不满足会让服务起不来）、
-nginx 能把 `/admin/` 这样的目录请求解析到 `index.html`（否则切换后两个应用
-都是 404）、目标路径未被占用、备份存在且定时器在跑。
+同一 commit、同一 release ID 一次切后端和 `/admin/`、`/teacher/`、插件包、销售页。
 
 ---
 
@@ -295,7 +285,7 @@ nginx 能把 `/admin/` 这样的目录请求解析到 `index.html`（否则切�
 | 为什么这样设计 | [`doc/design/v1/`](design/v1/) |
 | 要做到什么 | [`doc/requirements/v1/`](requirements/v1/) |
 | 踩过什么坑 | [`doc/lessons.md`](lessons.md) |
-| 已接受的决策 | [`doc/decisions/`](decisions/)（`D-V1-001` 至 `D-V1-012`） |
+| 已接受的决策 | [`doc/decisions/`](decisions/)（`D-V1-001` 至 `D-V1-013`） |
 | 重构分几步走 | [`doc/plans/v1-code-refactor-execution-plan.md`](plans/v1-code-refactor-execution-plan.md) |
 
 **改代码前先读 `doc/lessons.md`**。它记的都是已经付过代价的事，其中好几条

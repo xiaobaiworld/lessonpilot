@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>节点编辑器 · 设计方案预览</title>
+  <style>
+    :root {
+      --ink: #172c24;
+      --ink-soft: #66756d;
+      --muted: #9aa69f;
+      --paper: #f5f4ee;
+      --surface: #fffefa;
+      --surface-soft: #f0f2eb;
+      --line: #dfe4dc;
+      --line-strong: #cbd4cc;
+      --green: #1f6a4f;
+      --green-deep: #113f31;
+      --gold: #b18a11;
+      --gold-soft: #fff5cf;
+      --danger: #b7523f;
+      --shadow: 0 24px 70px rgba(24, 48, 38, .13), 0 3px 10px rgba(24, 48, 38, .05);
+      --radius: 16px;
+      --font: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: radial-gradient(circle at 10% 0%, #fffdf6 0, var(--paper) 42%, #ecefe9 100%);
+      font-family: var(--font);
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, textarea { font: inherit; }
+    button { cursor: pointer; }
+
+    .prototype-bar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      min-height: 76px;
+      padding: 14px clamp(20px, 5vw, 76px);
+      color: #eef7f1;
+      background: #17382c;
+      box-shadow: 0 8px 26px rgba(12, 36, 27, .15);
+    }
+    .prototype-title { display: flex; align-items: center; gap: 12px; white-space: nowrap; }
+    .prototype-mark {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,.35);
+      border-radius: 10px;
+      color: #ffdf72;
+      font-size: 19px;
+    }
+    .prototype-title strong { display: block; font-size: 14px; letter-spacing: .02em; }
+    .prototype-title span { display: block; margin-top: 3px; color: #a9c1b4; font-size: 11px; }
+    .variant-tabs { display: flex; gap: 5px; padding: 4px; border: 1px solid rgba(255,255,255,.16); border-radius: 12px; background: rgba(0,0,0,.12); }
+    .variant-tab {
+      padding: 9px 14px;
+      border: 0;
+      border-radius: 9px;
+      color: #aac0b5;
+      background: transparent;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .variant-tab:hover, .variant-tab.is-active { color: var(--ink); background: #f8f4df; }
+    .prototype-note { color: #a9c1b4; font-size: 11px; white-space: nowrap; }
+
+    .stage { width: min(1120px, calc(100% - 32px)); margin: 42px auto 80px; }
+    .stage-intro { margin: 0 auto 22px; text-align: center; }
+    .stage-intro p { margin: 0 0 6px; color: var(--green); font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .stage-intro h1 { margin: 0; font-size: clamp(22px, 4vw, 32px); letter-spacing: -.04em; }
+    .stage-intro small { display: block; margin-top: 8px; color: var(--ink-soft); font-size: 12px; }
+
+    .editor-shell {
+      overflow: hidden;
+      border: 1px solid rgba(25, 55, 43, .12);
+      border-radius: 22px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+    .editor-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 23px 30px;
+      border-bottom: 1px solid var(--line);
+    }
+    .header-main { display: flex; align-items: center; gap: 14px; min-width: 0; }
+    .node-icon {
+      display: grid;
+      width: 45px;
+      height: 45px;
+      flex: 0 0 auto;
+      place-items: center;
+      border: 1px solid #d7b83c;
+      border-radius: 13px;
+      color: var(--gold);
+      background: #fff9e7;
+      font-size: 21px;
+    }
+    .header-main h2 { margin: 0; font-size: 20px; letter-spacing: -.025em; }
+    .header-meta { display: flex; align-items: center; gap: 9px; margin-top: 5px; color: var(--ink-soft); font-size: 11px; }
+    .type-badge { padding: 4px 8px; border-radius: 999px; color: #8a6d04; background: var(--gold-soft); font-weight: 800; }
+    .time-pill { display: inline-flex; align-items: center; gap: 7px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; color: var(--ink); background: #fbfcf8; font-size: 13px; font-weight: 800; }
+    .close-btn { display: grid; width: 34px; height: 34px; place-items: center; border: 0; border-radius: 9px; color: var(--ink-soft); background: transparent; font-size: 22px; }
+    .close-btn:hover { color: var(--ink); background: var(--surface-soft); }
+
+    .editor-body { padding: 26px 30px 8px; }
+    .section { margin-bottom: 26px; }
+    .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 10px; }
+    .section-heading h3 { margin: 0; font-size: 12px; letter-spacing: .05em; }
+    .section-heading span { color: var(--muted); font-size: 11px; }
+    .type-switcher { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; }
+    .type-option {
+      min-height: 68px;
+      padding: 11px 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      color: var(--ink-soft);
+      background: var(--surface);
+      text-align: left;
+      transition: .18s ease;
+    }
+    .type-option:hover { border-color: var(--green); transform: translateY(-1px); }
+    .type-option.is-selected { border-color: var(--green); color: var(--green-deep); background: #edf6ef; box-shadow: inset 0 0 0 1px var(--green); }
+    .type-option b { display: block; margin-bottom: 6px; font-size: 13px; }
+    .type-option small { color: inherit; opacity: .72; font-size: 10px; }
+    .variant-a .type-switcher { display: flex; gap: 5px; padding: 4px; border: 1px solid var(--line); border-radius: 12px; background: #fafbf7; }
+    .variant-a .type-option { flex: 1; min-height: 38px; padding: 8px 10px; border-color: transparent; border-radius: 8px; text-align: center; }
+    .variant-a .type-option b { margin: 0; font-size: 11px; }
+    .variant-a .type-option small { display: none; }
+    .form-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(220px, .75fr); gap: 14px; }
+    .field { display: grid; gap: 8px; }
+    .field label { color: var(--ink-soft); font-size: 11px; font-weight: 800; }
+    .field input, .field textarea {
+      width: 100%;
+      border: 1px solid var(--line-strong);
+      border-radius: 11px;
+      outline: 0;
+      color: var(--ink);
+      background: #fff;
+      transition: .18s ease;
+    }
+    .field input { height: 48px; padding: 0 14px; font-size: 15px; }
+    .field textarea { min-height: 138px; padding: 14px; resize: vertical; line-height: 1.7; }
+    .field input:focus, .field textarea:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(31,106,79,.12); }
+    .content-editor { overflow: hidden; border: 1px solid var(--line-strong); border-radius: 12px; background: #fff; }
+    .toolbar { display: flex; align-items: center; gap: 4px; padding: 8px 10px; border-bottom: 1px solid var(--line); background: #fafbf7; }
+    .toolbar button { display: grid; width: 28px; height: 28px; place-items: center; border: 0; border-radius: 6px; color: var(--ink-soft); background: transparent; font-weight: 800; }
+    .toolbar button:hover { color: var(--green); background: #eaf2ec; }
+    .toolbar .divider { width: 1px; height: 19px; margin: 0 4px; background: var(--line); }
+    .editor-copy { min-height: 132px; padding: 15px; color: #58665f; font-size: 13px; line-height: 1.8; }
+    .editor-copy strong { color: var(--ink); }
+    .editor-copy em { color: var(--green); }
+    .helper { color: var(--muted); font-size: 10px; line-height: 1.6; }
+    .student-preview { overflow: hidden; border: 1px solid #dfe8df; border-radius: 15px; background: #f2f6ef; }
+    .preview-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 14px; border-bottom: 1px solid #dfe8df; }
+    .preview-heading strong { font-size: 11px; }
+    .preview-heading span { color: var(--green); font-size: 10px; font-weight: 800; }
+    .preview-stage { position: relative; min-height: 230px; padding: 18px; overflow: hidden; background: linear-gradient(135deg, #354b45, #172b2a 58%, #263c37); }
+    .preview-stage::before { position: absolute; inset: 0; background: linear-gradient(120deg, transparent 45%, rgba(255,255,255,.05) 46%, transparent 58%), repeating-linear-gradient(0deg, transparent 0 34px, rgba(255,255,255,.045) 35px 36px); content: ''; }
+    .preview-player-label { position: relative; color: rgba(255,255,255,.68); font-size: 10px; letter-spacing: .08em; }
+    .preview-play { position: absolute; top: 50%; left: 50%; display: grid; width: 42px; height: 42px; place-items: center; border: 1px solid rgba(255,255,255,.35); border-radius: 50%; color: #fff; background: rgba(255,255,255,.12); transform: translate(-50%, -50%); }
+    .preview-node-card { position: relative; z-index: 1; margin: 52px 0 0 auto; padding: 13px; border: 1px solid rgba(255,255,255,.48); border-radius: 11px; color: var(--ink); background: rgba(255,254,250,.97); box-shadow: 0 12px 26px rgba(0,0,0,.22); }
+    .preview-node-card small { display: inline-block; margin-bottom: 7px; padding: 4px 7px; border-radius: 999px; color: #8a6d04; background: var(--gold-soft); font-size: 9px; font-weight: 800; }
+    .preview-node-card h4 { margin: 0 0 6px; font-size: 14px; }
+    .preview-node-card p { margin: 0; color: #607068; font-size: 10px; line-height: 1.65; }
+    .preview-controls { display: flex; justify-content: space-between; gap: 7px; padding: 10px 12px; border-top: 1px solid #dfe8df; background: #fbfdf9; }
+    .preview-mode { padding: 5px 8px; border: 0; border-radius: 7px; color: var(--muted); background: transparent; font-size: 10px; }
+    .preview-mode.is-active { color: var(--green); background: #e7f2e8; font-weight: 800; }
+    .preview-controls .helper { margin-left: auto; align-self: center; }
+    .student-preview.is-mobile .preview-stage { min-height: 250px; }
+    .student-preview.is-mobile .preview-node-card { width: 176px; margin-inline: auto; }
+    .settings-grid { display: grid; grid-template-columns: minmax(170px, .7fr) minmax(300px, 1.3fr) minmax(210px, .9fr); gap: 10px; }
+    .setting-card { min-width: 0; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: #fafbf7; }
+    .setting-card > label { display: block; margin-bottom: 8px; color: var(--ink-soft); font-size: 10px; font-weight: 800; }
+    .setting-card .select-like { min-height: 40px; background: #fff; }
+    .time-setting { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 40px; }
+    .time-setting strong { font-size: 15px; letter-spacing: .04em; }
+    .jump-inline { padding: 6px 8px; border: 1px solid #b8cfbe; border-radius: 7px; color: var(--green); background: #edf6ef; font-size: 10px; font-weight: 800; }
+    .size-options { display: flex; gap: 5px; }
+    .size-option { flex: 1; min-width: 0; padding: 7px 5px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink-soft); background: #fff; font-size: 10px; }
+    .size-option.is-active { border-color: var(--green); color: var(--green); background: #edf6ef; font-weight: 800; }
+    .variant-a .settings-grid { grid-template-columns: minmax(170px, .7fr) minmax(300px, 1.3fr) minmax(210px, .9fr); }
+    .variant-a .core-and-preview { display: block; }
+    .variant-a .core-and-preview .section { margin-bottom: 0; }
+    .variant-a .student-preview { position: static; margin-top: 20px; }
+    .variant-b .settings-section, .variant-c .settings-section { display: none; }
+    .mini-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .select-like { display: flex; align-items: center; justify-content: space-between; min-height: 45px; padding: 0 13px; border: 1px solid var(--line-strong); border-radius: 11px; color: var(--ink); background: #fff; font-size: 12px; }
+    .select-like span { color: var(--muted); font-size: 15px; }
+
+    .interaction-panel { padding: 17px; border: 1px solid #e7eadf; border-radius: 14px; background: #fafbf7; }
+    .choice-list { display: grid; gap: 8px; }
+    .choice-row { display: flex; align-items: center; gap: 8px; }
+    .choice-row input[type="radio"] { width: 16px; height: 16px; accent-color: var(--green); }
+    .choice-row input[type="text"] { flex: 1; height: 39px; padding: 0 11px; border: 1px solid var(--line); border-radius: 9px; color: var(--ink); background: #fff; }
+    .add-choice { width: fit-content; margin-top: 7px; padding: 6px 0; border: 0; color: var(--green); background: transparent; font-size: 11px; font-weight: 800; }
+
+    .collapse { border-top: 1px solid var(--line); }
+    .collapse summary { display: flex; align-items: center; justify-content: space-between; padding: 17px 0; color: var(--ink); cursor: pointer; font-size: 12px; font-weight: 800; list-style: none; }
+    .collapse summary::-webkit-details-marker { display: none; }
+    .collapse summary::after { content: '⌄'; color: var(--muted); font-size: 18px; }
+    .collapse[open] summary::after { content: '⌃'; }
+    .appearance-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-bottom: 20px; }
+    .appearance-label { display: block; margin-bottom: 8px; color: var(--ink-soft); font-size: 11px; font-weight: 800; }
+    .choice-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip { padding: 8px 11px; border: 1px solid var(--line); border-radius: 9px; color: var(--ink-soft); background: #fff; font-size: 11px; }
+    .chip.is-active { border-color: var(--green); color: var(--green); background: #edf6ef; font-weight: 800; }
+
+    .editor-footer { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 18px 30px; border-top: 1px solid var(--line); background: #fbfcf8; }
+    .footer-left, .footer-right { display: flex; align-items: center; gap: 12px; }
+    .delete-btn, .ghost-btn, .save-btn { min-height: 41px; padding: 0 16px; border-radius: 10px; font-size: 12px; font-weight: 800; }
+    .delete-btn { border: 0; color: var(--danger); background: transparent; }
+    .delete-btn:hover { background: #fff0eb; }
+    .ghost-btn { border: 1px solid var(--line-strong); color: var(--ink-soft); background: #fff; }
+    .ghost-btn:hover { border-color: var(--green); color: var(--green); }
+    .save-btn { border: 1px solid var(--green-deep); color: #fff; background: var(--green-deep); box-shadow: 0 5px 12px rgba(17,63,49,.14); }
+    .save-btn:hover { background: #1d5b45; transform: translateY(-1px); }
+
+    /* Variant B: a denser two-column authoring workbench. */
+    .variant-b .editor-body { padding: 0; }
+    .variant-b .editor-header { padding: 21px 28px; }
+    .variant-b .editor-body-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; }
+    .variant-b .main-column { padding: 26px 28px 8px; }
+    .variant-b .side-column { padding: 26px 22px; border-left: 1px solid var(--line); background: #f6f8f2; }
+    .variant-b .type-switcher { grid-template-columns: repeat(2, 1fr); }
+    .variant-b .form-grid { grid-template-columns: 1fr; }
+    .variant-b .side-title { margin: 0 0 18px; font-size: 12px; }
+    .variant-b .sticky-side { position: sticky; top: 98px; }
+    .variant-b .time-card { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; padding: 14px; border: 1px solid #d8e4da; border-radius: 13px; background: #eaf4ec; }
+    .variant-b .time-card small { display: block; margin-bottom: 4px; color: var(--green); font-size: 10px; font-weight: 800; }
+    .variant-b .time-card strong { font-size: 21px; letter-spacing: .05em; }
+    .variant-b .jump-btn { padding: 7px 9px; border: 1px solid #b8cfbe; border-radius: 8px; color: var(--green); background: #fff; font-size: 10px; font-weight: 800; }
+    .variant-b .side-section { margin-top: 22px; padding-top: 19px; border-top: 1px solid var(--line); }
+    .variant-b .side-section h4 { margin: 0 0 12px; color: var(--ink-soft); font-size: 11px; }
+    .variant-b .side-setting { display: grid; gap: 7px; margin-bottom: 14px; }
+    .variant-b .side-setting label { color: var(--muted); font-size: 10px; font-weight: 800; }
+    .variant-b .side-setting .select-like { min-height: 40px; font-size: 11px; }
+    .variant-b .editor-footer { padding: 17px 28px; }
+
+    /* Variant C: less chrome, more canvas. */
+    .variant-c { max-width: 900px; margin-inline: auto; border-color: transparent; background: transparent; box-shadow: none; }
+    .variant-c .editor-header { padding: 11px 0 20px; border-bottom: 0; }
+    .variant-c .node-icon { width: 38px; height: 38px; border: 0; border-radius: 11px; background: #fff6d9; }
+    .variant-c .editor-body { padding: 0; }
+    .variant-c .section { margin-bottom: 22px; }
+    .variant-c .type-switcher { display: flex; gap: 6px; }
+    .variant-c .type-option { min-height: 0; padding: 8px 11px; border-radius: 999px; }
+    .variant-c .type-option small { display: none; }
+    .variant-c .type-option b { margin: 0; font-size: 11px; }
+    .variant-c .form-grid { display: block; }
+    .variant-c .form-grid > .field:first-child { margin-bottom: 18px; }
+    .variant-c .field input { border-width: 0 0 1px; border-radius: 0; background: transparent; font-size: 22px; font-weight: 750; }
+    .variant-c .field input:focus { box-shadow: none; border-color: var(--green); }
+    .variant-c .content-editor { border-color: transparent; border-radius: 0; background: transparent; }
+    .variant-c .toolbar { padding: 6px 0; border-bottom-color: var(--line); background: transparent; }
+    .variant-c .editor-copy { min-height: 190px; padding: 17px 0; font-size: 15px; }
+    .variant-c .interaction-panel { border: 0; border-radius: 0; background: transparent; }
+    .variant-c .collapse { border-top: 1px solid var(--line); }
+    .variant-c .editor-footer { padding: 17px 0; background: transparent; }
+
+    .toast { position: fixed; right: 24px; bottom: 24px; z-index: 40; padding: 12px 16px; border: 1px solid #b8d2bd; border-radius: 11px; color: var(--green-deep); background: #eff9f0; box-shadow: var(--shadow); font-size: 12px; font-weight: 800; opacity: 0; transform: translateY(10px); pointer-events: none; transition: .2s ease; }
+    .toast.is-visible { opacity: 1; transform: translateY(0); }
+    .hidden { display: none !important; }
+
+    @media (max-width: 760px) {
+      .prototype-bar { align-items: flex-start; flex-direction: column; gap: 12px; padding: 15px 18px; }
+      .variant-tabs { width: 100%; }
+      .variant-tab { flex: 1; padding-inline: 8px; }
+      .prototype-note { display: none; }
+      .stage { width: min(100% - 20px, 650px); margin-top: 24px; }
+      .editor-header, .editor-body, .variant-b .main-column { padding-inline: 17px; }
+      .editor-footer, .variant-b .editor-footer { align-items: stretch; flex-direction: column; padding: 15px 17px; }
+      .footer-left, .footer-right { justify-content: space-between; }
+      .type-switcher { grid-template-columns: repeat(2, 1fr); }
+      .variant-a .type-switcher { display: grid; grid-template-columns: repeat(2, 1fr); }
+      .variant-a .core-and-preview { display: block; }
+      .variant-a .student-preview { position: static; margin-bottom: 24px; }
+      .variant-a .settings-grid { grid-template-columns: 1fr; }
+      .form-grid, .appearance-grid { grid-template-columns: 1fr; }
+      .variant-b .editor-body-grid { display: block; }
+      .variant-b .side-column { border-top: 1px solid var(--line); border-left: 0; }
+      .variant-b .sticky-side { position: static; }
+      .variant-c .editor-header { padding-inline: 0; }
+    }
+  </style>
+</head>
+<body>
+  <header class="prototype-bar">
+    <div class="prototype-title">
+      <div class="prototype-mark">✎</div>
+      <div><strong>节点编辑器 · 方案预览</strong><span>点击上方切换设计方向</span></div>
+    </div>
+    <nav class="variant-tabs" aria-label="设计方案">
+      <button class="variant-tab is-active" data-variant="a">A 聚焦编辑</button>
+      <button class="variant-tab" data-variant="b">B 双栏工作台</button>
+      <button class="variant-tab" data-variant="c">C 沉浸式编辑</button>
+    </nav>
+    <div class="prototype-note">当前为静态交互原型</div>
+  </header>
+
+  <main class="stage">
+    <div class="stage-intro">
+      <p id="variant-kicker">A · Focused authoring</p>
+      <h1 id="variant-title">让教师先写内容，再调整呈现方式</h1>
+      <small id="variant-description">信息分组清晰，适合大多数节点编辑场景。</small>
+    </div>
+
+    <section class="editor-shell variant-a" data-screen="a" aria-label="节点编辑器方案 A">
+      <div class="mount"></div>
+    </section>
+    <section class="editor-shell variant-b hidden" data-screen="b" aria-label="节点编辑器方案 B">
+      <div class="mount"></div>
+    </section>
+    <section class="editor-shell variant-c hidden" data-screen="c" aria-label="节点编辑器方案 C">
+      <div class="mount"></div>
+    </section>
+  </main>
+
+  <div class="toast" role="status" aria-live="polite">原型：节点已保存</div>
+
+  <template id="editor-template">
+    <header class="editor-header">
+      <div class="header-main">
+        <div class="node-icon">✎</div>
+        <div>
+          <h2>编辑节点</h2>
+          <div class="header-meta"><span class="type-badge">重点标注</span><span>第 3 个节点 · 教学片段</span></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="time-pill">◷ <span>01:12</span></div>
+        <button class="close-btn" aria-label="关闭">×</button>
+      </div>
+    </header>
+
+    <div class="editor-body">
+      <div class="editor-body-grid">
+        <div class="main-column">
+          <section class="section">
+            <div class="section-heading"><h3>节点类型</h3><span>可随时切换</span></div>
+            <div class="type-switcher">
+              <button class="type-option is-selected" data-type="notice"><b>✦ 重点标注</b><small>强调一个关键概念</small></button>
+              <button class="type-option" data-type="choice"><b>◉ 选择题</b><small>检查学生理解</small></button>
+              <button class="type-option" data-type="blank"><b>⌁ 填空题</b><small>让学生回忆答案</small></button>
+              <button class="type-option" data-type="free"><b>☷ 自由回答</b><small>收集思考与反馈</small></button>
+            </div>
+          </section>
+
+          <section class="section settings-section">
+            <div class="section-heading"><h3>呈现设置</h3><span>先确定学生端窗口的基础形态</span></div>
+            <div class="settings-grid">
+              <div class="setting-card"><label>触发时间</label><div class="time-setting"><strong>01:12</strong><button class="jump-inline" type="button">跳转视频</button></div></div>
+              <div class="setting-card"><label>窗口大小</label><div class="size-options"><button class="size-option">小卡片</button><button class="size-option is-active">中等</button><button class="size-option">大文档</button><button class="size-option">铺开</button></div></div>
+              <div class="setting-card"><label>窗口样式</label><div class="size-options"><button class="size-option is-active">卡片</button><button class="size-option">文档</button></div></div>
+            </div>
+          </section>
+
+          <div class="core-and-preview">
+          <section class="section">
+            <div class="section-heading"><h3>核心内容</h3><span>学生将在视频中看到</span></div>
+            <div class="field"><label>标题</label><input value="重点" aria-label="标题"></div>
+            <div class="field" style="margin-top:14px">
+              <label>页面正文</label>
+              <div class="content-editor">
+                <div class="toolbar" aria-label="格式工具栏"><button><b>B</b></button><button><i>I</i></button><button><u>U</u></button><span class="divider"></span><button>☷</button><button>❞</button><button>↗</button><button>▧</button></div>
+                <div class="editor-copy" contenteditable="true">把这段视频里最重要的内容写下来。<br><br><strong>提示：</strong>可以使用<strong>粗体</strong>或<em>强调色</em>帮助学生快速抓住重点。</div>
+              </div>
+              <div class="helper">支持基础排版；保存时会自动移除脚本、危险链接和未允许的标签。</div>
+            </div>
+          </section>
+
+          <section class="student-preview" aria-label="学生端预览">
+            <div class="preview-heading"><strong>学生端预览</strong><span>正在播放 · 01:12</span></div>
+            <div class="preview-stage">
+              <div class="preview-player-label">LESSON VIDEO / 03:24</div>
+              <div class="preview-play">▶</div>
+              <div class="preview-node-card"><small class="preview-type">重点标注</small><h4 class="preview-card-title">重点</h4><p>把这段视频里最重要的内容写下来。</p></div>
+            </div>
+            <div class="preview-controls"><button class="preview-mode is-active" type="button">桌面端</button><button class="preview-mode" type="button">手机端</button><span class="helper">示意效果</span></div>
+          </section>
+          </div>
+
+          <section class="section interaction-section">
+            <div class="section-heading"><h3>交互设置</h3><span class="interaction-hint">当前节点无需作答</span></div>
+            <div class="interaction-panel">
+              <div class="choice-list">
+                <div class="choice-row"><input type="radio" checked disabled><input type="text" value="这是一个需要记住的关键点" aria-label="选项 A"></div>
+                <div class="choice-row"><input type="radio" disabled><input type="text" value="可以在这里补充一个例子" aria-label="选项 B"></div>
+              </div>
+              <button class="add-choice" type="button">＋ 增加选项</button>
+            </div>
+          </section>
+
+          <details class="collapse" open>
+            <summary>显示设置 <span style="margin-left:auto;margin-right:10px;color:var(--muted);font-size:10px;font-weight:400">控制学生端窗口样式</span></summary>
+            <div class="appearance-grid">
+              <div><span class="appearance-label">窗口大小</span><div class="choice-chips"><button class="chip">小卡片</button><button class="chip is-active">中等</button><button class="chip">大文档</button><button class="chip">铺开</button></div></div>
+              <div><span class="appearance-label">窗口样式</span><div class="choice-chips"><button class="chip is-active">卡片</button><button class="chip">文档</button></div></div>
+            </div>
+          </details>
+        </div>
+
+        <aside class="side-column">
+          <div class="sticky-side">
+            <h3 class="side-title">节点属性</h3>
+            <div class="time-card"><div><small>触发时间</small><strong>01:12</strong></div><button class="jump-btn">跳转视频</button></div>
+            <div class="side-section"><h4>显示设置</h4><div class="side-setting"><label>窗口大小</label><div class="select-like">中等 <span>⌄</span></div></div><div class="side-setting"><label>窗口样式</label><div class="select-like">卡片 <span>⌄</span></div></div></div>
+            <div class="side-section"><h4>安全提示</h4><div class="helper">正文保存前会经过安全清理，仅保留允许的排版标签。</div></div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <footer class="editor-footer">
+      <div class="footer-left"><button class="delete-btn" type="button">删除节点</button><span class="helper">⌘ Enter 保存</span></div>
+      <div class="footer-right"><button class="ghost-btn" type="button">取消</button><button class="save-btn" type="button">保存节点</button></div>
+    </footer>
+  </template>
+
+  <script>
+    const copy = {
+      a: ['A · Focused authoring', '让教师先写内容，再调整呈现方式', '信息分组清晰，适合大多数节点编辑场景。'],
+      b: ['B · Authoring workbench', '把时间、显示设置放到右侧固定栏', '适合需要频繁对照视频和节点属性的专业用户。'],
+      c: ['C · Immersive writing', '减少边框，让正文成为视觉中心', '适合正文创作占比高、希望界面更安静的场景。']
+    };
+    const template = document.querySelector('#editor-template');
+    document.querySelectorAll('[data-screen] .mount').forEach((mount) => mount.append(template.content.cloneNode(true)));
+
+    function setType(button) {
+      const root = button.closest('[data-screen]');
+      root.querySelectorAll('.type-option').forEach((item) => item.classList.toggle('is-selected', item === button));
+      const labels = { notice: ['重点标注', '当前节点无需作答'], choice: ['选择题', '选中一个正确答案'], blank: ['填空题', '填写可接受的答案'], free: ['自由回答', '设置学生可参考的反馈'] };
+      const [name, hint] = labels[button.dataset.type];
+      root.querySelector('.type-badge').textContent = name;
+      root.querySelector('.interaction-hint').textContent = hint;
+      root.querySelector('.node-icon').textContent = button.textContent.trim().slice(0, 1);
+      root.querySelector('.preview-type').textContent = name;
+    }
+
+    document.querySelectorAll('[data-screen]').forEach((root) => {
+      root.addEventListener('click', (event) => {
+        const typeButton = event.target.closest('.type-option');
+        if (typeButton) setType(typeButton);
+        const chip = event.target.closest('.chip');
+        if (chip) { chip.parentElement.querySelectorAll('.chip').forEach((item) => item.classList.toggle('is-active', item === chip)); }
+        const sizeOption = event.target.closest('.size-option');
+        if (sizeOption) { sizeOption.parentElement.querySelectorAll('.size-option').forEach((item) => item.classList.toggle('is-active', item === sizeOption)); }
+        const previewMode = event.target.closest('.preview-mode');
+        if (previewMode) {
+          root.querySelectorAll('.preview-mode').forEach((item) => item.classList.toggle('is-active', item === previewMode));
+          root.querySelector('.student-preview').classList.toggle('is-mobile', previewMode.textContent.includes('手机'));
+        }
+        if (event.target.closest('.save-btn')) {
+          const toast = document.querySelector('.toast');
+          toast.classList.add('is-visible');
+          window.setTimeout(() => toast.classList.remove('is-visible'), 1800);
+        }
+      });
+      root.addEventListener('input', (event) => {
+        if (event.target.matches('input[aria-label="标题"]')) root.querySelector('.preview-card-title').textContent = event.target.value || '未命名节点';
+      });
+    });
+
+    document.querySelectorAll('.variant-tab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const variant = tab.dataset.variant;
+        document.querySelectorAll('.variant-tab').forEach((item) => item.classList.toggle('is-active', item === tab));
+        document.querySelectorAll('[data-screen]').forEach((screen) => screen.classList.toggle('hidden', screen.dataset.screen !== variant));
+        document.querySelector('#variant-kicker').textContent = copy[variant][0];
+        document.querySelector('#variant-title').textContent = copy[variant][1];
+        document.querySelector('#variant-description').textContent = copy[variant][2];
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+  </script>
+</body>
+</html>

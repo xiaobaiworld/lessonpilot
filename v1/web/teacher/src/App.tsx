@@ -6,9 +6,12 @@ import { CoursesPage } from './pages/CoursesPage';
 import { CoursePage } from './pages/CoursePage';
 import { LessonPage } from './pages/LessonPage';
 
-// 本地开发后端在 8000；生产同源，由 Nginx 代理 /api
-const apiOrigin = /localhost|127\.0\.0\.1/.test(location.origin)
-  ? 'http://localhost:8000'
+// 本地开发后端在 8000；生产同源，由 Nginx 代理 /api。
+// 本机页面可能从 localhost 或 127.0.0.1 打开，API 也要使用相同主机，
+// 否则登录 Cookie 会落到另一个 host，后续请求会变成未登录。
+const localHosts = new Set(['localhost', '127.0.0.1', '[::1]', '::1']);
+const apiOrigin = localHosts.has(location.hostname)
+  ? `${location.protocol}//${location.hostname}:8000`
   : location.origin;
 
 const api = new TeacherAPI(new APIClient(apiOrigin));

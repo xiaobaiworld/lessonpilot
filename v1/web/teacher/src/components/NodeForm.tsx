@@ -1,5 +1,5 @@
 import React from 'react';
-import { richDocumentFromHtml, richDocumentToHtml } from '@v1/web/shared';
+import { richDocumentFromHtml, richDocumentToHtml, richDocumentToPlainText } from '@v1/web/shared';
 import { ScriptNode } from '../api';
 import { RichTextEditor } from './RichTextEditor';
 
@@ -40,47 +40,69 @@ export const NodeForm: React.FC<Props> = ({ node, disabled, onChange }) => {
 
   return (
     <div className="node-fields">
-      <Field
-        label="标题"
-        value={node.title}
-        onChange={(title) => onChange({ ...node, title })}
-        disabled={disabled}
-      />
-      <label className="field-group">
-        <span>窗口大小</span>
-        <select
-          value={node.presentationHints?.windowSize ?? 'm'}
-          onChange={(event) => setHints({ windowSize: event.target.value })}
-          disabled={disabled}
-        >
-          {WINDOW_SIZE_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="field-group">
-        <span>窗口样式</span>
-        <select
-          value={node.presentationHints?.windowStyle ?? 'document'}
-          onChange={(event) => setHints({ windowStyle: event.target.value })}
-          disabled={disabled}
-        >
-          {WINDOW_STYLE_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </label>
+      <section className="node-section node-presentation-section">
+        <div className="node-section-heading">
+          <div>
+            <span className="node-section-eyebrow">呈现设置</span>
+            <h3>学生端窗口</h3>
+          </div>
+          <span>先确定学生看到的窗口形态</span>
+        </div>
+        <div className="node-presentation-grid">
+          <label className="node-setting-card">
+            <span>窗口大小</span>
+            <select
+              value={node.presentationHints?.windowSize ?? 'm'}
+              onChange={(event) => setHints({ windowSize: event.target.value })}
+              disabled={disabled}
+            >
+              {WINDOW_SIZE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="node-setting-card">
+            <span>窗口样式</span>
+            <select
+              value={node.presentationHints?.windowStyle ?? 'document'}
+              onChange={(event) => setHints({ windowStyle: event.target.value })}
+              disabled={disabled}
+            >
+              {WINDOW_STYLE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </section>
 
-      <RichTextEditor
-        label="页面正文"
-        value={richDocumentToHtml(node.content)}
-        disabled={disabled}
-        onChange={setPageHtml}
-      />
+      <section className="node-section node-content-section">
+        <div className="node-section-heading">
+          <div>
+            <span className="node-section-eyebrow">核心内容</span>
+            <h3>页面正文</h3>
+          </div>
+          <span>学生将在视频中看到</span>
+        </div>
+        <Field
+          label="标题"
+          value={node.title}
+          onChange={(title) => onChange({ ...node, title })}
+          disabled={disabled}
+        />
+        <RichTextEditor
+          label="正文内容"
+          value={richDocumentToHtml(node.content)}
+          disabled={disabled}
+          onChange={setPageHtml}
+        />
+      </section>
+
+      <StudentNodePreview node={node} />
 
       {node.interaction === 'choice' && (
         <ChoiceFields
@@ -131,6 +153,70 @@ export const NodeForm: React.FC<Props> = ({ node, disabled, onChange }) => {
     </div>
   );
 };
+
+const StudentNodePreview: React.FC<{ node: ScriptNode }> = ({ node }) => {
+  const previewText = richDocumentToPlainText(node.content) || '这里会显示节点正文。';
+  const windowSize = node.presentationHints?.windowSize ?? 'm';
+  const windowStyle = node.presentationHints?.windowStyle ?? 'document';
+  const data = (node.interactionData ?? {}) as Record<string, any>;
+  const options = Array.isArray(data.options) ? data.options : [];
+  const interactionLabel =
+    node.interaction === 'notice'
+      ? '重点标注'
+      : node.interaction === 'choice'
+        ? '选择题'
+        : node.interaction === 'blank'
+          ? '填空题'
+          : '问答题';
+
+  return (
+    <section
+      className={`student-node-preview student-node-preview-${node.interaction} student-node-preview-${windowSize} student-node-preview-${windowStyle}`}
+      aria-label="学生端预览"
+    >
+      <header className="student-node-preview-head">
+        <div>
+          <span className="node-section-eyebrow">学生端预览</span>
+          <strong>学生看到的样子</strong>
+        </div>
+        <span>正在播放 · {formatPreviewTime(node.anchor.timeSeconds)}</span>
+      </header>
+      <div className="student-node-preview-stage">
+        <span className="student-node-preview-video-label">课程视频 · 预览画面</span>
+        <span className="student-node-preview-play" aria-hidden="true">▶</span>
+        <article className="student-node-card">
+          <span className="student-node-card-badge">{interactionLabel}</span>
+          <h4>{node.title || '未命名节点'}</h4>
+          <p>{previewText}</p>
+          {node.interaction === 'choice' && options.length > 0 && (
+            <div className="student-node-card-options">
+              {options.slice(0, 3).map((option: { id: string; label: string }) => (
+                <span key={option.id}>{option.label || `选项 ${option.id.toUpperCase()}`}</span>
+              ))}
+            </div>
+          )}
+          {node.interaction === 'blank' && <div className="student-node-card-input">输入你的答案</div>}
+          {node.interaction === 'free_text' && <div className="student-node-card-input">写下你的想法……</div>}
+        </article>
+      </div>
+      <footer className="student-node-preview-foot">
+        <span>{windowSizeLabel(windowSize)} · {windowStyle === 'card' ? '卡片' : '文档'}</span>
+        <span>示意预览</span>
+      </footer>
+    </section>
+  );
+};
+
+function windowSizeLabel(value: string): string {
+  return WINDOW_SIZE_OPTIONS.find((option) => option.value === value)?.label ?? '中等';
+}
+
+function formatPreviewTime(seconds: number): string {
+  const safeSeconds = Math.max(0, Math.round(seconds));
+  const minutes = Math.floor(safeSeconds / 60).toString().padStart(2, '0');
+  const remainder = (safeSeconds % 60).toString().padStart(2, '0');
+  return `${minutes}:${remainder}`;
+}
 
 const ChoiceFields: React.FC<{
   options: { id: string; label: string }[];

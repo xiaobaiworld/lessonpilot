@@ -134,9 +134,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--backup", type=Path, help="要演练的备份文件")
-    group.add_argument(
-        "--latest", action="store_true", help="演练备份目录里最新的一份"
-    )
+    group.add_argument("--latest", action="store_true", help="演练备份目录里最新的一份")
     parser.add_argument(
         "--directory",
         type=Path,

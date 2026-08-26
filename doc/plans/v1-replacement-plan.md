@@ -71,7 +71,7 @@ doc/  tools/  tests/fixtures/v1/ 新旧共享
 | `tools/doc-check.mjs`、`secret-scan.mjs`、`build-traceability.mjs` | **保留规则，验证扫描范围**：必须覆盖 `v1/`，不能因旧默认路径产生假绿 |
 | `tools/endpoint-check.mjs`、`contract-check.mjs`、`dependency-check.mjs` | **改为识别 v1 真源和依赖根**：当前分别硬编码旧 API、`src/contracts`、根 Node/旧后端依赖 |
 | `tools/module-check.mjs` | **同时识别旧基线和 v1**：v1 按 `v1/backend/app/modules/<domain>/` 目录判定；旧白名单只服务冻结基线 |
-| `tools/web-release.sh`、`teacher-platform-release.sh`、`deploy/` | **保留发布不变量，重建 v1 路径并拆分职责**：精确提交、白名单、SHA-256、不可变目录和原子切换继续保留；build、migration、deploy、probe、rollback 分开验证 |
+| `tools/release.sh`、`deploy/` | **按 `D-V1-013` 使用单一初期发布入口**：本机测试与构建、GitHub 精确提交、`web-prod/<release-id>` 标签、`deploy/releases/*.json`、不可变目录和原子切换；旧发布脚本已删除 |
 | `tools/assemble-workspace.js` | **旧系统专用**，随旧系统一起删 |
 
 所有检查工具在阶段 0 都要增加“测试发现/扫描范围”自测：故意在 `v1/` 放入一个违规夹具时检查必须失败；

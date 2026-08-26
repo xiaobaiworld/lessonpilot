@@ -42,8 +42,7 @@ test('所有新窗口链接都有安全的 rel 属性', () => {
 });
 
 test('链接导航已进入 v1 生产发布白名单和探针', () => {
-  const releaseScript = fs.readFileSync('tools/web-release.sh', 'utf8');
+  const releaseScript = fs.readFileSync('tools/release.sh', 'utf8');
+  assert.match(releaseScript, /v1\/site\/link\.html/);
   assert.match(releaseScript, /public\/link\.html/);
-  assert.match(releaseScript, /source_dir\/v1\/site\/link\.html/);
-  assert.match(releaseScript, /\/link\.html/);
 });

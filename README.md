@@ -51,18 +51,22 @@ npm run build:local
 
 ## 发布到网站
 
-“发布到 Web 网站”使用统一发布入口，并绑定已经通过 CI 的精确 Git 提交：
+当前是初期开发与运行阶段。流程是：本机测完 → 提交并 push 到 GitHub → 用
+`web-prod/<时间-commit>` 标签和 `deploy/releases/` 做版本记录 → 把本机编好的产物
+拷到阿里云切换。完整约定见
+[`doc/decisions/2026-08-26-early-stage-release-process.md`](doc/decisions/2026-08-26-early-stage-release-process.md)
+（`D-V1-013`）。发布不阻塞在 GitHub CI。
 
 ```bash
-KNOWNMAP_PUBLISH_PROFILE=v1-apps \
-  tools/teacher-platform-release.sh deploy <git-ref>
+KNOWNMAP_SSH_HOST=aliyun-us \
+  tools/release.sh deploy <git-ref>
 ```
 
-发布记录在 `deploy/releases/`。检查或回滚已发布 Web 产物：
+发布记录在 `deploy/releases/`。检查或回滚：
 
 ```bash
-tools/web-release.sh verify <release-id>
-tools/web-release.sh rollback <release-id>
+tools/release.sh verify <release-id>
+tools/release.sh rollback <release-id>
 ```
 
 ## 验证

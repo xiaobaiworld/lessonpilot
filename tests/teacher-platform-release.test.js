@@ -1,14 +1,12 @@
-// 定位: 验证教师平台生产部署的服务、反代、数据目录和发布记录约束。
-// 入口参数: deploy/teacher-platform/ 下的静态配置和 tools/teacher-platform-release.sh。
+// 定位: 验证教师平台生产部署的服务、反代和数据目录约束。
+// 入口参数: deploy/teacher-platform/ 下的静态配置。
 // 返回参数: Node test 通过/失败结果。
 const assert = require('node:assert/strict');
-const childProcess = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 
 const root = path.resolve(__dirname, '..');
-const releaseScript = path.join(root, 'tools/teacher-platform-release.sh');
 const serviceFile = path.join(root, 'deploy/teacher-platform/knownmap-teacher-api.service');
 const nginxFile = path.join(root, 'deploy/teacher-platform/knownmap-nginx.conf');
 const backupScript = path.join(root, 'deploy/teacher-platform/knownmap-backup.py');
@@ -17,152 +15,6 @@ const backupTimer = path.join(root, 'deploy/teacher-platform/knownmap-backup.tim
 const testWorkflow = path.join(root, '.github/workflows/test.yml');
 const pagesWorkflow = path.join(root, '.github/workflows/pages.yml');
 const dependabotFile = path.join(root, '.github/dependabot.yml');
-
-function run(command, args) {
-  return childProcess.spawnSync(command, args, {
-    cwd: root,
-    encoding: 'utf8'
-  });
-}
-
-test('teacher platform release orchestration has valid shell syntax and traceability guards', () => {
-  const syntax = run('bash', ['-n', releaseScript]);
-  assert.equal(syntax.status, 0, syntax.stderr);
-
-  const source = fs.readFileSync(releaseScript, 'utf8');
-  for (const marker of [
-    'git -C "$ROOT_DIR" archive',
-    'git -C "$ROOT_DIR" fetch origin --prune',
-    'node --test tests/*.test.js',
-    'uv run pytest -q',
-    'alembic',
-    'SEED_TEACHER_LOGIN_NAME',
-    'backend-release.json',
-    'systemctl enable',
-    'KNOWNMAP_PUBLISH_PROFILE="$WEB_PUBLISH_PROFILE"',
-    'web-prod/$release_id',
-    'chown knownmap:knownmap "/$database_path"',
-    'verification.apiHealth'
-  ]) {
-    assert.ok(source.includes(marker), `missing ${marker}`);
-  }
-});
-
-test('integrated release forwards and verifies the selected v1 publish profile', () => {
-  const source = fs.readFileSync(releaseScript, 'utf8');
-
-  assert.match(
-    source,
-    /WEB_PUBLISH_PROFILE="\$\{KNOWNMAP_PUBLISH_PROFILE:-v1-apps\}"/
-  );
-  assert.match(source, /unsupported integrated publish profile/);
-  assert.match(source, /--arg publishProfile "\$WEB_PUBLISH_PROFILE"/);
-  assert.match(source, /KNOWNMAP_PUBLISH_PROFILE="\$WEB_PUBLISH_PROFILE"/);
-  for (const path of [
-    '/admin/',
-    '/teacher/',
-    '/downloads/student-plugin/knownmap-v1.zip',
-    '/api/v1/meta/version'
-  ]) {
-    assert.ok(source.includes(path), `v1 verification missing ${path}`);
-  }
-  assert.match(source, /\.api_version == "v1" and \.database_ready == true/);
-});
-
-test('teacher platform release never prints or implicitly rotates production credentials', () => {
-  const source = fs.readFileSync(releaseScript, 'utf8');
-
-  assert.doesNotMatch(source, /TEACHER_PASSWORD=%s/);
-  assert.doesNotMatch(
-    source,
-    /KNOWNMAP_PRODUCTION_TEACHER_PASSWORD:-\$\(openssl rand/
-  );
-  assert.match(source, /seed_password="\$\{KNOWNMAP_PRODUCTION_TEACHER_PASSWORD:-\}"/);
-  assert.match(source, /local seed_password_file="-"/);
-  assert.match(source, /seed_password_file/);
-  assert.match(source, /install -m 600 \/dev\/null "\$seed_password_file"/);
-  assert.match(source, /CREDENTIAL_ROTATION=/);
-});
-
-test('first administrator bootstrap is guarded, one-time, and non-persistent', () => {
-  const source = fs.readFileSync(releaseScript, 'utf8');
-  const envTemplate = source.match(/cat >"\$env_tmp" <<ENV\n([\s\S]*?)\nENV/);
-
-  assert.ok(envTemplate, 'persistent environment template must be detectable');
-  assert.doesNotMatch(envTemplate[1], /SEED_ADMIN|KNOWNMAP_PRODUCTION_ADMIN_PASSWORD/);
-  assert.match(source, /KNOWNMAP_PRODUCTION_ADMIN_PASSWORD/);
-  assert.match(source, /openssl rand -hex 18/);
-  assert.match(source, /local admin_password_file/);
-  assert.match(source, /install -m 600 \/dev\/null "\$admin_password_file"/);
-  assert.match(source, /select\(func\.count\(\)\)\.select_from\(AdminAccount\)/);
-  assert.match(source, /SEED_ADMIN_LOGIN_NAME=admin/);
-  assert.match(source, /SEED_ADMIN_PASSWORD="\$admin_password"/);
-  assert.match(source, /python" -m app\.seed admin/);
-  assert.match(source, /rm -f "\$admin_password_file"/);
-  assert.match(source, /ADMIN_BOOTSTRAP=/);
-  assert.match(source, /ADMIN_INITIAL_PASSWORD=%s/);
-});
-
-test('production verification checks protected administrator endpoints', () => {
-  const source = fs.readFileSync(releaseScript, 'utf8');
-
-  assert.match(source, /SITE_URL\/api\/v1\/admin\/auth\/me/);
-  assert.match(source, /SITE_URL\/api\/v1\/admin\/teachers/);
-  assert.match(source, /\[\[ "\$status" == "401" \]\]/);
-});
-
-test('backend deploy uses a checksum-pinned uv and a frozen per-release environment', () => {
-  const source = fs.readFileSync(releaseScript, 'utf8');
-
-  assert.doesNotMatch(source, /astral\.sh\/uv\/install\.sh/);
-  assert.match(source, /UV_VERSION="0\.11\.12"/);
-  assert.match(
-    source,
-    /UV_SHA256="9acdecddacba550ee616c02bb4616d894352022550c5977524556fd5077ce1d4"/
-  );
-  assert.match(source, /sha256sum -c/);
-  assert.match(source, /UV_PROJECT_ENVIRONMENT="\$release\/v1\/backend\/\.venv"/);
-  assert.match(source, /sync --frozen --no-dev/);
-  assert.match(source, /test -x "\$app_root\/current\/v1\/backend\/\.venv\/bin\/uvicorn"/);
-  assert.match(
-    source,
-    /ln -s "\$app_root\/venv" "\$previous_target\/v1\/backend\/\.venv"/
-  );
-  assert.match(
-    source,
-    /ln -s "\$app_root\/venv" "\$target\/v1\/backend\/\.venv"/
-  );
-});
-
-test('production release accepts only an explicit remote branch with successful CI', () => {
-  const source = fs.readFileSync(releaseScript, 'utf8');
-
-  assert.match(
-    source,
-    /ALLOWED_REMOTE_BRANCH="\$\{KNOWNMAP_ALLOWED_REMOTE_BRANCH:-origin\/main\}"/
-  );
-  assert.match(source, /git -C "\$ROOT_DIR" merge-base --is-ancestor/);
-  assert.match(source, /repos\/\$REPOSITORY\/commits\/\$commit\/check-runs/);
-  assert.match(source, /required_checks=\("node-test" "backend-test"\)/);
-  assert.match(source, /conclusion.*success/);
-});
-
-test('release packages deployment configuration from the exact target commit', () => {
-  const source = fs.readFileSync(releaseScript, 'utf8');
-
-  assert.match(
-    source,
-    /git -C "\$ROOT_DIR" archive "\$commit" -- v1\/backend deploy\/teacher-platform/
-  );
-  assert.match(
-    source,
-    /install_systemd_service\s+\\?\s*"\$backend_build\/deploy\/teacher-platform\/knownmap-teacher-api\.service"/
-  );
-  assert.match(
-    source,
-    /configure_nginx\s+\\?\s*"\$backend_build\/deploy\/teacher-platform\/knownmap-nginx\.conf"/
-  );
-});
 
 test('teacher API service runs privately with persistent database access', () => {
   const service = fs.readFileSync(serviceFile, 'utf8');
@@ -214,32 +66,19 @@ test('nginx exposes the same-origin API and keeps the site root static', () => {
   assert.match(nginx, /ssl_certificate \/etc\/letsencrypt\/live\/knownmap\.com\/fullchain\.pem/);
 });
 
-test('nginx deployment restores the previous file when validation fails', () => {
-  const source = fs.readFileSync(releaseScript, 'utf8');
-
-  assert.match(source, /knownmap\.next/);
-  assert.match(source, /knownmap\.previous/);
-  assert.match(source, /if ! nginx -t/);
-  assert.match(source, /mv -f "\$previous" "\$target"/);
-});
-
 test('production database backup is isolated, scheduled and retained', () => {
   const script = fs.readFileSync(backupScript, 'utf8');
   const service = fs.readFileSync(backupService, 'utf8');
   const timer = fs.readFileSync(backupTimer, 'utf8');
-  const release = fs.readFileSync(releaseScript, 'utf8');
 
   assert.match(script, /sqlite3\.connect/);
   assert.match(script, /\.backup\(/);
-  // 6D 已接受的保留期是 30 天
   assert.match(script, /retention_days=30/);
   assert.match(service, /User=knownmap/);
   assert.match(service, /ReadWritePaths=\/var\/backups\/knownmap/);
   assert.match(service, /^CapabilityBoundingSet=$/m);
   assert.match(timer, /OnCalendar=daily/);
   assert.match(timer, /Persistent=true/);
-  assert.match(release, /knownmap-backup\.timer/);
-  assert.match(release, /systemctl start knownmap-backup\.service/);
 });
 
 test('GitHub workflows pin actions and test the production backend lockfile', () => {
@@ -275,28 +114,7 @@ test('Dependabot monitors Python and GitHub Actions dependencies', () => {
   assert.match(dependabot, /interval: "weekly"/);
 });
 
-test('部署时执行恢复演练，而不只是检查备份文件存在', () => {
-  // 文件存在不等于备份可用。6D 要求代表性副本恢复与对账，
-  // 备份链路坏掉时应该在部署当天发现，而不是出事那天。
-  const release = fs.readFileSync(
-    path.join(root, 'tools/teacher-platform-release.sh'),
-    'utf8'
-  );
-
-  assert.match(release, /knownmap-restore-check\.py/);
-  assert.match(release, /--latest --directory \/var\/backups\/knownmap/);
-
-  // 演练必须排在"文件非空"检查之后，而不是取代它
-  const existenceAt = release.indexOf("-name 'knownmap-*.db' -size +0c");
-  const drillAt = release.indexOf('knownmap-restore-check.py \\\n  --latest');
-  assert.ok(existenceAt > 0, '应保留备份文件非空检查');
-  assert.ok(drillAt > existenceAt, '恢复演练应排在存在性检查之后');
-
-  // 演练失败要回滚，不能带着坏掉的备份链路上线
-  assert.match(release, /database backup or restore drill failed; restored previous backend/);
-});
-
-test('恢复演练检查归属关系而不只是行数', () => {
+test('恢复演练脚本检查归属关系而不只是行数', () => {
   const drill = fs.readFileSync(
     path.join(root, 'deploy/teacher-platform/knownmap-restore-check.py'),
     'utf8'
