@@ -80,11 +80,7 @@ def validate_nodes(nodes: object) -> list[dict]:
             raise AuthoringReleaseError("DRAFT_NODE_CONTENT_INVALID")
         _check_window_display(display)
         if interaction == "notice":
-            if (
-                not _text(display.get("richBody"))
-                or "body" in display
-                or evaluation is not None
-            ):
+            if not _text(display.get("richBody")) or "body" in display or evaluation is not None:
                 raise AuthoringReleaseError("DRAFT_NOTICE_INVALID")
         elif not _text(display.get("prompt")) or not isinstance(evaluation, dict):
             raise AuthoringReleaseError("DRAFT_QUESTION_INVALID")
