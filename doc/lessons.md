@@ -1,9 +1,16 @@
 # Lessons — KnownMap
 
 版本：0.29
-最近更新：2026-08-25
+最近更新：2026-08-26
 
 早期条目为英文，保留原文不重写；新增条目使用中文。
+
+## 2026-08-26 — 富文本必须和旧版回退、运行时安全一起设计
+
+重点标注编辑器原本只保存普通 `body`，直接把 HTML 塞进这个字段会让旧版插件显示标签，也会让运行时在渲染课程内容时扩大脚本注入风险。
+本次把富文本放进独立的 `richBody`，同步生成纯文本 `body` 作为兼容回退；教师端和学生插件各自只允许有限的排版标签、安全链接协议与颜色值。
+
+同时，C 方案字段虽然仍可能存在于历史草稿中，但当前教师表单已经不再编辑或要求它们；校验只检查重点标注正文，避免旧字段让无法编辑的历史数据阻塞保存。
 
 ## 2026-08-25 — 静态示例卡片不能替代可运行课程包
 
@@ -680,3 +687,9 @@ The safe first contract is: fixed supported Bilibili link, teacher-provided UTF-
 An external form URL is operational configuration, not page copy. Keeping the URL, visible label, allowlist and mount behavior in one small module makes the release boundary testable and prevents an internal editor link from being scattered across HTML and deployment scripts.
 
 The verified decision is to hide the whole secondary CTA until a published HTTPS Feishu/Lark URL exists. A placeholder or authenticated editor URL creates a worse failure than temporarily showing only the private-message CTA. Next time, create and anonymously verify the external form before changing the page test from “hidden without URL” to “visible with a public URL.”
+## 2026-08-26 — 富文本必须和旧版回退、运行时安全一起设计
+
+重点标注编辑器原本只保存普通 `body`，直接把 HTML 塞进这个字段会让旧版插件显示标签，也会让运行时在渲染课程内容时扩大脚本注入风险。
+本次把富文本放进独立的 `richBody`，同步生成纯文本 `body` 作为兼容回退；教师端和学生插件各自只允许有限的排版标签、安全链接协议与颜色值。
+
+同时，C 方案字段虽然仍可能存在于历史草稿中，但当前教师表单已经不再编辑或要求它们；校验只检查重点标注正文，避免旧字段让无法编辑的历史数据阻塞保存。

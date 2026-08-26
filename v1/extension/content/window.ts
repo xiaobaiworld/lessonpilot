@@ -1,6 +1,7 @@
 import { RuntimeNode, WindowState, NodeOutcome } from '../runtime/session';
 import { VideoMode } from './runtime';
 import { getNoticeSummary } from './notice';
+import { appendRichText } from './richText';
 
 /**
  * 学习窗口渲染。
@@ -116,6 +117,18 @@ export class LearningWindow {
   }
 
   private renderNotice(panel: HTMLElement, display: Record<string, any>): void {
+    const richBody = typeof display.richBody === 'string' ? display.richBody.trim() : '';
+    if (richBody) {
+      const content = document.createElement('div');
+      content.className = 'km-rich-text';
+      appendRichText(content, richBody);
+      panel.append(content);
+      panel.append(
+        this.actions([this.button('确认并继续', 'primary', this.callbacks.onSubmit)])
+      );
+      return;
+    }
+
     const summary = getNoticeSummary(display);
     if (!summary) {
       panel.append(this.paragraph(String(display.body ?? '')));

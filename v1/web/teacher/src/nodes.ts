@@ -145,23 +145,6 @@ export function findEmptyField(node: ScriptNode): string | null {
 
   if (node.interaction === 'notice') {
     if (blank(d.body)) return '正文';
-
-    const structuredKeys = ['eyebrow', 'intro', 'sections', 'summary'];
-    const hasStructured = structuredKeys.some((key) => d[key] !== undefined);
-    if (!hasStructured) return null;
-
-    const sections = Array.isArray(d.sections) ? d.sections : [];
-    const summary = d.summary as Record<string, unknown> | undefined;
-    if (
-      blank(d.eyebrow) ||
-      blank(d.intro) ||
-      sections.length !== 3 ||
-      sections.some((section) => blank(section?.label) || blank(section?.body)) ||
-      blank(summary?.title) ||
-      blank(summary?.body)
-    ) {
-      return '结构化重点提示';
-    }
     return null;
   }
 

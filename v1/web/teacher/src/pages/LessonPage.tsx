@@ -6,12 +6,12 @@ import {
   NODE_KINDS,
   metaOf,
   createNode,
-  changeNodeKind,
   formatTime,
   parseTime,
   findEmptyField,
 } from '../nodes';
 import { NodeForm } from '../components/NodeForm';
+import { NodeKindSelect } from '../components/NodeKindSelect';
 import { SubtitlePicker } from '../components/SubtitlePicker';
 import { Timeline } from '../components/Timeline';
 import {
@@ -478,17 +478,7 @@ const NodeDialog: React.FC<{
         </header>
         <label className="dialog-field">
           <span>节点类型</span>
-          <select
-            value={node.interaction}
-            disabled={disabled}
-            onChange={(event) => onChange(changeNodeKind(node, event.target.value as NodeKind))}
-          >
-            {NODE_KINDS.map((item) => (
-              <option key={item.kind} value={item.kind}>
-                {item.label}
-              </option>
-            ))}
-          </select>
+          <NodeKindSelect node={node} disabled={disabled} onChange={onChange} />
         </label>
         <label className="dialog-field">
           <span>触发时间</span>

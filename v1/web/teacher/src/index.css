@@ -1,2 +1,214 @@
 @import '../../shared/src/styles/base.css';
 @import '../../shared/src/styles/supplement.css';
+
+/* 重点标注正文：保持教师端的纸张/墨绿色视觉，同时提供轻量富文本能力。 */
+.rich-text-field {
+  display: grid;
+  gap: 7px;
+}
+
+.rich-text-field > small {
+  color: var(--ink-soft);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.field-label {
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.rich-text-editor {
+  overflow: hidden;
+  border: 1px solid var(--line-dark);
+  border-radius: 5px;
+  background: var(--paper-bright);
+}
+
+.rich-text-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  padding: 7px;
+  border-bottom: 1px solid var(--line);
+  background: #f5f3eb;
+}
+
+.rich-text-tool,
+.rich-text-color {
+  display: inline-grid;
+  min-width: 30px;
+  height: 30px;
+  place-items: center;
+  padding: 0 7px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rich-text-tool:hover:not(:disabled),
+.rich-text-tool:focus-visible {
+  border-color: var(--line-dark);
+  background: var(--paper-bright);
+}
+
+.rich-text-tool-wide {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.rich-text-tool-separator {
+  width: 1px;
+  height: 20px;
+  margin: 0 3px;
+  background: var(--line-dark);
+}
+
+.rich-text-color {
+  width: 22px;
+  min-width: 22px;
+  height: 22px;
+  border: 2px solid var(--paper-bright);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--line-dark);
+}
+
+.rich-text-content {
+  min-height: 150px;
+  padding: 13px 14px;
+  color: var(--ink);
+  font: inherit;
+  line-height: 1.65;
+  outline: none;
+}
+
+.rich-text-content:empty::before {
+  color: #9aa69f;
+  content: attr(data-placeholder);
+  pointer-events: none;
+}
+
+.rich-text-content:focus {
+  box-shadow: inset 0 0 0 2px rgba(29, 92, 67, .22);
+}
+
+.rich-text-content p,
+.rich-text-content div,
+.rich-text-content h3,
+.rich-text-content blockquote {
+  margin: 0 0 10px;
+}
+
+.rich-text-content h3 {
+  color: var(--green);
+  font-size: 16px;
+}
+
+.rich-text-content blockquote {
+  padding-left: 12px;
+  border-left: 3px solid var(--chalk);
+  color: var(--ink-soft);
+}
+
+.rich-text-content ul,
+.rich-text-content ol {
+  margin: 0 0 10px;
+  padding-left: 22px;
+}
+
+.rich-text-content a {
+  color: var(--green);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.node-kind-select {
+  position: relative;
+}
+
+.node-kind-trigger,
+.node-kind-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--line-dark);
+  border-radius: 5px;
+  background: var(--paper-bright);
+  color: currentColor;
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.node-kind-trigger .node-icon,
+.node-kind-option .node-icon {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.node-kind-trigger:hover:not(:disabled),
+.node-kind-trigger:focus-visible {
+  border-color: currentColor;
+}
+
+.node-kind-chevron {
+  margin-left: auto;
+  color: var(--ink-soft);
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.node-kind-menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 5px);
+  right: 0;
+  left: 0;
+  display: grid;
+  gap: 3px;
+  padding: 5px;
+  border: 1px solid var(--line-dark);
+  border-radius: 5px;
+  background: var(--paper-bright);
+  box-shadow: 0 12px 30px rgba(22, 37, 31, .16);
+}
+
+.node-kind-option {
+  min-height: 40px;
+  border-color: transparent;
+}
+
+.node-kind-option:hover,
+.node-kind-option[aria-selected='true'] {
+  border-color: currentColor;
+  background: #eef3ef;
+}
+
+.node-kind-check {
+  margin-left: auto;
+  color: var(--green);
+}
+
+.node-kind-notice { color: #927008; }
+.node-kind-choice { color: #a9654e; }
+.node-kind-blank { color: #80675d; }
+.node-kind-free_text { color: #5d766e; }
