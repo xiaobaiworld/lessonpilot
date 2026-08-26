@@ -106,6 +106,38 @@ class WorkspaceCourseApplicationService:
         self.session.commit()
         return lesson
 
+    def create_import_shell(
+        self, teacher_id: str, title: str, description: str | None, lessons: list[dict]
+    ) -> tuple[Course, list[Lesson]]:
+        """Create only the course structure; the caller completes the aggregate transaction."""
+        course = Course(
+            id=str(uuid4()),
+            workspace_id=self._workspace(teacher_id).id,
+            title=title.strip(),
+            description=description.strip() if description else None,
+            status=CourseStatus.draft,
+        )
+        self.session.add(course)
+        self.session.flush()
+        created: list[Lesson] = []
+        for item in sorted(lessons, key=lambda value: value["sequence"]):
+            lesson = Lesson(
+                id=str(uuid4()),
+                course_id=course.id,
+                sequence=item["sequence"],
+                title=item["title"].strip(),
+            )
+            lesson.video_reference = VideoReference(
+                id=str(uuid4()),
+                lesson_id=lesson.id,
+                platform=item["videoRef"]["platform"],
+                platform_video_id=item["videoRef"]["videoId"],
+            )
+            self.session.add(lesson)
+            created.append(lesson)
+        self.session.flush()
+        return course, created
+
     def get_lesson(self, teacher_id: str, lesson_id: str) -> Lesson:
         lesson = repository.get_lesson(self.session, self._workspace(teacher_id).id, lesson_id)
         if not lesson:

@@ -11,6 +11,8 @@ export {
   captionAt,
   formatTimestamp,
   type Caption,
+  type SubtitleDocument,
+  SUBTITLE_MAX_BYTES,
 } from './editor/SubtitleParser';
 
 export * from './editor/icons';

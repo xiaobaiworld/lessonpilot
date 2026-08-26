@@ -117,6 +117,7 @@ class ReleaseLessonSnapshot(Base):
     video_platform_id = Column(String(255), nullable=False)  # BVID, video ID, SHA256
     nodes = Column(JSON(), nullable=False)
     assets = Column(JSON(), nullable=False, default=list)
+    subtitle = Column(JSON(), nullable=True)
     draft_revision = Column(Integer, nullable=False)
     content_digest = Column(String(64), nullable=False)
 

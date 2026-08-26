@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.api.errors import ApiError
@@ -12,6 +12,7 @@ from app.modules.authoring_release.models import PreviewSession, ScriptDraft
 from app.modules.authoring_release.release_models import CourseRelease
 from app.modules.authoring_release.schemas import (
     AvailabilityWrite,
+    CourseFileWrite,
     DraftPublic,
     DraftWrite,
     PreviewEnd,
@@ -34,7 +35,11 @@ def _draft(draft: ScriptDraft) -> DraftPublic:
     return DraftPublic(
         schema_version=int(draft.schema_version),
         revision=draft.revision,
-        config={"nodes": draft.content.get("nodes", []), "assets": draft.content.get("assets", [])},
+        config={
+            "nodes": draft.content.get("nodes", []),
+            "assets": draft.content.get("assets", []),
+            "subtitle": draft.content.get("subtitle"),
+        },
         lesson_id=draft.lesson_id,
         node_count=len(draft.content["nodes"]),
         updated_at=draft.updated_at,
@@ -89,6 +94,63 @@ def _services(
     return WorkspaceCourseApplicationService(db), AuthoringReleaseApplicationService(db)
 
 
+@router.get("/courses/{course_id}/course-file")
+def export_course_file(
+    course_id: str,
+    source: str = Query(default="draft"),
+    release_id: str | None = Query(default=None),
+    teacher: TeacherAccount = Depends(require_teacher),
+    db: Session = Depends(get_db),
+) -> dict:
+    courses, authoring = _services(db)
+    try:
+        course = courses.get_course(teacher.id, course_id)
+        if source == "draft":
+            return authoring.export_draft_file(course, list(course.lessons))
+        if source != "release" or not release_id:
+            raise AuthoringReleaseError("PORTABLE_SOURCE_INVALID")
+        release = authoring.get_release(release_id)
+        if release.course_id != course.id:
+            raise AuthoringReleaseError("RELEASE_NOT_FOUND")
+        return authoring.export_release_file(release)
+    except (WorkspaceCourseError, AuthoringReleaseError) as error:
+        raise _error(error) from error
+
+
+@router.post("/course-files/import/preview")
+def preview_course_file(
+    payload: CourseFileWrite,
+    teacher: TeacherAccount = Depends(require_teacher),
+) -> dict:
+    del teacher
+    try:
+        from app.modules.authoring_release.portable import summary, validate_teacher_course_file
+
+        value = validate_teacher_course_file(payload.file)
+        return {"valid": True, "summary": summary(value)}
+    except AuthoringReleaseError as error:
+        raise _error(error) from error
+
+
+@router.post("/course-files/import", status_code=201)
+def import_course_file(
+    payload: CourseFileWrite,
+    teacher: TeacherAccount = Depends(require_teacher),
+    db: Session = Depends(get_db),
+) -> dict:
+    if not payload.confirm:
+        raise _error(AuthoringReleaseError("PORTABLE_IMPORT_CONFIRMATION_REQUIRED"))
+    courses, authoring = _services(db)
+    try:
+        course = authoring.import_teacher_course_file(teacher.id, payload.file, courses)
+        return {
+            "course": {"id": course.id, "title": course.title},
+            "lesson_count": len(course.lessons),
+        }
+    except (WorkspaceCourseError, AuthoringReleaseError) as error:
+        raise _error(error) from error
+
+
 @router.get("/lessons/{lesson_id}/draft", response_model=DraftPublic)
 def get_draft(
     lesson_id: str,
@@ -115,7 +177,11 @@ def save_draft(
         courses.get_lesson(teacher.id, lesson_id)
         return _draft(
             authoring.save_draft(
-                teacher.id, lesson_id, payload.schema_version, payload.config, payload.revision
+                teacher.id,
+                lesson_id,
+                payload.schema_version,
+                payload.config.model_dump(by_alias=True, exclude_none=True),
+                payload.revision,
             )
         )
     except (WorkspaceCourseError, AuthoringReleaseError) as error:

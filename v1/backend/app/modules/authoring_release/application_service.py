@@ -1,6 +1,7 @@
 import hashlib
 import json
 import math
+import re
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
@@ -38,10 +39,91 @@ ASSET_KINDS = {"image", "audio", "video"}
 SOURCE_TYPES = {"uploaded", "licensed"}
 CONTENT_BLOCKS = {"paragraph", "heading", "quote", "list", "image", "audio", "video"}
 MARKS = {"strong", "em", "underline"}
+SUBTITLE_MAX_BYTES = 5 * 1024 * 1024
+SUBTITLE_FIELDS = {"schemaVersion", "filename", "format", "content"}
+SUBTITLE_TIMESTAMP = re.compile(
+    r"^(?:(?P<hours>\d+):)?(?P<minutes>\d{1,2}):(?P<seconds>\d{1,2})[,.](?P<milliseconds>\d{1,3})$"
+)
 
 
 def _invalid(code: str) -> None:
     raise AuthoringReleaseError(code)
+
+
+def _subtitle_seconds(value: str) -> float | None:
+    match = SUBTITLE_TIMESTAMP.fullmatch(value.strip())
+    if not match:
+        return None
+    minutes = int(match.group("minutes"))
+    seconds = int(match.group("seconds"))
+    if minutes > 59 or seconds > 59:
+        return None
+    return (
+        int(match.group("hours") or 0) * 3600
+        + minutes * 60
+        + seconds
+        + int(match.group("milliseconds")) / 1000
+    )
+
+
+def validate_subtitle(value: object) -> dict | None:
+    """Validate the persisted subtitle document without storing parsed cues."""
+    if value is None:
+        return None
+    if not isinstance(value, dict) or set(value) != SUBTITLE_FIELDS:
+        _invalid("DRAFT_SUBTITLE_INVALID")
+    if value.get("schemaVersion") != 1:
+        _invalid("DRAFT_SUBTITLE_INVALID")
+    filename = value.get("filename")
+    subtitle_format = value.get("format")
+    content = value.get("content")
+    if (
+        not isinstance(filename, str)
+        or not _text(filename)
+        or len(filename) > 255
+        or any(char in filename for char in ("/", "\\", "\x00"))
+        or not isinstance(subtitle_format, str)
+        or subtitle_format not in {"srt", "vtt"}
+        or not isinstance(content, str)
+        or not _text(content)
+    ):
+        _invalid("DRAFT_SUBTITLE_INVALID")
+    if not filename.lower().endswith(f".{subtitle_format}"):
+        _invalid("DRAFT_SUBTITLE_INVALID")
+    try:
+        if len(content.encode("utf-8")) > SUBTITLE_MAX_BYTES:
+            _invalid("DRAFT_SUBTITLE_TOO_LARGE")
+    except UnicodeEncodeError as error:
+        raise AuthoringReleaseError("DRAFT_SUBTITLE_INVALID") from error
+
+    normalized = content.removeprefix("\ufeff").replace("\r\n", "\n").replace("\r", "\n")
+    if subtitle_format == "vtt" and not normalized.lstrip().startswith("WEBVTT"):
+        _invalid("DRAFT_SUBTITLE_INVALID")
+    if subtitle_format == "srt" and normalized.lstrip().startswith("WEBVTT"):
+        _invalid("DRAFT_SUBTITLE_INVALID")
+
+    cues = []
+    for block in re.split(r"\n{2,}", normalized.strip()):
+        lines = [line.strip() for line in block.split("\n") if line.strip()]
+        time_index = next((index for index, line in enumerate(lines) if "-->" in line), None)
+        if time_index is None:
+            continue
+        if time_index + 1 >= len(lines):
+            _invalid("DRAFT_SUBTITLE_INVALID")
+        start_raw, end_raw = lines[time_index].split("-->", 1)
+        start = _subtitle_seconds(start_raw)
+        end = _subtitle_seconds(end_raw.split()[0])
+        text = " ".join(lines[time_index + 1 :])
+        text = re.sub(r"<[^>]+>", "", text).strip()
+        if start is None or end is None or end <= start or not text:
+            _invalid("DRAFT_SUBTITLE_INVALID")
+        cues.append((start, end))
+
+    if not cues or any(
+        start < previous_end for (start, _), (_, previous_end) in zip(cues[1:], cues)
+    ):
+        _invalid("DRAFT_SUBTITLE_INVALID")
+    return dict(value)
 
 
 def _validate_inline(value: object) -> bool:
@@ -147,6 +229,7 @@ def validate_config(config: object) -> tuple[list[dict], list[dict]]:
         _invalid("DRAFT_NODES_INVALID")
     nodes = config.get("nodes")
     asset_records = config["assets"] if "assets" in config else []
+    validate_subtitle(config.get("subtitle"))
     assets = _validate_assets(asset_records)
     if not isinstance(nodes, list):
         _invalid("DRAFT_NODES_INVALID")
@@ -248,9 +331,13 @@ class AuthoringReleaseApplicationService:
         schema_version: int,
         config: dict,
         revision: int | None,
+        commit: bool = True,
     ) -> ScriptDraft:
         nodes, assets = validate_config(config)
+        subtitle = validate_subtitle(config.get("subtitle"))
         content = {"nodes": nodes, "assets": assets}
+        if subtitle is not None:
+            content["subtitle"] = subtitle
         draft = self.session.scalar(select(ScriptDraft).where(ScriptDraft.lesson_id == lesson_id))
         if draft:
             if revision != draft.revision:
@@ -272,8 +359,60 @@ class AuthoringReleaseApplicationService:
                 saved_by_teacher_id=teacher_id,
             )
             self.session.add(draft)
-        self.session.commit()
+        if commit:
+            self.session.commit()
         return draft
+
+    def export_draft_file(self, course: Course, lessons: list[Lesson]) -> dict:
+        from app.modules.authoring_release.portable import from_drafts
+
+        drafts: dict[str, ScriptDraft] = {}
+        for lesson in lessons:
+            drafts[lesson.id] = self.get_draft(lesson.id)
+        return from_drafts(course, lessons, drafts)
+
+    def export_release_file(self, release: CourseRelease) -> dict:
+        from app.modules.authoring_release.portable import from_release
+
+        return from_release(release)
+
+    def import_teacher_course_file(self, teacher_id: str, value: object, courses: object) -> Course:
+        from app.modules.authoring_release.portable import (
+            clone_nodes,
+            validate_teacher_course_file,
+        )
+
+        data = validate_teacher_course_file(value)
+        course_data = data["course"]
+        try:
+            course, lessons = courses.create_import_shell(
+                teacher_id,
+                course_data["title"],
+                course_data["description"],
+                course_data["lessons"],
+            )
+            for lesson, lesson_data in zip(
+                lessons,
+                sorted(course_data["lessons"], key=lambda item: item["sequence"]),
+                strict=True,
+            ):
+                self.save_draft(
+                    teacher_id,
+                    lesson.id,
+                    1,
+                    {
+                        "nodes": clone_nodes(lesson_data["nodes"]),
+                        "assets": lesson_data["assets"],
+                        "subtitle": lesson_data["subtitle"],
+                    },
+                    None,
+                    commit=False,
+                )
+            self.session.commit()
+            return course
+        except Exception:
+            self.session.rollback()
+            raise
 
     def start_preview(
         self, teacher_id: str, course_id: str, lesson_id: str, plugin_version: str | None
@@ -397,6 +536,7 @@ class AuthoringReleaseApplicationService:
                     video_platform_id=video.platform_video_id,
                     nodes=draft.content["nodes"],
                     assets=draft.content.get("assets", []),
+                    subtitle=draft.content.get("subtitle"),
                     draft_revision=draft.revision,
                     content_digest=draft.content_digest,
                 )

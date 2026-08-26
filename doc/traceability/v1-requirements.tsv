@@ -74,8 +74,8 @@ FR-COURSE-007	doc/requirements/v1/04-functional-requirements.md	每个课节绑�
 FR-COURSE-008	doc/requirements/v1/04-functional-requirements.md	视频引用可以由多个独立课节复用	已接受	P0	`SCOPE-02`；`SCN-TCH-02`；`D-023`、`D-024`、`D-V1-010`	`FR-RUNTIME-*`、`SEC-ACCESS-*`					待设计	
 FR-COURSE-009	doc/requirements/v1/04-functional-requirements.md	课程包保留可理解的层级和顺序	已接受	P0	`SCOPE-02`、`SCOPE-04`；`SCN-STU-01`、`SCN-STU-04`	`FR-PUBLISH-*`、`FR-GRANT-*`、`FR-LIB-*`					待设计	
 FR-COURSE-010	doc/requirements/v1/04-functional-requirements.md	外部视频状态变化不删除课程结构	已接受	P0	`SCOPE-02`、`SCOPE-05`；`SCN-TCH-02`、`SCN-ERR-02`	`FR-RUNTIME-*`					待设计	
-FR-AUTHOR-001	doc/requirements/v1/04-functional-requirements.md	教师为指定课节导入或选择可靠时间依据	已接受	P0	`SCOPE-03`；`SCN-TCH-03`	`INT-FILE-*`					待设计	
-FR-AUTHOR-002	doc/requirements/v1/04-functional-requirements.md	字幕全文默认只在教师本机用于制作	已接受	P0	`SCOPE-03`；`SCN-TCH-03`；`TERM-017`、`TERM-018`	`INT-FILE-*`					待设计	
+FR-AUTHOR-001	doc/requirements/v1/04-functional-requirements.md	教师为指定课节导入或选择可靠时间依据	已替代（被 `FR-AUTHOR-012` 替代）	P0	`SCOPE-03`；`SCN-TCH-03`	`INT-FILE-*`					待设计	
+FR-AUTHOR-002	doc/requirements/v1/04-functional-requirements.md	字幕全文默认只在教师本机用于制作	已替代（被 `FR-AUTHOR-013` 替代）	P0	`SCOPE-03`；`SCN-TCH-03`；`TERM-017`、`TERM-018`	`INT-FILE-*`					待设计	
 FR-AUTHOR-003	doc/requirements/v1/04-functional-requirements.md	每个课节维护独立的当前脚本草稿	已接受	P0	`SCOPE-03`；`SCN-TCH-03`；`TERM-019`、`TERM-020`	`FR-WS-*`、`FR-PUBLISH-*`、`SEC-ACCESS-*`					待设计	
 FR-AUTHOR-004	doc/requirements/v1/04-functional-requirements.md	教师能够完整管理节点生命周期	已接受	P0	`SCOPE-03`；`SCN-TCH-03`；`TERM-022`	—					待设计	
 FR-AUTHOR-005	doc/requirements/v1/04-functional-requirements.md	提供四种基线节点及明确教学行为	已接受	P0	`SCOPE-03`；`SCN-TCH-03`；`TERM-023`	`FR-RUNTIME-*`					待设计	
@@ -85,6 +85,8 @@ FR-AUTHOR-008	doc/requirements/v1/04-functional-requirements.md	明确区分页�
 FR-AUTHOR-009	doc/requirements/v1/04-functional-requirements.md	并发修改不得静默互相覆盖	已接受	P0	`SCOPE-03`；`SCN-TCH-03`、`SCN-TCH-06`	`INT-WEB-*`					待设计	
 FR-AUTHOR-010	doc/requirements/v1/04-functional-requirements.md	制作内容按数据处理且不能自动成为发布内容	已接受	P0	`SCOPE-03`；`SCN-TCH-03`；`D-V1-002`、`D-V1-008`	`FR-PUBLISH-*`、`DATA-CONTENT-*`、`SEC-ACCESS-*`					待设计	
 FR-AUTHOR-011	doc/requirements/v1/04-functional-requirements.md	所有节点类型遵守统一管理契约	已接受	P0	`SCOPE-03`；`SCN-TCH-03`；`TERM-022`、`TERM-023`	`FR-PUBLISH-*`、`FR-RUNTIME-*`、`FR-PORT-*`					待设计	
+FR-AUTHOR-012	doc/requirements/v1/04-functional-requirements.md	教师为指定课节导入字幕作为创建节点的唯一时间依据（替代 `FR-AUTHOR-001`）	已接受	P0	`SCOPE-03`；`SCN-TCH-03`；`D-V1-014`	—					待设计	
+FR-AUTHOR-013	doc/requirements/v1/04-functional-requirements.md	字幕经保存草稿动作进入服务端草稿与发布快照，不进入课程包或插件（替代 `FR-AUTHOR-002`）	已接受	P0	`SCOPE-03`；`SCN-TCH-03`；`TERM-017`、`TERM-018`；`D-V1-014`	—					待设计	
 FR-PUBLISH-001	doc/requirements/v1/04-functional-requirements.md	真实预览使用学生正式交付路径	已接受	P0	`SCOPE-03`、`SCOPE-05`；`SCN-TCH-04`；`TERM-026`、`TERM-027`	`FR-RUNTIME-*`					待设计	
 FR-PUBLISH-002	doc/requirements/v1/04-functional-requirements.md	每次预览锁定可识别的已保存草稿	已接受	P0	`SCOPE-03`；`SCN-TCH-03`、`SCN-TCH-04`	—					待设计	
 FR-PUBLISH-003	doc/requirements/v1/04-functional-requirements.md	预览活动与学生真实学习状态隔离	已接受	P0	`SCOPE-03`、`SCOPE-06`；`SCN-TCH-04`	`FR-LEARN-*`					待设计	
@@ -156,9 +158,10 @@ FR-ADMIN-004	doc/requirements/v1/04-functional-requirements.md	支持人员能�
 FR-ADMIN-005	doc/requirements/v1/04-functional-requirements.md	故障结果提供安全的支持标识	已接受	P0	`SCOPE-08`；`SCN-ADM-03`、`SCN-ERR-01`、`SCN-ERR-02`	—					待设计	
 FR-ADMIN-006	doc/requirements/v1/04-functional-requirements.md	支持和恢复遵守最小范围	已接受	P0	`SCOPE-08`；`SCN-ADM-03`	`FR-LEARN-011`、`SEC-ACCESS-*`					待设计	
 FR-PORT-001	doc/requirements/v1/04-functional-requirements.md	教师导出自己课程的已保存配置	已接受	P1	`SCOPE-09`；`SCN-TCH-08`	`SEC-ACCESS-*`、`INT-FILE-*`					待设计	
-FR-PORT-002	doc/requirements/v1/04-functional-requirements.md	课程文件只包含可携带的课程配置	已接受	P0	`SCOPE-09`；`SCN-TCH-08`	`INT-FILE-*`					待设计	
+FR-PORT-002	doc/requirements/v1/04-functional-requirements.md	课程文件只包含可携带的课程配置	已替代（被 `FR-PORT-005` 替代）	P0	`SCOPE-09`；`SCN-TCH-08`	`INT-FILE-*`					待设计	
 FR-PORT-003	doc/requirements/v1/04-functional-requirements.md	导入课程文件默认建立新的课程草稿	已接受	P1	`SCOPE-09`；`SCN-TCH-08`	`FR-COURSE-*`、`FR-AUTHOR-*`、`FR-PUBLISH-*`					待设计	
 FR-PORT-004	doc/requirements/v1/04-functional-requirements.md	无效或不兼容文件不改变现有数据	已接受	P0	`SCOPE-09`；`SCN-TCH-08`、`SCN-ERR-02`	`INT-FILE-*`					待设计	
+FR-PORT-005	doc/requirements/v1/04-functional-requirements.md	课程文件包含教师已保存的字幕原文（替代 `FR-PORT-002`）	已接受	P0	`SCOPE-09`；`SCN-TCH-08`；`D-V1-014`	—					待设计	
 FR-INTAKE-001	doc/requirements/v1/04-functional-requirements.md	公开销售页只承诺当前可交付的试用能力	已接受	P0	`D-V1-001`、`SCOPE-10`；`SCN-PUB-01`	`DATA-INTAKE-*`、`INT-TRIAL-*`、`SEC-PRIV-003`、`OPS-HEALTH-002`					待设计	
 FR-INTAKE-002	doc/requirements/v1/04-functional-requirements.md	目标老师无需登录即可提交最小试用信息	已接受	P0	`D-V1-001`、`SCOPE-10`；`SCN-PUB-01`	`DATA-INTAKE-001`、`INT-TRIAL-001`、`SEC-PRIV-003`					待设计	
 FR-INTAKE-003	doc/requirements/v1/04-functional-requirements.md	授权运营人员能够取得申请并人工跟进	已接受	P0	`D-V1-001`、`SCOPE-10`；`SCN-PUB-01`	`DATA-INTAKE-001`、`DATA-INTAKE-002`、`INT-TRIAL-002`、`SEC-PRIV-003`					待设计	
@@ -169,8 +172,9 @@ DATA-ID-003	doc/requirements/v1/05-data-requirements.md	教师与唯一工作空
 DATA-ID-004	doc/requirements/v1/05-data-requirements.md	本机学习标识不形成服务端学生账号	已接受	P0	`SCOPE-06`；`D-026`；`FR-AUTH-007`、`FR-LEARN-011`	`DATA-LOCAL-*`					待设计	
 DATA-CONTENT-001	doc/requirements/v1/05-data-requirements.md	课程和课节使用稳定层级身份	已接受	P0	`FR-COURSE-001`、`FR-COURSE-004`、`FR-COURSE-006`、`FR-COURSE-009`	`DATA-QUALITY-*`、`SEC-ACCESS-*`					待设计	
 DATA-CONTENT-002	doc/requirements/v1/05-data-requirements.md	视频引用独立于课程和课节身份	已接受	P0	`FR-COURSE-007`、`FR-COURSE-008`、`FR-RUNTIME-002`、`FR-RUNTIME-003`	`DATA-QUALITY-*`					待设计	
-DATA-CONTENT-003	doc/requirements/v1/05-data-requirements.md	字幕是教师本机临时制作数据	已接受	P0	`FR-AUTHOR-001`、`FR-AUTHOR-002`、`FR-PORT-002`	`INT-FILE-*`					待设计	
+DATA-CONTENT-003	doc/requirements/v1/05-data-requirements.md	字幕是教师本机临时制作数据	已替代（被 `DATA-CONTENT-005` 替代）	P0	`FR-AUTHOR-001`、`FR-AUTHOR-002`、`FR-PORT-002`	`INT-FILE-*`					待设计	
 DATA-CONTENT-004	doc/requirements/v1/05-data-requirements.md	脚本草稿和节点遵守统一结构	已接受	P0	`FR-AUTHOR-003` 至 `FR-AUTHOR-011`	`DATA-QUALITY-*`					待设计	
+DATA-CONTENT-005	doc/requirements/v1/05-data-requirements.md	字幕原文止步于教师草稿与发布快照（替代 `DATA-CONTENT-003`）	已接受	P0	`FR-AUTHOR-012`、`FR-AUTHOR-013`、`FR-PORT-005`、`D-V1-014`	—					待设计	
 DATA-DELIVERY-001	doc/requirements/v1/05-data-requirements.md	整门课程发布形成不可变版本	已接受	P0	`FR-PUBLISH-005` 至 `FR-PUBLISH-009`；`TERM-029`	`DATA-QUALITY-*`					待设计	
 DATA-DELIVERY-002	doc/requirements/v1/05-data-requirements.md	课程包是发布版本和授权范围的派生结果	已接受	P0	`FR-PUBLISH-010`、`FR-GRANT-009`、`FR-LIB-005`	`INT-PACKAGE-*`、`DATA-QUALITY-*`					待设计	
 DATA-DELIVERY-003	doc/requirements/v1/05-data-requirements.md	授权码、授权项和授权范围分别保存	已接受	P0	`FR-GRANT-001` 至 `FR-GRANT-005`	`DATA-QUALITY-*`					待设计	
@@ -183,8 +187,9 @@ DATA-LOCAL-004	doc/requirements/v1/05-data-requirements.md	课节和课程进度
 DATA-LOCAL-005	doc/requirements/v1/05-data-requirements.md	重置、删除和更新只影响明确范围	已接受	P0	`FR-LIB-004`、`FR-LIB-009`、`FR-LIB-010`、`FR-LEARN-010`、`FR-LEARN-013`	`DATA-QUALITY-*`					待设计	
 DATA-OPS-001	doc/requirements/v1/05-data-requirements.md	运营状态和高风险操作可追溯	已接受	P0	`FR-ADMIN-001` 至 `FR-ADMIN-003`	—					待设计	
 DATA-OPS-002	doc/requirements/v1/05-data-requirements.md	版本、诊断和恢复记录使用安全关联信息	已接受	P0	`FR-ADMIN-004` 至 `FR-ADMIN-006`	`OPS-RELEASE-*`					待设计	
-DATA-PORT-001	doc/requirements/v1/05-data-requirements.md	教师课程文件具有自描述边界	已接受	P1	`FR-PORT-001`、`FR-PORT-002`	`INT-FILE-*`					待设计	
+DATA-PORT-001	doc/requirements/v1/05-data-requirements.md	教师课程文件具有自描述边界	已替代（被 `DATA-PORT-003` 替代）	P1	`FR-PORT-001`、`FR-PORT-002`	`INT-FILE-*`					待设计	
 DATA-PORT-002	doc/requirements/v1/05-data-requirements.md	导入结果与来源身份明确分离	已接受	P0	`FR-PORT-003`、`FR-PORT-004`	`DATA-QUALITY-*`					待设计	
+DATA-PORT-003	doc/requirements/v1/05-data-requirements.md	教师课程文件包含字幕原文（替代 `DATA-PORT-001`）	已接受	P1	`FR-PORT-001`、`FR-PORT-005`、`D-V1-014`	—					待设计	
 DATA-LIFE-001	doc/requirements/v1/05-data-requirements.md	数据按最低必要范围分类和放置	已接受	P0	`SCOPE-06`、`SCOPE-08`；`FR-LEARN-011`、`FR-ADMIN-003`	—					待设计	
 DATA-LIFE-002	doc/requirements/v1/05-data-requirements.md	各对象保留规则独立且可说明	已接受	P0	`D-V1-006`；`FR-AUTH-006`、`FR-PUBLISH-007`、`FR-GRANT-005`、`FR-LEARN-010`	—					待设计	
 DATA-LIFE-003	doc/requirements/v1/05-data-requirements.md	删除、备份和恢复不扩大数据范围	已接受	P0	`SCOPE-09`；`FR-LIB-004`、`FR-ADMIN-006`	—					待设计	
@@ -201,8 +206,9 @@ INT-BILI-001	doc/requirements/v1/06-interface-integration-requirements.md	只在
 INT-BILI-002	doc/requirements/v1/06-interface-integration-requirements.md	课程节点只使用最小播放器控制并随页面生命周期重绑	已接受	P0	课程节点运行方式和对宿主页面的最小干预原则	`FR-RUNTIME-004`、`FR-RUNTIME-005`、`FR-RUNTIME-011`、`FR-RUNTIME-014`、`CONSTRAINT-02`					待设计	
 INT-PACKAGE-001	doc/requirements/v1/06-interface-integration-requirements.md	兑换只返回当前授权的完整课程发布版本	已接受	P0	兑换码授权、课程整包下载和单机使用方式	`FR-GRANT-006`、`FR-GRANT-007`、`FR-GRANT-008`、`FR-LIB-005`、`DATA-DELIVERY-002`					待设计	
 INT-PACKAGE-002	doc/requirements/v1/06-interface-integration-requirements.md	插件独立校验并原子安装课程发布包	已接受	P0	课程下载、更新和本地课程库可靠性	`FR-GRANT-009`、`FR-GRANT-010`、`FR-LIB-006`、`FR-LIB-007`、`FR-LIB-008`、`DATA-DELIVERY-004`					待设计	
-INT-FILE-001	doc/requirements/v1/06-interface-integration-requirements.md	字幕文件仅在教师浏览器内解析	已接受	P1	教师使用字幕辅助课程制作	`FR-AUTHOR-002`、`DATA-CONTENT-002`、`DATA-LOCAL-001`					待设计	
+INT-FILE-001	doc/requirements/v1/06-interface-integration-requirements.md	字幕文件仅在教师浏览器内解析	已替代（被 `INT-FILE-003` 替代）	P1	教师使用字幕辅助课程制作	`FR-AUTHOR-002`、`DATA-CONTENT-002`、`DATA-LOCAL-001`					待设计	
 INT-FILE-002	doc/requirements/v1/06-interface-integration-requirements.md	教师课程文件可移植但不直接改变线上状态	已接受	P1	课程及交互信息需要支持教师本地下载和迁移	`FR-PORT-001`、`FR-PORT-002`、`FR-PORT-003`、`FR-PORT-004`、`DATA-PORT-001`、`DATA-PORT-002`					待设计	
+INT-FILE-003	doc/requirements/v1/06-interface-integration-requirements.md	字幕经保存草稿动作进入服务端，不进入课程包或插件（替代 `INT-FILE-001`）	已接受	P1	教师使用字幕辅助课程制作；`D-V1-014`	—					待设计	
 INT-TRIAL-001	doc/requirements/v1/06-interface-integration-requirements.md	销售页只打开已批准的飞书公开表单	已接受	P0	`D-V1-001`、`SCN-PUB-01`、`FR-INTAKE-001`、`FR-INTAKE-002`	`DATA-INTAKE-001`、`SEC-PRIV-003`、`OPS-HEALTH-002`					待设计	
 INT-TRIAL-002	doc/requirements/v1/06-interface-integration-requirements.md	申请结果通过受权飞书入口交给人工运营	已接受	P0	`D-V1-001`、`SCN-PUB-01`、`FR-INTAKE-003`、`FR-INTAKE-004`	`DATA-INTAKE-001`、`DATA-INTAKE-002`、`SEC-ACCESS-001`、`SEC-PRIV-003`					待设计	
 SEC-ACCESS-001	doc/requirements/v1/08-security-privacy-compliance-requirements.md	管理员与教师认证边界不能互换	已接受	P0	管理员与教师承担不同职责并使用独立业务入口	`FR-AUTH-001`、`FR-AUTH-004`、`FR-AUTH-010`、`DATA-ID-001`、`INT-WEB-001`					待设计	

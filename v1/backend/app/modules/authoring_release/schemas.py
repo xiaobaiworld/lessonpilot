@@ -1,13 +1,32 @@
 from datetime import datetime
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field
+
+
+class SubtitleDocument(BaseModel):
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+
+    schema_version: Literal[1] = Field(alias="schemaVersion")
+    filename: str = Field(min_length=1, max_length=255)
+    format: Literal["srt", "vtt"]
+    content: str = Field(min_length=1)
+
+
+class DraftConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    nodes: list[dict]
+    assets: list[dict] = Field(default_factory=list)
+    subtitle: SubtitleDocument | None = None
 
 
 class DraftWrite(BaseModel):
     model_config = ConfigDict(extra="forbid")
     schema_version: int = 1
     revision: int | None = Field(default=None, ge=0)
-    config: dict
+    config: DraftConfig
 
 
 class DraftPublic(BaseModel):
@@ -17,6 +36,13 @@ class DraftPublic(BaseModel):
     lesson_id: str
     node_count: int
     updated_at: datetime
+
+
+class CourseFileWrite(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    file: dict
+    confirm: bool = False
 
 
 class PreviewStart(BaseModel):

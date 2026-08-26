@@ -1,4 +1,4 @@
-import { APIClient, AssetRecord, PortableNode } from '@v1/web/shared';
+import { APIClient, AssetRecord, PortableNode, SubtitleDocument } from '@v1/web/shared';
 
 /**
  * 与后端 schema 对齐：
@@ -49,10 +49,26 @@ export type ScriptNode = PortableNode;
 export interface ScriptDraft {
   schema_version: number;
   revision: number;
-  config: { nodes: ScriptNode[]; assets: AssetRecord[] };
+  config: { nodes: ScriptNode[]; assets: AssetRecord[]; subtitle: SubtitleDocument | null };
   lesson_id: string;
   node_count: number;
   updated_at: string;
+}
+
+export interface TeacherCourseFile {
+  schemaVersion: 1;
+  fileType: 'teacher-course';
+  source: {
+    type: 'draft' | 'release';
+    courseId: string;
+    releaseId: string | null;
+    releaseNumber: number | null;
+  };
+  course: {
+    title: string;
+    description: string | null;
+    lessons: Array<Record<string, unknown>>;
+  };
 }
 
 /** 发布返回的是课程包本身 */
@@ -127,13 +143,33 @@ export class TeacherAPI {
     lessonId: string,
     nodes: ScriptNode[],
     revision: number | null,
-    assets: AssetRecord[] = []
+    assets: AssetRecord[] = [],
+    subtitle: SubtitleDocument | null = null
   ): Promise<ScriptDraft> {
     return this.http.put<ScriptDraft>(`/api/v1/teacher/lessons/${lessonId}/draft`, {
       schema_version: 1,
       revision,
-      config: { nodes, assets },
+      config: { nodes, assets, subtitle },
     });
+  }
+
+  exportCourseFile(courseId: string, releaseId?: string): Promise<TeacherCourseFile> {
+    const query = releaseId ? `?source=release&release_id=${encodeURIComponent(releaseId)}` : '';
+    return this.http.get<TeacherCourseFile>(`/api/v1/teacher/courses/${courseId}/course-file${query}`);
+  }
+
+  previewCourseFile(file: TeacherCourseFile): Promise<{ valid: boolean; summary: Record<string, unknown> }> {
+    return this.http.post<{ valid: boolean; summary: Record<string, unknown> }>(
+      '/api/v1/teacher/course-files/import/preview',
+      { file }
+    );
+  }
+
+  importCourseFile(file: TeacherCourseFile): Promise<{ course: { id: string; title: string } }> {
+    return this.http.post<{ course: { id: string; title: string } }>(
+      '/api/v1/teacher/course-files/import',
+      { file, confirm: true }
+    );
   }
 
   async testPreview(lessonId: string): Promise<void> {

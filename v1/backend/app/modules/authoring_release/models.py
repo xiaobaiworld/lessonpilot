@@ -18,7 +18,7 @@ class ScriptDraft(Base):
     - One active draft per lesson_id
     - revision enables optimistic concurrency
     - content_digest enables idempotency and conflict detection
-    - Entire save is atomic: validates all nodes before writing
+    - Entire save is atomic: validates the subtitle, assets and nodes before writing
     - Save failure leaves previous version intact
     """
 

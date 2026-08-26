@@ -94,6 +94,26 @@ export const CoursePage: React.FC<Props> = ({
     }
   };
 
+  const exportCourse = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const file = await api.exportCourseFile(courseId);
+      const blob = new Blob([JSON.stringify(file, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${course?.title || '课程'}-teacher-course.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+      setNotice('课程文件已生成，包含已保存的字幕和节点。');
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   // 按 sort_order 显式排序，不依赖后端返回顺序
   const lessons = course
     ? [...course.lessons].sort((a, b) => a.sort_order - b.sort_order)
@@ -133,6 +153,9 @@ export const CoursePage: React.FC<Props> = ({
                 disabled={locked}
               >
                 添加课节
+              </button>
+              <button className="light-button" type="button" onClick={exportCourse} disabled={locked}>
+                导出课程文件
               </button>
               <button
                 className="light-button"

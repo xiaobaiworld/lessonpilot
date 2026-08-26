@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { APIError, Topbar, errorMessage } from '@v1/web/shared';
+import { APIError, parseSubtitle, SubtitleDocument, Topbar, errorMessage } from '@v1/web/shared';
 import { richDocumentFromText } from '@v1/web/shared';
 import { Caption, NODE_ICON_IDS, NodeIcon } from '@v1/web/shared/editor';
 import { TeacherAPI, Teacher, ScriptNode, NodeKind, CourseDetail } from '../api';
@@ -56,6 +56,7 @@ export const LessonPage: React.FC<Props> = ({
   const [revision, setRevision] = useState<number | null>(null);
   const [captions, setCaptions] = useState<Caption[]>([]);
   const [filename, setFilename] = useState('');
+  const [subtitle, setSubtitle] = useState<SubtitleDocument | null>(null);
   const [dirty, setDirty] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -96,6 +97,15 @@ export const LessonPage: React.FC<Props> = ({
       const draft = await api.getDraft(lessonId);
       setNodes(draft.config.nodes);
       setAssets(draft.config.assets ?? []);
+      setSubtitle(draft.config.subtitle ?? null);
+      if (draft.config.subtitle) {
+        const parsed = parseSubtitle(draft.config.subtitle.content, draft.config.subtitle.filename);
+        setCaptions(parsed.ok ? parsed.captions : []);
+        setFilename(draft.config.subtitle.filename);
+      } else {
+        setCaptions([]);
+        setFilename('');
+      }
       setRevision(draft.revision);
       setDirty(false);
       setSelectedId(null);
@@ -103,12 +113,18 @@ export const LessonPage: React.FC<Props> = ({
       if (err instanceof APIError && err.code === 'DRAFT_NOT_FOUND') {
         setNodes([]);
         setAssets([]);
+        setSubtitle(null);
+        setCaptions([]);
+        setFilename('');
         setRevision(null);
         return;
       }
       setError(errorMessage(err));
       setNodes([]);
       setAssets([]);
+      setSubtitle(null);
+      setCaptions([]);
+      setFilename('');
       setRevision(null);
     }
   }, [api, courseId, lessonId]);
@@ -116,6 +132,7 @@ export const LessonPage: React.FC<Props> = ({
   useEffect(() => {
     setCaptions([]);
     setFilename('');
+    setSubtitle(null);
     setSelectedSegmentId('segment-1');
     setSegmentSeconds(SEGMENT_LENGTH_OPTIONS[0].seconds);
     setDialogNode(null);
@@ -217,9 +234,10 @@ export const LessonPage: React.FC<Props> = ({
     setBusy(true);
     setError(null);
     try {
-      const draft = await api.saveDraft(lessonId, sorted, revision, assets);
+      const draft = await api.saveDraft(lessonId, sorted, revision, assets, subtitle);
       setNodes(draft.config.nodes);
       setAssets(draft.config.assets ?? []);
+      setSubtitle(draft.config.subtitle ?? null);
       setRevision(draft.revision);
       setDirty(false);
       setNotice(`已保存 ${draft.node_count} 个节点`);
@@ -423,7 +441,30 @@ export const LessonPage: React.FC<Props> = ({
               onDuration={() => undefined}
               onCaptions={(next) => {
                 setCaptions(next ?? []);
-                if (!next) setFilename('');
+              }}
+              initialSubtitle={subtitle}
+              onSubtitle={(next) => {
+                setSubtitle(next);
+                setFilename(next?.filename ?? '');
+                const parsed = next ? parseSubtitle(next.content, next.filename) : null;
+                const nextCaptions = parsed?.ok ? parsed.captions : [];
+                setNodes((current) =>
+                  current
+                    ? current.map((node) => {
+                        const captionId = node.anchor.captionId;
+                        if (!captionId) return node;
+                        const previous = captions.find((caption) => caption.id === captionId);
+                        const replacement = nextCaptions.find((caption) => caption.id === captionId);
+                        const sameTime =
+                          previous && replacement && previous.startSeconds === replacement.startSeconds;
+                        return sameTime
+                          ? node
+                          : { ...node, anchor: { ...node.anchor, captionId: null } };
+                      })
+                    : current
+                );
+                setDirty(true);
+                setNotice(null);
               }}
               onFilename={setFilename}
               disabled={busy}
@@ -483,27 +524,29 @@ const NodeDialog: React.FC<{
           </div>
           <span>{meta.label}</span>
         </header>
-        <label className="dialog-field">
-          <span>节点类型</span>
-          <NodeKindSelect node={node} disabled={disabled} onChange={onChange} />
-        </label>
-        <label className="dialog-field">
-          <span>触发时间</span>
-          <input
-            value={timeText}
-            disabled={disabled}
-            aria-invalid={timeError}
-            onChange={(event) => setTimeText(event.target.value)}
-            onBlur={() => {
-              const seconds = parseTime(timeText);
-              if (seconds === null) setTimeError(true);
-              else {
-                setTimeError(false);
-                onChange({ ...node, anchor: { ...node.anchor, timeSeconds: seconds } });
-              }
-            }}
-          />
-        </label>
+        <div className="node-dialog-context">
+          <label className="dialog-field">
+            <span>节点类型</span>
+            <NodeKindSelect node={node} disabled={disabled} onChange={onChange} />
+          </label>
+          <label className="dialog-field dialog-field-time">
+            <span>触发时间</span>
+            <input
+              value={timeText}
+              disabled={disabled}
+              aria-invalid={timeError}
+              onChange={(event) => setTimeText(event.target.value)}
+              onBlur={() => {
+                const seconds = parseTime(timeText);
+                if (seconds === null) setTimeError(true);
+                else {
+                  setTimeError(false);
+                  onChange({ ...node, anchor: { ...node.anchor, timeSeconds: seconds } });
+                }
+              }}
+            />
+          </label>
+        </div>
         <NodeForm node={node} disabled={disabled} onChange={onChange} />
         {timeError && <p className="field-error">时间格式应为 mm:ss。</p>}
         <footer className="node-dialog-actions">

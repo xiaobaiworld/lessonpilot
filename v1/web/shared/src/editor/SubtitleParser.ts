@@ -15,6 +15,15 @@ export interface Caption {
   text: string;
 }
 
+export interface SubtitleDocument {
+  schemaVersion: 1;
+  filename: string;
+  format: 'srt' | 'vtt';
+  content: string;
+}
+
+export const SUBTITLE_MAX_BYTES = 5 * 1024 * 1024;
+
 export type ParseResult =
   | { ok: true; captions: Caption[] }
   | { ok: false; message: string };
@@ -53,6 +62,9 @@ export function formatTimestamp(seconds: number): string {
 export function parseSubtitle(text: string, filename = ''): ParseResult {
   if (!/\.(srt|vtt)$/i.test(filename)) {
     return { ok: false, message: '请选择 .srt 或 .vtt 字幕文件。' };
+  }
+  if (new TextEncoder().encode(text).length > SUBTITLE_MAX_BYTES) {
+    return { ok: false, message: '字幕文件不能超过 5 MB。' };
   }
 
   const blocks = String(text || '')

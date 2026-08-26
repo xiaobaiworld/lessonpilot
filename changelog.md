@@ -4,12 +4,32 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### 课节字幕持久化设计审查通过，范围收窄至教师侧 — 2026-08-26
+
+- 新增 `D-V1-014`：字幕原文经教师保存草稿动作进入服务端草稿和发布快照，止步于教师侧；不进入课程包，
+  课程包 JSON Schema 版本保持 v3；不进入插件本机存储；教师课程导入导出文件（`TeacherCourseFile`）
+  携带字幕原文；
+- 需求文本同步修订：`FR-AUTHOR-001`→`FR-AUTHOR-012`、`FR-AUTHOR-002`→`FR-AUTHOR-013`、
+  `DATA-CONTENT-003`→`DATA-CONTENT-005`、`INT-FILE-001`→`INT-FILE-003`、`FR-PORT-002`→`FR-PORT-005`、
+  `DATA-PORT-001`→`DATA-PORT-003`，均保留原编号并标记"已替代"；
+- 顺带修订 `FR-AUTHOR-001`/`FR-AUTHOR-012` 中"无字幕时用已确认视频时间创建节点"的分支：核实代码从未
+  实现该分支（创建节点唯一入口是字幕时间轴），需求文本改为匹配实际行为；
+- 同步更新 `doc/design/v1/10-lesson-subtitle-persistence-design.md`、`03-system-architecture.md`、
+  `02-legacy-document-register.md`、`04-domain-data-model.md`、`06-interface-contracts.md` 中复述
+  旧边界的段落。
+
+### 教师侧字幕持久化实现 — 2026-08-26
+
+- 草稿支持封闭字段校验、5 MiB UTF-8 上限、SRT/VTT 解析校验和字幕恢复；发布快照保存不可变字幕副本；
+- 教师课程文件支持导出、预览校验和确认导入，导入过程创建新课程并保持原子性；
+- 课程包 v3 和插件未增加字幕字段，后端、前端、契约、模块边界及全量测试验证通过。
+
 ### 初期发布流程显式约定 — 2026-08-26
 
 - 接受 `D-V1-013`：当前属于初期开发与运行；发布顺序为本机测试、提交 GitHub 并打 `web-prod/<时间-commit>`、把本机构建产物拷到阿里云切换；
-- 版本记录继续使用 `deploy/releases/*.json`；后期若改流程必须另写决策并同步脚本，不得静默加回旧门禁。
+- 唯一入口为 `tools/release.sh`；版本记录继续使用 `deploy/releases/*.json`；后期若改流程必须另写决策。
 
-验证：文档入口、决策编号与发布说明交叉引用已更新；发布脚本尚未按该决策收敛。
+验证：`tests/release.test.js` 与发布相关文档测试通过。
 
 ### 互动学习窗口可调外观与类网页正文 — 2026-08-26
 

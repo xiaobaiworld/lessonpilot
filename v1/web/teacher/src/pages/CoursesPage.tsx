@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Topbar, SectionHead, AuthField, errorMessage } from '@v1/web/shared';
-import { TeacherAPI, Teacher, CourseSummary } from '../api';
+import { TeacherAPI, Teacher, TeacherCourseFile, CourseSummary } from '../api';
 
 interface Props {
   api: TeacherAPI;
@@ -25,6 +25,7 @@ export const CoursesPage: React.FC<Props> = ({
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [busy, setBusy] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
     setError(null);
@@ -55,6 +56,27 @@ export const CoursesPage: React.FC<Props> = ({
     }
   };
 
+  const importFile = async (file: File) => {
+    setBusy(true);
+    setError(null);
+    try {
+      const value = JSON.parse(await file.text()) as TeacherCourseFile;
+      const result = await api.previewCourseFile(value);
+      const summary = result.summary;
+      const confirmed = window.confirm(
+        `将导入“${String(summary.title ?? value.course.title)}”，共 ${String(summary.lesson_count ?? '?')} 个课节。确认创建新课程草稿吗？`
+      );
+      if (!confirmed) return;
+      const imported = await api.importCourseFile(value);
+      onOpenCourse(imported.course.id);
+    } catch (err) {
+      setError(err instanceof SyntaxError ? '课程文件不是有效 JSON。' : errorMessage(err));
+    } finally {
+      setBusy(false);
+      if (fileInput.current) fileInput.current.value = '';
+    }
+  };
+
   return (
     <div className="app-shell">
       <Topbar
@@ -75,6 +97,24 @@ export const CoursesPage: React.FC<Props> = ({
             disabled={busy}
           >
             新建课程
+          </button>
+          <input
+            ref={fileInput}
+            type="file"
+            accept="application/json,.json"
+            hidden
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (file) void importFile(file);
+            }}
+          />
+          <button
+            className="light-button"
+            type="button"
+            onClick={() => fileInput.current?.click()}
+            disabled={busy}
+          >
+            导入课程文件
           </button>
         </SectionHead>
 
