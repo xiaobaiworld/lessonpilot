@@ -2,91 +2,106 @@ import pytest
 
 from app.modules.authoring_release.application_service import (
     AuthoringReleaseError,
-    RICH_BODY_MAX,
-    validate_nodes,
+    validate_config,
 )
 
-NOTICE = {
-    "id": "node-1",
-    "enabled": True,
-    "family": "attention",
-    "interaction": "notice",
-    "trigger": {"kind": "time_cross", "timeSeconds": 12},
-    "display": {"title": "重点", "richBody": "<p>记住这一点</p>"},
-    "evaluation": None,
-    "effects": {"pause": True},
-}
 
-CHOICE = {
-    "id": "node-2",
-    "enabled": True,
-    "family": "practice",
-    "interaction": "choice",
-    "trigger": {"kind": "time_cross", "timeSeconds": 20},
-    "display": {
-        "title": "选择题",
-        "prompt": "哪一个更具体？",
-        "options": [
-            {"id": "a", "label": "品质"},
-            {"id": "b", "label": "经历"},
-        ],
-    },
-    "evaluation": {"answer": "b", "explanation": "具体经历能验证。"},
-    "effects": {"pause": True},
-}
-
-
-def test_accepts_window_presets_and_question_rich_body() -> None:
-    nodes = [
-        {
-            **NOTICE,
-            "display": {
-                **NOTICE["display"],
-                "windowSize": "l",
-                "windowStyle": "document",
-            },
+def node(kind="notice", **overrides):
+    value = {
+        "id": "node-1",
+        "enabled": True,
+        "family": "attention" if kind == "notice" else "practice",
+        "interaction": kind,
+        "anchor": {"kind": "time_cross", "timeSeconds": 12},
+        "title": "重点" if kind == "notice" else "题目",
+        "content": {
+            "schemaVersion": 1,
+            "blocks": [{"type": "paragraph", "children": [{"text": "结构化正文"}]}],
         },
-        {
-            **CHOICE,
-            "display": {
-                **CHOICE["display"],
-                "richBody": "<p>看图再选</p>",
-                "windowSize": "m",
-                "windowStyle": "card",
-            },
+        "interactionData": None
+        if kind == "notice"
+        else {
+            "options": [{"id": "a", "label": "甲"}, {"id": "b", "label": "乙"}],
+            "answer": "a",
+            "explanation": "解析",
         },
-    ]
-    assert validate_nodes(nodes) == nodes
+        "presentationHints": {"windowSize": "overlay", "windowStyle": "document"},
+        "effects": {"pause": True},
+    }
+    value.update(overrides)
+    return value
 
 
-def test_legacy_choice_with_only_prompt_still_saves() -> None:
-    assert validate_nodes([CHOICE])[0]["display"]["prompt"] == "哪一个更具体？"
+def test_structured_notice_and_question_are_valid():
+    nodes, assets = validate_config({"nodes": [node()], "assets": []})
+    assert nodes[0]["content"]["schemaVersion"] == 1
+    assert assets == []
 
 
-def test_rejects_illegal_window_size() -> None:
+def test_old_display_body_and_evaluation_are_rejected():
     with pytest.raises(AuthoringReleaseError) as error:
-        validate_nodes(
-            [
-                {
-                    **NOTICE,
-                    "display": {**NOTICE["display"], "windowSize": "huge"},
-                }
-            ]
+        validate_config({"nodes": [node(display={"title": "旧", "body": "旧正文"})], "assets": []})
+    assert error.value.code == "DRAFT_LEGACY_NODE_UNSUPPORTED"
+
+
+def test_unknown_document_version_and_block_are_explicit_failures():
+    with pytest.raises(AuthoringReleaseError) as version:
+        validate_config({"nodes": [node(content={"schemaVersion": 2, "blocks": []})], "assets": []})
+    assert version.value.code == "DRAFT_DOCUMENT_VERSION_UNSUPPORTED"
+    with pytest.raises(AuthoringReleaseError) as block:
+        validate_config(
+            {
+                "nodes": [node(content={"schemaVersion": 1, "blocks": [{"type": "canvas"}]})],
+                "assets": [],
+            }
         )
-    assert error.value.code == "DRAFT_NODE_CONTENT_INVALID"
+    assert block.value.code == "DRAFT_CONTENT_BLOCK_UNSUPPORTED"
 
 
-def test_rejects_oversized_rich_body() -> None:
-    with pytest.raises(AuthoringReleaseError) as error:
-        validate_nodes(
-            [
-                {
-                    **NOTICE,
-                    "display": {
-                        "title": "重点",
-                        "richBody": "字" * (RICH_BODY_MAX + 1),
+def test_asset_reference_requires_manifest_and_can_be_reused():
+    asset = {
+        "assetId": "asset-1",
+        "kind": "image",
+        "mimeType": "image/png",
+        "byteSize": 4,
+        "sha256": "a" * 64,
+        "sourceType": "uploaded",
+    }
+    with pytest.raises(AuthoringReleaseError) as missing:
+        validate_config(
+            {
+                "nodes": [
+                    node(
+                        content={
+                            "schemaVersion": 1,
+                            "blocks": [{"type": "image", "assetId": "asset-1", "alt": "图"}],
+                        }
+                    )
+                ],
+                "assets": [],
+            }
+        )
+    assert missing.value.code == "DRAFT_ASSET_REFERENCE_MISSING"
+    nodes, assets = validate_config(
+        {
+            "nodes": [
+                node(
+                    content={
+                        "schemaVersion": 1,
+                        "blocks": [{"type": "image", "assetId": "asset-1", "alt": "图"}],
+                    }
+                ),
+                node(
+                    "notice",
+                    id="node-2",
+                    content={
+                        "schemaVersion": 1,
+                        "blocks": [{"type": "image", "assetId": "asset-1", "alt": "同一张图"}],
                     },
-                }
-            ]
-        )
-    assert error.value.code == "DRAFT_NODE_CONTENT_INVALID"
+                ),
+            ],
+            "assets": [asset],
+        }
+    )
+    assert len(nodes) == 2
+    assert len(assets) == 1

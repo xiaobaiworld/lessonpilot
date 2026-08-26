@@ -1,12 +1,12 @@
 # 互动学习窗口：可调外观与类网页正文
 
-状态：已接受，待按跨客户端内容契约补充后实现
+状态：已实现结构化内容契约、草稿/发布保存与插件复验；资源上传/CDN 交付另行实现
 
 日期：2026-08-26
 
 ## 背景
 
-学生在 B 站看到的互动窗由内容脚本 `LearningWindow` 画出，不是浏览器工具栏 popup。当前窗口是右下角固定小卡片：重点标注已有受限富文本 `richBody`，练习题仍是纯文本 `prompt`，教师不能为单个节点选择大小和样式，也不能插入图片。自制 `contentEditable` 编辑器没有 HTML 源码视图。
+学生在 B 站看到的互动窗由内容脚本 `LearningWindow` 画出，不是浏览器工具栏 popup。当前窗口是右下角固定小卡片；编辑器将所有节点正文保存为结构化 `content`，题型数据保存为 `interactionData`，并允许选择窗口大小和样式。
 
 产品要求：
 
@@ -18,7 +18,7 @@
 
 - 弹窗定义在 `v1/extension/content/window.ts` 的 `LearningWindow`，样式在 `v1/extension/content/window.css`，宿主 id 为 `knownmap-learning-window`，Shadow DOM 挂到 `document.body`（全屏时挂到全屏元素）。
 - 开关窗与暂停归属在 `v1/extension/content/runtime.ts`；判分状态机在 `v1/extension/runtime/session.ts`。本次不改这两处。
-- 重点标注已用 `richBody`；教师端 `RichTextEditor` 与插件 `richText.ts` 各有一份标签允许名单，目前不含图片。
+- 互动节点正文由 `RichPageDocument` 保存；教师端 HTML 编辑表示与插件安全渲染器都只处理有限排版标签，媒体只接受 `assetId`。
 - 练习题提交已经在本机 `evaluate()`；`attempt` 只写入插件本机存储。不新增教师 API 判分。
 - 图片上传与 IndexedDB 本机资源库不在本次范围，见 `doc/插件文件资源管理.md`。
 - 禁止课程包携带任意 CSS 或脚本。大小和样式只用命名预设。
@@ -39,13 +39,13 @@
 
 方案 C：Quill 2 做可视化 Tab，旁边自建受限 HTML Tab，保存与切 Tab 时走同一套消毒器。选此方案：依赖小、两个 Tab 与需求一致、许可宽松。
 
-图片这一轮只允许粘贴 `http://` / `https://` 地址，不做上传。
+图片这一轮只允许引用已登记的 `assetId`，不做上传；外部 URL 不是节点媒体的持久化格式。
 
 ### 大小和样式
 
 方案 A：老师写自定义宽高和 CSS。课程包会变成可执行样式。放弃。
 
-方案 B：节点 `display` 上的命名预设。缺省等于现在的右下角小卡片，旧课不用迁移。选此方案。
+方案 B：节点 `presentationHints` 上的命名预设。缺省等于现在的右下角小卡片。选此方案。
 
 - `windowSize`：`s` 约 380px（现状）/ `m` 约 560px / `l` 约 720px / `overlay` 居中铺开并带浅遮罩。
 - `windowStyle`：`card` 现奶油卡片 / `document` 白底、更大字号与留白。
@@ -69,7 +69,7 @@ flowchart LR
   quill[Quill可视化Tab]
   htmlTab[受限HTML_Tab]
   sanitizer[同一套消毒器]
-  package[课程包display]
+  package[课程包content]
   window[LearningWindow]
   form[本地表单]
 
@@ -87,14 +87,14 @@ flowchart LR
 
 ### 数据
 
-节点 `display`：
+节点内容与展示提示：
 
-- 当前实现阶段重点标注使用 `richBody` 作为唯一正文来源，不保留普通 `body` 回退；但跨客户端版本应按上一节的 `RichPageDocument` 作为内容真源。
+- 当前实现阶段所有节点都使用 `content: RichPageDocument` 作为唯一正文来源，不保留普通 `body`、`richBody` 或 HTML 回退。
 - 练习题的题干、选项、答案规则和反馈仍是结构化数据；不能把表单控件或答案写进正文 HTML。
-- 如果继续使用 `richBody` 作为过渡格式，教师编辑器只能维护一个真源，`prompt` 只能是明确标记的派生纯文本或迁移字段，不能作为另一份可编辑正文。
+- 题型的题干也来自同一个 `content`；选项、答案和解析进入 `interactionData`，不再复制为 `prompt`。
 - `windowSize`、`windowStyle` 为可选枚举；后端拒绝非法值。
 
-内容文档和过渡期 `richBody` 都设长度/块数/资源数上限，避免撑满 `chrome.storage.local`。服务器、课程包校验器和各客户端都要执行同一份公开契约；不能只依赖某一个插件的运行时消毒。
+内容文档设块数、文本量和资源数上限，避免撑满 `chrome.storage.local`。服务器、课程包校验器和各客户端都要执行同一份公开契约；不能只依赖某一个插件的运行时消毒。
 
 ### 消毒规则
 
@@ -154,7 +154,7 @@ type PortableNode = {
 
 其中 `content` 负责“页面上讲什么”，`interactionData` 负责选项、答案规则和反馈，`presentationHints` 只提供客户端可忽略的外观建议。不要把窗口大小、颜色主题或 Shadow DOM 类名混入内容模型。
 
-如果当前阶段必须保留 `display.richBody`，应把它明确标为当前插件的派生字段，并记录 `content.schemaVersion` 和内容摘要；后续不能让教师端同时编辑 `content` 与 `richBody`。若暂时不引入平台中立文档，则至少要把有限 HTML 标签、属性、链接/图片协议和长度上限写入公开课程包契约，而不是只藏在某个客户端实现里。
+HTML 仅作为当前编辑器的输入/输出适配层；结构化文档、资源引用和版本号写入公开课程包契约，其他客户端无需依赖 Quill 或 HTML。
 
 ### 还需要一并确定的跨客户端问题
 
@@ -187,10 +187,10 @@ type PortableNode = {
 ## 测试
 
 - 消毒器：放行安全链接与 `https` 图片；剥掉 `javascript:`、`data:`、未知标签和 `on*`。
-- 插件：非法 `windowSize` 回退 `s` + `card`；练习题无 `richBody` 时仍显示 `prompt`。
-- 后端：枚举非法被拒；旧练习题只有 `prompt` 仍能保存。
+- 插件：非法 `windowSize` 回退 `s` + `card`；缺少结构化正文或资源时明确拒绝。
+- 后端：枚举非法被拒；旧 `display/body/prompt` 结构不再作为保存格式。
 - 内容契约：节点 id 稳定、每个节点可独立取出并回放；文档版本、未知块、资源缺失和课程包往返校验都有明确结果。
-- 教师页：可视化插入颜色、链接、图片 URL，切到 HTML Tab 能看到标签，改完切回不丢内容。
+- 教师页：可视化插入颜色、链接和已登记的 `assetId`，切到 HTML Tab 能看到临时 HTML 表示，保存时转换为结构化文档。
 - 重建插件后在 B 站示例课：小卡片与「铺开」两档可见；重点标注可点链接、可见图片；选择题提交仍本机给出「答对了 / 再想想」，不请求教师判分 API。
 
 ## 假设与重开条件
@@ -202,6 +202,11 @@ type PortableNode = {
 ## 影响
 
 - 代码：`v1/extension/content/window.ts`、`window.css`、`richText.ts`；`v1/web/teacher` 的 `NodeForm`、`RichTextEditor`、`nodes.ts`；`v1/backend/app/modules/authoring_release/application_service.py`；示例课 `v1/extension/background/example-course.ts`。
-- 数据：当前过渡格式为节点 `display.richBody` 和可选的窗口预设；普通 `body` 不再作为重点标注回退。跨客户端版本增加有版本的 `RichPageDocument` 与资源引用，并将外观提示和互动数据与内容分离。
+- 数据：课程包 v3 使用节点 `content`、`interactionData`、`presentationHints` 和顶层 `assets`；普通 `body`、`richBody`、`prompt` 不作为公共正文真源。
 - 文档：本设计记录。不改插件分发、本机存储根结构或教师判分 API。
 - 验证：扩展与教师端测试、后端 pytest，以及重建插件后的 B 站示例课肉眼验收。
+## 2026-08-26 实施锁定补充
+
+本文件前面的探索性段落曾使用 `display.richBody`、`prompt` 作为过渡描述；实施时以本节和课程包 v3 契约为准：节点正文统一保存为 `content: RichPageDocument`，题型数据统一保存为 `interactionData`，窗口配置统一保存为 `presentationHints`。不保留普通 `body` 回退，也不保留 HTML 作为第二份可编辑真源。
+
+互动节点内的图片、音频和视频通过 `assetId` 引用课程资源；课节的 B 站播放视频仍只由 `videoRef` 引用，绝不进入节点资源下载流程。当前阶段完成结构化契约、草稿/发布快照保存和资源元数据校验；上传、CDN、源站回源和 IndexedDB 二进制缓存由后续资源交付阶段实现。

@@ -1,12 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import { LearningSession, RuntimeNode, evaluate, toRuntimeNodes } from './session';
+import { emptyRichPageDocument } from '../../web/shared/src';
 
 const node = (
   id: string,
   timeSeconds: number,
   interaction: RuntimeNode['interaction'] = 'notice',
   evaluation: Record<string, unknown> | null = null
-): RuntimeNode => ({ id, interaction, timeSeconds, display: {}, evaluation });
+): RuntimeNode => ({ id, interaction, timeSeconds, title: id, content: emptyRichPageDocument(), interactionData: evaluation });
 
 const session = (nodes: RuntimeNode[]) =>
   new LearningSession('c1', 'l1', '2026-08-23T00:00:00.000Z', nodes);
@@ -219,10 +220,10 @@ describe('toRuntimeNodes', () => {
       title: 't',
       videoId: 'BV1Ac41187Lm',
       nodes: [
-        { id: 'ok', interaction: 'notice', trigger: { timeSeconds: 10 } },
-        { interaction: 'notice', trigger: { timeSeconds: 20 } },
-        { id: 'bad-time', interaction: 'notice', trigger: { timeSeconds: 'x' } },
-        { id: 'no-trigger', interaction: 'notice' },
+        { id: 'ok', interaction: 'notice', anchor: { timeSeconds: 10 } },
+        { interaction: 'notice', anchor: { timeSeconds: 20 } },
+        { id: 'bad-time', interaction: 'notice', anchor: { timeSeconds: 'x' } },
+        { id: 'no-anchor', interaction: 'notice' },
       ],
     });
     expect(nodes.map((n) => n.id)).toEqual(['ok']);

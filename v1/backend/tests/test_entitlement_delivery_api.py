@@ -14,9 +14,14 @@ NODE = {
     "enabled": True,
     "family": "attention",
     "interaction": "notice",
-    "trigger": {"kind": "time_cross", "timeSeconds": 12},
-    "display": {"title": "重点", "richBody": "<p>记住这一点</p>"},
-    "evaluation": None,
+    "anchor": {"kind": "time_cross", "timeSeconds": 12},
+    "title": "重点",
+    "content": {
+        "schemaVersion": 1,
+        "blocks": [{"type": "paragraph", "children": [{"text": "记住这一点"}]}],
+    },
+    "interactionData": None,
+    "presentationHints": {"windowSize": "m", "windowStyle": "document"},
     "effects": {"pause": True},
 }
 

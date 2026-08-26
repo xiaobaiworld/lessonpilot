@@ -6,7 +6,6 @@ import {
   isSafeRichTextColor,
   isSafeRichTextHref,
   isSafeRichTextImageSrc,
-  pageHtmlFromDisplay,
   resolveWindowPresentation,
   sanitizeRichTextHtml,
 } from './richText';
@@ -85,10 +84,11 @@ describe('学习窗口外观预设', () => {
   });
 });
 
-describe('练习题页面正文', () => {
-  it('优先使用 richBody，没有时回退到 prompt', () => {
-    expect(pageHtmlFromDisplay({ richBody: '<p>新</p>', prompt: '旧' })).toBe('<p>新</p>');
-    expect(pageHtmlFromDisplay({ prompt: '旧题干' })).toBe('旧题干');
-    expect(pageHtmlFromDisplay({})).toBe('');
+describe('节点媒体引用', () => {
+  it('只保留 assetId 标记，不把资源引用当作外部 URL', () => {
+    const target = document.createElement('div');
+    appendRichText(target, '<img src="asset://asset-1" alt="示例">');
+    expect(target.querySelector('img')?.getAttribute('data-asset-id')).toBe('asset-1');
+    expect(target.querySelector('img')?.getAttribute('src')).toBeNull();
   });
 });

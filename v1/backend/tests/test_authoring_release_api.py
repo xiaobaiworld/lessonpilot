@@ -12,9 +12,14 @@ NODE = {
     "enabled": True,
     "family": "attention",
     "interaction": "notice",
-    "trigger": {"kind": "time_cross", "timeSeconds": 12},
-    "display": {"title": "重点", "richBody": "<p>记住这一点</p>"},
-    "evaluation": None,
+    "anchor": {"kind": "time_cross", "timeSeconds": 12},
+    "title": "重点",
+    "content": {
+        "schemaVersion": 1,
+        "blocks": [{"type": "paragraph", "children": [{"text": "记住这一点"}]}],
+    },
+    "interactionData": None,
+    "presentationHints": {"windowSize": "m", "windowStyle": "document"},
     "effects": {"pause": True},
 }
 
@@ -114,7 +119,14 @@ def test_draft_preview_atomic_release_and_immutable_snapshot() -> None:
     assert replay.json()["id"] == release_id
     assert len(client.get(f"/api/v1/teacher/courses/{course['id']}/releases").json()["items"]) == 1
 
-    changed = {**NODE, "display": {"title": "新重点", "richBody": "<p>新内容</p>"}}
+    changed = {
+        **NODE,
+        "title": "新重点",
+        "content": {
+            "schemaVersion": 1,
+            "blocks": [{"type": "paragraph", "children": [{"text": "新内容"}]}],
+        },
+    }
     client.put(
         f"/api/v1/teacher/lessons/{lesson['id']}/draft",
         json={"schema_version": 1, "revision": 1, "config": {"nodes": [changed]}},

@@ -25,7 +25,7 @@ def test_health_and_metadata_are_available() -> None:
     assert version.json()["database_ready"] is True
     assert version.json()["migration"] == "none"
     assert contracts.status_code == 200
-    assert contracts.json()["contracts"]["course_package"] == "2.0.0"
+    assert contracts.json()["contracts"]["course_package"] == "3.0.0"
 
 
 def test_production_rejects_weak_runtime_configuration() -> None:

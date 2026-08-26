@@ -1,9 +1,15 @@
 # Lessons — KnownMap
 
-版本：0.29
+版本：0.30
 最近更新：2026-08-26
 
 早期条目为英文，保留原文不重写；新增条目使用中文。
+
+## 2026-08-26 — 初期发布要显式写阶段，不能靠脚本里的旧门禁暗示政策
+
+生产在洛杉矶小 ECS 上，发布脚本曾把 CI 等待、远端全量测试、每次新建 venv 和备份演练串成一条热路径，一次发布要数分钟，瓶颈是跨境往返和重复校验，不是 336KB 的库。
+
+当前阶段约定见 `D-V1-013`：本机测完、GitHub 版本化（`web-prod/<时间-commit>` + `deploy/releases/*.json`）、本机构建后 copy 上去。后期可以收紧，但必须另写决策并改脚本。SSH 别名用 `aliyun-us`，不要用会进本机假 IP 的 `aliyun`。
 
 ## 2026-08-26 — 富文本正文与运行时安全一起设计
 
@@ -686,9 +692,8 @@ The safe first contract is: fixed supported Bilibili link, teacher-provided UTF-
 An external form URL is operational configuration, not page copy. Keeping the URL, visible label, allowlist and mount behavior in one small module makes the release boundary testable and prevents an internal editor link from being scattered across HTML and deployment scripts.
 
 The verified decision is to hide the whole secondary CTA until a published HTTPS Feishu/Lark URL exists. A placeholder or authenticated editor URL creates a worse failure than temporarily showing only the private-message CTA. Next time, create and anonymously verify the external form before changing the page test from “hidden without URL” to “visible with a public URL.”
-## 2026-08-26 — 富文本必须和旧版回退、运行时安全一起设计
+## 2026-08-26 — 结构化内容必须成为节点唯一真源
 
-重点标注编辑器原本只保存普通 `body`，直接把 HTML 塞进这个字段会让旧版插件显示标签，也会让运行时在渲染课程内容时扩大脚本注入风险。
-本次把富文本放进独立的 `richBody`，同步生成纯文本 `body` 作为兼容回退；教师端和学生插件各自只允许有限的排版标签、安全链接协议与颜色值。
+富文本如果直接保存成 HTML，会让其他客户端依赖某个编辑器实现；如果再同时保存 `body`、`richBody` 或 `prompt`，修改时就会产生多份正文真源。本次改为版本化 `RichPageDocument`，教师端 HTML 只作为临时编辑表示，保存时统一转换。
 
-同时，C 方案字段虽然仍可能存在于历史草稿中，但当前教师表单已经不再编辑或要求它们；校验只检查重点标注正文，避免旧字段让无法编辑的历史数据阻塞保存。
+节点媒体只保存不可变 `assetId`，资源清单随课程包和发布快照保存；B 站 `videoRef` 仍只是课节播放与时间触发来源。后端、发布快照和插件安装使用同一套 v3 结构校验，缺失资源、未知文档版本和旧字段都会明确失败。

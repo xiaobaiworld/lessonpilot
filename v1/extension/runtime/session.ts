@@ -1,4 +1,5 @@
 import { InstalledLesson, NodeAttempt } from '../storage/types';
+import { RichPageDocument, PresentationHints } from '../../web/shared/src';
 
 /**
  * 学习会话状态机。
@@ -13,8 +14,10 @@ export interface RuntimeNode {
   id: string;
   interaction: NodeKind;
   timeSeconds: number;
-  display: Record<string, unknown>;
-  evaluation: Record<string, unknown> | null;
+  title: string;
+  content: RichPageDocument;
+  interactionData: Record<string, unknown> | null;
+  presentationHints?: PresentationHints;
 }
 
 /**
@@ -63,7 +66,7 @@ const NO_ANSWER: NodeKind[] = ['notice'];
 export function evaluate(node: RuntimeNode, answer: string): NodeOutcome {
   if (NO_ANSWER.includes(node.interaction)) return { result: 'acknowledged' };
 
-  const e = node.evaluation ?? {};
+  const e = node.interactionData ?? {};
 
   if (node.interaction === 'choice') {
     return answer === e.answer ? { result: 'correct' } : { result: 'incorrect' };
@@ -269,14 +272,16 @@ export function toRuntimeNodes(lesson: InstalledLesson): RuntimeNode[] {
   for (const raw of lesson.nodes) {
     const n = raw as Record<string, any>;
     if (typeof n?.id !== 'string') continue;
-    const t = n?.trigger?.timeSeconds;
+    const t = n?.anchor?.timeSeconds;
     if (typeof t !== 'number' || !Number.isFinite(t)) continue;
     out.push({
       id: n.id,
       interaction: n.interaction,
       timeSeconds: t,
-      display: n.display ?? {},
-      evaluation: n.evaluation ?? null,
+      title: typeof n.title === 'string' ? n.title : '',
+      content: n.content,
+      interactionData: n.interactionData ?? null,
+      presentationHints: n.presentationHints,
     });
   }
   return out;

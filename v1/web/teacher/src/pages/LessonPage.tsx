@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { APIError, Topbar, errorMessage } from '@v1/web/shared';
+import { richDocumentFromText } from '@v1/web/shared';
 import { Caption, NODE_ICON_IDS, NodeIcon } from '@v1/web/shared/editor';
 import { TeacherAPI, Teacher, ScriptNode, NodeKind, CourseDetail } from '../api';
+import { AssetRecord } from '@v1/web/shared';
 import {
   NODE_KINDS,
   metaOf,
@@ -50,6 +52,7 @@ export const LessonPage: React.FC<Props> = ({
 }) => {
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [nodes, setNodes] = useState<ScriptNode[] | null>(null);
+  const [assets, setAssets] = useState<AssetRecord[]>([]);
   const [revision, setRevision] = useState<number | null>(null);
   const [captions, setCaptions] = useState<Caption[]>([]);
   const [filename, setFilename] = useState('');
@@ -76,7 +79,7 @@ export const LessonPage: React.FC<Props> = ({
     segments.find((segment) => segment.id === selectedSegmentId) ?? segments[0];
   const selectedNode = nodes?.find((node) => node.id === selectedId);
   const contextCaptions = selectedNode
-    ? captionsAround(captions, selectedNode.trigger.timeSeconds, selectedNode.trigger.captionId)
+    ? captionsAround(captions, selectedNode.anchor.timeSeconds, selectedNode.anchor.captionId)
     : [];
 
   const load = useCallback(async () => {
@@ -92,17 +95,20 @@ export const LessonPage: React.FC<Props> = ({
     try {
       const draft = await api.getDraft(lessonId);
       setNodes(draft.config.nodes);
+      setAssets(draft.config.assets ?? []);
       setRevision(draft.revision);
       setDirty(false);
       setSelectedId(null);
     } catch (err) {
       if (err instanceof APIError && err.code === 'DRAFT_NOT_FOUND') {
         setNodes([]);
+        setAssets([]);
         setRevision(null);
         return;
       }
       setError(errorMessage(err));
       setNodes([]);
+      setAssets([]);
       setRevision(null);
     }
   }, [api, courseId, lessonId]);
@@ -142,12 +148,8 @@ export const LessonPage: React.FC<Props> = ({
     const caption = captionText || nearest?.text || '';
     const prepared: ScriptNode = {
       ...node,
-      display: {
-        ...node.display,
-        richBody: caption,
-        ...(kind === 'notice' ? {} : { prompt: caption }),
-      },
-      trigger: { ...node.trigger, captionId: nearest?.id ?? null },
+      content: richDocumentFromText(caption),
+      anchor: { ...node.anchor, captionId: nearest?.id ?? null },
     };
     setSelectedId(prepared.id);
     setDialogNode(prepared);
@@ -188,8 +190,8 @@ export const LessonPage: React.FC<Props> = ({
         node.id === nodeId
           ? {
               ...node,
-              trigger: {
-                ...node.trigger,
+              anchor: {
+                ...node.anchor,
                 timeSeconds: Math.max(0, Math.round(seconds * 10) / 10),
                 captionId: nearest?.id ?? null,
               },
@@ -203,7 +205,7 @@ export const LessonPage: React.FC<Props> = ({
   const save = async () => {
     if (!nodes) return;
     const sorted = [...nodes].sort(
-      (a, b) => a.trigger.timeSeconds - b.trigger.timeSeconds || a.id.localeCompare(b.id)
+      (a, b) => a.anchor.timeSeconds - b.anchor.timeSeconds || a.id.localeCompare(b.id)
     );
     for (let i = 0; i < sorted.length; i++) {
       const missing = findEmptyField(sorted[i]);
@@ -215,8 +217,9 @@ export const LessonPage: React.FC<Props> = ({
     setBusy(true);
     setError(null);
     try {
-      const draft = await api.saveDraft(lessonId, sorted, revision);
+      const draft = await api.saveDraft(lessonId, sorted, revision, assets);
       setNodes(draft.config.nodes);
+      setAssets(draft.config.assets ?? []);
       setRevision(draft.revision);
       setDirty(false);
       setNotice(`已保存 ${draft.node_count} 个节点`);
@@ -395,14 +398,14 @@ export const LessonPage: React.FC<Props> = ({
           <aside className="subtitle-rail" aria-label="节点处字幕">
             <div className="subtitle-rail-head">
               <strong>节点处字幕</strong>
-              <span>{selectedNode ? formatTime(selectedNode.trigger.timeSeconds) : '未选择节点'}</span>
+              <span>{selectedNode ? formatTime(selectedNode.anchor.timeSeconds) : '未选择节点'}</span>
             </div>
             {selectedNode && contextCaptions.length > 0 ? (
               <ol className="subtitle-context-list">
                 {contextCaptions.map((caption) => (
                   <li
                     key={caption.id}
-                    className={caption.id === selectedNode.trigger.captionId ? 'is-center' : ''}
+                    className={caption.id === selectedNode.anchor.captionId ? 'is-center' : ''}
                   >
                     <time>{caption.time}</time>
                     <span>{caption.text}</span>
@@ -415,7 +418,7 @@ export const LessonPage: React.FC<Props> = ({
           </aside>
           <div>
             <SubtitlePicker
-              usedSeconds={(nodes ?? []).map((node) => node.trigger.timeSeconds)}
+              usedSeconds={(nodes ?? []).map((node) => node.anchor.timeSeconds)}
               onPick={(kind, seconds, text) => openNewNode(kind, seconds, text)}
               onDuration={() => undefined}
               onCaptions={(next) => {
@@ -454,7 +457,7 @@ const NodeDialog: React.FC<{
   onDelete: () => void;
   onCancel: () => void;
 }> = ({ node, isNew, disabled, onChange, onSave, onDelete, onCancel }) => {
-  const [timeText, setTimeText] = useState(formatTime(node.trigger.timeSeconds));
+  const [timeText, setTimeText] = useState(formatTime(node.anchor.timeSeconds));
   const [timeError, setTimeError] = useState(false);
   const iconId = NODE_ICON_IDS[node.interaction];
   const meta = metaOf(node.interaction);
@@ -496,7 +499,7 @@ const NodeDialog: React.FC<{
               if (seconds === null) setTimeError(true);
               else {
                 setTimeError(false);
-                onChange({ ...node, trigger: { ...node.trigger, timeSeconds: seconds } });
+                onChange({ ...node, anchor: { ...node.anchor, timeSeconds: seconds } });
               }
             }}
           />

@@ -1,4 +1,4 @@
-import { APIClient } from '@v1/web/shared';
+import { APIClient, AssetRecord, PortableNode } from '@v1/web/shared';
 
 /**
  * 与后端 schema 对齐：
@@ -44,22 +44,12 @@ export interface CourseDetail extends CourseSummary {
  * attention/notice、practice/choice、practice/blank、practice/free_text
  */
 export type NodeKind = 'notice' | 'choice' | 'blank' | 'free_text';
-
-export interface ScriptNode {
-  id: string;
-  enabled: boolean;
-  family: 'attention' | 'practice';
-  interaction: NodeKind;
-  trigger: { kind: 'time_cross'; timeSeconds: number; captionId?: string | null };
-  display: Record<string, unknown>;
-  evaluation: Record<string, unknown> | null;
-  effects: { pause: true };
-}
+export type ScriptNode = PortableNode;
 
 export interface ScriptDraft {
   schema_version: number;
   revision: number;
-  config: { nodes: ScriptNode[] };
+  config: { nodes: ScriptNode[]; assets: AssetRecord[] };
   lesson_id: string;
   node_count: number;
   updated_at: string;
@@ -136,12 +126,13 @@ export class TeacherAPI {
   saveDraft(
     lessonId: string,
     nodes: ScriptNode[],
-    revision: number | null
+    revision: number | null,
+    assets: AssetRecord[] = []
   ): Promise<ScriptDraft> {
     return this.http.put<ScriptDraft>(`/api/v1/teacher/lessons/${lessonId}/draft`, {
       schema_version: 1,
       revision,
-      config: { nodes },
+      config: { nodes, assets },
     });
   }
 

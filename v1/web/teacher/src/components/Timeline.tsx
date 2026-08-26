@@ -36,11 +36,11 @@ export const Timeline: React.FC<Props> = ({
   const ticks = useMemo(() => buildSegmentTicks(segment), [segment]);
   const visibleNodes = nodes.filter(
     (node) =>
-      node.trigger.timeSeconds >= segment.startSeconds &&
-      (node.trigger.timeSeconds < segment.endSeconds || segment.index === segment.total)
+      node.anchor.timeSeconds >= segment.startSeconds &&
+      (node.anchor.timeSeconds < segment.endSeconds || segment.index === segment.total)
   );
   const lanes = assignLanes(
-    visibleNodes.map((node) => ({ id: node.id, timeSeconds: node.trigger.timeSeconds }))
+    visibleNodes.map((node) => ({ id: node.id, timeSeconds: node.anchor.timeSeconds }))
   );
 
   const secondsFromEvent = (clientX: number) => {
@@ -148,14 +148,14 @@ export const Timeline: React.FC<Props> = ({
           )}
 
           {visibleNodes.map((node) => {
-            const seconds = node.trigger.timeSeconds;
+            const seconds = node.anchor.timeSeconds;
             const position =
               ((seconds - segment.startSeconds) / (segment.endSeconds - segment.startSeconds || 1)) *
               100;
             const lane = lanes.find((item) => item.id === node.id)?.lane ?? 0;
             const meta = metaOf(node.interaction);
             const iconId = NODE_ICON_IDS[node.interaction];
-            const title = String((node.display as Record<string, unknown>).title || meta.label);
+            const title = node.title || meta.label;
             return (
               <React.Fragment key={node.id}>
                 <button

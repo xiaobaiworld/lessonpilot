@@ -1,4 +1,8 @@
 import { NodeKind, ScriptNode } from './api';
+import {
+  emptyRichPageDocument,
+  richDocumentToPlainText,
+} from '@v1/web/shared';
 
 /**
  * 四种互动节点的元数据与构造。
@@ -48,7 +52,7 @@ function newId(): string {
   return `n-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
-const WINDOW_DEFAULTS = {
+export const WINDOW_DEFAULTS = {
   windowSize: 'm' as const,
   windowStyle: 'document' as const,
 };
@@ -61,7 +65,7 @@ export function createNode(kind: NodeKind, timeSeconds: number): ScriptNode {
     enabled: true,
     family: meta.family,
     interaction: kind,
-    trigger: { kind: 'time_cross' as const, timeSeconds },
+    anchor: { kind: 'time_cross' as const, timeSeconds, captionId: null },
     effects: { pause: true as const },
   };
 
@@ -69,40 +73,44 @@ export function createNode(kind: NodeKind, timeSeconds: number): ScriptNode {
     case 'notice':
       return {
         ...base,
-        display: { title: '重点', richBody: '', ...WINDOW_DEFAULTS },
-        evaluation: null,
+        title: '重点',
+        content: emptyRichPageDocument(),
+        interactionData: null,
+        presentationHints: WINDOW_DEFAULTS,
       };
     case 'choice':
       return {
         ...base,
-        display: {
-          title: '选择题',
-          prompt: '',
-          richBody: '',
-          ...WINDOW_DEFAULTS,
+        title: '选择题',
+        content: emptyRichPageDocument(),
+        interactionData: {
           options: [
             { id: 'a', label: '' },
             { id: 'b', label: '' },
           ],
         },
-        evaluation: { answer: 'a', explanation: '' },
+        presentationHints: WINDOW_DEFAULTS,
       };
     case 'blank':
       return {
         ...base,
-        display: { title: '填空题', prompt: '', richBody: '', ...WINDOW_DEFAULTS },
-        evaluation: {
+        title: '填空题',
+        content: emptyRichPageDocument(),
+        interactionData: {
           acceptedAnswers: [''],
           // 数组，合法值只有 trim / casefold
           normalize: ['trim', 'casefold'],
           explanation: '',
         },
+        presentationHints: WINDOW_DEFAULTS,
       };
     case 'free_text':
       return {
         ...base,
-        display: { title: '问答题', prompt: '', richBody: '', ...WINDOW_DEFAULTS },
-        evaluation: { referenceFeedback: '' },
+        title: '问答题',
+        content: emptyRichPageDocument(),
+        interactionData: { referenceFeedback: '' },
+        presentationHints: WINDOW_DEFAULTS,
       };
   }
 }
@@ -110,31 +118,15 @@ export function createNode(kind: NodeKind, timeSeconds: number): ScriptNode {
 /** 切换类型时只迁移通用标题和时间，不携带旧类型的无效字段。 */
 export function changeNodeKind(node: ScriptNode, kind: NodeKind): ScriptNode {
   if (node.interaction === kind) return node;
-  const next = createNode(kind, node.trigger.timeSeconds);
-  const oldDisplay = node.display as Record<string, any>;
-  const title = typeof oldDisplay.title === 'string' ? oldDisplay.title : next.display.title;
-  const sourceText =
-    typeof oldDisplay.prompt === 'string'
-      ? oldDisplay.prompt
-      : typeof oldDisplay.richBody === 'string'
-        ? oldDisplay.richBody
-        : '';
-
-  if (kind === 'notice') {
-    next.display = { ...next.display, title, richBody: sourceText };
-  } else {
-    next.display = {
-      ...next.display,
-      title,
-      richBody: typeof oldDisplay.richBody === 'string' ? oldDisplay.richBody : sourceText,
-      prompt: richTextToPlainText(sourceText),
-    };
-  }
+  const next = createNode(kind, node.anchor.timeSeconds);
+  const title = node.title.trim() ? node.title : next.title;
   return {
     ...next,
     id: node.id,
     enabled: node.enabled,
-    trigger: { ...next.trigger, captionId: node.trigger.captionId ?? null },
+    title,
+    anchor: { ...next.anchor, captionId: node.anchor.captionId ?? null },
+    content: node.content,
   };
 }
 
@@ -149,22 +141,17 @@ export function changeNodeKind(node: ScriptNode, kind: NodeKind): ScriptNode {
  * 也可能被后端拒绝，那种情况按后端返回的字段名提示。
  */
 export function findEmptyField(node: ScriptNode): string | null {
-  const d = node.display as Record<string, unknown>;
-  const e = (node.evaluation ?? {}) as Record<string, unknown>;
+  const e = (node.interactionData ?? {}) as Record<string, any>;
   const blank = (v: unknown) => typeof v !== 'string' || !v.trim();
 
-  if (blank(d.title)) return '标题';
+  if (blank(node.title)) return '标题';
 
-  if (node.interaction === 'notice') {
-    if (blank(richTextToPlainText(d.richBody))) return '正文';
-    return null;
-  }
-
-  if (blank(richTextToPlainText(d.richBody)) && blank(d.prompt)) return '题目';
+  if (blank(richDocumentToPlainText(node.content))) return node.interaction === 'notice' ? '正文' : '题目';
+  if (node.interaction === 'notice') return null;
 
   switch (node.interaction) {
     case 'choice': {
-      const options = (d.options ?? []) as { id: string; label: string }[];
+      const options = (e.options ?? []) as { id: string; label: string }[];
       if (options.some((o) => blank(o.label))) return '选项文字';
       if (!options.some((o) => o.id === e.answer)) return '正确答案';
       return blank(e.explanation) ? '解析' : null;
@@ -177,17 +164,6 @@ export function findEmptyField(node: ScriptNode): string | null {
     case 'free_text':
       return blank(e.referenceFeedback) ? '参考答案' : null;
   }
-}
-
-export function richTextToPlainText(value: unknown): string {
-  if (typeof value !== 'string') return '';
-  return value
-    .replace(/<br\s*\/?>/gi, ' ')
-    .replace(/<\/(p|div|h[1-6]|blockquote|li)>/gi, ' ')
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
 }
 
 /** mm:ss ⇄ 秒。编辑器只用整秒，够定位一句话 */

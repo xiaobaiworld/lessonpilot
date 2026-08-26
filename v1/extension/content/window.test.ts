@@ -3,6 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import { LearningWindow } from './window';
 import { RuntimeNode } from '../runtime/session';
+import { richDocumentFromText } from '../../web/shared/src';
 
 const callbacks = {
   onDraft() {},
@@ -11,23 +12,26 @@ const callbacks = {
   onClose() {},
 };
 
-function notice(display: Record<string, unknown>): RuntimeNode {
+function notice(hints: Record<string, unknown>): RuntimeNode {
   return {
     id: 'n1',
     interaction: 'notice',
     timeSeconds: 1,
-    display,
-    evaluation: null,
+    title: '重点',
+    content: richDocumentFromText('正文'),
+    interactionData: null,
+    presentationHints: hints as RuntimeNode['presentationHints'],
   };
 }
 
-function choice(display: Record<string, unknown>): RuntimeNode {
+function choice(data: Record<string, unknown>): RuntimeNode {
   return {
     id: 'c1',
     interaction: 'choice',
     timeSeconds: 1,
-    display,
-    evaluation: { answer: 'a' },
+    title: '选择题',
+    content: richDocumentFromText('题干'),
+    interactionData: data,
   };
 }
 
@@ -36,12 +40,10 @@ describe('LearningWindow 外观与正文', () => {
     const view = new LearningWindow(callbacks, '');
     view.render({
       kind: 'open',
-      node: notice({
-        title: '重点',
-        richBody: '<p>正文</p>',
+      node: { ...notice({
         windowSize: 'overlay',
         windowStyle: 'document',
-      }),
+      }) },
       draft: '',
     });
 
@@ -52,7 +54,7 @@ describe('LearningWindow 外观与正文', () => {
 
     view.render({
       kind: 'open',
-      node: notice({ title: '重点', richBody: '<p>正文</p>', windowSize: 'huge' }),
+      node: { ...notice({ windowSize: 'huge' }) },
       draft: '',
     });
     const fallbackRoot = document.getElementById('knownmap-learning-window')!.shadowRoot!;
@@ -62,19 +64,17 @@ describe('LearningWindow 外观与正文', () => {
     view.destroy();
   });
 
-  it('选择题没有 richBody 时用 prompt 作为页面正文', () => {
+  it('选择题正文来自结构化 content，不从旧 prompt 回退', () => {
     const view = new LearningWindow(callbacks, '');
     view.render({
       kind: 'open',
       node: choice({
-        title: '选择题',
-        prompt: '旧题干',
         options: [{ id: 'a', label: 'A' }],
       }),
       draft: '',
     });
     const root = document.getElementById('knownmap-learning-window')!.shadowRoot!;
-    expect(root.querySelector('.km-rich-text')?.textContent).toContain('旧题干');
+    expect(root.querySelector('.km-rich-text')?.textContent).toContain('题干');
     expect(root.querySelector('.km-options')).not.toBeNull();
     view.destroy();
   });

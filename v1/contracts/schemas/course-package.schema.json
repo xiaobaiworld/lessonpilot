@@ -1,90 +1,83 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://knownmap.local/schema/v2/course-package.schema.json",
-  "title": "KnownMap Course Package v2",
+  "$id": "https://knownmap.local/schema/v3/course-package.schema.json",
+  "title": "KnownMap Course Package v3",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "schemaVersion",
-    "courseId",
-    "releaseId",
-    "releaseNumber",
-    "title",
-    "lessons",
-    "updatedAt"
-  ],
+  "required": ["schemaVersion", "courseId", "releaseId", "releaseNumber", "title", "assets", "lessons", "updatedAt"],
   "properties": {
-    "schemaVersion": { "const": 2 },
+    "schemaVersion": { "const": 3 },
     "courseId": { "type": "string", "format": "uuid" },
     "releaseId": { "type": "string", "format": "uuid" },
     "releaseNumber": { "type": "integer", "minimum": 1 },
     "title": { "type": "string", "minLength": 1, "maxLength": 255 },
     "updatedAt": { "type": "string", "format": "date-time" },
+    "assets": { "type": "array", "items": { "$ref": "#/definitions/asset" } },
     "lessons": {
-      "type": "array",
-      "minItems": 1,
+      "type": "array", "minItems": 1,
       "items": {
-        "type": "object",
-        "additionalProperties": false,
+        "type": "object", "additionalProperties": false,
         "required": ["lessonId", "title", "videoRef", "nodes"],
         "properties": {
           "lessonId": { "type": "string", "format": "uuid" },
           "title": { "type": "string", "minLength": 1, "maxLength": 255 },
           "videoRef": {
-            "type": "object",
-            "additionalProperties": false,
+            "type": "object", "additionalProperties": false,
             "required": ["platform", "videoId"],
-            "properties": {
-              "platform": { "const": "bilibili" },
-              "videoId": { "type": "string", "pattern": "^BV[0-9A-Za-z]{10}$" }
-            }
+            "properties": { "platform": { "const": "bilibili" }, "videoId": { "type": "string", "pattern": "^BV[0-9A-Za-z]{10}$" } }
           },
-          "nodes": {
-            "type": "array",
-            "minItems": 1,
-            "items": { "$ref": "#/definitions/node" }
-          }
+          "nodes": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/node" } }
         }
       }
     }
   },
   "definitions": {
-    "node": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "id",
-        "enabled",
-        "family",
-        "interaction",
-        "trigger",
-        "display",
-        "evaluation",
-        "effects"
-      ],
+    "asset": {
+      "type": "object", "additionalProperties": false,
+      "required": ["assetId", "kind", "mimeType", "byteSize", "sha256", "sourceType"],
       "properties": {
-        "id": { "type": "string", "minLength": 1 },
-        "enabled": { "const": true },
-        "family": { "enum": ["attention", "practice"] },
-        "interaction": { "enum": ["notice", "choice", "blank", "free_text"] },
-        "trigger": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["kind", "timeSeconds"],
-          "properties": {
-            "kind": { "const": "time_cross" },
-            "timeSeconds": { "type": "number", "minimum": 0 },
-            "captionId": { "type": ["string", "null"] }
-          }
-        },
-        "display": { "type": "object" },
-        "evaluation": { "type": ["object", "null"] },
-        "effects": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["pause"],
-          "properties": { "pause": { "const": true } }
-        }
+        "assetId": { "type": "string", "minLength": 1 }, "kind": { "enum": ["image", "audio", "video"] }, "mimeType": { "type": "string", "minLength": 1 }, "byteSize": { "type": "integer", "minimum": 0 }, "sha256": { "type": "string", "pattern": "^[0-9a-fA-F]{64}$" }, "width": { "type": "integer", "minimum": 1 }, "height": { "type": "integer", "minimum": 1 }, "durationSeconds": { "type": "number", "exclusiveMinimum": 0 }, "alt": { "type": "string" }, "sourceType": { "enum": ["uploaded", "licensed"] }
+      }
+    },
+    "inline": {
+      "type": "object", "additionalProperties": false, "required": ["text"],
+      "properties": { "text": { "type": "string", "minLength": 1 }, "marks": { "type": "array", "items": { "enum": ["strong", "em", "underline"] } }, "color": { "type": "string", "pattern": "^#[0-9a-fA-F]{3,8}$" }, "link": { "type": "object", "additionalProperties": false, "required": ["href"], "properties": { "href": { "type": "string", "minLength": 1 } } } }
+    },
+    "inlineBlock": {
+      "type": "object", "additionalProperties": false, "required": ["type", "children"],
+      "properties": { "type": { "enum": ["paragraph", "quote"] }, "children": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/inline" } } }
+    },
+    "heading": {
+      "type": "object", "additionalProperties": false, "required": ["type", "level", "children"],
+      "properties": { "type": { "const": "heading" }, "level": { "enum": [2, 3] }, "children": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/inline" } } }
+    },
+    "list": {
+      "type": "object", "additionalProperties": false, "required": ["type", "ordered", "items"],
+      "properties": { "type": { "const": "list" }, "ordered": { "type": "boolean" }, "items": { "type": "array", "minItems": 1, "items": { "type": "object", "additionalProperties": false, "required": ["children"], "properties": { "children": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/inline" } } } } } }
+    },
+    "image": {
+      "type": "object", "additionalProperties": false, "required": ["type", "assetId", "alt"],
+      "properties": { "type": { "const": "image" }, "assetId": { "type": "string", "minLength": 1 }, "alt": { "type": "string" } }
+    },
+    "audio": {
+      "type": "object", "additionalProperties": false, "required": ["type", "assetId"],
+      "properties": { "type": { "const": "audio" }, "assetId": { "type": "string", "minLength": 1 }, "title": { "type": "string" } }
+    },
+    "video": {
+      "type": "object", "additionalProperties": false, "required": ["type", "assetId"],
+      "properties": { "type": { "const": "video" }, "assetId": { "type": "string", "minLength": 1 }, "title": { "type": "string" }, "posterAssetId": { "type": "string", "minLength": 1 } }
+    },
+    "document": {
+      "type": "object", "additionalProperties": false, "required": ["schemaVersion", "blocks"],
+      "properties": { "schemaVersion": { "const": 1 }, "blocks": { "type": "array", "minItems": 1, "items": { "anyOf": [{ "$ref": "#/definitions/inlineBlock" }, { "$ref": "#/definitions/heading" }, { "$ref": "#/definitions/list" }, { "$ref": "#/definitions/image" }, { "$ref": "#/definitions/audio" }, { "$ref": "#/definitions/video" }] } } }
+    },
+    "node": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "enabled", "family", "interaction", "anchor", "title", "content", "interactionData", "effects"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 }, "enabled": { "const": true }, "family": { "enum": ["attention", "practice"] }, "interaction": { "enum": ["notice", "choice", "blank", "free_text"] },
+        "anchor": { "type": "object", "additionalProperties": false, "required": ["kind", "timeSeconds"], "properties": { "kind": { "const": "time_cross" }, "timeSeconds": { "type": "number", "minimum": 0 }, "captionId": { "type": ["string", "null"] } } },
+        "title": { "type": "string", "minLength": 1 }, "content": { "$ref": "#/definitions/document" }, "interactionData": { "type": ["object", "null"] }, "presentationHints": { "type": "object", "additionalProperties": false, "properties": { "windowSize": { "enum": ["s", "m", "l", "overlay"] }, "windowStyle": { "enum": ["card", "document"] } } }, "effects": { "type": "object", "additionalProperties": false, "required": ["pause"], "properties": { "pause": { "const": true } } }
       }
     }
   }

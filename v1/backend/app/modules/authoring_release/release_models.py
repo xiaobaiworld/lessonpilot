@@ -116,6 +116,7 @@ class ReleaseLessonSnapshot(Base):
     video_platform = Column(String(50), nullable=False)  # bilibili, youtube, local_file
     video_platform_id = Column(String(255), nullable=False)  # BVID, video ID, SHA256
     nodes = Column(JSON(), nullable=False)
+    assets = Column(JSON(), nullable=False, default=list)
     draft_revision = Column(Integer, nullable=False)
     content_digest = Column(String(64), nullable=False)
 

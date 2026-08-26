@@ -34,7 +34,7 @@ def _draft(draft: ScriptDraft) -> DraftPublic:
     return DraftPublic(
         schema_version=int(draft.schema_version),
         revision=draft.revision,
-        config=draft.content,
+        config={"nodes": draft.content.get("nodes", []), "assets": draft.content.get("assets", [])},
         lesson_id=draft.lesson_id,
         node_count=len(draft.content["nodes"]),
         updated_at=draft.updated_at,

@@ -19,8 +19,8 @@ describe('内置示例课程', () => {
 
   it('前两个互动节点分别在第 1 秒和第 10 秒触发', () => {
     const [first, second] = EXAMPLE_COURSE_PACKAGE.lessons[0].nodes;
-    expect(first.trigger.timeSeconds).toBe(1);
-    expect(second.trigger.timeSeconds).toBe(10);
+    expect(first.anchor.timeSeconds).toBe(1);
+    expect(second.anchor.timeSeconds).toBe(10);
   });
 
   it('安装记录标记为示例且只读，不产生授权来源', () => {

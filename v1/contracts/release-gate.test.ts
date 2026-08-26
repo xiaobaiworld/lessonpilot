@@ -13,7 +13,7 @@ const matrix: SupportedRelease[] = [
     release: 'v1.0.0',
     status: 'development',
     httpApi: '2.0.0',
-    coursePackage: '2.0.0',
+    coursePackage: '3.0.0',
     extensionMessages: '2.0.0',
     extensionStorage: '2.0.0',
     webBuild: '1.0.0',
@@ -30,7 +30,7 @@ describe('切换闸门', () => {
   });
 
   it('major 不同判为破坏性，禁止切换', () => {
-    const r = checkReleaseGate({ ...good(), coursePackage: '3.0.0' }, matrix);
+    const r = checkReleaseGate({ ...good(), coursePackage: '4.0.0' }, matrix);
     expect(r.ok).toBe(false);
     if (r.ok) return;
     expect(r.failures[0]).toMatchObject({ component: 'coursePackage', breaking: true });
@@ -102,7 +102,7 @@ describe('切换闸门', () => {
   });
 
   it('失败清单每行一项，破坏性用不同标记', () => {
-    const r = checkReleaseGate({ ...good(), coursePackage: '3.0.0', webBuild: '1.1.0' }, matrix);
+    const r = checkReleaseGate({ ...good(), coursePackage: '4.0.0', webBuild: '1.1.0' }, matrix);
     if (r.ok) throw new Error('应当失败');
     const text = formatGateFailures(r.failures);
     expect(text.split('\n')).toHaveLength(2);

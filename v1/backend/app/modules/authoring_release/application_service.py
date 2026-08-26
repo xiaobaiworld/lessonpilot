@@ -34,58 +34,168 @@ def _text(value: object) -> bool:
 
 WINDOW_SIZES = {"s", "m", "l", "overlay"}
 WINDOW_STYLES = {"card", "document"}
-RICH_BODY_MAX = 4000
+ASSET_KINDS = {"image", "audio", "video"}
+SOURCE_TYPES = {"uploaded", "licensed"}
+CONTENT_BLOCKS = {"paragraph", "heading", "quote", "list", "image", "audio", "video"}
+MARKS = {"strong", "em", "underline"}
 
 
-def _check_window_display(display: dict) -> None:
-    size = display.get("windowSize")
-    style = display.get("windowStyle")
-    if size is not None and size not in WINDOW_SIZES:
-        raise AuthoringReleaseError("DRAFT_NODE_CONTENT_INVALID")
-    if style is not None and style not in WINDOW_STYLES:
-        raise AuthoringReleaseError("DRAFT_NODE_CONTENT_INVALID")
-    rich_body = display.get("richBody")
-    if rich_body is not None and (not isinstance(rich_body, str) or len(rich_body) > RICH_BODY_MAX):
-        raise AuthoringReleaseError("DRAFT_NODE_CONTENT_INVALID")
+def _invalid(code: str) -> None:
+    raise AuthoringReleaseError(code)
 
 
-def validate_nodes(nodes: object) -> list[dict]:
+def _validate_inline(value: object) -> bool:
+    if not isinstance(value, dict) or not _text(value.get("text")):
+        return False
+    marks = value.get("marks", [])
+    if not isinstance(marks, list) or any(mark not in MARKS for mark in marks):
+        return False
+    color = value.get("color")
+    if color is not None and (not isinstance(color, str) or not color.startswith("#")):
+        return False
+    link = value.get("link")
+    if link is not None and (not isinstance(link, dict) or not _text(link.get("href"))):
+        return False
+    return True
+
+
+def _validate_rich_document(document: object) -> set[str]:
+    if not isinstance(document, dict) or document.get("schemaVersion") != 1:
+        _invalid("DRAFT_DOCUMENT_VERSION_UNSUPPORTED")
+    blocks = document.get("blocks")
+    if not isinstance(blocks, list) or not blocks:
+        _invalid("DRAFT_NODE_CONTENT_INVALID")
+    assets: set[str] = set()
+    for block in blocks:
+        if not isinstance(block, dict) or block.get("type") not in CONTENT_BLOCKS:
+            _invalid("DRAFT_CONTENT_BLOCK_UNSUPPORTED")
+        kind = block["type"]
+        if kind in {"paragraph", "heading", "quote"}:
+            children = block.get("children")
+            if (
+                not isinstance(children, list)
+                or not children
+                or any(not _validate_inline(child) for child in children)
+            ):
+                _invalid("DRAFT_NODE_CONTENT_INVALID")
+            if kind == "heading" and block.get("level") not in {2, 3}:
+                _invalid("DRAFT_NODE_CONTENT_INVALID")
+        elif kind == "list":
+            items = block.get("items")
+            if (
+                not isinstance(items, list)
+                or not items
+                or not isinstance(block.get("ordered"), bool)
+            ):
+                _invalid("DRAFT_NODE_CONTENT_INVALID")
+            for item in items:
+                if (
+                    not isinstance(item, dict)
+                    or not isinstance(item.get("children"), list)
+                    or not item["children"]
+                ):
+                    _invalid("DRAFT_NODE_CONTENT_INVALID")
+                if any(not _validate_inline(child) for child in item["children"]):
+                    _invalid("DRAFT_NODE_CONTENT_INVALID")
+        else:
+            asset_id = block.get("assetId")
+            if not _text(asset_id):
+                _invalid("DRAFT_ASSET_REFERENCE_INVALID")
+            assets.add(asset_id)
+            if kind == "image" and not isinstance(block.get("alt"), str):
+                _invalid("DRAFT_NODE_CONTENT_INVALID")
+            if (
+                kind in {"audio", "video"}
+                and block.get("title") is not None
+                and not isinstance(block["title"], str)
+            ):
+                _invalid("DRAFT_NODE_CONTENT_INVALID")
+            if kind == "video" and block.get("posterAssetId") is not None:
+                if not _text(block["posterAssetId"]):
+                    _invalid("DRAFT_ASSET_REFERENCE_INVALID")
+                assets.add(block["posterAssetId"])
+    return assets
+
+
+def _validate_assets(value: object) -> dict[str, dict]:
+    if not isinstance(value, list):
+        _invalid("DRAFT_ASSETS_INVALID")
+    assets: dict[str, dict] = {}
+    for asset in value:
+        if not isinstance(asset, dict) or not _text(asset.get("assetId")):
+            _invalid("DRAFT_ASSETS_INVALID")
+        if asset["assetId"] in assets:
+            _invalid("DRAFT_ASSETS_INVALID")
+        if asset.get("kind") not in ASSET_KINDS or not _text(asset.get("mimeType")):
+            _invalid("DRAFT_ASSETS_INVALID")
+        if not isinstance(asset.get("byteSize"), int) or asset["byteSize"] < 0:
+            _invalid("DRAFT_ASSETS_INVALID")
+        if (
+            not isinstance(asset.get("sha256"), str)
+            or len(asset["sha256"]) != 64
+            or any(c not in "0123456789abcdefABCDEF" for c in asset["sha256"])
+        ):
+            _invalid("DRAFT_ASSETS_INVALID")
+        if asset.get("sourceType") not in SOURCE_TYPES:
+            _invalid("DRAFT_ASSETS_INVALID")
+        assets[asset["assetId"]] = asset
+    return assets
+
+
+def validate_config(config: object) -> tuple[list[dict], list[dict]]:
+    if not isinstance(config, dict):
+        _invalid("DRAFT_NODES_INVALID")
+    nodes = config.get("nodes")
+    asset_records = config["assets"] if "assets" in config else []
+    assets = _validate_assets(asset_records)
     if not isinstance(nodes, list):
-        raise AuthoringReleaseError("DRAFT_NODES_INVALID")
+        _invalid("DRAFT_NODES_INVALID")
     seen: set[str] = set()
     for node in nodes:
         if not isinstance(node, dict) or not _text(node.get("id")) or node["id"] in seen:
-            raise AuthoringReleaseError("DRAFT_NODE_ID_INVALID")
+            _invalid("DRAFT_NODE_ID_INVALID")
         seen.add(node["id"])
         interaction = node.get("interaction")
         expected_family = "attention" if interaction == "notice" else "practice"
         if interaction not in {"notice", "choice", "blank", "free_text"}:
-            raise AuthoringReleaseError("DRAFT_NODE_TYPE_INVALID")
+            _invalid("DRAFT_NODE_TYPE_INVALID")
         if node.get("family") != expected_family or node.get("enabled") is not True:
-            raise AuthoringReleaseError("DRAFT_NODE_TYPE_INVALID")
-        trigger = node.get("trigger")
-        seconds = trigger.get("timeSeconds") if isinstance(trigger, dict) else None
+            _invalid("DRAFT_NODE_TYPE_INVALID")
+        if "display" in node or "evaluation" in node or "trigger" in node:
+            _invalid("DRAFT_LEGACY_NODE_UNSUPPORTED")
+        anchor = node.get("anchor")
+        seconds = anchor.get("timeSeconds") if isinstance(anchor, dict) else None
         if (
             not isinstance(seconds, (int, float))
             or isinstance(seconds, bool)
             or not math.isfinite(seconds)
             or seconds < 0
         ):
-            raise AuthoringReleaseError("DRAFT_NODE_TRIGGER_INVALID")
-        if trigger.get("kind") != "time_cross" or node.get("effects") != {"pause": True}:
-            raise AuthoringReleaseError("DRAFT_NODE_BEHAVIOR_INVALID")
-        display = node.get("display")
-        evaluation = node.get("evaluation")
-        if not isinstance(display, dict) or not _text(display.get("title")):
-            raise AuthoringReleaseError("DRAFT_NODE_CONTENT_INVALID")
-        _check_window_display(display)
+            _invalid("DRAFT_NODE_TRIGGER_INVALID")
+        if (
+            not isinstance(anchor, dict)
+            or anchor.get("kind") != "time_cross"
+            or node.get("effects") != {"pause": True}
+        ):
+            _invalid("DRAFT_NODE_BEHAVIOR_INVALID")
+        if not _text(node.get("title")):
+            _invalid("DRAFT_NODE_CONTENT_INVALID")
+        referenced = _validate_rich_document(node.get("content"))
+        hints = node.get("presentationHints", {})
+        if (
+            not isinstance(hints, dict)
+            or hints.get("windowSize") not in {None, *WINDOW_SIZES}
+            or hints.get("windowStyle") not in {None, *WINDOW_STYLES}
+        ):
+            _invalid("DRAFT_NODE_CONTENT_INVALID")
+        data = node.get("interactionData")
         if interaction == "notice":
-            if not _text(display.get("richBody")) or "body" in display or evaluation is not None:
-                raise AuthoringReleaseError("DRAFT_NOTICE_INVALID")
-        elif not _text(display.get("prompt")) or not isinstance(evaluation, dict):
-            raise AuthoringReleaseError("DRAFT_QUESTION_INVALID")
+            if data is not None:
+                _invalid("DRAFT_NOTICE_INVALID")
+        elif not isinstance(data, dict):
+            _invalid("DRAFT_QUESTION_INVALID")
         elif interaction == "choice":
-            options = display.get("options")
+            options = data.get("options")
             if (
                 not isinstance(options, list)
                 or len(options) < 2
@@ -95,22 +205,30 @@ def validate_nodes(nodes: object) -> list[dict]:
                     or not _text(item.get("label"))
                     for item in options
                 )
-                or evaluation.get("answer") not in {item["id"] for item in options}
-                or not _text(evaluation.get("explanation"))
+                or data.get("answer") not in {item["id"] for item in options}
+                or not _text(data.get("explanation"))
             ):
-                raise AuthoringReleaseError("DRAFT_CHOICE_INVALID")
+                _invalid("DRAFT_CHOICE_INVALID")
         elif interaction == "blank":
-            answers = evaluation.get("acceptedAnswers")
+            answers = data.get("acceptedAnswers")
             if (
                 not isinstance(answers, list)
                 or not answers
                 or any(not _text(answer) for answer in answers)
-                or not _text(evaluation.get("explanation"))
+                or not _text(data.get("explanation"))
             ):
-                raise AuthoringReleaseError("DRAFT_BLANK_INVALID")
-        elif not _text(evaluation.get("referenceFeedback")):
-            raise AuthoringReleaseError("DRAFT_FREE_TEXT_INVALID")
-    return nodes
+                _invalid("DRAFT_BLANK_INVALID")
+        elif not _text(data.get("referenceFeedback")):
+            _invalid("DRAFT_FREE_TEXT_INVALID")
+        if not referenced.issubset(assets):
+            _invalid("DRAFT_ASSET_REFERENCE_MISSING")
+    return nodes, list(assets.values())
+
+
+def validate_nodes(nodes: object) -> list[dict]:
+    """Validate the node aggregate for callers that do not carry an asset manifest."""
+    validated, _ = validate_config({"nodes": nodes, "assets": []})
+    return validated
 
 
 class AuthoringReleaseApplicationService:
@@ -131,8 +249,8 @@ class AuthoringReleaseApplicationService:
         config: dict,
         revision: int | None,
     ) -> ScriptDraft:
-        nodes = validate_nodes(config.get("nodes"))
-        content = {"nodes": nodes}
+        nodes, assets = validate_config(config)
+        content = {"nodes": nodes, "assets": assets}
         draft = self.session.scalar(select(ScriptDraft).where(ScriptDraft.lesson_id == lesson_id))
         if draft:
             if revision != draft.revision:
@@ -170,7 +288,7 @@ class AuthoringReleaseApplicationService:
             draft_revision=draft.revision,
             content_digest=draft.content_digest,
             locked_content=draft.content,
-            contract_version="2.0.0",
+            contract_version="3.0.0",
             plugin_version=plugin_version,
             expires_at=datetime.now(timezone.utc) + timedelta(hours=1),
         )
@@ -278,6 +396,7 @@ class AuthoringReleaseApplicationService:
                     video_platform=video.platform,
                     video_platform_id=video.platform_video_id,
                     nodes=draft.content["nodes"],
+                    assets=draft.content.get("assets", []),
                     draft_revision=draft.revision,
                     content_digest=draft.content_digest,
                 )
@@ -322,11 +441,18 @@ class AuthoringReleaseApplicationService:
         if release.availability.invalidated:
             raise AuthoringReleaseError("RELEASE_NOT_DELIVERABLE")
         return {
-            "schemaVersion": 2,
+            "schemaVersion": 3,
             "courseId": release.course_id,
             "releaseId": release.id,
             "releaseNumber": release.release_number,
             "title": release.course_title,
+            "assets": list(
+                {
+                    asset["assetId"]: asset
+                    for snapshot in sorted(release.lessons, key=lambda item: item.lesson_sequence)
+                    for asset in snapshot.assets
+                }.values()
+            ),
             "lessons": [
                 {
                     "lessonId": snapshot.lesson_id,

@@ -8,6 +8,7 @@ import {
 } from './runtime';
 import { PlayerHandle } from '../host/bilibili';
 import { RuntimeCandidate } from '../shared/library-view';
+import { richDocumentFromText } from '../../web/shared/src';
 
 /**
  * 阶段 5E 的自动化部分：seek、刷新、播放器重建、SPA、离线、扩展更新
@@ -76,9 +77,10 @@ const candidate = (n = 1): RuntimeCandidate => ({
 const node = (id: string, timeSeconds: number, interaction = 'notice') => ({
   id,
   interaction,
-  trigger: { kind: 'time_cross', timeSeconds },
-  display: { title: id, richBody: '<p>x</p>' },
-  evaluation: null,
+  anchor: { kind: 'time_cross', timeSeconds },
+  title: id,
+  content: richDocumentFromText('x'),
+  interactionData: null,
 });
 
 interface Harness {
@@ -273,7 +275,7 @@ describe('无匹配页面不显示任何 UI', () => {
   });
 
   it('课节没有可用节点时不接线', async () => {
-    // 节点缺 trigger，toRuntimeNodes 会全部丢弃
+    // 节点缺 anchor，toRuntimeNodes 会全部丢弃
     const h = harness({}, [{ id: 'x', interaction: 'notice' } as never]);
 
     await h.runtime.start('BV1Ac41187Lm');

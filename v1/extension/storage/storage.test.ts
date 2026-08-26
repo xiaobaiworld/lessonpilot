@@ -48,6 +48,7 @@ class FakeArea implements StorageArea {
 const course = (id: string, lessons = 1): InstalledCourse => ({
   courseId: id,
   title: `课程 ${id}`,
+  assets: [],
   lessons: Array.from({ length: lessons }, (_, i) => ({
     lessonId: `${id}-l${i + 1}`,
     title: `第 ${i + 1} 节`,

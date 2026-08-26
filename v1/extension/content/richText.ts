@@ -1,5 +1,6 @@
 const ALLOWED_TAGS = new Set([
   'A',
+  'AUDIO',
   'B',
   'BLOCKQUOTE',
   'BR',
@@ -17,6 +18,7 @@ const ALLOWED_TAGS = new Set([
   'STRONG',
   'U',
   'UL',
+  'VIDEO',
 ]);
 
 export const WINDOW_SIZES = ['s', 'm', 'l', 'overlay'] as const;
@@ -46,6 +48,11 @@ export function isSafeRichTextImageSrc(
   }
 }
 
+function assetIdFromUri(value: string): string | null {
+  const match = /^asset:\/\/([a-zA-Z0-9._:-]+)$/.exec(value.trim());
+  return match?.[1] ?? null;
+}
+
 export function isSafeRichTextColor(value: string): boolean {
   const color = value.trim();
   return /^#[0-9a-f]{3,8}$/i.test(color) || /^rgb(a)?\([\d\s.,%]+\)$/i.test(color);
@@ -67,9 +74,19 @@ function cloneSafeNode(node: Node): Node | null {
   }
   if (node.tagName === 'IMG') {
     const src = node.getAttribute('src') ?? '';
-    if (!isSafeRichTextImageSrc(src, window.location.origin)) return null;
-    clean.setAttribute('src', src);
+    const assetId = assetIdFromUri(src) ?? assetIdFromUri(node.getAttribute('data-asset-id') ?? '');
+    if (assetId) clean.setAttribute('data-asset-id', assetId);
+    else if (isSafeRichTextImageSrc(src, window.location.origin)) clean.setAttribute('src', src);
+    else return null;
     clean.setAttribute('alt', node.getAttribute('alt') ?? '');
+    return clean;
+  }
+  if (node.tagName === 'AUDIO' || node.tagName === 'VIDEO') {
+    const assetId = assetIdFromUri(node.getAttribute('data-asset-id') ?? '');
+    if (!assetId) return null;
+    clean.setAttribute('data-asset-id', assetId);
+    if (node.getAttribute('controls') !== null) clean.setAttribute('controls', '');
+    if (node.getAttribute('title')) clean.setAttribute('title', node.getAttribute('title')!);
     return clean;
   }
   if (node.tagName === 'SPAN' || node.tagName === 'FONT') {
@@ -99,21 +116,15 @@ export function sanitizeRichTextHtml(html: string): string {
   return wrap.innerHTML;
 }
 
-export function resolveWindowPresentation(display: Record<string, unknown>): {
+export function resolveWindowPresentation(hints: Record<string, unknown>): {
   size: WindowSize;
   style: WindowStyle;
 } {
-  const size = WINDOW_SIZES.includes(display.windowSize as WindowSize)
-    ? (display.windowSize as WindowSize)
+  const size = WINDOW_SIZES.includes(hints.windowSize as WindowSize)
+    ? (hints.windowSize as WindowSize)
     : 's';
-  const style = WINDOW_STYLES.includes(display.windowStyle as WindowStyle)
-    ? (display.windowStyle as WindowStyle)
+  const style = WINDOW_STYLES.includes(hints.windowStyle as WindowStyle)
+    ? (hints.windowStyle as WindowStyle)
     : 'card';
   return { size, style };
-}
-
-export function pageHtmlFromDisplay(display: Record<string, unknown>): string {
-  const rich = typeof display.richBody === 'string' ? display.richBody.trim() : '';
-  if (rich) return rich;
-  return typeof display.prompt === 'string' ? display.prompt.trim() : '';
 }

@@ -1,6 +1,6 @@
 import React from 'react';
+import { richDocumentFromHtml, richDocumentToHtml } from '@v1/web/shared';
 import { ScriptNode } from '../api';
-import { richTextToPlainText } from '../nodes';
 import { RichTextEditor } from './RichTextEditor';
 
 interface Props {
@@ -23,36 +23,34 @@ const WINDOW_STYLE_OPTIONS = [
 
 /** 各字段名由后端校验固定，见 v1/backend/app/modules/authoring_release/application_service.py */
 export const NodeForm: React.FC<Props> = ({ node, disabled, onChange }) => {
-  const setDisplay = (patch: Record<string, unknown>) =>
-    onChange({ ...node, display: { ...node.display, ...patch } });
+  const setHints = (patch: Record<string, unknown>) =>
+    onChange({ ...node, presentationHints: { ...node.presentationHints, ...patch } });
 
-  const setEval = (patch: Record<string, unknown>) =>
-    onChange({ ...node, evaluation: { ...(node.evaluation ?? {}), ...patch } });
+  const setInteractionData = (patch: Record<string, unknown>) =>
+    onChange({
+      ...node,
+      interactionData: { ...(node.interactionData ?? {}), ...patch },
+    });
 
-  const d = node.display as Record<string, any>;
-  const e = (node.evaluation ?? {}) as Record<string, any>;
+  const data = (node.interactionData ?? {}) as Record<string, any>;
 
   const setPageHtml = (html: string) => {
-    if (node.interaction === 'notice') {
-      setDisplay({ richBody: html });
-      return;
-    }
-    setDisplay({ richBody: html, prompt: richTextToPlainText(html) });
+    onChange({ ...node, content: richDocumentFromHtml(html) });
   };
 
   return (
     <div className="node-fields">
       <Field
         label="标题"
-        value={d.title ?? ''}
-        onChange={(v) => setDisplay({ title: v })}
+        value={node.title}
+        onChange={(title) => onChange({ ...node, title })}
         disabled={disabled}
       />
       <label className="field-group">
         <span>窗口大小</span>
         <select
-          value={d.windowSize ?? 's'}
-          onChange={(event) => setDisplay({ windowSize: event.target.value })}
+          value={node.presentationHints?.windowSize ?? 'm'}
+          onChange={(event) => setHints({ windowSize: event.target.value })}
           disabled={disabled}
         >
           {WINDOW_SIZE_OPTIONS.map((option) => (
@@ -65,8 +63,8 @@ export const NodeForm: React.FC<Props> = ({ node, disabled, onChange }) => {
       <label className="field-group">
         <span>窗口样式</span>
         <select
-          value={d.windowStyle ?? 'card'}
-          onChange={(event) => setDisplay({ windowStyle: event.target.value })}
+          value={node.presentationHints?.windowStyle ?? 'document'}
+          onChange={(event) => setHints({ windowStyle: event.target.value })}
           disabled={disabled}
         >
           {WINDOW_STYLE_OPTIONS.map((option) => (
@@ -79,20 +77,20 @@ export const NodeForm: React.FC<Props> = ({ node, disabled, onChange }) => {
 
       <RichTextEditor
         label="页面正文"
-        value={typeof d.richBody === 'string' ? d.richBody : ''}
+        value={richDocumentToHtml(node.content)}
         disabled={disabled}
         onChange={setPageHtml}
       />
 
       {node.interaction === 'choice' && (
         <ChoiceFields
-          options={d.options ?? []}
-          answer={e.answer ?? ''}
-          explanation={e.explanation ?? ''}
+          options={data.options ?? []}
+          answer={data.answer ?? ''}
+          explanation={data.explanation ?? ''}
           disabled={disabled}
-          onOptions={(options) => setDisplay({ options })}
-          onAnswer={(answer) => setEval({ answer })}
-          onExplanation={(explanation) => setEval({ explanation })}
+          onOptions={(options) => setInteractionData({ options })}
+          onAnswer={(answer) => setInteractionData({ answer })}
+          onExplanation={(explanation) => setInteractionData({ explanation })}
         />
       )}
 
@@ -100,9 +98,9 @@ export const NodeForm: React.FC<Props> = ({ node, disabled, onChange }) => {
         <>
           <Field
             label="可接受答案（多个用 | 分隔）"
-            value={(e.acceptedAnswers ?? []).join(' | ')}
+            value={(data.acceptedAnswers ?? []).join(' | ')}
             onChange={(v) =>
-              setEval({
+              setInteractionData({
                 acceptedAnswers: v
                   .split('|')
                   .map((s) => s.trim())
@@ -114,8 +112,8 @@ export const NodeForm: React.FC<Props> = ({ node, disabled, onChange }) => {
           />
           <Area
             label="解析"
-            value={e.explanation ?? ''}
-            onChange={(v) => setEval({ explanation: v })}
+            value={data.explanation ?? ''}
+            onChange={(v) => setInteractionData({ explanation: v })}
             disabled={disabled}
           />
         </>
@@ -124,8 +122,8 @@ export const NodeForm: React.FC<Props> = ({ node, disabled, onChange }) => {
       {node.interaction === 'free_text' && (
         <Area
           label="参考答案"
-          value={e.referenceFeedback ?? ''}
-          onChange={(v) => setEval({ referenceFeedback: v })}
+          value={data.referenceFeedback ?? ''}
+          onChange={(v) => setInteractionData({ referenceFeedback: v })}
           disabled={disabled}
           hint="学生作答后展示，不做自动判分"
         />
@@ -255,4 +253,3 @@ const Area: React.FC<{
     {hint && <small>{hint}</small>}
   </label>
 );
-

@@ -49,9 +49,9 @@ export const VERSIONS: VersionSupport = {
     },
     {
       component: 'coursePackage',
-      version: '2.0.0',
+      version: '3.0.0',
       status: 'development',
-      notes: 'Replaces legacy single-lesson structure with multi-lesson versioned package'
+      notes: 'Portable structured node documents and asset manifest; Bilibili remains playback-only'
     },
     {
       component: 'extensionMessages',
@@ -82,7 +82,7 @@ export const VERSIONS: VersionSupport = {
     {
       release: 'v1.0.0',
       httpApi: '2.0.0',
-      coursePackage: '2.0.0',
+      coursePackage: '3.0.0',
       extensionMessages: '2.0.0',
       extensionStorage: '2.0.0',
       webBuild: '1.0.0',

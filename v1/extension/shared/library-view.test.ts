@@ -21,6 +21,7 @@ const course = (
 ): InstalledCourse => ({
   courseId: id,
   title: `课程 ${id}`,
+  assets: [],
   lessons: (opts.lessons ?? [{ id: `${id}-l1`, video: 'BV1Ac41187Lm', nodes: ['n1', 'n2'] }]).map(
     (l) => ({
       lessonId: l.id,

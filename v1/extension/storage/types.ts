@@ -28,6 +28,19 @@ export interface LocalIdentity {
   createdAt: string;
 }
 
+export interface AssetRecord {
+  assetId: string;
+  kind: 'image' | 'audio' | 'video';
+  mimeType: string;
+  byteSize: number;
+  sha256: string;
+  width?: number;
+  height?: number;
+  durationSeconds?: number;
+  alt?: string;
+  sourceType: 'uploaded' | 'licensed';
+}
+
 export interface InstalledLesson {
   lessonId: string;
   title: string;
@@ -42,6 +55,8 @@ export interface InstalledCourse {
   courseId: string;
   title: string;
   lessons: InstalledLesson[];
+  /** 仅保存资源清单；二进制本体由后续后台资源缓存存入 IndexedDB。 */
+  assets: AssetRecord[];
   /** 发布时刻，用来判断远端是否有更新 */
   publishedAt: string;
   installedAt: string;

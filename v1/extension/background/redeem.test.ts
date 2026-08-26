@@ -25,18 +25,33 @@ class FakeArea implements StorageArea {
 }
 
 const uuid = (n: number) => `0000000${n}-0000-4000-8000-000000000000`;
+const node = (timeSeconds: unknown, id = 'n1') => ({
+  id,
+  enabled: true,
+  family: 'attention',
+  interaction: 'notice',
+  anchor: { kind: 'time_cross', timeSeconds },
+  title: '重点',
+  content: { schemaVersion: 1, blocks: [{ type: 'paragraph', children: [{ text: '提示' }] }] },
+  interactionData: null,
+  presentationHints: { windowSize: 'm', windowStyle: 'document' },
+  effects: { pause: true },
+});
 
 const pkg = (over: Record<string, unknown> = {}) => ({
-  schemaVersion: 2,
+  schemaVersion: 3,
   courseId: uuid(1),
+  releaseId: uuid(5),
+  releaseNumber: 1,
   title: '英文面试问答',
+  assets: [],
   updatedAt: '2026-08-23T11:00:00.000Z',
   lessons: [
     {
       lessonId: uuid(2),
       title: '第一节',
       videoRef: { platform: 'bilibili', videoId: 'BV1Ac41187Lm' },
-      nodes: [{ id: 'n1', trigger: { kind: 'time_cross', timeSeconds: 30 } }],
+      nodes: [node(30)],
     },
   ],
   ...over,
@@ -107,7 +122,7 @@ describe('成功路径', () => {
           lessonId: uuid(4),
           title: '第一节',
           videoRef: { platform: 'bilibili', videoId: 'BV1Bc41187Lm' },
-          nodes: [{ id: 'n1', trigger: { kind: 'time_cross', timeSeconds: 5 } }],
+          nodes: [node(5)],
         },
       ],
     });
@@ -226,7 +241,7 @@ describe('失败时保住上一份有效数据', () => {
           lessonId: uuid(8),
           title: 'ok',
           videoRef: { platform: 'bilibili', videoId: 'BV1Cc41187Lm' },
-          nodes: [{ id: 'n', trigger: { kind: 'time_cross', timeSeconds: 1 } }],
+          nodes: [node(1, 'n')],
         },
       ],
     });
@@ -254,7 +269,7 @@ describe('课程包复验', () => {
   const bad = (over: Record<string, unknown>) => checkCoursePackage(pkg(over), 's');
 
   it('主版本不认识时安全拒绝', () => {
-    expect(bad({ schemaVersion: 3 })).toMatchObject({ ok: false });
+    expect(bad({ schemaVersion: 2 })).toMatchObject({ ok: false });
     expect(bad({ schemaVersion: undefined })).toMatchObject({ ok: false });
   });
 
@@ -279,7 +294,7 @@ describe('课程包复验', () => {
       lessonId: uuid(2),
       title: 't',
       videoRef,
-      nodes: [{ id: 'n', trigger: { kind: 'time_cross', timeSeconds: 0 } }],
+      nodes: [node(0, 'n')],
     });
     expect(bad({ lessons: [lesson({ platform: 'bilibili', videoId: 'AV123' })] })).toMatchObject(
       { ok: false }
@@ -294,7 +309,7 @@ describe('课程包复验', () => {
       lessonId: uuid(id),
       title: `第 ${id}`,
       videoRef: { platform: 'bilibili', videoId: 'BV1Ac41187Lm' },
-      nodes: [{ id: 'n', trigger: { kind: 'time_cross', timeSeconds: 0 } }],
+      nodes: [node(0, 'n')],
     });
     const r = bad({ lessons: [l(2), l(3)] });
     expect(r).toMatchObject({ ok: false });
@@ -306,7 +321,7 @@ describe('课程包复验', () => {
       lessonId: uuid(2),
       title: 't',
       videoRef: { platform: 'bilibili', videoId: video },
-      nodes: [{ id: 'n', trigger: { kind: 'time_cross', timeSeconds: 0 } }],
+      nodes: [node(0, 'n')],
     });
     expect(bad({ lessons: [l('BV1Ac41187Lm'), l('BV1Bc41187Lm')] })).toMatchObject({
       ok: false,
@@ -318,7 +333,7 @@ describe('课程包复验', () => {
       lessonId: uuid(2),
       title: 't',
       videoRef: { platform: 'bilibili', videoId: 'BV1Ac41187Lm' },
-      nodes: [{ id: 'n', trigger: { kind: 'time_cross', timeSeconds: t } }],
+      nodes: [node(t, 'n')],
     });
     expect(bad({ lessons: [l(-1)] })).toMatchObject({ ok: false });
     expect(bad({ lessons: [l('30')] })).toMatchObject({ ok: false });

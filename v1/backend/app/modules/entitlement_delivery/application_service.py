@@ -203,4 +203,15 @@ class EntitlementApplicationService:
                 selected["nodes"] = [node for node in lesson["nodes"] if node["id"] in node_ids]
             if selected["nodes"]:
                 cropped["lessons"].append(selected)
+        referenced: set[str] = set()
+        for lesson in cropped["lessons"]:
+            for node in lesson["nodes"]:
+                for block in node.get("content", {}).get("blocks", []):
+                    if isinstance(block, dict) and isinstance(block.get("assetId"), str):
+                        referenced.add(block["assetId"])
+                    if isinstance(block, dict) and isinstance(block.get("posterAssetId"), str):
+                        referenced.add(block["posterAssetId"])
+        cropped["assets"] = [
+            asset for asset in package.get("assets", []) if asset.get("assetId") in referenced
+        ]
         return cropped

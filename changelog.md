@@ -4,6 +4,13 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### 初期发布流程显式约定 — 2026-08-26
+
+- 接受 `D-V1-013`：当前属于初期开发与运行；发布顺序为本机测试、提交 GitHub 并打 `web-prod/<时间-commit>`、把本机构建产物拷到阿里云切换；
+- 版本记录继续使用 `deploy/releases/*.json`；后期若改流程必须另写决策并同步脚本，不得静默加回旧门禁。
+
+验证：文档入口、决策编号与发布说明交叉引用已更新；发布脚本尚未按该决策收敛。
+
 ### 互动学习窗口可调外观与类网页正文 — 2026-08-26
 
 - 学生插件版本升至 `1.0.10`；
@@ -1364,3 +1371,9 @@ admin/teacher 生产构建全部通过。
 - Read the supplied interview SRT and replace placeholder node content with three real teaching moments at `00:39`, `02:16`, and `05:45`.
 - Align each node's title, English classroom copy, student preview, and timeline position with the subtitle meaning.
 - Record the remaining source-language caveat: the supplied file is Chinese AI translation, so final English wording needs teacher review before publishing.
+
+### Portable Interaction Content — 2026-08-26
+
+- Persist interaction-node content as versioned `RichPageDocument` JSON, with `interactionData` and `presentationHints` kept separate from the page.
+- Upgrade the course package to v3 and carry immutable node-media asset metadata by `assetId`; Bilibili playback remains a separate `videoRef`.
+- Keep whole-lesson draft atomicity and immutable release snapshots; reject legacy `display/body/evaluation/trigger` node shapes.

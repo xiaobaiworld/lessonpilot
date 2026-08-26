@@ -14,11 +14,11 @@
       "implementedBy": "v1/backend/app/modules/*/routes.py + v1/web/{admin,teacher}/src/api.ts"
     },
     "course_package": {
-      "version": "2.0.0",
+      "version": "3.0.0",
       "schema_file": "schemas/course-package.schema.json",
       "status": "implemented",
       "stage": "0C",
-      "note": "v1 course delivery format; replaces legacy single-lesson structure",
+      "note": "v1 portable rich-node course delivery format; Bilibili playback references remain separate",
       "replaces": "v0.9.1 PublishedScript.script_json",
       "implementedBy": "v1/extension/background/validate.ts"
     },
@@ -86,7 +86,7 @@
       "version": "1.0.0",
       "status": "implemented",
       "stage": "1A",
-      "migrations": "c9b7a7b60da5 (唯一 v1 head)",
+      "migrations": "20260826_rich_node_assets (唯一 v1 head)",
       "note": "v1 后端只从空库执行单一初始迁移，不包含旧后端迁移链。"
     }
   },
@@ -96,12 +96,12 @@
       "status": "development",
       "releaseTarget": "stage 7",
       "httpApi": "2.0.0",
-      "coursePackage": "2.0.0",
+      "coursePackage": "3.0.0",
       "extensionMessages": "2.0.0",
       "extensionStorage": "2.0.0",
       "webBuild": "1.0.0",
       "extensionBuild": "1.0.0",
-      "backendMigration": "c9b7a7b60da5",
+      "backendMigration": "20260826_rich_node_assets",
       "note": "开发阶段以自动化测试通过作为验收门槛。"
     }
   ],

@@ -1,6 +1,7 @@
 import { RuntimeNode, WindowState, NodeOutcome } from '../runtime/session';
 import { VideoMode } from './runtime';
-import { appendRichText, pageHtmlFromDisplay, resolveWindowPresentation } from './richText';
+import { richDocumentToHtml } from '../../web/shared/src';
+import { appendRichText, resolveWindowPresentation } from './richText';
 
 /**
  * 学习窗口渲染。
@@ -48,7 +49,7 @@ export class LearningWindow {
     root.querySelector('.km-panel')?.remove();
 
     const presentation = resolveWindowPresentation(
-      (state.node.display ?? {}) as Record<string, unknown>
+      (state.node.presentationHints ?? {}) as Record<string, unknown>
     );
     const panel = document.createElement('div');
     panel.className = `km-panel km-size-${presentation.size} km-style-${presentation.style}`;
@@ -78,12 +79,11 @@ export class LearningWindow {
   }
 
   private renderQuestion(panel: HTMLElement, node: RuntimeNode, draft: string): void {
-    const d = node.display as Record<string, any>;
-    panel.append(this.heading(String(d.title ?? '')));
+    panel.append(this.heading(node.title));
 
     const page = document.createElement('div');
     page.className = 'km-rich-text';
-    appendRichText(page, pageHtmlFromDisplay(d));
+    appendRichText(page, richDocumentToHtml(node.content));
     panel.append(page);
 
     if (node.interaction === 'notice') {
@@ -94,7 +94,8 @@ export class LearningWindow {
     }
 
     if (node.interaction === 'choice') {
-      const options = Array.isArray(d.options) ? d.options : [];
+      const data = (node.interactionData ?? {}) as Record<string, any>;
+      const options = Array.isArray(data.options) ? data.options : [];
       const list = document.createElement('div');
       list.className = 'km-options';
       for (const opt of options) {
@@ -134,7 +135,7 @@ export class LearningWindow {
     node: RuntimeNode,
     outcome: NodeOutcome
   ): void {
-    const e = (node.evaluation ?? {}) as Record<string, any>;
+    const e = (node.interactionData ?? {}) as Record<string, any>;
     panel.append(this.heading(OUTCOME_TEXT[outcome.result]));
 
     if (outcome.result === 'failed') {

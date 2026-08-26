@@ -46,6 +46,11 @@
             "type": "object",
             "description": "Embedded course-package.schema.json snapshot"
           },
+          "assets": {
+            "type": "array",
+            "description": "Portable interaction-node asset metadata; binary bodies are not stored in chrome.storage.local",
+            "items": { "type": "object" }
+          },
           "source": {
             "type": "string",
             "enum": ["example", "authorized"],

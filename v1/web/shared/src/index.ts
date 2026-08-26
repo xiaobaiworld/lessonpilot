@@ -14,3 +14,4 @@ export {
 } from './editor/SubtitleParser';
 
 export * from './editor/icons';
+export * from './portableContent';

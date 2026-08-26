@@ -13,7 +13,7 @@
 | 组件 | 版本 | 状态 | 目标阶段 |
 |------|------|------|---------|
 | HTTP API | 2.0.0 | development | 1A（设计 06 第 4.5 节） |
-| Course Package | 2.0.0 | development | 0C |
+| Course Package | 3.0.0 | development | 0C + structured interaction content |
 | Extension Messages | 2.0.0 | development | 0C |
 | Extension Storage | 2.0.0 | development | 0B（本工作包） |
 | Web Build | 0.0.0 | placeholder | 3A |

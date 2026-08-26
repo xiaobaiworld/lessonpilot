@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
 import {
-  isSafeRichTextImageSrc,
   sanitizeRichTextHtml,
 } from '../../../../extension/content/richText';
 
@@ -48,10 +47,10 @@ export const RichTextEditor: React.FC<Props> = ({ label, value, disabled, onChan
           container: TOOLBAR,
           handlers: {
             image() {
-              const url = window.prompt('输入图片地址（http 或 https）');
-              if (!url || !isSafeRichTextImageSrc(url.trim())) return;
+              const assetId = window.prompt('输入已存在的图片资源 ID（assetId）');
+              if (!assetId || !/^[a-zA-Z0-9._:-]+$/.test(assetId.trim())) return;
               const range = quill.getSelection(true) ?? { index: quill.getLength(), length: 0 };
-              quill.insertEmbed(range.index, 'image', url.trim(), 'user');
+              quill.insertEmbed(range.index, 'image', `asset://${assetId.trim()}`, 'user');
             },
           },
         },
