@@ -31,6 +31,34 @@ from app.modules.workspace_course.application_service import (
 router = APIRouter(prefix="/api/v1/teacher", tags=["teacher-authoring-release"])
 
 
+AUTHORING_ERROR_MESSAGES = {
+    "DRAFT_SUBTITLE_INVALID": "字幕内容无效，请检查时间戳、顺序和字幕文字",
+    "DRAFT_SUBTITLE_TOO_LARGE": "字幕文件不能超过 5 MB",
+    "DRAFT_NODES_INVALID": "节点数据无效，请重新添加节点",
+    "DRAFT_NODE_ID_INVALID": "节点标识无效，请重新添加节点",
+    "DRAFT_NODE_TYPE_INVALID": "节点类型或启用状态无效，请重新编辑节点",
+    "DRAFT_LEGACY_NODE_UNSUPPORTED": "节点使用了旧版字段，请重新编辑该节点",
+    "DRAFT_NODE_CONTENT_INVALID": "节点标题、正文或窗口设置无效，请检查节点内容",
+    "DRAFT_NODE_TRIGGER_INVALID": "节点触发时间无效，请重新设置触发时间",
+    "DRAFT_NODE_BEHAVIOR_INVALID": "节点触发行为无效，请重新编辑该节点",
+    "DRAFT_NOTICE_INVALID": "重点标注不能包含题型数据，请重新编辑该节点",
+    "DRAFT_QUESTION_INVALID": "题型数据无效，请重新编辑该节点",
+    "DRAFT_CHOICE_INVALID": "选择题需填写至少两个选项、正确答案和解析",
+    "DRAFT_BLANK_INVALID": "填空题需填写可接受答案、解析和标准化规则",
+    "DRAFT_FREE_TEXT_INVALID": "问答题需填写参考答案",
+    "DRAFT_ASSETS_INVALID": "节点媒体资源清单无效，请检查资源信息",
+    "DRAFT_ASSET_REFERENCE_INVALID": "节点引用的媒体资源类型不匹配",
+    "DRAFT_ASSET_REFERENCE_MISSING": "节点引用了不存在的媒体资源",
+    "DRAFT_DOCUMENT_VERSION_UNSUPPORTED": "节点正文版本不受支持，请重新编辑正文",
+    "DRAFT_CONTENT_BLOCK_UNSUPPORTED": "节点正文包含不受支持的内容块",
+    "RELEASE_NOT_DELIVERABLE": "当前课程暂时不能发布，请检查课程状态和课节",
+    "RELEASE_DRAFT_MISSING": "有课节还没有保存草稿，请先保存每一节课",
+    "RELEASE_DRAFT_EMPTY": "有课节没有互动节点，请先添加并保存节点",
+    "RELEASE_PREVIEW_REQUIRED": "请先对所有课节的最终草稿完成测试预览",
+    "RELEASE_RIGHTS_REQUIRED": "发布前请确认你有权使用课程内容",
+}
+
+
 def _draft(draft: ScriptDraft) -> DraftPublic:
     return DraftPublic(
         schema_version=int(draft.schema_version),
@@ -85,7 +113,11 @@ def _error(error: Exception) -> ApiError:
         return ApiError(409, code, "草稿已被修改，请重新读取")
     if code.endswith("NOT_FOUND") or code in {"COURSE_NOT_FOUND", "LESSON_NOT_FOUND"}:
         return ApiError(404, code, "对象不存在或无权访问")
-    return ApiError(422, code, "请求不满足制作或发布条件")
+    return ApiError(
+        422,
+        code,
+        AUTHORING_ERROR_MESSAGES.get(code, f"制作或发布校验失败（错误码：{code}）"),
+    )
 
 
 def _services(

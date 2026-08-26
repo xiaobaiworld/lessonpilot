@@ -268,6 +268,7 @@ def test_invalid_subtitle_does_not_create_or_replace_draft() -> None:
     )
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "DRAFT_SUBTITLE_INVALID"
+    assert response.json()["error"]["message"] == "字幕内容无效，请检查时间戳、顺序和字幕文字"
     assert client.get(f"/api/v1/teacher/lessons/{lesson['id']}/draft").status_code == 404
 
     valid = client.put(
