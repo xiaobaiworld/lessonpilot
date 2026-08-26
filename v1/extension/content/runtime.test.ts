@@ -8,7 +8,7 @@ import {
 } from './runtime';
 import { PlayerHandle } from '../host/bilibili';
 import { RuntimeCandidate } from '../shared/library-view';
-import { richDocumentFromText } from '../../web/shared/src';
+import { PortableNode, richDocumentFromText } from '../../web/shared/src';
 
 /**
  * 阶段 5E 的自动化部分：seek、刷新、播放器重建、SPA、离线、扩展更新
@@ -74,13 +74,16 @@ const candidate = (n = 1): RuntimeCandidate => ({
   lessonTitle: `课节 ${n}`,
 });
 
-const node = (id: string, timeSeconds: number, interaction = 'notice') => ({
+const node = (id: string, timeSeconds: number, interaction: PortableNode['interaction'] = 'notice'): PortableNode => ({
   id,
+  enabled: true,
+  family: interaction === 'notice' ? 'attention' : 'practice',
   interaction,
-  anchor: { kind: 'time_cross', timeSeconds },
+  anchor: { kind: 'time_cross', timeSeconds, captionId: null },
   title: id,
   content: richDocumentFromText('x'),
   interactionData: null,
+  effects: { pause: true },
 });
 
 interface Harness {

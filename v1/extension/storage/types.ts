@@ -1,3 +1,5 @@
+import type { PortableNode } from '../../web/shared/src/portableContent';
+
 /**
  * 本机存储根。
  *
@@ -45,7 +47,7 @@ export interface InstalledLesson {
   lessonId: string;
   title: string;
   videoId: string;
-  nodes: unknown[];
+  nodes: PortableNode[];
 }
 
 export type CourseSource = 'example' | 'authorized';

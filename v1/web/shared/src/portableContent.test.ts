@@ -26,4 +26,16 @@ describe('RichPageDocument', () => {
       { type: 'video', assetId: 'video-1' },
     ]);
   });
+
+  it('保留节点视频的海报资源引用', () => {
+    const html = richDocumentToHtml({
+      schemaVersion: 1,
+      blocks: [{ type: 'video', assetId: 'video-1', posterAssetId: 'image-1' }],
+    });
+    expect(html).toContain('data-poster-asset-id="image-1"');
+    expect(richDocumentFromHtml(html)).toEqual({
+      schemaVersion: 1,
+      blocks: [{ type: 'video', assetId: 'video-1', posterAssetId: 'image-1' }],
+    });
+  });
 });

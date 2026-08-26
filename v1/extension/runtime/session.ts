@@ -1,4 +1,4 @@
-import { InstalledLesson, NodeAttempt } from '../storage/types';
+import { NodeAttempt } from '../storage/types';
 import { RichPageDocument, PresentationHints } from '../../web/shared/src';
 
 /**
@@ -267,7 +267,7 @@ export class LearningSession {
 }
 
 /** 从已安装课节构造运行时节点 */
-export function toRuntimeNodes(lesson: InstalledLesson): RuntimeNode[] {
+export function toRuntimeNodes(lesson: { nodes: unknown[]; lessonId?: string; title?: string; videoId?: string }): RuntimeNode[] {
   const out: RuntimeNode[] = [];
   for (const raw of lesson.nodes) {
     const n = raw as Record<string, any>;

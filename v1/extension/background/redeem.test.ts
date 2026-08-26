@@ -339,4 +339,71 @@ describe('课程包复验', () => {
     expect(bad({ lessons: [l('30')] })).toMatchObject({ ok: false });
     expect(bad({ lessons: [l(Number.NaN)] })).toMatchObject({ ok: false });
   });
+
+  it('拒绝未知字段和不匹配的节点媒体资源', () => {
+    expect(bad({ unexpected: true })).toMatchObject({ ok: false });
+    const image = {
+      assetId: 'image-1',
+      kind: 'image',
+      mimeType: 'image/png',
+      byteSize: 4,
+      sha256: 'a'.repeat(64),
+      sourceType: 'uploaded',
+    };
+    const video = {
+      assetId: 'video-1',
+      kind: 'video',
+      mimeType: 'video/mp4',
+      byteSize: 4,
+      sha256: 'b'.repeat(64),
+      sourceType: 'uploaded',
+    };
+    expect(
+      bad({
+        assets: [image],
+        lessons: [
+          {
+            lessonId: uuid(2),
+            title: 't',
+            videoRef: { platform: 'bilibili', videoId: 'BV1Ac41187Lm' },
+            nodes: [{ ...node(0, 'n'), content: { schemaVersion: 1, blocks: [{ type: 'image', assetId: 'video-1', alt: '图' }] } }],
+          },
+        ],
+      })
+    ).toMatchObject({ ok: false });
+    expect(
+      bad({
+        assets: [image, video],
+        lessons: [
+          {
+            lessonId: uuid(2),
+            title: 't',
+            videoRef: { platform: 'bilibili', videoId: 'BV1Ac41187Lm' },
+            nodes: [
+              {
+                ...node(0, 'n'),
+                content: {
+                  schemaVersion: 1,
+                  blocks: [{ type: 'video', assetId: 'video-1', posterAssetId: 'image-1' }],
+                },
+              },
+            ],
+          },
+        ],
+      })
+    ).toMatchObject({ ok: true });
+    expect(
+      bad({
+        assets: [video],
+        lessons: [
+          {
+            lessonId: uuid(2),
+            title: 't',
+            videoRef: { platform: 'bilibili', videoId: 'BV1Ac41187Lm' },
+            nodes: [{ ...node(0, 'n'), content: { schemaVersion: 1, blocks: [{ type: 'video', assetId: 'video-1', posterAssetId: 'missing' }] } }],
+          },
+        ],
+      })
+    ).toMatchObject({ ok: false });
+  });
 });

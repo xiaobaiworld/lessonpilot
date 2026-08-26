@@ -125,7 +125,7 @@ async function main() {
       const first = course.lessons[0];
       return {
         videoId: first.videoId,
-        seconds: first.nodes[0]?.trigger?.timeSeconds ?? 30,
+        seconds: first.nodes[0]?.anchor?.timeSeconds ?? 30,
         nodeCount: first.nodes.length,
       };
     });

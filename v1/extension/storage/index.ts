@@ -3,6 +3,7 @@ import {
   STORAGE_SCHEMA_VERSION,
   LEGACY_KEYS,
   StorageRoot,
+  AssetRecord,
   InstalledCourse,
   AuthorizationSource,
   LessonProgress,
@@ -10,6 +11,7 @@ import {
   QuarantineEntry,
   emptyRoot,
 } from './types';
+import type { PortableNode } from '../../web/shared/src/portableContent';
 
 /** chrome.storage.local 的最小接口，便于在测试里替换 */
 export interface StorageArea {
@@ -27,6 +29,201 @@ export class StorageFailure extends Error {
 
 function isPlainObject(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v);
+}
+
+const BVID = /^BV[0-9A-Za-z]{10}$/;
+const SHA256 = /^[0-9a-f]{64}$/i;
+const COLOR = /^#[0-9a-f]{3,8}$/i;
+const MARKS = new Set(['strong', 'em', 'underline']);
+const ASSET_MIME_PREFIX: Record<string, string> = {
+  image: 'image/',
+  audio: 'audio/',
+  video: 'video/',
+};
+
+function nonBlank(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function onlyKeys(value: Record<string, unknown>, required: string[], optional: string[] = []): boolean {
+  const allowed = new Set([...required, ...optional]);
+  return required.every((key) => key in value) && Object.keys(value).every((key) => allowed.has(key));
+}
+
+function isDateTime(value: unknown): value is string {
+  return typeof value === 'string' && Number.isFinite(Date.parse(value));
+}
+
+function isSafeHref(value: unknown): value is string {
+  if (!nonBlank(value)) return false;
+  try {
+    const protocol = new URL(value, 'https://knownmap.invalid/').protocol;
+    return ['http:', 'https:', 'mailto:'].includes(protocol);
+  } catch {
+    return false;
+  }
+}
+
+function isAssetRecord(value: unknown): boolean {
+  if (!isPlainObject(value)) return false;
+  if (
+    !onlyKeys(
+      value,
+      ['assetId', 'kind', 'mimeType', 'byteSize', 'sha256', 'sourceType'],
+      ['width', 'height', 'durationSeconds', 'alt']
+    )
+  ) return false;
+  const kind = String(value.kind);
+  return (
+    nonBlank(value.assetId) &&
+    kind in ASSET_MIME_PREFIX &&
+    nonBlank(value.mimeType) &&
+    value.mimeType.startsWith(ASSET_MIME_PREFIX[kind]) &&
+    Number.isInteger(value.byteSize) &&
+    Number(value.byteSize) >= 0 &&
+    typeof value.sha256 === 'string' &&
+    SHA256.test(value.sha256) &&
+    ['uploaded', 'licensed'].includes(String(value.sourceType)) &&
+    (value.width === undefined || (typeof value.width === 'number' && Number.isInteger(value.width) && value.width >= 1)) &&
+    (value.height === undefined || (typeof value.height === 'number' && Number.isInteger(value.height) && value.height >= 1)) &&
+    (value.durationSeconds === undefined ||
+      (typeof value.durationSeconds === 'number' &&
+        Number.isFinite(value.durationSeconds) &&
+        value.durationSeconds > 0)) &&
+    (value.alt === undefined || typeof value.alt === 'string')
+  );
+}
+
+function isInline(value: unknown): boolean {
+  if (!isPlainObject(value) || !onlyKeys(value, ['text'], ['marks', 'color', 'link']) || !nonBlank(value.text)) return false;
+  if (
+    value.marks !== undefined &&
+    (!Array.isArray(value.marks) || value.marks.some((mark) => !MARKS.has(String(mark))))
+  ) return false;
+  if (value.color !== undefined && (typeof value.color !== 'string' || !COLOR.test(value.color))) return false;
+  if (
+    value.link !== undefined &&
+    (!isPlainObject(value.link) || !onlyKeys(value.link, ['href']) || !isSafeHref(value.link.href))
+  ) return false;
+  return true;
+}
+
+function isRichDocument(value: unknown, assets: Map<string, AssetRecord>): boolean {
+  if (!isPlainObject(value) || !onlyKeys(value, ['schemaVersion', 'blocks']) || value.schemaVersion !== 1) return false;
+  if (!Array.isArray(value.blocks) || value.blocks.length === 0) return false;
+  for (const block of value.blocks) {
+    if (!isPlainObject(block) || typeof block.type !== 'string') return false;
+    if (block.type === 'paragraph' || block.type === 'quote') {
+      if (!onlyKeys(block, ['type', 'children']) || !Array.isArray(block.children) || block.children.length === 0 || !block.children.every(isInline)) return false;
+      continue;
+    }
+    if (block.type === 'heading') {
+      if (!onlyKeys(block, ['type', 'level', 'children']) || ![2, 3].includes(Number(block.level)) || !Array.isArray(block.children) || block.children.length === 0 || !block.children.every(isInline)) return false;
+      continue;
+    }
+    if (block.type === 'list') {
+      if (!onlyKeys(block, ['type', 'ordered', 'items']) || typeof block.ordered !== 'boolean' || !Array.isArray(block.items) || block.items.length === 0) return false;
+      if (block.items.some((item) => !isPlainObject(item) || !onlyKeys(item, ['children']) || !Array.isArray(item.children) || item.children.length === 0 || !item.children.every(isInline))) return false;
+      continue;
+    }
+    if (block.type !== 'image' && block.type !== 'audio' && block.type !== 'video') return false;
+    const optional = block.type === 'image' ? [] : block.type === 'video' ? ['title', 'posterAssetId'] : ['title'];
+    const required = block.type === 'image' ? ['type', 'assetId', 'alt'] : ['type', 'assetId'];
+    if (!onlyKeys(block, required, optional) || !nonBlank(block.assetId)) return false;
+    const asset = assets.get(block.assetId);
+    if (!asset || asset.kind !== block.type) return false;
+    if (block.type === 'image' && typeof block.alt !== 'string') return false;
+    if (block.type !== 'image' && block.title !== undefined && typeof block.title !== 'string') return false;
+    if (block.type === 'video' && block.posterAssetId !== undefined) {
+      if (!nonBlank(block.posterAssetId)) return false;
+      const poster = assets.get(block.posterAssetId);
+      if (!poster || poster.kind !== 'image') return false;
+    }
+  }
+  return true;
+}
+
+function isInteractionData(interaction: string, value: unknown): boolean {
+  if (interaction === 'notice') return value === null;
+  if (!isPlainObject(value)) return false;
+  if (interaction === 'choice') {
+    if (!onlyKeys(value, ['options', 'answer', 'explanation']) || !Array.isArray(value.options) || value.options.length < 2 || !nonBlank(value.answer) || !nonBlank(value.explanation)) return false;
+    return value.options.every((option) => isPlainObject(option) && onlyKeys(option, ['id', 'label']) && nonBlank(option.id) && nonBlank(option.label)) && value.options.some((option) => isPlainObject(option) && option.id === value.answer);
+  }
+  if (interaction === 'blank') {
+    return onlyKeys(value, ['acceptedAnswers', 'normalize', 'explanation']) && Array.isArray(value.acceptedAnswers) && value.acceptedAnswers.length > 0 && value.acceptedAnswers.every(nonBlank) && Array.isArray(value.normalize) && value.normalize.every((rule) => rule === 'trim' || rule === 'casefold') && nonBlank(value.explanation);
+  }
+  return onlyKeys(value, ['referenceFeedback']) && nonBlank(value.referenceFeedback);
+}
+
+function isPortableNode(value: unknown, assets: Map<string, AssetRecord>): value is PortableNode {
+  if (!isPlainObject(value) || !onlyKeys(value, ['id', 'enabled', 'family', 'interaction', 'anchor', 'title', 'content', 'interactionData', 'effects'], ['presentationHints'])) return false;
+  const anchor = value.anchor;
+  const content = value.content;
+  const effects = value.effects;
+  const hints = value.presentationHints;
+  return (
+    nonBlank(value.id) &&
+    value.enabled === true &&
+    ['attention', 'practice'].includes(String(value.family)) &&
+    ['notice', 'choice', 'blank', 'free_text'].includes(String(value.interaction)) &&
+    value.family === (value.interaction === 'notice' ? 'attention' : 'practice') &&
+    isPlainObject(anchor) &&
+    onlyKeys(anchor, ['kind', 'timeSeconds'], ['captionId']) &&
+    anchor.kind === 'time_cross' &&
+    typeof anchor.timeSeconds === 'number' &&
+    Number.isFinite(anchor.timeSeconds) &&
+    anchor.timeSeconds >= 0 &&
+    (anchor.captionId === undefined || anchor.captionId === null || nonBlank(anchor.captionId)) &&
+    nonBlank(value.title) &&
+    isRichDocument(content, assets) &&
+    isInteractionData(String(value.interaction), value.interactionData) &&
+    (hints === undefined ||
+      (isPlainObject(hints) &&
+        onlyKeys(hints, [], ['windowSize', 'windowStyle']) &&
+        (hints.windowSize === undefined || ['s', 'm', 'l', 'overlay'].includes(String(hints.windowSize))) &&
+        (hints.windowStyle === undefined || ['card', 'document'].includes(String(hints.windowStyle))))) &&
+    isPlainObject(effects) &&
+    onlyKeys(effects, ['pause']) &&
+    effects.pause === true
+  );
+}
+
+function isInstalledCourse(value: unknown): value is InstalledCourse {
+  if (!isPlainObject(value)) return false;
+  if (
+    typeof value.courseId !== 'string' ||
+    !value.courseId.trim() ||
+    typeof value.title !== 'string' ||
+    !value.title.trim() ||
+    !Array.isArray(value.lessons) ||
+    !Array.isArray(value.assets) ||
+    !value.assets.every(isAssetRecord) ||
+    !['example', 'authorized'].includes(String(value.source)) ||
+    typeof value.readOnly !== 'boolean' ||
+    typeof value.sourceId !== 'string' ||
+    !value.sourceId.trim()
+  ) return false;
+  const assets = new Map<string, AssetRecord>();
+  for (const asset of value.assets) {
+    if (!isAssetRecord(asset) || assets.has(asset.assetId)) return false;
+    assets.set(asset.assetId, asset as AssetRecord);
+  }
+  if (!isDateTime(value.publishedAt) || !isDateTime(value.installedAt)) return false;
+  return value.lessons.every((lesson) => {
+    if (!isPlainObject(lesson)) return false;
+    return (
+      typeof lesson.lessonId === 'string' &&
+      lesson.lessonId.trim().length > 0 &&
+      typeof lesson.title === 'string' &&
+      lesson.title.trim().length > 0 &&
+      typeof lesson.videoId === 'string' &&
+      BVID.test(lesson.videoId) &&
+      Array.isArray(lesson.nodes) &&
+      lesson.nodes.length > 0 &&
+      lesson.nodes.every((node) => isPortableNode(node, assets))
+    );
+  });
 }
 
 /**
@@ -102,14 +299,10 @@ export class CourseLibrary {
 
     if (isPlainObject(value.installedCourses)) {
       for (const [courseId, course] of Object.entries(value.installedCourses)) {
-        if (
-          isPlainObject(course) &&
-          typeof course.title === 'string' &&
-          Array.isArray(course.lessons)
-        ) {
+        if (isInstalledCourse(course) && course.courseId === courseId) {
           const source = course.source === 'example' ? 'example' : 'authorized';
           root.installedCourses[courseId] = {
-            ...(course as unknown as InstalledCourse),
+            ...course,
             source,
             readOnly: source === 'example' || course.readOnly === true,
           };

@@ -2,161 +2,211 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://knownmap.local/schema/v2/extension-storage.schema.json",
   "title": "KnownMap Extension Storage Schema v2.0.0",
-  "description": "Extension local storage root structure - zero tolerance for legacy storage format",
+  "description": "The chrome.storage.local root used by the student extension.",
   "type": "object",
-  "required": ["storage_schema_version"],
+  "additionalProperties": false,
+  "required": ["storage_schema_version", "localIdentity", "installedCourses", "authorizationSourceCache", "localLearningState", "quarantine"],
   "properties": {
-    "storage_schema_version": {
-      "type": "string",
-      "pattern": "^2\\.\\d+\\.\\d+$",
-      "description": "Storage schema version; mismatch = reject and quarantine"
-    },
-    "localIdentity": {
-      "type": "object",
-      "required": ["clientId", "proof", "proofSalt"],
-      "description": "Student local identity for proof-of-installation",
-      "properties": {
-        "clientId": {
-          "type": "string",
-          "format": "uuid",
-          "description": "Unique per installation; generated at first redemption"
-        },
-        "proof": {
-          "type": "string",
-          "description": "HMAC-based proof; never stored plaintext"
-        },
-        "proofSalt": {
-          "type": "string",
-          "description": "Cryptographic salt for proof generation"
-        }
-      }
-    },
+    "storage_schema_version": { "type": "string", "pattern": "^2\\.\\d+\\.\\d+$" },
+    "localIdentity": { "anyOf": [{ "$ref": "#/definitions/localIdentity" }, { "type": "null" }] },
     "installedCourses": {
       "type": "object",
-      "description": "Installed course manifests keyed by courseId",
-      "additionalProperties": {
-        "type": "object",
-        "required": ["courseId", "coursePackage", "installedAt"],
-        "properties": {
-          "courseId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "coursePackage": {
-            "type": "object",
-            "description": "Embedded course-package.schema.json snapshot"
-          },
-          "assets": {
-            "type": "array",
-            "description": "Portable interaction-node asset metadata; binary bodies are not stored in chrome.storage.local",
-            "items": { "type": "object" }
-          },
-          "source": {
-            "type": "string",
-            "enum": ["example", "authorized"],
-            "description": "Whether the course is bundled by the extension or redeemed"
-          },
-          "readOnly": {
-            "type": "boolean",
-            "description": "Bundled example courses cannot be deleted or replaced"
-          },
-          "installedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "status": {
-            "type": "string",
-            "enum": ["installed", "update_available", "corrupted"],
-            "default": "installed"
-          }
-        }
-      }
+      "additionalProperties": { "$ref": "#/definitions/installedCourse" }
     },
     "authorizationSourceCache": {
       "type": "object",
-      "description": "Authorization sources from all redemptions",
-      "properties": {
-        "sources": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": ["accessCodeId", "grantedCourses"],
-            "properties": {
-              "accessCodeId": {
-                "type": "string",
-                "description": "Hashed access code identifier"
-              },
-              "grantedCourses": {
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "redeemAt": {
-                "type": "string",
-                "format": "date-time"
-              }
-            }
-          }
-        }
-      }
+      "additionalProperties": false,
+      "required": ["sources"],
+      "properties": { "sources": { "type": "array", "items": { "$ref": "#/definitions/authorizationSource" } } }
     },
     "localLearningState": {
       "type": "object",
-      "description": "Student learning progress and session state",
       "additionalProperties": {
         "type": "object",
-        "properties": {
-          "courseId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "lessonId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "progress": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 1
-          },
-          "completedNodes": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        }
+        "additionalProperties": { "$ref": "#/definitions/lessonProgress" }
       }
     },
     "quarantine": {
       "type": "object",
-      "description": "Corrupted or invalid entries isolated for recovery",
-      "properties": {
-        "entries": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": ["reason", "data"],
-            "properties": {
-              "reason": {
-                "type": "string",
-                "enum": ["schema_mismatch", "corrupted_package", "unknown_message_type"]
-              },
-              "data": {
-                "type": "object"
-              },
-              "quarantinedAt": {
-                "type": "string",
-                "format": "date-time"
-              }
-            }
-          }
-        }
-      }
+      "additionalProperties": false,
+      "required": ["entries"],
+      "properties": { "entries": { "type": "array", "items": { "$ref": "#/definitions/quarantineEntry" } } }
     }
   },
-  "additionalProperties": false
+  "definitions": {
+    "localIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["clientId", "proof", "proofSalt", "createdAt"],
+      "properties": {
+        "clientId": { "type": "string", "format": "uuid" },
+        "proof": { "type": "string", "minLength": 1 },
+        "proofSalt": { "type": "string", "minLength": 1 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["assetId", "kind", "mimeType", "byteSize", "sha256", "sourceType"],
+      "properties": {
+        "assetId": { "type": "string", "minLength": 1 },
+        "kind": { "enum": ["image", "audio", "video"] },
+        "mimeType": { "type": "string", "minLength": 1 },
+        "byteSize": { "type": "integer", "minimum": 0 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-fA-F]{64}$" },
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 },
+        "durationSeconds": { "type": "number", "exclusiveMinimum": 0 },
+        "alt": { "type": "string" },
+        "sourceType": { "enum": ["uploaded", "licensed"] }
+      }
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "enabled", "family", "interaction", "anchor", "title", "content", "interactionData", "effects"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "enabled": { "const": true },
+        "family": { "enum": ["attention", "practice"] },
+        "interaction": { "enum": ["notice", "choice", "blank", "free_text"] },
+        "anchor": { "type": "object", "additionalProperties": false, "required": ["kind", "timeSeconds"], "properties": { "kind": { "const": "time_cross" }, "timeSeconds": { "type": "number", "minimum": 0 }, "captionId": { "type": ["string", "null"] } } },
+        "title": { "type": "string", "minLength": 1 },
+        "content": { "$ref": "#/definitions/document" },
+        "interactionData": { "type": ["object", "null"] },
+        "presentationHints": { "type": "object", "additionalProperties": false, "properties": { "windowSize": { "enum": ["s", "m", "l", "overlay"] }, "windowStyle": { "enum": ["card", "document"] } } },
+        "effects": { "type": "object", "additionalProperties": false, "required": ["pause"], "properties": { "pause": { "const": true } } }
+      }
+    },
+    "inline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text"],
+      "properties": {
+        "text": { "type": "string", "minLength": 1 },
+        "marks": { "type": "array", "items": { "enum": ["strong", "em", "underline"] } },
+        "color": { "type": "string", "pattern": "^#[0-9a-fA-F]{3,8}$" },
+        "link": { "type": "object", "additionalProperties": false, "required": ["href"], "properties": { "href": { "type": "string", "minLength": 1 } } }
+      }
+    },
+    "inlineBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "children"],
+      "properties": {
+        "type": { "enum": ["paragraph", "quote"] },
+        "children": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/inline" } }
+      }
+    },
+    "heading": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "level", "children"],
+      "properties": {
+        "type": { "const": "heading" },
+        "level": { "enum": [2, 3] },
+        "children": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/inline" } }
+      }
+    },
+    "list": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "ordered", "items"],
+      "properties": {
+        "type": { "const": "list" },
+        "ordered": { "type": "boolean" },
+        "items": { "type": "array", "minItems": 1, "items": { "type": "object", "additionalProperties": false, "required": ["children"], "properties": { "children": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/inline" } } } } }
+      }
+    },
+    "image": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "assetId", "alt"],
+      "properties": { "type": { "const": "image" }, "assetId": { "type": "string", "minLength": 1 }, "alt": { "type": "string" } }
+    },
+    "audio": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "assetId"],
+      "properties": { "type": { "const": "audio" }, "assetId": { "type": "string", "minLength": 1 }, "title": { "type": "string" } }
+    },
+    "video": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "assetId"],
+      "properties": { "type": { "const": "video" }, "assetId": { "type": "string", "minLength": 1 }, "title": { "type": "string" }, "posterAssetId": { "type": "string", "minLength": 1 } }
+    },
+    "document": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "blocks"],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "blocks": { "type": "array", "minItems": 1, "items": { "anyOf": [{ "$ref": "#/definitions/inlineBlock" }, { "$ref": "#/definitions/heading" }, { "$ref": "#/definitions/list" }, { "$ref": "#/definitions/image" }, { "$ref": "#/definitions/audio" }, { "$ref": "#/definitions/video" }] } }
+      }
+    },
+    "installedLesson": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lessonId", "title", "videoId", "nodes"],
+      "properties": {
+        "lessonId": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "videoId": { "type": "string", "pattern": "^BV[0-9A-Za-z]{10}$" },
+        "nodes": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/node" } }
+      }
+    },
+    "installedCourse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["courseId", "title", "lessons", "assets", "publishedAt", "installedAt", "source", "readOnly", "sourceId"],
+      "properties": {
+        "courseId": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "lessons": { "type": "array", "items": { "$ref": "#/definitions/installedLesson" } },
+        "assets": { "type": "array", "items": { "$ref": "#/definitions/asset" } },
+        "publishedAt": { "type": "string", "format": "date-time" },
+        "installedAt": { "type": "string", "format": "date-time" },
+        "source": { "enum": ["example", "authorized"] },
+        "readOnly": { "type": "boolean" },
+        "sourceId": { "type": "string", "minLength": 1 }
+      }
+    },
+    "authorizationSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceId", "codeHint", "redeemedAt", "courseIds", "expiresAt"],
+      "properties": {
+        "sourceId": { "type": "string", "minLength": 1 },
+        "codeHint": { "type": "string", "minLength": 1, "maxLength": 5 },
+        "redeemedAt": { "type": "string", "format": "date-time" },
+        "courseIds": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "expiresAt": { "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }] }
+      }
+    },
+    "nodeAttempt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["at", "answer", "correct"],
+      "properties": { "at": { "type": "string", "format": "date-time" }, "answer": { "type": "string" }, "correct": { "type": ["boolean", "null"] } }
+    },
+    "lessonProgress": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["done", "attempts", "lastPositionSeconds", "updatedAt"],
+      "properties": {
+        "done": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "attempts": { "type": "object", "additionalProperties": { "type": "array", "items": { "$ref": "#/definitions/nodeAttempt" } } },
+        "lastPositionSeconds": { "type": "number", "minimum": 0 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "quarantineEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["at", "reason", "sample"],
+      "properties": { "at": { "type": "string", "format": "date-time" }, "reason": { "type": "string", "minLength": 1 }, "sample": { "type": "string", "maxLength": 200 } }
+    }
+  }
 }

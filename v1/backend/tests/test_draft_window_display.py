@@ -105,3 +105,89 @@ def test_asset_reference_requires_manifest_and_can_be_reused():
     )
     assert len(nodes) == 2
     assert len(assets) == 1
+
+
+def test_closed_node_and_inline_shapes_are_enforced():
+    with pytest.raises(AuthoringReleaseError) as extra:
+        validate_config({"nodes": [node(unexpected="value")], "assets": []})
+    assert extra.value.code == "DRAFT_NODE_CONTENT_INVALID"
+
+    with pytest.raises(AuthoringReleaseError) as unsafe_link:
+        validate_config(
+            {
+                "nodes": [
+                    node(
+                        content={
+                            "schemaVersion": 1,
+                            "blocks": [
+                                {
+                                    "type": "paragraph",
+                                    "children": [
+                                        {"text": "链接", "link": {"href": "javascript:alert(1)"}}
+                                    ],
+                                }
+                            ],
+                        }
+                    )
+                ],
+                "assets": [],
+            }
+        )
+    assert unsafe_link.value.code == "DRAFT_NODE_CONTENT_INVALID"
+
+
+def test_media_reference_must_match_asset_kind_and_poster_must_be_an_image():
+    video = {
+        "assetId": "video-1",
+        "kind": "video",
+        "mimeType": "video/mp4",
+        "byteSize": 4,
+        "sha256": "b" * 64,
+        "sourceType": "uploaded",
+    }
+    image = {
+        "assetId": "image-1",
+        "kind": "image",
+        "mimeType": "image/png",
+        "byteSize": 4,
+        "sha256": "c" * 64,
+        "sourceType": "uploaded",
+    }
+    with pytest.raises(AuthoringReleaseError) as mismatch:
+        validate_config(
+            {
+                "nodes": [
+                    node(
+                        content={
+                            "schemaVersion": 1,
+                            "blocks": [{"type": "image", "assetId": "video-1", "alt": "图"}],
+                        }
+                    )
+                ],
+                "assets": [video],
+            }
+        )
+    assert mismatch.value.code == "DRAFT_ASSET_REFERENCE_INVALID"
+
+    nodes, assets = validate_config(
+        {
+            "nodes": [
+                node(
+                    content={
+                        "schemaVersion": 1,
+                        "blocks": [
+                            {
+                                "type": "video",
+                                "assetId": "video-1",
+                                "posterAssetId": "image-1",
+                                "title": "片段",
+                            }
+                        ],
+                    }
+                )
+            ],
+            "assets": [video, image],
+        }
+    )
+    assert len(nodes) == 1
+    assert {asset["assetId"] for asset in assets} == {"video-1", "image-1"}

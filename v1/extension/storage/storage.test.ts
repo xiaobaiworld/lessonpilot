@@ -6,6 +6,7 @@ import {
   InstalledCourse,
   AuthorizationSource,
 } from './types';
+import { PortableNode } from '../../web/shared/src';
 
 /** 内存版 chrome.storage.local，可注入延迟和失败 */
 class FakeArea implements StorageArea {
@@ -45,6 +46,18 @@ class FakeArea implements StorageArea {
   }
 }
 
+const testNode = (id: string): PortableNode => ({
+  id,
+  enabled: true,
+  family: 'attention',
+  interaction: 'notice',
+  anchor: { kind: 'time_cross', timeSeconds: 10, captionId: null },
+  title: '重点',
+  content: { schemaVersion: 1, blocks: [{ type: 'paragraph', children: [{ text: '提示' }] }] },
+  interactionData: null,
+  effects: { pause: true },
+});
+
 const course = (id: string, lessons = 1): InstalledCourse => ({
   courseId: id,
   title: `课程 ${id}`,
@@ -53,7 +66,7 @@ const course = (id: string, lessons = 1): InstalledCourse => ({
     lessonId: `${id}-l${i + 1}`,
     title: `第 ${i + 1} 节`,
     videoId: 'BV1Ac41187Lm',
-    nodes: [{ id: 'n1' }],
+    nodes: [testNode('n1')],
   })),
   publishedAt: '2026-08-23T00:00:00.000Z',
   installedAt: '2026-08-23T00:00:00.000Z',
@@ -129,14 +142,14 @@ describe('初始状态', () => {
       lessons: [
         {
           ...first.lessons[0],
-          nodes: [{ id: 'n1-new' }],
+          nodes: [testNode('n1-new')],
         },
       ],
     };
     await lib.ensureExampleCourse(updated);
 
     const root = await lib.read();
-    expect(root.installedCourses.example.lessons[0].nodes).toEqual([{ id: 'n1-new' }]);
+    expect(root.installedCourses.example.lessons[0].nodes[0].id).toBe('n1-new');
     expect(root.localLearningState.example['example-l1'].attempts.n1).toHaveLength(1);
   });
 
@@ -204,6 +217,57 @@ describe('损坏隔离', () => {
     area.data[STORAGE_ROOT_KEY] = {
       storage_schema_version: STORAGE_SCHEMA_VERSION,
       installedCourses: { good: course('good'), bad: { title: 42 } },
+      localLearningState: {},
+      authorizationSourceCache: { sources: [] },
+      quarantine: { entries: [] },
+    };
+    const root = await lib.read();
+    expect(Object.keys(root.installedCourses)).toEqual(['good']);
+    expect(root.quarantine.entries[0].reason).toContain('bad');
+  });
+
+  it('课程节点形状损坏时隔离整门课程', async () => {
+    area.data[STORAGE_ROOT_KEY] = {
+      storage_schema_version: STORAGE_SCHEMA_VERSION,
+      installedCourses: {
+        good: course('good'),
+        bad: { ...course('bad'), lessons: [{ lessonId: 'bad-l1', title: '第一节', videoId: 'BV1Ac41187Lm', nodes: [{ id: 'only-id' }] }] },
+      },
+      localLearningState: {},
+      authorizationSourceCache: { sources: [] },
+      quarantine: { entries: [] },
+    };
+    const root = await lib.read();
+    expect(Object.keys(root.installedCourses)).toEqual(['good']);
+    expect(root.quarantine.entries[0].reason).toContain('bad');
+  });
+
+  it('课程节点的富文档和媒体引用损坏时隔离整门课程', async () => {
+    area.data[STORAGE_ROOT_KEY] = {
+      storage_schema_version: STORAGE_SCHEMA_VERSION,
+      installedCourses: {
+        good: course('good'),
+        bad: {
+          ...course('bad'),
+          assets: [{
+            assetId: 'audio-1',
+            kind: 'audio',
+            mimeType: 'audio/mpeg',
+            byteSize: 4,
+            sha256: 'a'.repeat(64),
+            sourceType: 'uploaded',
+          }],
+          lessons: [{
+            lessonId: 'bad-l1',
+            title: '第一节',
+            videoId: 'BV1Ac41187Lm',
+            nodes: [{
+              ...testNode('bad-node'),
+              content: { schemaVersion: 1, blocks: [{ type: 'image', assetId: 'audio-1', alt: '图' }] },
+            }],
+          }],
+        },
+      },
       localLearningState: {},
       authorizationSourceCache: { sources: [] },
       quarantine: { entries: [] },

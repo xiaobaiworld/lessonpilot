@@ -2,6 +2,7 @@ import hashlib
 import json
 import math
 import re
+from urllib.parse import urljoin, urlparse
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
@@ -39,6 +40,8 @@ ASSET_KINDS = {"image", "audio", "video"}
 SOURCE_TYPES = {"uploaded", "licensed"}
 CONTENT_BLOCKS = {"paragraph", "heading", "quote", "list", "image", "audio", "video"}
 MARKS = {"strong", "em", "underline"}
+COLOR = re.compile(r"^#[0-9a-fA-F]{3,8}$")
+ASSET_MIME_PREFIX = {"image": "image/", "audio": "audio/", "video": "video/"}
 SUBTITLE_MAX_BYTES = 5 * 1024 * 1024
 SUBTITLE_FIELDS = {"schemaVersion", "filename", "format", "content"}
 SUBTITLE_TIMESTAMP = re.compile(
@@ -127,22 +130,36 @@ def validate_subtitle(value: object) -> dict | None:
 
 
 def _validate_inline(value: object) -> bool:
-    if not isinstance(value, dict) or not _text(value.get("text")):
+    if (
+        not isinstance(value, dict)
+        or set(value) - {"text", "marks", "color", "link"}
+        or not _text(value.get("text"))
+    ):
         return False
     marks = value.get("marks", [])
     if not isinstance(marks, list) or any(mark not in MARKS for mark in marks):
         return False
     color = value.get("color")
-    if color is not None and (not isinstance(color, str) or not color.startswith("#")):
+    if color is not None and (not isinstance(color, str) or not COLOR.fullmatch(color)):
         return False
     link = value.get("link")
-    if link is not None and (not isinstance(link, dict) or not _text(link.get("href"))):
+    if link is not None and (
+        not isinstance(link, dict)
+        or set(link) != {"href"}
+        or not _text(link.get("href"))
+        or urlparse(urljoin("https://knownmap.invalid/", link["href"])).scheme
+        not in {"http", "https", "mailto"}
+    ):
         return False
     return True
 
 
-def _validate_rich_document(document: object) -> set[str]:
-    if not isinstance(document, dict) or document.get("schemaVersion") != 1:
+def _validate_rich_document(document: object, asset_records: dict[str, dict]) -> set[str]:
+    if (
+        not isinstance(document, dict)
+        or set(document) != {"schemaVersion", "blocks"}
+        or document.get("schemaVersion") != 1
+    ):
         _invalid("DRAFT_DOCUMENT_VERSION_UNSUPPORTED")
     blocks = document.get("blocks")
     if not isinstance(blocks, list) or not blocks:
@@ -153,6 +170,9 @@ def _validate_rich_document(document: object) -> set[str]:
             _invalid("DRAFT_CONTENT_BLOCK_UNSUPPORTED")
         kind = block["type"]
         if kind in {"paragraph", "heading", "quote"}:
+            allowed = {"type", "children"} if kind != "heading" else {"type", "level", "children"}
+            if set(block) != allowed:
+                _invalid("DRAFT_NODE_CONTENT_INVALID")
             children = block.get("children")
             if (
                 not isinstance(children, list)
@@ -163,6 +183,8 @@ def _validate_rich_document(document: object) -> set[str]:
             if kind == "heading" and block.get("level") not in {2, 3}:
                 _invalid("DRAFT_NODE_CONTENT_INVALID")
         elif kind == "list":
+            if set(block) != {"type", "ordered", "items"}:
+                _invalid("DRAFT_NODE_CONTENT_INVALID")
             items = block.get("items")
             if (
                 not isinstance(items, list)
@@ -180,8 +202,18 @@ def _validate_rich_document(document: object) -> set[str]:
                 if any(not _validate_inline(child) for child in item["children"]):
                     _invalid("DRAFT_NODE_CONTENT_INVALID")
         else:
+            allowed = (
+                {"type", "assetId", "alt"} if kind == "image" else {"type", "assetId", "title"}
+            )
+            if kind == "video":
+                allowed.add("posterAssetId")
+            if set(block) - allowed or not {"type", "assetId"}.issubset(block):
+                _invalid("DRAFT_NODE_CONTENT_INVALID")
             asset_id = block.get("assetId")
             if not _text(asset_id):
+                _invalid("DRAFT_ASSET_REFERENCE_INVALID")
+            asset = asset_records.get(asset_id)
+            if asset is not None and asset.get("kind") != kind:
                 _invalid("DRAFT_ASSET_REFERENCE_INVALID")
             assets.add(asset_id)
             if kind == "image" and not isinstance(block.get("alt"), str):
@@ -195,6 +227,9 @@ def _validate_rich_document(document: object) -> set[str]:
             if kind == "video" and block.get("posterAssetId") is not None:
                 if not _text(block["posterAssetId"]):
                     _invalid("DRAFT_ASSET_REFERENCE_INVALID")
+                poster = asset_records.get(block["posterAssetId"])
+                if poster is not None and poster.get("kind") != "image":
+                    _invalid("DRAFT_ASSET_REFERENCE_INVALID")
                 assets.add(block["posterAssetId"])
     return assets
 
@@ -204,11 +239,31 @@ def _validate_assets(value: object) -> dict[str, dict]:
         _invalid("DRAFT_ASSETS_INVALID")
     assets: dict[str, dict] = {}
     for asset in value:
-        if not isinstance(asset, dict) or not _text(asset.get("assetId")):
+        if (
+            not isinstance(asset, dict)
+            or set(asset)
+            - {
+                "assetId",
+                "kind",
+                "mimeType",
+                "byteSize",
+                "sha256",
+                "width",
+                "height",
+                "durationSeconds",
+                "alt",
+                "sourceType",
+            }
+            or not _text(asset.get("assetId"))
+        ):
             _invalid("DRAFT_ASSETS_INVALID")
         if asset["assetId"] in assets:
             _invalid("DRAFT_ASSETS_INVALID")
-        if asset.get("kind") not in ASSET_KINDS or not _text(asset.get("mimeType")):
+        if (
+            asset.get("kind") not in ASSET_KINDS
+            or not _text(asset.get("mimeType"))
+            or not asset["mimeType"].startswith(ASSET_MIME_PREFIX[asset["kind"]])
+        ):
             _invalid("DRAFT_ASSETS_INVALID")
         if not isinstance(asset.get("byteSize"), int) or asset["byteSize"] < 0:
             _invalid("DRAFT_ASSETS_INVALID")
@@ -219,6 +274,27 @@ def _validate_assets(value: object) -> dict[str, dict]:
         ):
             _invalid("DRAFT_ASSETS_INVALID")
         if asset.get("sourceType") not in SOURCE_TYPES:
+            _invalid("DRAFT_ASSETS_INVALID")
+        if (
+            (
+                asset.get("width") is not None
+                and (not isinstance(asset["width"], int) or asset["width"] < 1)
+            )
+            or (
+                asset.get("height") is not None
+                and (not isinstance(asset["height"], int) or asset["height"] < 1)
+            )
+            or (
+                asset.get("durationSeconds") is not None
+                and (
+                    not isinstance(asset["durationSeconds"], (int, float))
+                    or isinstance(asset["durationSeconds"], bool)
+                    or not math.isfinite(asset["durationSeconds"])
+                    or asset["durationSeconds"] <= 0
+                )
+            )
+            or (asset.get("alt") is not None and not isinstance(asset["alt"], str))
+        ):
             _invalid("DRAFT_ASSETS_INVALID")
         assets[asset["assetId"]] = asset
     return assets
@@ -246,6 +322,19 @@ def validate_config(config: object) -> tuple[list[dict], list[dict]]:
             _invalid("DRAFT_NODE_TYPE_INVALID")
         if "display" in node or "evaluation" in node or "trigger" in node:
             _invalid("DRAFT_LEGACY_NODE_UNSUPPORTED")
+        if set(node) - {
+            "id",
+            "enabled",
+            "family",
+            "interaction",
+            "anchor",
+            "title",
+            "content",
+            "interactionData",
+            "presentationHints",
+            "effects",
+        }:
+            _invalid("DRAFT_NODE_CONTENT_INVALID")
         anchor = node.get("anchor")
         seconds = anchor.get("timeSeconds") if isinstance(anchor, dict) else None
         if (
@@ -257,16 +346,21 @@ def validate_config(config: object) -> tuple[list[dict], list[dict]]:
             _invalid("DRAFT_NODE_TRIGGER_INVALID")
         if (
             not isinstance(anchor, dict)
+            or set(anchor) - {"kind", "timeSeconds", "captionId"}
             or anchor.get("kind") != "time_cross"
+            or (
+                anchor.get("captionId") is not None and not isinstance(anchor.get("captionId"), str)
+            )
             or node.get("effects") != {"pause": True}
         ):
             _invalid("DRAFT_NODE_BEHAVIOR_INVALID")
         if not _text(node.get("title")):
             _invalid("DRAFT_NODE_CONTENT_INVALID")
-        referenced = _validate_rich_document(node.get("content"))
+        referenced = _validate_rich_document(node.get("content"), assets)
         hints = node.get("presentationHints", {})
         if (
             not isinstance(hints, dict)
+            or set(hints) - {"windowSize", "windowStyle"}
             or hints.get("windowSize") not in {None, *WINDOW_SIZES}
             or hints.get("windowStyle") not in {None, *WINDOW_STYLES}
         ):
@@ -280,7 +374,12 @@ def validate_config(config: object) -> tuple[list[dict], list[dict]]:
         elif interaction == "choice":
             options = data.get("options")
             if (
-                not isinstance(options, list)
+                set(data) != {"options", "answer", "explanation"}
+                or any(
+                    not isinstance(item, dict) or set(item) != {"id", "label"}
+                    for item in (options if isinstance(options, list) else [])
+                )
+                or not isinstance(options, list)
                 or len(options) < 2
                 or any(
                     not isinstance(item, dict)
@@ -295,13 +394,16 @@ def validate_config(config: object) -> tuple[list[dict], list[dict]]:
         elif interaction == "blank":
             answers = data.get("acceptedAnswers")
             if (
-                not isinstance(answers, list)
+                set(data) != {"acceptedAnswers", "normalize", "explanation"}
+                or not isinstance(answers, list)
                 or not answers
                 or any(not _text(answer) for answer in answers)
                 or not _text(data.get("explanation"))
+                or not isinstance(data.get("normalize"), list)
+                or any(rule not in {"trim", "casefold"} for rule in data["normalize"])
             ):
                 _invalid("DRAFT_BLANK_INVALID")
-        elif not _text(data.get("referenceFeedback")):
+        elif set(data) != {"referenceFeedback"} or not _text(data.get("referenceFeedback")):
             _invalid("DRAFT_FREE_TEXT_INVALID")
         if not referenced.issubset(assets):
             _invalid("DRAFT_ASSET_REFERENCE_MISSING")

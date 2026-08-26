@@ -114,7 +114,7 @@ async function main() {
       return {
         videoId: first.videoId,
         nodeCount: first.nodes.length,
-        firstNodeSeconds: first.nodes[0]?.trigger?.timeSeconds,
+        firstNodeSeconds: first.nodes[0]?.anchor?.timeSeconds,
       };
     });
     check('课节带 BVID 与节点', !!lesson.videoId && lesson.nodeCount > 0,

@@ -1,6 +1,7 @@
 import { LearningSession, toRuntimeNodes } from '../runtime/session';
 import { RuntimeCandidate } from '../shared/library-view';
 import { PlayerHandle } from '../host/bilibili';
+import type { PortableNode } from '../../web/shared/src/portableContent';
 
 /**
  * B 站页面上的课程运行时。
@@ -14,7 +15,7 @@ import { PlayerHandle } from '../host/bilibili';
 
 export interface LessonPayload {
   installedAt: string;
-  nodes: unknown[];
+  nodes: PortableNode[];
   done: string[];
   lastPositionSeconds: number;
 }

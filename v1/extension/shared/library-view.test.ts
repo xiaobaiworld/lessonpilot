@@ -5,6 +5,19 @@ import {
   removalImpact,
 } from './library-view';
 import { StorageRoot, InstalledCourse, emptyRoot } from '../storage/types';
+import { emptyRichPageDocument, PortableNode } from '../../web/shared/src';
+
+const testNode = (id: string): PortableNode => ({
+  id,
+  enabled: true,
+  family: 'attention',
+  interaction: 'notice',
+  anchor: { kind: 'time_cross', timeSeconds: 10, captionId: null },
+  title: '重点',
+  content: { ...emptyRichPageDocument(), blocks: [{ type: 'paragraph', children: [{ text: '提示' }] }] },
+  interactionData: null,
+  effects: { pause: true },
+});
 
 function root(patch: Partial<StorageRoot> = {}): StorageRoot {
   return { ...emptyRoot(), ...patch };
@@ -27,7 +40,7 @@ const course = (
       lessonId: l.id,
       title: `课节 ${l.id}`,
       videoId: l.video,
-      nodes: l.nodes.map((n) => ({ id: n })),
+      nodes: l.nodes.map(testNode),
     })
   ),
   publishedAt: '2026-08-23T00:00:00.000Z',

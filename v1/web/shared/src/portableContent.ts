@@ -241,7 +241,7 @@ export function richDocumentToHtml(documentValue: RichPageDocument): string {
       }
       case 'image': return `<img src="asset://${block.assetId}" alt="${escapeHtml(block.alt)}">`;
       case 'audio': return `<audio controls data-asset-id="asset://${block.assetId}" title="${escapeHtml(block.title ?? '')}"></audio>`;
-      case 'video': return `<video controls data-asset-id="asset://${block.assetId}" title="${escapeHtml(block.title ?? '')}"></video>`;
+      case 'video': return `<video controls data-asset-id="asset://${block.assetId}"${block.posterAssetId ? ` data-poster-asset-id="${escapeHtml(block.posterAssetId)}"` : ''} title="${escapeHtml(block.title ?? '')}"></video>`;
     }
   }).join('');
 }
