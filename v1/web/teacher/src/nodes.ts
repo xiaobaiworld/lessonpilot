@@ -48,6 +48,11 @@ function newId(): string {
   return `n-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
+const WINDOW_DEFAULTS = {
+  windowSize: 'm' as const,
+  windowStyle: 'document' as const,
+};
+
 /** 建一个字段已填到最小可通过校验的节点 */
 export function createNode(kind: NodeKind, timeSeconds: number): ScriptNode {
   const meta = metaOf(kind);
@@ -64,7 +69,7 @@ export function createNode(kind: NodeKind, timeSeconds: number): ScriptNode {
     case 'notice':
       return {
         ...base,
-        display: { title: '重点', body: '' },
+        display: { title: '重点', richBody: '', ...WINDOW_DEFAULTS },
         evaluation: null,
       };
     case 'choice':
@@ -73,6 +78,8 @@ export function createNode(kind: NodeKind, timeSeconds: number): ScriptNode {
         display: {
           title: '选择题',
           prompt: '',
+          richBody: '',
+          ...WINDOW_DEFAULTS,
           options: [
             { id: 'a', label: '' },
             { id: 'b', label: '' },
@@ -83,7 +90,7 @@ export function createNode(kind: NodeKind, timeSeconds: number): ScriptNode {
     case 'blank':
       return {
         ...base,
-        display: { title: '填空题', prompt: '' },
+        display: { title: '填空题', prompt: '', richBody: '', ...WINDOW_DEFAULTS },
         evaluation: {
           acceptedAnswers: [''],
           // 数组，合法值只有 trim / casefold
@@ -94,7 +101,7 @@ export function createNode(kind: NodeKind, timeSeconds: number): ScriptNode {
     case 'free_text':
       return {
         ...base,
-        display: { title: '问答题', prompt: '' },
+        display: { title: '问答题', prompt: '', richBody: '', ...WINDOW_DEFAULTS },
         evaluation: { referenceFeedback: '' },
       };
   }
@@ -109,14 +116,19 @@ export function changeNodeKind(node: ScriptNode, kind: NodeKind): ScriptNode {
   const sourceText =
     typeof oldDisplay.prompt === 'string'
       ? oldDisplay.prompt
-      : typeof oldDisplay.body === 'string'
-        ? oldDisplay.body
+      : typeof oldDisplay.richBody === 'string'
+        ? oldDisplay.richBody
         : '';
 
   if (kind === 'notice') {
-    next.display = { title, body: sourceText };
+    next.display = { ...next.display, title, richBody: sourceText };
   } else {
-    next.display = { ...next.display, title, prompt: sourceText };
+    next.display = {
+      ...next.display,
+      title,
+      richBody: typeof oldDisplay.richBody === 'string' ? oldDisplay.richBody : sourceText,
+      prompt: richTextToPlainText(sourceText),
+    };
   }
   return {
     ...next,
@@ -144,11 +156,11 @@ export function findEmptyField(node: ScriptNode): string | null {
   if (blank(d.title)) return '标题';
 
   if (node.interaction === 'notice') {
-    if (blank(d.body)) return '正文';
+    if (blank(richTextToPlainText(d.richBody))) return '正文';
     return null;
   }
 
-  if (blank(d.prompt)) return '题目';
+  if (blank(richTextToPlainText(d.richBody)) && blank(d.prompt)) return '题目';
 
   switch (node.interaction) {
     case 'choice': {
@@ -165,6 +177,17 @@ export function findEmptyField(node: ScriptNode): string | null {
     case 'free_text':
       return blank(e.referenceFeedback) ? '参考答案' : null;
   }
+}
+
+export function richTextToPlainText(value: unknown): string {
+  if (typeof value !== 'string') return '';
+  return value
+    .replace(/<br\s*\/?>/gi, ' ')
+    .replace(/<\/(p|div|h[1-6]|blockquote|li)>/gi, ' ')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 /** mm:ss ⇄ 秒。编辑器只用整秒，够定位一句话 */

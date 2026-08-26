@@ -77,7 +77,7 @@ const node = (id: string, timeSeconds: number, interaction = 'notice') => ({
   id,
   interaction,
   trigger: { kind: 'time_cross', timeSeconds },
-  display: { title: id, body: 'x' },
+  display: { title: id, richBody: '<p>x</p>' },
   evaluation: null,
 });
 

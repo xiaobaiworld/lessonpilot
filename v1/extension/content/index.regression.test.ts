@@ -18,6 +18,16 @@ describe('学生页面入口回归', () => {
     expect(source).toMatch(/确认并继续/);
   });
 
+  it('教师正文编辑器必须同时提供可视化和 HTML 两种方式', () => {
+    const source = readFileSync(
+      resolve(__dirname, '../../web/teacher/src/components/RichTextEditor.tsx'),
+      'utf8'
+    );
+    expect(source).toMatch(/可视化/);
+    expect(source).toMatch(/HTML/);
+    expect(source).toMatch(/quill/i);
+  });
+
   it('工具栏课程库必须继续显示 KnownMap 原有图标', () => {
     const source = readFileSync(resolve(__dirname, '../popup/index.ts'), 'utf8');
     expect(source).toMatch(/icon-48\.png/);

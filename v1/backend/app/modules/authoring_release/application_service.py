@@ -32,6 +32,23 @@ def _text(value: object) -> bool:
     return isinstance(value, str) and bool(value.strip())
 
 
+WINDOW_SIZES = {"s", "m", "l", "overlay"}
+WINDOW_STYLES = {"card", "document"}
+RICH_BODY_MAX = 4000
+
+
+def _check_window_display(display: dict) -> None:
+    size = display.get("windowSize")
+    style = display.get("windowStyle")
+    if size is not None and size not in WINDOW_SIZES:
+        raise AuthoringReleaseError("DRAFT_NODE_CONTENT_INVALID")
+    if style is not None and style not in WINDOW_STYLES:
+        raise AuthoringReleaseError("DRAFT_NODE_CONTENT_INVALID")
+    rich_body = display.get("richBody")
+    if rich_body is not None and (not isinstance(rich_body, str) or len(rich_body) > RICH_BODY_MAX):
+        raise AuthoringReleaseError("DRAFT_NODE_CONTENT_INVALID")
+
+
 def validate_nodes(nodes: object) -> list[dict]:
     if not isinstance(nodes, list):
         raise AuthoringReleaseError("DRAFT_NODES_INVALID")
@@ -61,8 +78,13 @@ def validate_nodes(nodes: object) -> list[dict]:
         evaluation = node.get("evaluation")
         if not isinstance(display, dict) or not _text(display.get("title")):
             raise AuthoringReleaseError("DRAFT_NODE_CONTENT_INVALID")
+        _check_window_display(display)
         if interaction == "notice":
-            if not _text(display.get("body")) or evaluation is not None:
+            if (
+                not _text(display.get("richBody"))
+                or "body" in display
+                or evaluation is not None
+            ):
                 raise AuthoringReleaseError("DRAFT_NOTICE_INVALID")
         elif not _text(display.get("prompt")) or not isinstance(evaluation, dict):
             raise AuthoringReleaseError("DRAFT_QUESTION_INVALID")

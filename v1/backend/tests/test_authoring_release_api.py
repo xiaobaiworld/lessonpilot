@@ -13,7 +13,7 @@ NODE = {
     "family": "attention",
     "interaction": "notice",
     "trigger": {"kind": "time_cross", "timeSeconds": 12},
-    "display": {"title": "重点", "body": "记住这一点"},
+    "display": {"title": "重点", "richBody": "<p>记住这一点</p>"},
     "evaluation": None,
     "effects": {"pause": True},
 }
@@ -61,6 +61,13 @@ def test_draft_preview_atomic_release_and_immutable_snapshot() -> None:
     assert invalid.status_code == 422
     assert client.get(f"/api/v1/teacher/lessons/{lesson['id']}/draft").status_code == 404
 
+    legacy_body = {**NODE, "display": {"title": "重点", "body": "旧正文"}}
+    legacy = client.put(
+        f"/api/v1/teacher/lessons/{lesson['id']}/draft",
+        json={"schema_version": 1, "config": {"nodes": [legacy_body]}},
+    )
+    assert legacy.status_code == 422
+
     saved = client.put(
         f"/api/v1/teacher/lessons/{lesson['id']}/draft",
         json={"schema_version": 1, "config": {"nodes": [NODE]}},
@@ -107,7 +114,7 @@ def test_draft_preview_atomic_release_and_immutable_snapshot() -> None:
     assert replay.json()["id"] == release_id
     assert len(client.get(f"/api/v1/teacher/courses/{course['id']}/releases").json()["items"]) == 1
 
-    changed = {**NODE, "display": {"title": "新重点", "body": "新内容"}}
+    changed = {**NODE, "display": {"title": "新重点", "richBody": "<p>新内容</p>"}}
     client.put(
         f"/api/v1/teacher/lessons/{lesson['id']}/draft",
         json={"schema_version": 1, "revision": 1, "config": {"nodes": [changed]}},

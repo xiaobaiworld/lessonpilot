@@ -1,12 +1,25 @@
 import React from 'react';
 import { ScriptNode } from '../api';
-import { plainTextToRichTextHtml, RichTextEditor } from './RichTextEditor';
+import { richTextToPlainText } from '../nodes';
+import { RichTextEditor } from './RichTextEditor';
 
 interface Props {
   node: ScriptNode;
   disabled: boolean;
   onChange: (node: ScriptNode) => void;
 }
+
+const WINDOW_SIZE_OPTIONS = [
+  { value: 's', label: '小卡片' },
+  { value: 'm', label: '中等' },
+  { value: 'l', label: '大文档' },
+  { value: 'overlay', label: '铺开' },
+] as const;
+
+const WINDOW_STYLE_OPTIONS = [
+  { value: 'card', label: '卡片' },
+  { value: 'document', label: '文档' },
+] as const;
 
 /** 各字段名由后端校验固定，见 v1/backend/app/modules/authoring_release/application_service.py */
 export const NodeForm: React.FC<Props> = ({ node, disabled, onChange }) => {
@@ -19,6 +32,14 @@ export const NodeForm: React.FC<Props> = ({ node, disabled, onChange }) => {
   const d = node.display as Record<string, any>;
   const e = (node.evaluation ?? {}) as Record<string, any>;
 
+  const setPageHtml = (html: string) => {
+    if (node.interaction === 'notice') {
+      setDisplay({ richBody: html });
+      return;
+    }
+    setDisplay({ richBody: html, prompt: richTextToPlainText(html) });
+  };
+
   return (
     <div className="node-fields">
       <Field
@@ -27,28 +48,41 @@ export const NodeForm: React.FC<Props> = ({ node, disabled, onChange }) => {
         onChange={(v) => setDisplay({ title: v })}
         disabled={disabled}
       />
-
-      {node.interaction === 'notice' && (
-        <RichTextEditor
-          label="正文"
-          value={
-            typeof d.richBody === 'string'
-              ? d.richBody
-              : plainTextToRichTextHtml(typeof d.body === 'string' ? d.body : '')
-          }
+      <label className="field-group">
+        <span>窗口大小</span>
+        <select
+          value={d.windowSize ?? 's'}
+          onChange={(event) => setDisplay({ windowSize: event.target.value })}
           disabled={disabled}
-          onChange={(html, plainText) => setDisplay({ richBody: html, body: plainText })}
-        />
-      )}
-
-      {node.interaction !== 'notice' && (
-        <Area
-          label="题目"
-          value={d.prompt ?? ''}
-          onChange={(v) => setDisplay({ prompt: v })}
+        >
+          {WINDOW_SIZE_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="field-group">
+        <span>窗口样式</span>
+        <select
+          value={d.windowStyle ?? 'card'}
+          onChange={(event) => setDisplay({ windowStyle: event.target.value })}
           disabled={disabled}
-        />
-      )}
+        >
+          {WINDOW_STYLE_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <RichTextEditor
+        label="页面正文"
+        value={typeof d.richBody === 'string' ? d.richBody : ''}
+        disabled={disabled}
+        onChange={setPageHtml}
+      />
 
       {node.interaction === 'choice' && (
         <ChoiceFields
@@ -221,3 +255,4 @@ const Area: React.FC<{
     {hint && <small>{hint}</small>}
   </label>
 );
+

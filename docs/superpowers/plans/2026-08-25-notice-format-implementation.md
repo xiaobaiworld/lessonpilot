@@ -1,5 +1,8 @@
 # Structured Notice Layout Implementation Plan
 
+> 历史方案说明：本计划记录的 C 方案已被
+> `2026-08-26-rich-notice-editor.md` 取代，不属于当前重点标注编辑器和运行时契约。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Replace the V1 example course's long single-paragraph notice with a safe, structured C-style summary while preserving legacy notice rendering and existing playback behavior.

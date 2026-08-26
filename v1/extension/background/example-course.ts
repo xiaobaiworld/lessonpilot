@@ -32,8 +32,10 @@ export const EXAMPLE_COURSE_PACKAGE = {
           trigger: { kind: 'time_cross', timeSeconds: 1, captionId: null },
           display: {
             title: '重点提示',
-            body:
-              '这是一节关于“把答案说得具体”的互动课。请按下面的顺序学习：先注意示范中的表达差异，再完成选择题、填空题和问答题。重点不是背固定答案，而是用“情境—行动—结果”的方式说明自己的经历。',
+            windowSize: 'l',
+            windowStyle: 'document',
+            richBody:
+              '<h2>把答案说得具体</h2><p>这是一节关于“把答案说得具体”的互动课。重点不是背固定答案，而是用<strong>情境—行动—结果</strong>说明自己的经历。</p><p>可参考 <a href="https://knownmap.com">KnownMap</a> 的课程说明。</p><p><img src="https://static.hdslb.com/images/base/favicon.ico" alt="示例图片"></p>',
           },
           effects: { pause: true },
           evaluation: null,
@@ -46,7 +48,8 @@ export const EXAMPLE_COURSE_PACKAGE = {
           trigger: { kind: 'time_cross', timeSeconds: 10, captionId: null },
           display: {
             title: '重点提醒',
-            body: '请记住：只说“我很努力”还不够，还要说清楚具体经历、采取的行动和最后的结果。',
+            richBody:
+              '<p>请记住：只说“我很努力”还不够，还要说清楚<strong>具体经历、采取的行动和最后的结果</strong>。</p>',
           },
           effects: { pause: true },
           evaluation: null,

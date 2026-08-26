@@ -1,7 +1,6 @@
 import { RuntimeNode, WindowState, NodeOutcome } from '../runtime/session';
 import { VideoMode } from './runtime';
-import { getNoticeSummary } from './notice';
-import { appendRichText } from './richText';
+import { appendRichText, pageHtmlFromDisplay, resolveWindowPresentation } from './richText';
 
 /**
  * 学习窗口渲染。
@@ -45,12 +44,21 @@ export class LearningWindow {
     }
 
     const root = this.ensureRoot();
+    root.querySelector('.km-backdrop')?.remove();
     root.querySelector('.km-panel')?.remove();
 
+    const presentation = resolveWindowPresentation(
+      (state.node.display ?? {}) as Record<string, unknown>
+    );
     const panel = document.createElement('div');
-    panel.className = 'km-panel';
+    panel.className = `km-panel km-size-${presentation.size} km-style-${presentation.style}`;
     panel.setAttribute('role', 'dialog');
     panel.setAttribute('aria-modal', 'false');
+    if (presentation.size === 'overlay') {
+      const backdrop = document.createElement('div');
+      backdrop.className = 'km-backdrop';
+      root.append(backdrop);
+    }
 
     if (state.kind === 'unsupported') {
       panel.append(
@@ -73,12 +81,17 @@ export class LearningWindow {
     const d = node.display as Record<string, any>;
     panel.append(this.heading(String(d.title ?? '')));
 
+    const page = document.createElement('div');
+    page.className = 'km-rich-text';
+    appendRichText(page, pageHtmlFromDisplay(d));
+    panel.append(page);
+
     if (node.interaction === 'notice') {
-      this.renderNotice(panel, d);
+      panel.append(
+        this.actions([this.button('确认并继续', 'primary', this.callbacks.onSubmit)])
+      );
       return;
     }
-
-    panel.append(this.paragraph(String(d.prompt ?? '')));
 
     if (node.interaction === 'choice') {
       const options = Array.isArray(d.options) ? d.options : [];
@@ -113,74 +126,6 @@ export class LearningWindow {
         this.button('跳过', 'ghost', this.callbacks.onSkip),
         this.button('提交', 'primary', this.callbacks.onSubmit),
       ])
-    );
-  }
-
-  private renderNotice(panel: HTMLElement, display: Record<string, any>): void {
-    const richBody = typeof display.richBody === 'string' ? display.richBody.trim() : '';
-    if (richBody) {
-      const content = document.createElement('div');
-      content.className = 'km-rich-text';
-      appendRichText(content, richBody);
-      panel.append(content);
-      panel.append(
-        this.actions([this.button('确认并继续', 'primary', this.callbacks.onSubmit)])
-      );
-      return;
-    }
-
-    const summary = getNoticeSummary(display);
-    if (!summary) {
-      panel.append(this.paragraph(String(display.body ?? '')));
-      panel.append(
-        this.actions([this.button('确认并继续', 'primary', this.callbacks.onSubmit)])
-      );
-      return;
-    }
-
-    panel.classList.add('km-notice-panel');
-
-    const eyebrow = summary.eyebrow
-      ? this.textBlock('div', 'km-notice-eyebrow', summary.eyebrow)
-      : null;
-    if (eyebrow) panel.insertBefore(eyebrow, panel.children[1] ?? null);
-
-    panel.append(this.textBlock('p', 'km-notice-intro', summary.intro));
-
-    const sections = document.createElement('div');
-    sections.className = 'km-notice-sections';
-    for (const section of summary.sections) {
-      const row = document.createElement('section');
-      row.className = 'km-notice-section';
-
-      const rail = document.createElement('div');
-      rail.className = 'km-notice-rail';
-      rail.setAttribute('aria-hidden', 'true');
-
-      const content = document.createElement('div');
-      content.className = 'km-notice-section-copy';
-      content.append(
-        this.textBlock('h3', 'km-notice-section-title', section.label),
-        this.textBlock('p', 'km-notice-section-body', section.body)
-      );
-      row.append(rail, content);
-      sections.append(row);
-    }
-    panel.append(sections);
-
-    const callout = document.createElement('aside');
-    callout.className = 'km-notice-summary';
-    callout.append(
-      this.textBlock('strong', 'km-notice-summary-title', summary.summary.title),
-      this.textBlock('p', 'km-notice-summary-body', summary.summary.body)
-    );
-    panel.append(callout);
-
-    panel.append(
-      this.actions(
-        [this.button('确认并继续', 'primary', this.callbacks.onSubmit)],
-        'km-notice-actions'
-      )
     );
   }
 
@@ -262,13 +207,6 @@ export class LearningWindow {
     p.className = 'km-body';
     p.textContent = text;
     return p;
-  }
-
-  private textBlock(tag: string, className: string, text: string): HTMLElement {
-    const element = document.createElement(tag);
-    element.className = className;
-    element.textContent = text;
-    return element;
   }
 
   private actions(buttons: HTMLElement[], className = ''): HTMLElement {

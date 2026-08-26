@@ -41,6 +41,26 @@ describe('createNode', () => {
     }
   });
 
+  it('新节点默认中等文档窗口', () => {
+    for (const { kind } of NODE_KINDS) {
+      expect(createNode(kind, 0).display).toMatchObject({
+        windowSize: 'm',
+        windowStyle: 'document',
+      });
+    }
+  });
+
+  it('重点标注只创建唯一的富文本正文，不创建普通 body', () => {
+    const display = createNode('notice', 0).display as Record<string, unknown>;
+    expect(display).toEqual({
+      title: '重点',
+      richBody: '',
+      windowSize: 'm',
+      windowStyle: 'document',
+    });
+    expect(display).not.toHaveProperty('body');
+  });
+
   it('choice 预置两个选项且答案指向其中之一', () => {
     const n = createNode('choice', 0);
     const options = (n.display as any).options;
@@ -70,38 +90,20 @@ describe('findEmptyField', () => {
 
   it('填满后放行：重点标注', () => {
     const n = createNode('notice', 0);
-    n.display = { title: '重点', body: '正文' };
+    n.display = { title: '重点', richBody: '<p>正文</p>' };
     expect(findEmptyField(n)).toBeNull();
   });
 
-  it('重点标注保留旧版兼容字段时仍按正文校验', () => {
+  it('重点标注只按富文本正文校验', () => {
     const n = createNode('notice', 0);
-    n.display = {
-      title: '重点',
-      body: '正文',
-      eyebrow: '把答案说得具体',
-      intro: '这节课练习具体表达。',
-      sections: [
-        { label: '先理解', body: '理解表达方法。' },
-        { label: '再练习', body: '完成练习题。' },
-        { label: '最后巩固', body: '总结学习重点。' },
-      ],
-      summary: { title: '本节重点', body: '掌握方法。加油。' },
-    };
+    n.display = { title: '重点', richBody: '<p><strong>先理解</strong></p><ul><li>正文</li></ul>' };
     expect(findEmptyField(n)).toBeNull();
   });
 
-  it('重点标注只要求正文，旧版兼容字段不阻塞保存', () => {
+  it('只有空标签的富文本正文仍视为空', () => {
     const n = createNode('notice', 0);
-    n.display = {
-      title: '重点',
-      body: '正文',
-      eyebrow: '把答案说得具体',
-      intro: '这节课练习具体表达。',
-      sections: [{ label: '先理解', body: '理解表达方法。' }],
-      summary: { title: '本节重点', body: '掌握方法。' },
-    };
-    expect(findEmptyField(n)).toBeNull();
+    n.display = { title: '重点', richBody: '<p><br></p>' };
+    expect(findEmptyField(n)).toBe('正文');
   });
 
   it('填满后放行：选择题', () => {
@@ -131,7 +133,7 @@ describe('findEmptyField', () => {
 
   it('空白字符不算填了', () => {
     const n = createNode('notice', 0);
-    n.display = { title: '  ', body: '正文' };
+    n.display = { title: '  ', richBody: '<p>正文</p>' };
     expect(findEmptyField(n)).toBe('标题');
   });
 
@@ -160,7 +162,12 @@ describe('changeNodeKind', () => {
       interaction: 'notice',
       family: 'attention',
       trigger: { timeSeconds: 12, captionId: 'caption-2' },
-      display: { title: '表达练习', body: '选择一个答案' },
+      display: {
+        title: '表达练习',
+        richBody: '选择一个答案',
+        windowSize: 'm',
+        windowStyle: 'document',
+      },
     });
     expect(next.display).not.toHaveProperty('options');
     expect(next.evaluation).toBeNull();

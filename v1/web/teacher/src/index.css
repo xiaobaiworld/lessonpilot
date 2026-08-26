@@ -36,6 +36,53 @@
   background: #f5f3eb;
 }
 
+.rich-text-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--line);
+  background: #f5f3eb;
+}
+
+.rich-text-tab {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rich-text-tab.is-active {
+  border-bottom-color: var(--green);
+  color: var(--ink);
+}
+
+.rich-text-quill .ql-toolbar.ql-snow,
+.rich-text-quill .ql-container.ql-snow {
+  border: 0;
+}
+
+.rich-text-quill .ql-editor img {
+  max-width: 100%;
+  height: auto;
+}
+
+.rich-text-html {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 150px;
+  padding: 13px 14px;
+  border: 0;
+  background: var(--paper-bright);
+  color: var(--ink);
+  font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+  resize: vertical;
+}
+
 .rich-text-tool,
 .rich-text-color {
   display: inline-grid;

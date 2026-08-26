@@ -15,7 +15,7 @@ NODE = {
     "family": "attention",
     "interaction": "notice",
     "trigger": {"kind": "time_cross", "timeSeconds": 12},
-    "display": {"title": "重点", "body": "记住这一点"},
+    "display": {"title": "重点", "richBody": "<p>记住这一点</p>"},
     "evaluation": None,
     "effects": {"pause": True},
 }

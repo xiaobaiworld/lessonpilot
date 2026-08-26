@@ -139,10 +139,14 @@ export const LessonPage: React.FC<Props> = ({
       }
       return best;
     }, null);
-    const field = kind === 'notice' ? 'body' : 'prompt';
+    const caption = captionText || nearest?.text || '';
     const prepared: ScriptNode = {
       ...node,
-      display: { ...node.display, [field]: captionText || nearest?.text || '' },
+      display: {
+        ...node.display,
+        richBody: caption,
+        ...(kind === 'notice' ? {} : { prompt: caption }),
+      },
       trigger: { ...node.trigger, captionId: nearest?.id ?? null },
     };
     setSelectedId(prepared.id);
