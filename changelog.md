@@ -4,6 +4,12 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### 清理 GitHub 依赖安全告警 — 2026-08-26
+
+- Vite 工具链升级到 `6.4.3`，连带使用安全版本的 esbuild；TypeScript ESLint 升级到 `8.68.0`，避免旧 minimatch ReDoS；AJV 升级到 `8.20.0`；
+- 移除无官方修复版本的 Quill，教师富文本编辑器改为受安全清洗器保护的原生可编辑区域，保留可视化/HTML 编辑、颜色、链接、列表、引用和图片资源引用；
+- 根工程与 v1 workspace 的官方 npm audit 均为 0 vulnerabilities。
+
 ### 收口课程包与插件存储契约遗留问题 — 2026-08-26
 
 - 插件存储契约改为匹配实际 `StorageRoot`、课程、课节、节点、资源和学习状态结构，并新增契约回归测试；

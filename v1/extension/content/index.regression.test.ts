@@ -25,7 +25,7 @@ describe('学生页面入口回归', () => {
     );
     expect(source).toMatch(/可视化/);
     expect(source).toMatch(/HTML/);
-    expect(source).toMatch(/quill/i);
+    expect(source).toMatch(/contentEditable|rich-text-content/i);
   });
 
   it('工具栏课程库必须继续显示 KnownMap 原有图标', () => {

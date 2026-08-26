@@ -718,3 +718,10 @@ The verified decision is to hide the whole secondary CTA until a published HTTPS
 
 同类问题也出现在节点媒体：只校验 `assetId` 存在会放过错误 MIME、错误资源类型和缺失海报。后端草稿校验、插件安装
 校验和 HTML 临时表示都必须同时覆盖主媒体与海报引用；否则课程能保存，却可能在另一个客户端安装或渲染时失败。
+
+## 2026-08-26 — 依赖告警要按告警实例和真实攻击面处理
+
+GitHub 的 19 条 Dependabot 告警实际由多个 manifest 重复报告，不能只按数字盲目执行 `npm audit fix`。本次核对
+锁文件和官方 advisory 后，升级 Vite 到有补丁的 6.4.3、升级 TypeScript ESLint 和 AJV；Quill 2.0.3 没有官方修复版本，
+因此移除依赖并保留编辑器需要的有限格式能力。开发依赖的 Vite/工具链告警也必须修复，因为它们仍会进入 GitHub 安全状态；
+使用 npm 镜像时 audit endpoint 可能不可用，最终验证要显式切换到官方 registry。

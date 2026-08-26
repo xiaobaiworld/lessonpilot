@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-26（依赖安全告警清理）
+
+- Vite 升级到 `6.4.3`，TypeScript ESLint 升级到 `8.68.0`，AJV 升级到 `8.20.0`；
+- 移除无官方修复版本的 Quill，改用受安全清洗器保护的原生富文本编辑器；
+- 根工程与 v1 workspace 的官方 npm audit 均为 0 vulnerabilities。
+
 ## 2026-08-26（契约遗留问题收口）
 
 - 插件存储 Schema 与实际 `StorageRoot` 结构对齐，并增加契约回归测试；

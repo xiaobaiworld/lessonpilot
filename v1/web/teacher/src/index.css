@@ -61,16 +61,6 @@
   color: var(--ink);
 }
 
-.rich-text-quill .ql-toolbar.ql-snow,
-.rich-text-quill .ql-container.ql-snow {
-  border: 0;
-}
-
-.rich-text-quill .ql-editor img {
-  max-width: 100%;
-  height: auto;
-}
-
 .rich-text-html {
   box-sizing: border-box;
   width: 100%;
@@ -454,11 +444,11 @@
 }
 
 .node-content-section .rich-text-tabs,
-.node-content-section .rich-text-quill .ql-toolbar.ql-snow {
+.node-content-section .rich-text-toolbar {
   background: #f8faf6;
 }
 
-.node-content-section .rich-text-quill .ql-editor {
+.node-content-section .rich-text-content {
   min-height: 190px;
   padding: 15px 16px;
   font-size: 13px;
