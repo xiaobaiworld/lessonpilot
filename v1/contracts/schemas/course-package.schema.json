@@ -77,7 +77,7 @@
       "properties": {
         "id": { "type": "string", "minLength": 1 }, "enabled": { "const": true }, "family": { "enum": ["attention", "practice"] }, "interaction": { "enum": ["notice", "choice", "blank", "free_text"] },
         "anchor": { "type": "object", "additionalProperties": false, "required": ["kind", "timeSeconds"], "properties": { "kind": { "const": "time_cross" }, "timeSeconds": { "type": "number", "minimum": 0 }, "captionId": { "type": ["string", "null"] } } },
-        "title": { "type": "string", "minLength": 1 }, "content": { "$ref": "#/definitions/document" }, "interactionData": { "type": ["object", "null"] }, "presentationHints": { "type": "object", "additionalProperties": false, "properties": { "windowSize": { "enum": ["s", "m", "l", "overlay"] }, "windowStyle": { "enum": ["card", "document"] } } }, "effects": { "type": "object", "additionalProperties": false, "required": ["pause"], "properties": { "pause": { "const": true } } }
+        "title": { "type": "string", "minLength": 1 }, "content": { "$ref": "#/definitions/document" }, "interactionData": { "type": ["object", "null"] }, "presentationHints": { "type": "object", "additionalProperties": false, "properties": { "windowSize": { "enum": ["s", "m", "l", "overlay"] }, "windowStyle": { "enum": ["card", "document"] }, "windowPosition": { "enum": ["bottom-left", "bottom-right", "center"] } } }, "effects": { "type": "object", "additionalProperties": false, "required": ["pause"], "properties": { "pause": { "const": true } } }
       }
     }
   }

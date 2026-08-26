@@ -75,7 +75,7 @@
         "title": { "type": "string", "minLength": 1 },
         "content": { "$ref": "#/definitions/document" },
         "interactionData": { "type": ["object", "null"] },
-        "presentationHints": { "type": "object", "additionalProperties": false, "properties": { "windowSize": { "enum": ["s", "m", "l", "overlay"] }, "windowStyle": { "enum": ["card", "document"] } } },
+        "presentationHints": { "type": "object", "additionalProperties": false, "properties": { "windowSize": { "enum": ["s", "m", "l", "overlay"] }, "windowStyle": { "enum": ["card", "document"] }, "windowPosition": { "enum": ["bottom-left", "bottom-right", "center"] } } },
         "effects": { "type": "object", "additionalProperties": false, "required": ["pause"], "properties": { "pause": { "const": true } } }
       }
     },

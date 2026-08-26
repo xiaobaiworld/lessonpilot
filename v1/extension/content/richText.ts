@@ -23,9 +23,11 @@ const ALLOWED_TAGS = new Set([
 
 export const WINDOW_SIZES = ['s', 'm', 'l', 'overlay'] as const;
 export const WINDOW_STYLES = ['card', 'document'] as const;
+export const WINDOW_POSITIONS = ['bottom-left', 'bottom-right', 'center'] as const;
 
 export type WindowSize = (typeof WINDOW_SIZES)[number];
 export type WindowStyle = (typeof WINDOW_STYLES)[number];
+export type WindowPosition = (typeof WINDOW_POSITIONS)[number];
 
 export function isSafeRichTextHref(value: string, base = 'https://knownmap.invalid/'): boolean {
   try {
@@ -119,6 +121,7 @@ export function sanitizeRichTextHtml(html: string): string {
 export function resolveWindowPresentation(hints: Record<string, unknown>): {
   size: WindowSize;
   style: WindowStyle;
+  position: WindowPosition;
 } {
   const size = WINDOW_SIZES.includes(hints.windowSize as WindowSize)
     ? (hints.windowSize as WindowSize)
@@ -126,5 +129,10 @@ export function resolveWindowPresentation(hints: Record<string, unknown>): {
   const style = WINDOW_STYLES.includes(hints.windowStyle as WindowStyle)
     ? (hints.windowStyle as WindowStyle)
     : 'card';
-  return { size, style };
+  const position = WINDOW_POSITIONS.includes(hints.windowPosition as WindowPosition)
+    ? (hints.windowPosition as WindowPosition)
+    : size === 'overlay'
+      ? 'center'
+      : 'bottom-right';
+  return { size, style, position };
 }

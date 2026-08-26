@@ -14,7 +14,7 @@
       "implementedBy": "v1/backend/app/modules/*/routes.py + v1/web/{admin,teacher}/src/api.ts"
     },
     "course_package": {
-      "version": "3.0.0",
+      "version": "3.1.0",
       "schema_file": "schemas/course-package.schema.json",
       "status": "implemented",
       "stage": "0C",
@@ -96,7 +96,7 @@
       "status": "development",
       "releaseTarget": "stage 7",
       "httpApi": "2.0.0",
-      "coursePackage": "3.0.0",
+      "coursePackage": "3.1.0",
       "extensionMessages": "2.0.0",
       "extensionStorage": "2.0.0",
       "webBuild": "1.0.0",

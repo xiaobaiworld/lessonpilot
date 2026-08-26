@@ -72,15 +72,27 @@ describe('重点标注富文本安全渲染', () => {
 describe('学习窗口外观预设', () => {
   it('合法枚举原样使用', () => {
     expect(
-      resolveWindowPresentation({ windowSize: 'overlay', windowStyle: 'document' })
-    ).toEqual({ size: 'overlay', style: 'document' });
+      resolveWindowPresentation({
+        windowSize: 'overlay',
+        windowStyle: 'document',
+        windowPosition: 'center',
+      })
+    ).toEqual({ size: 'overlay', style: 'document', position: 'center' });
   });
 
-  it('缺失或非法值回退到小卡片', () => {
-    expect(resolveWindowPresentation({})).toEqual({ size: 's', style: 'card' });
+  it('缺失或非法值回退到小卡片右下角', () => {
+    expect(resolveWindowPresentation({})).toEqual({
+      size: 's',
+      style: 'card',
+      position: 'bottom-right',
+    });
     expect(
-      resolveWindowPresentation({ windowSize: 'huge', windowStyle: 'neon' })
-    ).toEqual({ size: 's', style: 'card' });
+      resolveWindowPresentation({
+        windowSize: 'huge',
+        windowStyle: 'neon',
+        windowPosition: 'top-right',
+      })
+    ).toEqual({ size: 's', style: 'card', position: 'bottom-right' });
   });
 });
 

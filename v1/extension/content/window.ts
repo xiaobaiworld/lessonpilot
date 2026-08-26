@@ -52,7 +52,7 @@ export class LearningWindow {
       (state.node.presentationHints ?? {}) as Record<string, unknown>
     );
     const panel = document.createElement('div');
-    panel.className = `km-panel km-size-${presentation.size} km-style-${presentation.style}`;
+    panel.className = `km-panel km-size-${presentation.size} km-style-${presentation.style} km-position-${presentation.position}`;
     panel.setAttribute('role', 'dialog');
     panel.setAttribute('aria-modal', 'false');
     if (presentation.size === 'overlay') {

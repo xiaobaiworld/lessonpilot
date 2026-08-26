@@ -38,6 +38,36 @@ def test_structured_notice_and_question_are_valid():
     assert assets == []
 
 
+def test_window_position_is_optional_and_accepts_supported_values():
+    for position in ("bottom-left", "bottom-right", "center"):
+        nodes, _ = validate_config(
+            {
+                "nodes": [
+                    node(
+                        presentationHints={
+                            "windowSize": "m",
+                            "windowStyle": "document",
+                            "windowPosition": position,
+                        }
+                    )
+                ],
+                "assets": [],
+            }
+        )
+        assert nodes[0]["presentationHints"]["windowPosition"] == position
+
+    nodes, _ = validate_config({"nodes": [node(presentationHints={})], "assets": []})
+    assert nodes[0]["presentationHints"] == {}
+
+
+def test_unknown_window_position_is_rejected():
+    with pytest.raises(AuthoringReleaseError) as error:
+        validate_config(
+            {"nodes": [node(presentationHints={"windowPosition": "top-right"})], "assets": []}
+        )
+    assert error.value.code == "DRAFT_NODE_CONTENT_INVALID"
+
+
 def test_old_display_body_and_evaluation_are_rejected():
     with pytest.raises(AuthoringReleaseError) as error:
         validate_config({"nodes": [node(display={"title": "旧", "body": "旧正文"})], "assets": []})

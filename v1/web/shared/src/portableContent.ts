@@ -22,10 +22,12 @@ export interface RichPageDocument {
 }
 
 export type NodeKind = 'notice' | 'choice' | 'blank' | 'free_text';
+export type WindowPosition = 'bottom-left' | 'bottom-right' | 'center';
 
 export interface PresentationHints {
   windowSize?: 's' | 'm' | 'l' | 'overlay';
   windowStyle?: 'card' | 'document';
+  windowPosition?: WindowPosition;
 }
 
 export interface AssetRecord {

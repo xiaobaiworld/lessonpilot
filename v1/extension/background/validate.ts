@@ -113,7 +113,7 @@ function checkNode(raw: unknown, at: string, packageAssets: Map<string, AssetRec
   const referenced = new Set<string>();
   const documentError = checkDocument(raw.content, referenced, packageAssets, `${at}.content`);
   if (documentError) return documentError;
-  if (raw.presentationHints !== undefined && (!isObject(raw.presentationHints) || !onlyKeys(raw.presentationHints, [], ['windowSize', 'windowStyle']) || (raw.presentationHints.windowSize !== undefined && !['s', 'm', 'l', 'overlay'].includes(raw.presentationHints.windowSize)) || (raw.presentationHints.windowStyle !== undefined && !['card', 'document'].includes(raw.presentationHints.windowStyle)))) return `${at} 展示提示无效`;
+  if (raw.presentationHints !== undefined && (!isObject(raw.presentationHints) || !onlyKeys(raw.presentationHints, [], ['windowSize', 'windowStyle', 'windowPosition']) || (raw.presentationHints.windowSize !== undefined && !['s', 'm', 'l', 'overlay'].includes(raw.presentationHints.windowSize)) || (raw.presentationHints.windowStyle !== undefined && !['card', 'document'].includes(raw.presentationHints.windowStyle)) || (raw.presentationHints.windowPosition !== undefined && !['bottom-left', 'bottom-right', 'center'].includes(raw.presentationHints.windowPosition)))) return `${at} 展示提示无效`;
   if (!checkInteractionData(raw)) return `${at} 交互数据无效`;
   return [...referenced].some((assetId) => !packageAssets.has(assetId)) ? `${at} 引用了缺失资源` : null;
 }

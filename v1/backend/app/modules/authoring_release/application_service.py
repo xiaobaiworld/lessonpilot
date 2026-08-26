@@ -37,6 +37,7 @@ def _text(value: object) -> bool:
 
 WINDOW_SIZES = {"s", "m", "l", "overlay"}
 WINDOW_STYLES = {"card", "document"}
+WINDOW_POSITIONS = {"bottom-left", "bottom-right", "center"}
 ASSET_KINDS = {"image", "audio", "video"}
 SOURCE_TYPES = {"uploaded", "licensed"}
 CONTENT_BLOCKS = {"paragraph", "heading", "quote", "list", "image", "audio", "video"}
@@ -361,9 +362,10 @@ def validate_config(config: object) -> tuple[list[dict], list[dict]]:
         hints = node.get("presentationHints", {})
         if (
             not isinstance(hints, dict)
-            or set(hints) - {"windowSize", "windowStyle"}
+            or set(hints) - {"windowSize", "windowStyle", "windowPosition"}
             or hints.get("windowSize") not in {None, *WINDOW_SIZES}
             or hints.get("windowStyle") not in {None, *WINDOW_STYLES}
+            or hints.get("windowPosition") not in {None, *WINDOW_POSITIONS}
         ):
             _invalid("DRAFT_NODE_CONTENT_INVALID")
         data = node.get("interactionData")
@@ -541,7 +543,7 @@ class AuthoringReleaseApplicationService:
             draft_revision=draft.revision,
             content_digest=draft.content_digest,
             locked_content=draft.content,
-            contract_version="3.0.0",
+            contract_version="3.1.0",
             plugin_version=plugin_version,
             expires_at=datetime.now(timezone.utc) + timedelta(hours=1),
         )

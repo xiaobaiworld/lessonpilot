@@ -9,6 +9,11 @@ describe('结构化互动节点', () => {
       expect(node.id).toBeTruthy();
       expect(node.anchor).toMatchObject({ kind: 'time_cross', timeSeconds: 127 });
       expect(node.content.schemaVersion).toBe(1);
+      expect(node.presentationHints).toMatchObject({
+        windowSize: 'm',
+        windowStyle: 'document',
+        windowPosition: 'bottom-right',
+      });
       expect(node).not.toHaveProperty('display');
       expect(node).not.toHaveProperty('evaluation');
     }

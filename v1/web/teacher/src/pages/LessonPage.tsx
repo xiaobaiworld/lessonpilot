@@ -518,7 +518,7 @@ const NodeDialog: React.FC<{
     >
       <section className="node-dialog" role="dialog" aria-modal="true" aria-labelledby="node-dialog-title">
         <header className="node-dialog-head">
-          <div>
+          <div className="node-dialog-title">
             <span className={`node-dialog-icon node-dialog-${node.interaction}`}>
               <NodeIcon iconId={iconId as 'attention' | 'choice' | 'blank' | 'qa'} />
             </span>
@@ -527,7 +527,7 @@ const NodeDialog: React.FC<{
               <h2 id="node-dialog-title">{isNew ? '添加交互节点' : '编辑交互节点'}</h2>
             </div>
           </div>
-          <span>{meta.label}</span>
+          <span className={`node-dialog-kind node-dialog-kind-${node.interaction}`}>{meta.label}</span>
         </header>
         <div className="node-dialog-context">
           <label className="dialog-field">

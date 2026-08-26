@@ -55,6 +55,30 @@
   transform: translate(-50%, -50%);
 }
 
+.km-position-bottom-left {
+  right: auto;
+  bottom: 76px;
+  left: 24px;
+  top: auto;
+  transform: none;
+}
+
+.km-position-bottom-right {
+  right: 24px;
+  bottom: 76px;
+  left: auto;
+  top: auto;
+  transform: none;
+}
+
+.km-position-center {
+  top: 50%;
+  right: auto;
+  bottom: auto;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
 .km-style-document {
   padding: 28px 32px;
   border: 1px solid #dce7ee;

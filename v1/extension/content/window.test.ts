@@ -51,6 +51,7 @@ describe('LearningWindow 外观与正文', () => {
     expect(overlayRoot.querySelector('.km-backdrop')).not.toBeNull();
     expect(overlayRoot.querySelector('.km-panel')?.className).toContain('km-size-overlay');
     expect(overlayRoot.querySelector('.km-panel')?.className).toContain('km-style-document');
+    expect(overlayRoot.querySelector('.km-panel')?.className).toContain('km-position-center');
 
     view.render({
       kind: 'open',
@@ -61,6 +62,25 @@ describe('LearningWindow 外观与正文', () => {
     expect(fallbackRoot.querySelector('.km-backdrop')).toBeNull();
     expect(fallbackRoot.querySelector('.km-panel')?.className).toContain('km-size-s');
     expect(fallbackRoot.querySelector('.km-panel')?.className).toContain('km-style-card');
+    expect(fallbackRoot.querySelector('.km-panel')?.className).toContain('km-position-bottom-right');
+    view.destroy();
+  });
+
+  it('渲染合法的窗口位置 class', () => {
+    const view = new LearningWindow(callbacks, '');
+    view.render({
+      kind: 'open',
+      node: {
+        ...notice({
+          windowSize: 'm',
+          windowStyle: 'card',
+          windowPosition: 'bottom-left',
+        }),
+      },
+      draft: '',
+    });
+    const root = document.getElementById('knownmap-learning-window')!.shadowRoot!;
+    expect(root.querySelector('.km-panel')?.className).toContain('km-position-bottom-left');
     view.destroy();
   });
 

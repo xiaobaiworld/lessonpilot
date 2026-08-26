@@ -180,9 +180,10 @@ function isPortableNode(value: unknown, assets: Map<string, AssetRecord>): value
     isInteractionData(String(value.interaction), value.interactionData) &&
     (hints === undefined ||
       (isPlainObject(hints) &&
-        onlyKeys(hints, [], ['windowSize', 'windowStyle']) &&
+        onlyKeys(hints, [], ['windowSize', 'windowStyle', 'windowPosition']) &&
         (hints.windowSize === undefined || ['s', 'm', 'l', 'overlay'].includes(String(hints.windowSize))) &&
-        (hints.windowStyle === undefined || ['card', 'document'].includes(String(hints.windowStyle))))) &&
+        (hints.windowStyle === undefined || ['card', 'document'].includes(String(hints.windowStyle))) &&
+        (hints.windowPosition === undefined || ['bottom-left', 'bottom-right', 'center'].includes(String(hints.windowPosition))))) &&
     isPlainObject(effects) &&
     onlyKeys(effects, ['pause']) &&
     effects.pause === true

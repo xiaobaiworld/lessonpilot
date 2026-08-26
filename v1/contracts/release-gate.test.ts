@@ -13,7 +13,7 @@ const matrix: SupportedRelease[] = [
     release: 'v1.0.0',
     status: 'development',
     httpApi: '2.0.0',
-    coursePackage: '3.0.0',
+    coursePackage: '3.1.0',
     extensionMessages: '2.0.0',
     extensionStorage: '2.0.0',
     webBuild: '1.0.0',

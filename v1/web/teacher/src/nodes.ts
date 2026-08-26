@@ -55,6 +55,7 @@ function newId(): string {
 export const WINDOW_DEFAULTS = {
   windowSize: 'm' as const,
   windowStyle: 'document' as const,
+  windowPosition: 'bottom-right' as const,
 };
 
 /** 建一个字段已填到最小可通过校验的节点 */

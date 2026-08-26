@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { richDocumentFromHtml, richDocumentToHtml, richDocumentToPlainText } from '@v1/web/shared';
 import { ScriptNode } from '../api';
 import { RichTextEditor } from './RichTextEditor';
@@ -21,6 +21,12 @@ const WINDOW_STYLE_OPTIONS = [
   { value: 'document', label: '文档' },
 ] as const;
 
+const WINDOW_POSITION_OPTIONS = [
+  { value: 'bottom-left', label: '左下' },
+  { value: 'bottom-right', label: '右下' },
+  { value: 'center', label: '居中' },
+] as const;
+
 /** 各字段名由后端校验固定，见 v1/backend/app/modules/authoring_release/application_service.py */
 export const NodeForm: React.FC<Props> = ({ node, disabled, onChange }) => {
   const setHints = (patch: Record<string, unknown>) =>
@@ -40,124 +46,94 @@ export const NodeForm: React.FC<Props> = ({ node, disabled, onChange }) => {
 
   return (
     <div className="node-fields">
-      <section className="node-section node-presentation-section">
-        <div className="node-section-heading">
-          <div>
-            <span className="node-section-eyebrow">呈现设置</span>
-            <h3>学生端窗口</h3>
+      <div className="node-editor-column">
+        <section className="node-section node-content-section">
+          <div className="node-section-heading">
+            <div>
+              <span className="node-section-eyebrow">核心内容</span>
+              <h3>页面正文</h3>
+            </div>
+            <span>学生将在视频中看到</span>
           </div>
-          <span>先确定学生看到的窗口形态</span>
-        </div>
-        <div className="node-presentation-grid">
-          <label className="node-setting-card">
-            <span>窗口大小</span>
-            <select
-              value={node.presentationHints?.windowSize ?? 'm'}
-              onChange={(event) => setHints({ windowSize: event.target.value })}
-              disabled={disabled}
-            >
-              {WINDOW_SIZE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="node-setting-card">
-            <span>窗口样式</span>
-            <select
-              value={node.presentationHints?.windowStyle ?? 'document'}
-              onChange={(event) => setHints({ windowStyle: event.target.value })}
-              disabled={disabled}
-            >
-              {WINDOW_STYLE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-      </section>
-
-      <section className="node-section node-content-section">
-        <div className="node-section-heading">
-          <div>
-            <span className="node-section-eyebrow">核心内容</span>
-            <h3>页面正文</h3>
-          </div>
-          <span>学生将在视频中看到</span>
-        </div>
-        <Field
-          label="标题"
-          value={node.title}
-          onChange={(title) => onChange({ ...node, title })}
-          disabled={disabled}
-        />
-        <RichTextEditor
-          label="正文内容"
-          value={richDocumentToHtml(node.content)}
-          disabled={disabled}
-          onChange={setPageHtml}
-        />
-      </section>
-
-      <StudentNodePreview node={node} />
-
-      {node.interaction === 'choice' && (
-        <ChoiceFields
-          options={data.options ?? []}
-          answer={data.answer ?? ''}
-          explanation={data.explanation ?? ''}
-          disabled={disabled}
-          onOptions={(options) => setInteractionData({ options })}
-          onAnswer={(answer) => setInteractionData({ answer })}
-          onExplanation={(explanation) => setInteractionData({ explanation })}
-        />
-      )}
-
-      {node.interaction === 'blank' && (
-        <>
           <Field
-            label="可接受答案（多个用 | 分隔）"
-            value={(data.acceptedAnswers ?? []).join(' | ')}
-            onChange={(v) =>
-              setInteractionData({
-                acceptedAnswers: v
-                  .split('|')
-                  .map((s) => s.trim())
-                  .filter(Boolean),
-              })
-            }
-            disabled={disabled}
-            hint="比对时会去空白并忽略大小写"
-          />
-          <Area
-            label="解析"
-            value={data.explanation ?? ''}
-            onChange={(v) => setInteractionData({ explanation: v })}
+            label="标题"
+            value={node.title}
+            onChange={(title) => onChange({ ...node, title })}
             disabled={disabled}
           />
-        </>
-      )}
+          <RichTextEditor
+            label="正文内容"
+            value={richDocumentToHtml(node.content)}
+            disabled={disabled}
+            onChange={setPageHtml}
+          />
+        </section>
 
-      {node.interaction === 'free_text' && (
-        <Area
-          label="参考答案"
-          value={data.referenceFeedback ?? ''}
-          onChange={(v) => setInteractionData({ referenceFeedback: v })}
-          disabled={disabled}
-          hint="学生作答后展示，不做自动判分"
-        />
-      )}
+        <div className="node-detail-fields">
+          {node.interaction === 'choice' && (
+            <ChoiceFields
+              options={data.options ?? []}
+              answer={data.answer ?? ''}
+              explanation={data.explanation ?? ''}
+              disabled={disabled}
+              onOptions={(options) => setInteractionData({ options })}
+              onAnswer={(answer) => setInteractionData({ answer })}
+              onExplanation={(explanation) => setInteractionData({ explanation })}
+            />
+          )}
+
+          {node.interaction === 'blank' && (
+            <>
+              <Field
+                label="可接受答案（多个用 | 分隔）"
+                value={(data.acceptedAnswers ?? []).join(' | ')}
+                onChange={(v) =>
+                  setInteractionData({
+                    acceptedAnswers: v
+                      .split('|')
+                      .map((s) => s.trim())
+                      .filter(Boolean),
+                  })
+                }
+                disabled={disabled}
+                hint="比对时会去空白并忽略大小写"
+              />
+              <Area
+                label="解析"
+                value={data.explanation ?? ''}
+                onChange={(v) => setInteractionData({ explanation: v })}
+                disabled={disabled}
+              />
+            </>
+          )}
+
+          {node.interaction === 'free_text' && (
+            <Area
+              label="参考答案"
+              value={data.referenceFeedback ?? ''}
+              onChange={(v) => setInteractionData({ referenceFeedback: v })}
+              disabled={disabled}
+              hint="学生作答后展示，不做自动判分"
+            />
+          )}
+        </div>
+      </div>
+
+      <StudentNodePreview node={node} disabled={disabled} onChange={setHints} />
     </div>
   );
 };
 
-const StudentNodePreview: React.FC<{ node: ScriptNode }> = ({ node }) => {
+const StudentNodePreview: React.FC<{
+  node: ScriptNode;
+  disabled: boolean;
+  onChange: (patch: Record<string, unknown>) => void;
+}> = ({ node, disabled, onChange }) => {
+  const [previewConfirmed, setPreviewConfirmed] = useState(false);
   const previewText = richDocumentToPlainText(node.content) || '这里会显示节点正文。';
   const windowSize = node.presentationHints?.windowSize ?? 'm';
   const windowStyle = node.presentationHints?.windowStyle ?? 'document';
+  const windowPosition = node.presentationHints?.windowPosition ?? 'bottom-right';
   const data = (node.interactionData ?? {}) as Record<string, any>;
   const options = Array.isArray(data.options) ? data.options : [];
   const interactionLabel =
@@ -171,7 +147,7 @@ const StudentNodePreview: React.FC<{ node: ScriptNode }> = ({ node }) => {
 
   return (
     <section
-      className={`student-node-preview student-node-preview-${node.interaction} student-node-preview-${windowSize} student-node-preview-${windowStyle}`}
+      className={`student-node-preview student-node-preview-${node.interaction} student-node-preview-${windowSize} student-node-preview-${windowStyle} student-node-preview-${windowPosition}${previewConfirmed ? ' is-confirmed' : ''}`}
       aria-label="学生端预览"
     >
       <header className="student-node-preview-head">
@@ -199,16 +175,93 @@ const StudentNodePreview: React.FC<{ node: ScriptNode }> = ({ node }) => {
           {node.interaction === 'free_text' && <div className="student-node-card-input">写下你的想法……</div>}
         </article>
       </div>
+      <div className="preview-settings">
+        <div className="preview-settings-heading">
+          <div>
+            <span className="node-section-eyebrow">预览设置</span>
+            <strong>窗口显示</strong>
+          </div>
+          <span>调整后确认预览</span>
+        </div>
+        <ChoiceGroup
+          label="大小"
+          value={windowSize}
+          options={WINDOW_SIZE_OPTIONS}
+          disabled={disabled}
+          onChange={(value) => {
+            setPreviewConfirmed(false);
+            onChange({ windowSize: value });
+          }}
+        />
+        <ChoiceGroup
+          label="位置"
+          value={windowPosition}
+          options={WINDOW_POSITION_OPTIONS}
+          disabled={disabled}
+          onChange={(value) => {
+            setPreviewConfirmed(false);
+            onChange({ windowPosition: value });
+          }}
+        />
+        <ChoiceGroup
+          label="样式"
+          value={windowStyle}
+          options={WINDOW_STYLE_OPTIONS}
+          disabled={disabled}
+          onChange={(value) => {
+            setPreviewConfirmed(false);
+            onChange({ windowStyle: value });
+          }}
+        />
+        <button
+          className="preview-confirm-button"
+          type="button"
+          onClick={() => setPreviewConfirmed(true)}
+          disabled={disabled}
+        >
+          {previewConfirmed ? '已确认预览' : '预览确认'}
+        </button>
+      </div>
       <footer className="student-node-preview-foot">
-        <span>{windowSizeLabel(windowSize)} · {windowStyle === 'card' ? '卡片' : '文档'}</span>
+        <span>{windowSizeLabel(windowSize)} · {windowPositionLabel(windowPosition)} · {windowStyle === 'card' ? '卡片' : '文档'}</span>
         <span>示意预览</span>
       </footer>
     </section>
   );
 };
 
+const ChoiceGroup: React.FC<{
+  label: string;
+  value: string;
+  options: readonly { value: string; label: string }[];
+  disabled: boolean;
+  onChange: (value: string) => void;
+}> = ({ label, value, options, disabled, onChange }) => (
+  <div className="preview-setting-row">
+    <span>{label}</span>
+    <div className="preview-choice-group" role="group" aria-label={label}>
+      {options.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          className={option.value === value ? 'is-active' : ''}
+          aria-pressed={option.value === value}
+          onClick={() => onChange(option.value)}
+          disabled={disabled}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  </div>
+);
+
 function windowSizeLabel(value: string): string {
   return WINDOW_SIZE_OPTIONS.find((option) => option.value === value)?.label ?? '中等';
+}
+
+function windowPositionLabel(value: string): string {
+  return WINDOW_POSITION_OPTIONS.find((option) => option.value === value)?.label ?? '右下';
 }
 
 function formatPreviewTime(seconds: number): string {
