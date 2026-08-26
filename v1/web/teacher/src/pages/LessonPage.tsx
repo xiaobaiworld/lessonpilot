@@ -268,11 +268,16 @@ export const LessonPage: React.FC<Props> = ({
     if (target) onSelectLesson(target.id, target.title);
   };
 
+  const backToCourse = () => {
+    if (dirty && !window.confirm('当前课节有未保存修改，确定返回课程吗？')) return;
+    onBack();
+  };
+
   return (
     <div className="app-shell">
       <Topbar subtitle="互动课程工具" account={teacher.display_name} onLogout={onSignedOut} />
       <main className="view workspace-home teacher-editor-page">
-        <button className="text-button back-link" type="button" onClick={onBack}>
+        <button className="text-button back-link" type="button" onClick={backToCourse}>
           ← 返回课程
         </button>
         {error && <p className="field-error">{error}</p>}

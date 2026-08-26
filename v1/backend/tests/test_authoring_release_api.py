@@ -169,6 +169,10 @@ def test_subtitle_is_saved_restored_and_frozen_in_release_but_not_package() -> N
         client.get(f"/api/v1/teacher/lessons/{lesson['id']}/draft").json()["config"]["subtitle"]
         == SUBTITLE
     )
+    detail = client.get(f"/api/v1/teacher/courses/{course['id']}")
+    assert detail.status_code == 200
+    saved_lesson = next(item for item in detail.json()["lessons"] if item["id"] == lesson["id"])
+    assert saved_lesson["has_draft"] is True
 
     exported = client.get(f"/api/v1/teacher/courses/{course['id']}/course-file")
     assert exported.status_code == 200

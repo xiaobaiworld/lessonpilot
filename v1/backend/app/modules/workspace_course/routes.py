@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Response
 
 from app.api.errors import ApiError
 from app.infrastructure.database.session import get_db
+from app.modules.authoring_release.application_service import AuthoringReleaseApplicationService
 from app.modules.identity.dependencies import require_teacher
 from app.modules.identity.models import TeacherAccount
 from app.modules.workspace_course.application_service import (
@@ -42,7 +43,7 @@ def _course(course: Course) -> CourseSummary:
     )
 
 
-def _lesson(lesson: Lesson) -> LessonPublic:
+def _lesson(lesson: Lesson, has_draft: bool = False) -> LessonPublic:
     return LessonPublic(
         id=lesson.id,
         course_id=lesson.course_id,
@@ -53,17 +54,21 @@ def _lesson(lesson: Lesson) -> LessonPublic:
             platform=lesson.video_reference.platform,
             video_id=lesson.video_reference.platform_video_id,
         ),
-        has_draft=False,
+        has_draft=has_draft,
         status="draft",
         created_at=lesson.created_at,
         updated_at=lesson.updated_at,
     )
 
 
-def _detail(course: Course) -> CourseDetail:
+def _detail(course: Course, draft_lesson_ids: set[str] | None = None) -> CourseDetail:
+    draft_lesson_ids = draft_lesson_ids or set()
     return CourseDetail(
         **_course(course).model_dump(),
-        lessons=[_lesson(item) for item in sorted(course.lessons, key=lambda row: row.sequence)],
+        lessons=[
+            _lesson(item, item.id in draft_lesson_ids)
+            for item in sorted(course.lessons, key=lambda row: row.sequence)
+        ],
     )
 
 
@@ -97,9 +102,14 @@ def get_course(
     course_id: str,
     teacher: TeacherAccount = Depends(require_teacher),
     service: WorkspaceCourseApplicationService = Depends(get_service),
+    db: Session = Depends(get_db),
 ) -> CourseDetail:
     try:
-        return _detail(service.get_course(teacher.id, course_id))
+        course = service.get_course(teacher.id, course_id)
+        draft_ids = AuthoringReleaseApplicationService(db).draft_lesson_ids(
+            lesson.id for lesson in course.lessons
+        )
+        return _detail(course, draft_ids)
     except WorkspaceCourseError as error:
         raise _map_error(error) from error
 
@@ -159,9 +169,12 @@ def get_lesson(
     lesson_id: str,
     teacher: TeacherAccount = Depends(require_teacher),
     service: WorkspaceCourseApplicationService = Depends(get_service),
+    db: Session = Depends(get_db),
 ) -> LessonPublic:
     try:
-        return _lesson(service.get_lesson(teacher.id, lesson_id))
+        lesson = service.get_lesson(teacher.id, lesson_id)
+        draft_ids = AuthoringReleaseApplicationService(db).draft_lesson_ids([lesson.id])
+        return _lesson(lesson, lesson.id in draft_ids)
     except WorkspaceCourseError as error:
         raise _map_error(error) from error
 
@@ -172,18 +185,19 @@ def update_lesson(
     payload: LessonUpdate,
     teacher: TeacherAccount = Depends(require_teacher),
     service: WorkspaceCourseApplicationService = Depends(get_service),
+    db: Session = Depends(get_db),
 ) -> LessonPublic:
     try:
-        return _lesson(
-            service.update_lesson(
-                teacher.id,
-                lesson_id,
-                payload.revision,
-                payload.title,
-                payload.video_ref.platform if payload.video_ref else None,
-                payload.video_ref.video_id if payload.video_ref else None,
-            )
+        lesson = service.update_lesson(
+            teacher.id,
+            lesson_id,
+            payload.revision,
+            payload.title,
+            payload.video_ref.platform if payload.video_ref else None,
+            payload.video_ref.video_id if payload.video_ref else None,
         )
+        draft_ids = AuthoringReleaseApplicationService(db).draft_lesson_ids([lesson.id])
+        return _lesson(lesson, lesson.id in draft_ids)
     except WorkspaceCourseError as error:
         raise _map_error(error) from error
 
@@ -207,12 +221,15 @@ def reorder_lessons(
     payload: LessonOrderRequest,
     teacher: TeacherAccount = Depends(require_teacher),
     service: WorkspaceCourseApplicationService = Depends(get_service),
+    db: Session = Depends(get_db),
 ) -> CourseDetail:
     try:
-        return _detail(
-            service.reorder_lessons(
-                teacher.id, course_id, payload.course_revision, payload.lesson_ids
-            )
+        course = service.reorder_lessons(
+            teacher.id, course_id, payload.course_revision, payload.lesson_ids
         )
+        draft_ids = AuthoringReleaseApplicationService(db).draft_lesson_ids(
+            lesson.id for lesson in course.lessons
+        )
+        return _detail(course, draft_ids)
     except WorkspaceCourseError as error:
         raise _map_error(error) from error

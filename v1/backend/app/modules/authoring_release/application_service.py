@@ -2,8 +2,9 @@ import hashlib
 import json
 import math
 import re
-from urllib.parse import urljoin, urlparse
+from collections.abc import Iterable
 from datetime import datetime, timedelta, timezone
+from urllib.parse import urljoin, urlparse
 from uuid import uuid4
 
 from sqlalchemy import func, select
@@ -425,6 +426,17 @@ class AuthoringReleaseApplicationService:
         if not draft:
             raise AuthoringReleaseError("DRAFT_NOT_FOUND")
         return draft
+
+    def draft_lesson_ids(self, lesson_ids: Iterable[str]) -> set[str]:
+        """返回当前已有草稿的课节 ID，供课程详情组装状态投影。"""
+        ids = list(lesson_ids)
+        if not ids:
+            return set()
+        return set(
+            self.session.scalars(
+                select(ScriptDraft.lesson_id).where(ScriptDraft.lesson_id.in_(ids))
+            )
+        )
 
     def save_draft(
         self,
