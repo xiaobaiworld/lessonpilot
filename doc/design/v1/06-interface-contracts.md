@@ -286,6 +286,7 @@
 | POST | `/api/v1/teacher/preview-sessions/{preview_session_id}/end` | 新建 | 预览结束/过期，不产生学生数据 |
 | POST | `/api/v1/teacher/courses/{course_id}/rights-attestation` | 新建 | `D-V1-008`、04 第 10 节 |
 | POST | `/api/v1/teacher/courses/{course_id}/releases` | 改名 | 带 `idempotencyKey`；课程至少有一节课节即可创建新的发布快照，不要求测试预览；旧路径：`POST /api/v1/teacher/courses/{course_id}/publish` |
+| POST | `/api/v1/teacher/courses/{course_id}/version-drafts` | 新建 | `{mode: modify|add, idempotency_key}`；后端原子完成“修改本版本/增加版本”，返回草稿课程和原版本是否保留 |
 | GET | `/api/v1/teacher/courses/{course_id}/releases` | 新建 | 发布历史与当前可交付版本 |
 | GET | `/api/v1/teacher/releases/{release_id}` | 新建 | 单次发布及课节快照 |
 | POST | `/api/v1/teacher/releases/{release_id}/availability` | 新建 | 04 第 8 节 `ReleaseAvailability` 与内容分离 |
@@ -298,16 +299,17 @@
 
 | 方法 | 路径 | 状态 | 依据 |
 | --- | --- | --- | --- |
-| POST | `/api/v1/teacher/access-codes` | 改名 | 请求指定一个已发布课程的 `course_id`，原文只返回一次；兑换/更新时自动解析最新可交付版本；旧路径：`POST /api/v1/teacher/courses/{course_id}/access-codes` |
-| GET | `/api/v1/teacher/access-codes` | 改名 | 支持按课程过滤；旧路径：`GET /api/v1/teacher/courses/{course_id}/access-codes` |
-| GET | `/api/v1/teacher/access-codes/{access_code_id}` | 新建 | 尾号、范围、窗口、状态；不返回原文 |
+| POST | `/api/v1/teacher/access-codes` | 改名 | 请求指定一个已发布课程的 `course_id`，返回完整码；兑换/更新时自动解析最新可交付版本；旧路径：`POST /api/v1/teacher/courses/{course_id}/access-codes` |
+| POST | `/api/v1/teacher/access-codes/batch` | 新建 | 以批次幂等键原子生成 1–100 个课程级授权码，失败不留下半批结果 |
+| GET | `/api/v1/teacher/access-codes` | 改名 | 支持按课程过滤；仅对所属教师返回完整码、领取数量及首次/最近领取时间；旧路径：`GET /api/v1/teacher/courses/{course_id}/access-codes` |
+| GET | `/api/v1/teacher/access-codes/{access_code_id}` | 新建 | 所属教师可读取完整码、范围、窗口、状态和领取使用摘要，不返回校验摘要或本机标识摘要 |
 | POST | `/api/v1/teacher/access-codes/{access_code_id}/terminate` | 新建 | `FR-GRANT-*`；只重算未来在线资格 |
 | POST | `/api/v1/student/redemptions` | 改名 | 首次兑换，见 4.3；旧路径：`POST /api/v1/public/course-download` |
 | POST | `/api/v1/student/course-updates` | 新建 | 免输授权码更新，见 4.4 |
 
-当前课程级授权接口边界：`POST /teacher/access-codes` 的目标对象是一个已发布课程的 `courseId`；兑换和更新时服务端自动解析该课程最新可交付版本。
+当前课程级授权接口边界：`POST /teacher/access-codes` 和 `/teacher/access-codes/batch` 的目标对象是一个已发布课程的 `courseId`；兑换和更新时服务端自动解析该课程最新可交付版本。
 请求与响应必须能回溯授权的 `courseId` 以及实际返回的 `releaseId`；版本级授权目标后续再增加。
-本次不新增版本操作端点，发布、修改本版本和增加版本的最终路径需在实现前按 `D-V1-018` 重新冻结事务契约。
+版本操作只允许调用 `/teacher/courses/{course_id}/version-drafts`：`modify` 不保留当前可交付版本并在原课程身份上重建草稿；`add` 保留当前版本并创建新 `courseId` 草稿。前端不得用导出、导入、归档或多次普通请求拼装该事务。
 
 后续升级兼容可新增或扩展课程升级关系查询/写入契约，但当前不实现。当前 `/student/course-updates` 按 `courseId` 返回其最新可交付版本；
 只有进入跨独立课程升级时，才需冻结课程族、升级关系和本机状态迁移规则。

@@ -166,3 +166,31 @@ class ReleaseAvailability(Base):
     release = relationship("CourseRelease", back_populates="availability")
 
     __table_args__ = (Index("ix_availability_release_id", "release_id"),)
+
+
+class CourseVersionOperation(Base):
+    """Idempotent record of turning a published course into a version draft."""
+
+    __tablename__ = "v1_course_version_operations"
+
+    id = Column(String(36), primary_key=True)
+    teacher_id = Column(String(36), ForeignKey("v1_teacher_accounts.id"), nullable=False)
+    source_course_id = Column(String(36), nullable=False)
+    source_release_id = Column(String(36), nullable=False)
+    mode = Column(String(20), nullable=False)  # modify | add
+    idempotency_key = Column(String(64), nullable=False)
+    result_course_id = Column(String(36), ForeignKey("v1_courses.id"), nullable=False)
+    source_retained = Column(Boolean, nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "teacher_id",
+            "idempotency_key",
+            name="uq_course_version_operations_teacher_intent",
+        ),
+        Index("ix_course_version_operations_source_course", "source_course_id"),
+        Index("ix_course_version_operations_result_course", "result_course_id"),
+    )

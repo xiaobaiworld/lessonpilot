@@ -37,6 +37,10 @@ def get_service(db: Session = Depends(get_db)) -> WorkspaceCourseApplicationServ
 def _course(course: Course) -> CourseSummary:
     return CourseSummary(
         id=course.id,
+        version_family_id=course.version_family_id,
+        source_course_id=course.source_course_id,
+        source_release_id=course.source_release_id,
+        version_number=course.version_number,
         title=course.title,
         description=course.description,
         status=course.status,

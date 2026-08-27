@@ -28,6 +28,7 @@ export const V1_TABLE_OWNER = {
   v1_course_releases: 'authoring_release',
   v1_release_lesson_snapshots: 'authoring_release',
   v1_release_availability: 'authoring_release',
+  v1_course_version_operations: 'authoring_release',
   v1_access_codes: 'entitlement_delivery',
   v1_grant_items: 'entitlement_delivery',
   v1_redemptions: 'entitlement_delivery',

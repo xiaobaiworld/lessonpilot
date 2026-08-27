@@ -27,6 +27,11 @@ from app.modules.authoring_release.schemas import (
     ReleaseWrite,
     RightsWrite,
     SubtitleRepairPublic,
+    VersionDraftWrite,
+)
+from app.modules.authoring_release.version_service import (
+    CourseVersionApplicationService,
+    CourseVersionError,
 )
 from app.modules.identity.dependencies import require_teacher
 from app.modules.identity.models import TeacherAccount
@@ -34,6 +39,7 @@ from app.modules.workspace_course.application_service import (
     WorkspaceCourseApplicationService,
     WorkspaceCourseError,
 )
+from app.modules.workspace_course.routes import _course
 
 router = APIRouter(prefix="/api/v1/teacher", tags=["teacher-authoring-release"])
 
@@ -116,7 +122,7 @@ def _release(release: CourseRelease) -> dict:
 
 def _error(error: Exception) -> ApiError:
     code = getattr(error, "code", "INTERNAL_ERROR")
-    if code == "REVISION_CONFLICT":
+    if code in {"REVISION_CONFLICT", "VERSION_OPERATION_INTENT_CONFLICT"}:
         return ApiError(409, code, "草稿已被修改，请重新读取")
     if code.endswith("NOT_FOUND") or code in {"COURSE_NOT_FOUND", "LESSON_NOT_FOUND"}:
         return ApiError(404, code, "对象不存在或无权访问")
@@ -371,6 +377,29 @@ def attest_rights(
         )
         return {"id": attestation.id, "statement_version": attestation.statement_version}
     except (WorkspaceCourseError, ValueError) as error:
+        raise _error(error) from error
+
+
+@router.post("/courses/{course_id}/version-drafts", status_code=201)
+def create_version_draft(
+    course_id: str,
+    payload: VersionDraftWrite,
+    teacher: TeacherAccount = Depends(require_teacher),
+    db: Session = Depends(get_db),
+) -> dict:
+    try:
+        operation, course, replayed = CourseVersionApplicationService(db).create_version_draft(
+            teacher.id, course_id, payload.mode, payload.idempotency_key
+        )
+        return {
+            "source_course_id": operation.source_course_id,
+            "source_release_id": operation.source_release_id,
+            "mode": operation.mode,
+            "source_retained": operation.source_retained,
+            "replayed": replayed,
+            "course": _course(course).model_dump(mode="json"),
+        }
+    except (WorkspaceCourseError, CourseVersionError) as error:
         raise _error(error) from error
 
 

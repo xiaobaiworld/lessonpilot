@@ -72,6 +72,10 @@ class Course(Base):
 
     id = Column(String(36), primary_key=True)  # UUID
     workspace_id = Column(String(36), ForeignKey("v1_workspaces.id"), nullable=False)
+    version_family_id = Column(String(36), nullable=False)
+    source_course_id = Column(String(36), nullable=True)
+    source_release_id = Column(String(36), nullable=True)
+    version_number = Column(Integer, default=1, nullable=False)
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
     revision = Column(Integer, default=1, nullable=False)  # Optimistic concurrency
@@ -94,6 +98,7 @@ class Course(Base):
 
     __table_args__ = (
         Index("ix_courses_workspace_id", "workspace_id"),
+        Index("ix_courses_version_family_id", "version_family_id"),
         Index("ix_courses_status", "status"),
     )
 

@@ -100,6 +100,12 @@ class ReleaseWrite(BaseModel):
     idempotency_key: str = Field(min_length=8, max_length=64)
 
 
+class VersionDraftWrite(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    mode: Literal["modify", "add"]
+    idempotency_key: str = Field(min_length=8, max_length=64)
+
+
 class AvailabilityWrite(BaseModel):
     model_config = ConfigDict(extra="forbid")
     deliverable: bool

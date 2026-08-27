@@ -21,6 +21,7 @@ def test_empty_database_upgrades_to_single_v1_head(tmp_path: Path, monkeypatch) 
         "v1_admin_accounts",
         "v1_admin_sessions",
         "v1_course_releases",
+        "v1_course_version_operations",
         "v1_courses",
         "v1_grant_items",
         "v1_lessons",

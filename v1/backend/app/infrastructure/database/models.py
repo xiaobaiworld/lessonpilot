@@ -4,6 +4,7 @@ from app.modules.admin_support.models import RightsAttestation, TrialFollowup
 from app.modules.authoring_release.models import PreviewSession, ScriptDraft
 from app.modules.authoring_release.release_models import (
     CourseRelease,
+    CourseVersionOperation,
     ReleaseAvailability,
     ReleaseLessonSnapshot,
 )
@@ -23,6 +24,7 @@ __all__ = [
     "AdminSession",
     "Course",
     "CourseRelease",
+    "CourseVersionOperation",
     "GrantItem",
     "Lesson",
     "OperationAudit",

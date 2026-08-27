@@ -22,6 +22,10 @@ class AccessCodeWrite(BaseModel):
     redeem_until: datetime | None = None
 
 
+class AccessCodeBatchWrite(AccessCodeWrite):
+    count: int = Field(ge=1, le=100)
+
+
 class StudentBase(BaseModel):
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
     schema_version: int = Field(alias="schemaVersion")

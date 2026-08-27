@@ -13,7 +13,12 @@ from app.modules.entitlement_delivery.application_service import (
     EntitlementError,
 )
 from app.modules.entitlement_delivery.models import AccessCode
-from app.modules.entitlement_delivery.schemas import AccessCodeWrite, RedemptionWrite, UpdateWrite
+from app.modules.entitlement_delivery.schemas import (
+    AccessCodeBatchWrite,
+    AccessCodeWrite,
+    RedemptionWrite,
+    UpdateWrite,
+)
 from app.modules.identity.dependencies import require_teacher
 from app.modules.identity.models import TeacherAccount
 from app.modules.workspace_course.application_service import (
@@ -32,14 +37,23 @@ def _service(request: Request, db: Session) -> EntitlementApplicationService:
     return EntitlementApplicationService(db, settings.access_code_secret)
 
 
-def _public(code: AccessCode) -> dict:
+def _public(service: EntitlementApplicationService, code: AccessCode) -> dict:
+    redemptions = list(code.redemptions)
     return {
         "id": code.id,
+        "access_code": service.reveal_code(code),
         "display_tail": code.display_tail,
         "status": code.status,
         "redeem_from": code.redeem_from,
         "redeem_until": code.redeem_until,
         "created_at": code.created_at,
+        "redemption_count": len(redemptions),
+        "first_redeemed_at": min(
+            (item.first_redeemed_at for item in redemptions), default=None
+        ),
+        "last_redeemed_at": max(
+            (item.last_redeemed_at for item in redemptions), default=None
+        ),
         "grants": [
             {
                 "course_id": grant.course_id,
@@ -50,6 +64,36 @@ def _public(code: AccessCode) -> dict:
             for grant in code.grants
         ],
     }
+
+
+def _validated_grants(
+    payload: AccessCodeWrite,
+    teacher: TeacherAccount,
+    db: Session,
+) -> list[dict]:
+    courses = WorkspaceCourseApplicationService(db)
+    authoring = AuthoringReleaseApplicationService(db)
+    grants = []
+    for item in payload.grants:
+        course = courses.get_course(teacher.id, item.course_id)
+        if not authoring.latest_deliverable_release(course.id):
+            raise EntitlementError("RELEASE_NOT_DELIVERABLE")
+        if item.scope != "course" and not item.lesson_ids and not item.node_ids:
+            raise EntitlementError("GRANT_SCOPE_EMPTY")
+        for lesson_id in item.lesson_ids:
+            lesson = courses.get_lesson(teacher.id, lesson_id)
+            if lesson.course_id != course.id:
+                raise EntitlementError("GRANT_SCOPE_INVALID")
+        grants.append(
+            {
+                "course_id": item.course_id,
+                "scope": item.scope,
+                "scope_data": {"lessonIds": item.lesson_ids, "nodeIds": item.node_ids},
+                "valid_from": item.valid_from,
+                "valid_until": item.valid_until,
+            }
+        )
+    return grants
 
 
 def _error(error: Exception) -> ApiError:
@@ -65,34 +109,43 @@ def create_access_code(
     teacher: TeacherAccount = Depends(require_teacher),
     db: Session = Depends(get_db),
 ) -> dict:
-    courses = WorkspaceCourseApplicationService(db)
     try:
-        grants = []
-        for item in payload.grants:
-            course = courses.get_course(teacher.id, item.course_id)
-            if item.scope != "course" and not item.lesson_ids and not item.node_ids:
-                raise EntitlementError("GRANT_SCOPE_EMPTY")
-            for lesson_id in item.lesson_ids:
-                lesson = courses.get_lesson(teacher.id, lesson_id)
-                if lesson.course_id != course.id:
-                    raise EntitlementError("GRANT_SCOPE_INVALID")
-            grants.append(
-                {
-                    "course_id": item.course_id,
-                    "scope": item.scope,
-                    "scope_data": {"lessonIds": item.lesson_ids, "nodeIds": item.node_ids},
-                    "valid_from": item.valid_from,
-                    "valid_until": item.valid_until,
-                }
-            )
-        code, raw, replayed = _service(request, db).create_code(
+        service = _service(request, db)
+        code, raw, replayed = service.create_code(
             teacher.id,
             payload.idempotency_key,
-            grants,
+            _validated_grants(payload, teacher, db),
             payload.redeem_from,
             payload.redeem_until,
         )
-        return {**_public(code), "access_code": raw, "replayed": replayed}
+        return {**_public(service, code), "access_code": raw, "replayed": replayed}
+    except (WorkspaceCourseError, EntitlementError) as error:
+        raise _error(error) from error
+
+
+@teacher_router.post("/batch", status_code=201)
+def create_access_code_batch(
+    payload: AccessCodeBatchWrite,
+    request: Request,
+    teacher: TeacherAccount = Depends(require_teacher),
+    db: Session = Depends(get_db),
+) -> dict:
+    try:
+        service = _service(request, db)
+        items, replayed = service.create_code_batch(
+            teacher.id,
+            payload.idempotency_key,
+            payload.count,
+            _validated_grants(payload, teacher, db),
+            payload.redeem_from,
+            payload.redeem_until,
+        )
+        return {
+            "items": [
+                {**_public(service, code), "access_code": raw} for code, raw in items
+            ],
+            "replayed": replayed,
+        }
     except (WorkspaceCourseError, EntitlementError) as error:
         raise _error(error) from error
 
@@ -104,8 +157,11 @@ def list_access_codes(
     teacher: TeacherAccount = Depends(require_teacher),
     db: Session = Depends(get_db),
 ) -> dict:
+    service = _service(request, db)
     return {
-        "items": [_public(item) for item in _service(request, db).list_codes(teacher.id, course_id)]
+        "items": [
+            _public(service, item) for item in service.list_codes(teacher.id, course_id)
+        ]
     }
 
 
@@ -117,7 +173,8 @@ def get_access_code(
     db: Session = Depends(get_db),
 ) -> dict:
     try:
-        return _public(_service(request, db).get_code(teacher.id, access_code_id))
+        service = _service(request, db)
+        return _public(service, service.get_code(teacher.id, access_code_id))
     except EntitlementError as error:
         raise _error(error) from error
 
@@ -130,7 +187,8 @@ def terminate_access_code(
     db: Session = Depends(get_db),
 ) -> dict:
     try:
-        return _public(_service(request, db).terminate(teacher.id, access_code_id))
+        service = _service(request, db)
+        return _public(service, service.terminate(teacher.id, access_code_id))
     except EntitlementError as error:
         raise _error(error) from error
 

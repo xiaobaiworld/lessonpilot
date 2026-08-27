@@ -22,6 +22,10 @@ class CourseUpdate(BaseModel):
 
 class CourseSummary(BaseModel):
     id: str
+    version_family_id: str
+    source_course_id: str | None
+    source_release_id: str | None
+    version_number: int
     title: str
     description: str | None
     status: str

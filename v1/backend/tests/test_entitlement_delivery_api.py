@@ -87,7 +87,9 @@ def test_empty_database_full_delivery_flow() -> None:
     ).json()
     assert replay["access_code"] == code
     assert replay["replayed"] is True
-    assert "access_code" not in str(client.get("/api/v1/teacher/access-codes").json())
+    listed_after_create = client.get("/api/v1/teacher/access-codes").json()["items"]
+    assert listed_after_create[0]["access_code"] == code
+    assert listed_after_create[0]["redemption_count"] == 0
     with app.state.session_factory() as session:
         stored = session.scalar(select(AccessCode).where(AccessCode.id == code_id))
         assert stored.code_digest != code
@@ -107,6 +109,13 @@ def test_empty_database_full_delivery_flow() -> None:
     assert delivered["releaseId"] == release["id"]
     assert delivered["package"]["lessons"][0]["nodes"] == [NODE]
     assert code not in str(delivered["package"])
+    usage = client.get(
+        "/api/v1/teacher/access-codes", params={"course_id": course["id"]}
+    ).json()["items"][0]
+    assert usage["access_code"] == code
+    assert usage["redemption_count"] == 1
+    assert usage["first_redeemed_at"] is not None
+    assert usage["last_redeemed_at"] is not None
     dashboard = client.get("/api/v1/teacher/courses")
     assert dashboard.status_code == 200
     dashboard_item = dashboard.json()["items"][0]
@@ -174,7 +183,9 @@ def test_empty_database_full_delivery_flow() -> None:
     )
     assert latest.status_code == 200
     assert latest.json()["data"]["courses"][0]["releaseId"] == second_release["id"]
-    assert latest.json()["data"]["courses"][0]["package"]["lessons"][0]["nodes"] == [second_node]
+    assert latest.json()["data"]["courses"][0]["package"]["lessons"][0]["nodes"] == [
+        second_node
+    ]
 
     client.post(f"/api/v1/teacher/access-codes/{code_id}/terminate")
     updates = client.post(
@@ -189,3 +200,58 @@ def test_empty_database_full_delivery_flow() -> None:
         },
     )
     assert updates.json()["data"]["courses"] == []
+
+
+def test_batch_access_codes_are_atomic_recoverable_and_idempotent() -> None:
+    settings = make_settings()
+    app = create_app(settings)
+    Base.metadata.create_all(app.state.engine)
+    with app.state.session_factory() as session:
+        IdentityApplicationService(session, settings.session_secret).seed_admin(
+            "admin", "管理员", "admin-password"
+        )
+    client = TestClient(app)
+    client.post(
+        "/api/v1/admin/auth/login",
+        json={"login_name": "admin", "password": "admin-password"},
+    )
+    teacher = client.post(
+        "/api/v1/admin/teachers",
+        json={"login_name": "batch-teacher", "display_name": "批量教师"},
+    ).json()
+    client.post(
+        "/api/v1/teacher/auth/login",
+        json={"login_name": "batch-teacher", "password": teacher["temporary_password"]},
+    )
+    course = client.post("/api/v1/teacher/courses", json={"title": "批量课程"}).json()
+    client.post(
+        f"/api/v1/teacher/courses/{course['id']}/lessons",
+        json={
+            "title": "第一课",
+            "video_ref": {"platform": "bilibili", "video_id": "BV1Ac41187Lm"},
+        },
+    )
+    client.post(
+        f"/api/v1/teacher/courses/{course['id']}/releases",
+        json={"idempotency_key": "publish-batch-course"},
+    )
+    payload = {
+        "idempotency_key": "batch-code-intent-1",
+        "count": 3,
+        "grants": [{"course_id": course["id"], "scope": "course"}],
+    }
+
+    created = client.post("/api/v1/teacher/access-codes/batch", json=payload)
+    assert created.status_code == 201
+    codes = [item["access_code"] for item in created.json()["items"]]
+    assert len(codes) == len(set(codes)) == 3
+    assert all(code.startswith("KM-") for code in codes)
+
+    replay = client.post("/api/v1/teacher/access-codes/batch", json=payload).json()
+    assert replay["replayed"] is True
+    assert [item["access_code"] for item in replay["items"]] == codes
+    listed = client.get(
+        "/api/v1/teacher/access-codes", params={"course_id": course["id"]}
+    ).json()["items"]
+    assert len(listed) == 3
+    assert {item["access_code"] for item in listed} == set(codes)

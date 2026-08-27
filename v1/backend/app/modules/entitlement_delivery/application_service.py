@@ -39,6 +39,7 @@ class EntitlementApplicationService:
         grants: list[dict],
         redeem_from: datetime | None,
         redeem_until: datetime | None,
+        commit: bool = True,
     ) -> tuple[AccessCode, str, bool]:
         existing = self.session.scalar(
             select(AccessCode).where(
@@ -72,8 +73,46 @@ class EntitlementApplicationService:
             for item in grants
         ]
         self.session.add(code)
-        self.session.commit()
+        if commit:
+            self.session.commit()
         return code, raw, False
+
+    def create_code_batch(
+        self,
+        teacher_id: str,
+        batch_intent: str,
+        count: int,
+        grants: list[dict],
+        redeem_from: datetime | None,
+        redeem_until: datetime | None,
+    ) -> tuple[list[tuple[AccessCode, str]], bool]:
+        created: list[tuple[AccessCode, str]] = []
+        replayed_flags: list[bool] = []
+        try:
+            for index in range(count):
+                digest = hashlib.sha256(f"{batch_intent}\0{index}".encode()).hexdigest()
+                intent = f"batch-{digest[:58]}"
+                code, raw, replayed = self.create_code(
+                    teacher_id,
+                    intent,
+                    grants,
+                    redeem_from,
+                    redeem_until,
+                    commit=False,
+                )
+                created.append((code, raw))
+                replayed_flags.append(replayed)
+            self.session.commit()
+            return created, all(replayed_flags)
+        except Exception:
+            self.session.rollback()
+            raise
+
+    def reveal_code(self, code: AccessCode) -> str:
+        raw = self._raw_code(code.created_by_teacher_id, code.idempotency_key)
+        if not hmac.compare_digest(code.code_digest, self._hmac(raw)):
+            raise EntitlementError("ACCESS_CODE_RECOVERY_FAILED")
+        return raw
 
     def list_codes(self, teacher_id: str, course_id: str | None = None) -> list[AccessCode]:
         statement = (
@@ -116,7 +155,7 @@ class EntitlementApplicationService:
     def get_code(self, teacher_id: str, code_id: str) -> AccessCode:
         code = self.session.scalar(
             select(AccessCode)
-            .options(selectinload(AccessCode.grants))
+            .options(selectinload(AccessCode.grants), selectinload(AccessCode.redemptions))
             .where(AccessCode.id == code_id, AccessCode.created_by_teacher_id == teacher_id)
         )
         if not code:

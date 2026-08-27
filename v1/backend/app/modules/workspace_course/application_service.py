@@ -43,9 +43,12 @@ class WorkspaceCourseApplicationService:
         return repository.list_courses(self.session, self._workspace(teacher_id).id)
 
     def create_course(self, teacher_id: str, title: str, description: str | None) -> Course:
+        course_id = str(uuid4())
         course = Course(
-            id=str(uuid4()),
+            id=course_id,
             workspace_id=self._workspace(teacher_id).id,
+            version_family_id=course_id,
+            version_number=1,
             title=title.strip(),
             description=description.strip() if description else None,
             status=CourseStatus.draft,
@@ -110,9 +113,12 @@ class WorkspaceCourseApplicationService:
         self, teacher_id: str, title: str, description: str | None, lessons: list[dict]
     ) -> tuple[Course, list[Lesson]]:
         """Create only the course structure; the caller completes the aggregate transaction."""
+        course_id = str(uuid4())
         course = Course(
-            id=str(uuid4()),
+            id=course_id,
             workspace_id=self._workspace(teacher_id).id,
+            version_family_id=course_id,
+            version_number=1,
             title=title.strip(),
             description=description.strip() if description else None,
             status=CourseStatus.draft,
