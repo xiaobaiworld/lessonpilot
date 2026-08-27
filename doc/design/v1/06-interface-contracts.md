@@ -1,8 +1,8 @@
 # 06 v1 接口与集成契约设计
 
-文档版本：`1.0.4`
+文档版本：`1.1.0`
 
-状态：已于 2026-08-22 通过人工审核；2026-08-27 增补教师课程列表聚合指标、学生作答统计预留字段及节点预览消费边界；本文件把已接受接口需求落为可实现的跨边界契约，不替代业务需求、数据模型或安全运维设计
+状态：已于 2026-08-22 通过人工审核；2026-08-27 增补教师课程列表聚合指标、学生作答统计预留字段及节点预览消费边界；按 `D-V1-018` 增补版本级授权和后续升级兼容契约边界；本文件把已接受接口需求落为可实现的跨边界契约，不替代业务需求、数据模型或安全运维设计
 
 `1.0.1` 增补第 4.5 节 v1 HTTP 端点清单。这是**增量补充，不改变已冻结的契约语义**：
 原文定义了信封、兑换和更新的字段边界，但从未枚举完整端点，实现时缺少可对照的基准。
@@ -285,7 +285,7 @@
 | POST | `/api/v1/teacher/lessons/{lesson_id}/preview-sessions` | 新建 | 04 第 7.3 节 `PreviewSession` |
 | POST | `/api/v1/teacher/preview-sessions/{preview_session_id}/end` | 新建 | 预览结束/过期，不产生学生数据 |
 | POST | `/api/v1/teacher/courses/{course_id}/rights-attestation` | 新建 | `D-V1-008`、04 第 10 节 |
-| POST | `/api/v1/teacher/courses/{course_id}/releases` | 改名 | 带 `idempotencyKey`；旧路径：`POST /api/v1/teacher/courses/{course_id}/publish` |
+| POST | `/api/v1/teacher/courses/{course_id}/releases` | 改名 | 带 `idempotencyKey`；发布草稿后创建新的独立课程身份；旧路径：`POST /api/v1/teacher/courses/{course_id}/publish` |
 | GET | `/api/v1/teacher/courses/{course_id}/releases` | 新建 | 发布历史与当前可交付版本 |
 | GET | `/api/v1/teacher/releases/{release_id}` | 新建 | 单次发布及课节快照 |
 | POST | `/api/v1/teacher/releases/{release_id}/availability` | 新建 | 04 第 8 节 `ReleaseAvailability` 与内容分离 |
@@ -298,12 +298,19 @@
 
 | 方法 | 路径 | 状态 | 依据 |
 | --- | --- | --- | --- |
-| POST | `/api/v1/teacher/access-codes` | 改名 | 原文只返回一次；旧路径：`POST /api/v1/teacher/courses/{course_id}/access-codes` |
+| POST | `/api/v1/teacher/access-codes` | 改名 | 请求必须明确指定一个已发布课程版本身份，原文只返回一次；旧路径：`POST /api/v1/teacher/courses/{course_id}/access-codes` |
 | GET | `/api/v1/teacher/access-codes` | 改名 | 支持按课程过滤；旧路径：`GET /api/v1/teacher/courses/{course_id}/access-codes` |
 | GET | `/api/v1/teacher/access-codes/{access_code_id}` | 新建 | 尾号、范围、窗口、状态；不返回原文 |
 | POST | `/api/v1/teacher/access-codes/{access_code_id}/terminate` | 新建 | `FR-GRANT-*`；只重算未来在线资格 |
 | POST | `/api/v1/student/redemptions` | 改名 | 首次兑换，见 4.3；旧路径：`POST /api/v1/public/course-download` |
 | POST | `/api/v1/student/course-updates` | 新建 | 免输授权码更新，见 4.4 |
+
+版本级授权接口边界：`POST /teacher/access-codes` 的目标对象是一个已发布课程版本，而不是抽象课程族或“最新版本”。
+请求与响应必须能回溯具体 `courseId`/`releaseId`；服务端不得因标题相同、版本号相邻或内容相似而替换授权目标。
+本次不新增版本操作端点，发布、修改本版本和增加版本的最终路径需在实现前按 `D-V1-018` 重新冻结事务契约。
+
+后续升级兼容可新增或扩展课程升级关系查询/写入契约，但当前不实现。`/student/course-updates` 只有在课程族、升级关系、
+旧授权码默认可见新课程和本机状态迁移规则全部冻结后，才能允许跨独立课程版本更新；当前不得把旧授权码自动解释为新课程授权。
 
 授权码端点从 `/teacher/courses/{course_id}/access-codes` 提升为顶级
 `/teacher/access-codes`：一个授权码可以通过多个 `GrantItem` 覆盖多门课程
@@ -526,7 +533,11 @@ SRT/VTT 是教师浏览器内的解析输入格式；服务端不提供独立字
 - 次版本增加可选字段时，接收方忽略已声明可忽略字段，发送方不得依赖旧客户端理解它；
 - 删除字段、改变单位、改变 ID 语义或把可选字段改为必填必须升级主版本；
 - 同一 `releaseId + authorizedScope + packageSchemaVersion` 必须产生语义一致的课程包；
+- 课程包必须同时携带并校验独立课程身份；不同课程版本的 `courseId` 不得因标题、视频或内容相同而互换；
 - 协议版本和内容版本分开：插件升级不自动改变已安装课程的 `releaseId`。
+
+`D-V1-018` 规定，教师端生成授权码时必须绑定当前已发布课程版本的 `courseId`/`releaseId`。课程族、课程升级关系、
+旧授权码默认看到新课程和跨课程版本更新属于后续兼容设计；在这些规则冻结前，接口不得把“最新版本”作为隐式目标。
 
 ### 10.2 当前实现迁移映射
 
