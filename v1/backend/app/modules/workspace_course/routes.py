@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends, Request, Response
 
 from app.api.errors import ApiError
 from app.infrastructure.database.session import get_db
 from app.modules.authoring_release.application_service import AuthoringReleaseApplicationService
+from app.modules.entitlement_delivery.application_service import EntitlementApplicationService
 from app.modules.identity.dependencies import require_teacher
 from app.modules.identity.models import TeacherAccount
 from app.modules.workspace_course.application_service import (
@@ -13,6 +14,8 @@ from app.modules.workspace_course.models import Course, Lesson
 from app.modules.workspace_course.schemas import (
     CourseCreate,
     CourseDetail,
+    CourseListItem,
+    CourseMetrics,
     CourseListResponse,
     CourseSummary,
     CourseUpdate,
@@ -82,10 +85,31 @@ def _map_error(error: WorkspaceCourseError) -> ApiError:
 
 @router.get("/courses", response_model=CourseListResponse)
 def list_courses(
+    request: Request,
     teacher: TeacherAccount = Depends(require_teacher),
     service: WorkspaceCourseApplicationService = Depends(get_service),
 ) -> CourseListResponse:
-    return CourseListResponse(items=[_course(item) for item in service.list_courses(teacher.id)])
+    courses = service.list_courses(teacher.id)
+    lesson_ids_by_course = {
+        course.id: [lesson.id for lesson in course.lessons] for course in courses
+    }
+    authoring_metrics = AuthoringReleaseApplicationService(
+        service.session
+    ).course_dashboard_metrics(lesson_ids_by_course)
+    delivery_metrics = EntitlementApplicationService(
+        service.session, request.app.state.settings.access_code_secret or ""
+    ).course_dashboard_metrics(teacher.id, [course.id for course in courses])
+    items = []
+    for course in courses:
+        metrics = {
+            "lesson_count": len(lesson_ids_by_course[course.id]),
+            **authoring_metrics[course.id],
+            **delivery_metrics[course.id],
+        }
+        items.append(
+            CourseListItem(**_course(course).model_dump(), metrics=CourseMetrics(**metrics))
+        )
+    return CourseListResponse(items=items)
 
 
 @router.post("/courses", response_model=CourseSummary, status_code=201)

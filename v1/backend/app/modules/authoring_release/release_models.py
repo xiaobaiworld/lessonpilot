@@ -64,7 +64,7 @@ class CourseRelease(Base):
     status = Column(Enum(ReleaseStatus), default=ReleaseStatus.available, nullable=False)
 
     rights_attestation_id = Column(
-        String(36), ForeignKey("v1_rights_attestations.id"), nullable=False
+        String(36), ForeignKey("v1_rights_attestations.id"), nullable=True
     )
 
     # Lifecycle

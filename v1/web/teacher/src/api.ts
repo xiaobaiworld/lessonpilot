@@ -22,6 +22,21 @@ export interface CourseSummary {
   updated_at: string;
 }
 
+export interface CourseMetrics {
+  lesson_count: number;
+  draft_lesson_count: number;
+  draft_node_count: number;
+  published_node_count: number;
+  access_code_count: number;
+  redeemed_count: number;
+  release_number: number | null;
+  published_at: string | null;
+}
+
+export interface CourseListItem extends CourseSummary {
+  metrics: CourseMetrics;
+}
+
 export interface Lesson {
   id: string;
   course_id: string;
@@ -107,8 +122,8 @@ export class TeacherAPI {
     return this.http.post('/api/v1/teacher/auth/logout');
   }
 
-  async listCourses(): Promise<CourseSummary[]> {
-    const res = await this.http.get<{ items: CourseSummary[] }>(
+  async listCourses(): Promise<CourseListItem[]> {
+    const res = await this.http.get<{ items: CourseListItem[] }>(
       '/api/v1/teacher/courses'
     );
     return res.items;
@@ -180,13 +195,6 @@ export class TeacherAPI {
     // ponytail: 开发阶段按测试回合确认；接真实播放器后由插件回传 succeeded。
     await this.http.post(`/api/v1/teacher/preview-sessions/${preview.id}/end`, {
       succeeded: true,
-    });
-  }
-
-  attestRights(courseId: string): Promise<{ id: string }> {
-    return this.http.post(`/api/v1/teacher/courses/${courseId}/rights-attestation`, {
-      statement_version: '1',
-      accepted: true,
     });
   }
 

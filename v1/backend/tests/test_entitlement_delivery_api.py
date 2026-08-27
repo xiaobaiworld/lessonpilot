@@ -63,10 +63,6 @@ def test_empty_database_full_delivery_flow() -> None:
         f"/api/v1/teacher/preview-sessions/{preview['id']}/end",
         json={"succeeded": True},
     )
-    client.post(
-        f"/api/v1/teacher/courses/{course['id']}/rights-attestation",
-        json={"statement_version": "1", "accepted": True},
-    )
     release = client.post(
         f"/api/v1/teacher/courses/{course['id']}/releases",
         json={"idempotency_key": "publish-0001"},
@@ -111,6 +107,20 @@ def test_empty_database_full_delivery_flow() -> None:
     assert delivered["releaseId"] == release["id"]
     assert delivered["package"]["lessons"][0]["nodes"] == [NODE]
     assert code not in str(delivered["package"])
+    dashboard = client.get("/api/v1/teacher/courses")
+    assert dashboard.status_code == 200
+    dashboard_item = dashboard.json()["items"][0]
+    assert dashboard_item["status"] == "active"
+    assert dashboard_item["metrics"] == {
+        "lesson_count": 1,
+        "draft_lesson_count": 1,
+        "draft_node_count": 1,
+        "published_node_count": 1,
+        "access_code_count": 1,
+        "redeemed_count": 1,
+        "release_number": 1,
+        "published_at": dashboard_item["metrics"]["published_at"],
+    }
     source_ref = redeemed.json()["data"]["redemption"]["sourceRef"]
     assert (
         client.post("/api/v1/student/redemptions", json=request).json()["data"]["redemption"][

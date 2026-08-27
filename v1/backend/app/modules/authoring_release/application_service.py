@@ -8,7 +8,7 @@ from urllib.parse import urljoin, urlparse
 from uuid import uuid4
 
 from sqlalchemy import func, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.modules.admin_support.models import RightsAttestation
 from app.modules.authoring_release.models import PreviewSession, ScriptDraft
@@ -579,7 +579,7 @@ class AuthoringReleaseApplicationService:
         course: Course,
         lessons: list[Lesson],
         intent_id: str,
-        rights: RightsAttestation,
+        rights: RightsAttestation | None = None,
     ) -> CourseRelease:
         existing = self.session.scalar(
             select(CourseRelease).where(
@@ -631,7 +631,7 @@ class AuthoringReleaseApplicationService:
             course_description=course.description,
             lesson_count=len(lessons),
             status=ReleaseStatus.available,
-            rights_attestation_id=rights.id,
+            rights_attestation_id=rights.id if rights else None,
             published_by_teacher_id=teacher_id,
         )
         self.session.add(release)
@@ -660,6 +660,7 @@ class AuthoringReleaseApplicationService:
         self.session.add(
             ReleaseAvailability(id=str(uuid4()), release_id=release.id, scope="full_course")
         )
+        course.status = CourseStatus.active
         self.session.commit()
         return release
 
@@ -671,6 +672,59 @@ class AuthoringReleaseApplicationService:
                 .order_by(CourseRelease.release_number.desc())
             )
         )
+
+    def course_dashboard_metrics(
+        self, lesson_ids_by_course: dict[str, list[str]]
+    ) -> dict[str, dict[str, object]]:
+        """Return aggregate authoring data for the teacher dashboard, not course content."""
+        course_ids = list(lesson_ids_by_course)
+        metrics = {
+            course_id: {
+                "draft_lesson_count": 0,
+                "draft_node_count": 0,
+                "published_node_count": 0,
+                "release_number": None,
+                "published_at": None,
+            }
+            for course_id in course_ids
+        }
+        lesson_to_course = {
+            lesson_id: course_id
+            for course_id, lesson_ids in lesson_ids_by_course.items()
+            for lesson_id in lesson_ids
+        }
+        lesson_ids = list(lesson_to_course)
+        if lesson_ids:
+            drafts = self.session.scalars(
+                select(ScriptDraft).where(ScriptDraft.lesson_id.in_(lesson_ids))
+            )
+            for draft in drafts:
+                course_id = lesson_to_course.get(draft.lesson_id)
+                if course_id is None:
+                    continue
+                metrics[course_id]["draft_lesson_count"] += 1
+                metrics[course_id]["draft_node_count"] += len(draft.content.get("nodes", []))
+
+        if not course_ids:
+            return metrics
+        releases = self.session.scalars(
+            select(CourseRelease)
+            .options(
+                selectinload(CourseRelease.lessons),
+                selectinload(CourseRelease.availability),
+            )
+            .where(CourseRelease.course_id.in_(course_ids))
+            .order_by(CourseRelease.release_number.desc())
+        )
+        for release in releases:
+            if metrics[release.course_id]["release_number"] is not None:
+                continue
+            metrics[release.course_id]["release_number"] = release.release_number
+            metrics[release.course_id]["published_at"] = release.published_at
+            metrics[release.course_id]["published_node_count"] = sum(
+                len(snapshot.nodes or []) for snapshot in release.lessons
+            )
+        return metrics
 
     def get_release(self, release_id: str) -> CourseRelease:
         release = self.session.get(CourseRelease, release_id)

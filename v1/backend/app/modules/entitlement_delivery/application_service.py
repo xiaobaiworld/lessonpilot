@@ -78,13 +78,40 @@ class EntitlementApplicationService:
     def list_codes(self, teacher_id: str, course_id: str | None = None) -> list[AccessCode]:
         statement = (
             select(AccessCode)
-            .options(selectinload(AccessCode.grants))
+            .options(selectinload(AccessCode.grants), selectinload(AccessCode.redemptions))
             .where(AccessCode.created_by_teacher_id == teacher_id)
             .order_by(AccessCode.created_at.desc())
         )
         if course_id:
             statement = statement.join(GrantItem).where(GrantItem.course_id == course_id)
         return list(self.session.scalars(statement).unique())
+
+    def course_dashboard_metrics(
+        self, teacher_id: str, course_ids: list[str]
+    ) -> dict[str, dict[str, int]]:
+        """Aggregate delivery counts without exposing codes, identities, or proofs."""
+        metrics = {
+            course_id: {"access_code_count": 0, "redeemed_count": 0} for course_id in course_ids
+        }
+        if not course_ids:
+            return metrics
+        seen_codes: dict[str, set[str]] = {course_id: set() for course_id in course_ids}
+        seen_redemptions: dict[str, set[str]] = {course_id: set() for course_id in course_ids}
+        for code in self.list_codes(teacher_id):
+            code_courses: set[str] = set()
+            for grant in code.grants:
+                if grant.course_id not in metrics:
+                    continue
+                seen_codes[grant.course_id].add(code.id)
+                code_courses.add(grant.course_id)
+            for course_id in code_courses:
+                seen_redemptions[course_id].update(
+                    redemption.local_identity_digest for redemption in code.redemptions
+                )
+        for course_id, code_ids in seen_codes.items():
+            metrics[course_id]["access_code_count"] = len(code_ids)
+            metrics[course_id]["redeemed_count"] = len(seen_redemptions[course_id])
+        return metrics
 
     def get_code(self, teacher_id: str, code_id: str) -> AccessCode:
         code = self.session.scalar(

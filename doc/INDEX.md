@@ -53,7 +53,7 @@
 
 ### v1 已接受决策
 
-`D-V1-001` 至 `D-V1-013`，全部在 [`decisions/`](decisions/)：
+`D-V1-001` 至 `D-V1-015`，以及当前性能决策，全部在 [`decisions/`](decisions/)：
 
 | 编号 | 决策 |
 | --- | --- |
@@ -70,6 +70,8 @@
 | `D-V1-011` | 脚本/发布聚合 JSON 与本机学习记录策略，见 [数据持久化策略](decisions/2026-08-22-v1-data-persistence-strategy.md) |
 | `D-V1-012` | [不迁移无价值旧服务端数据与学生本机数据](decisions/2026-08-22-v1-no-legacy-data-migration.md) |
 | `D-V1-013` | [初期开发与运行阶段的发布流程](decisions/2026-08-26-early-stage-release-process.md) |
+| `D-V1-014` | [课节字幕持久化到教师侧，不进入课程包与插件](decisions/2026-08-26-lesson-subtitle-persistence-scope.md) |
+| `D-V1-015` | [授权码按本地浏览器标识限制使用数量](decisions/2026-08-27-access-code-browser-identity-limit.md) |
 | 当前性能决策 | [教师端首屏性能优化](decisions/2026-08-27-teacher-first-load-performance.md) |
 
 ### 经验与状态

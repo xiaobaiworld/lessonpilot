@@ -71,4 +71,40 @@ describe('TeacherAPI authentication paths', () => {
       })
     );
   });
+
+  it('读取课程列表时保留课程总览指标', async () => {
+    const item = {
+      id: 'course-1',
+      title: '课程一',
+      description: null,
+      status: 'active',
+      revision: 1,
+      created_at: '2026-08-27T00:00:00Z',
+      updated_at: '2026-08-27T00:00:00Z',
+      metrics: {
+        lesson_count: 3,
+        draft_lesson_count: 1,
+        draft_node_count: 2,
+        published_node_count: 8,
+        access_code_count: 4,
+        redeemed_count: 6,
+        release_number: 2,
+        published_at: '2026-08-26T00:00:00Z',
+      },
+    };
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ items: [item] }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(
+      new TeacherAPI(new APIClient('http://127.0.0.1:8001')).listCourses()
+    ).resolves.toEqual([item]);
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://127.0.0.1:8001/api/v1/teacher/courses',
+      expect.objectContaining({ method: 'GET', credentials: 'include' })
+    );
+  });
 });

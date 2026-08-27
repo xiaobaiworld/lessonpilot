@@ -55,7 +55,6 @@ AUTHORING_ERROR_MESSAGES = {
     "RELEASE_DRAFT_MISSING": "有课节还没有保存草稿，请先保存每一节课",
     "RELEASE_DRAFT_EMPTY": "有课节没有互动节点，请先添加并保存节点",
     "RELEASE_PREVIEW_REQUIRED": "请先对所有课节的最终草稿完成测试预览",
-    "RELEASE_RIGHTS_REQUIRED": "发布前请确认你有权使用课程内容",
 }
 
 
@@ -281,9 +280,8 @@ def publish_course(
     courses, authoring = _services(db)
     try:
         course = courses.get_course(teacher.id, course_id)
+        # 权属确认改由合约完成，发布不再依赖 rights-attestation。
         rights = AdminSupportApplicationService(db).latest_rights(teacher.id, course_id)
-        if not rights:
-            raise AuthoringReleaseError("RELEASE_RIGHTS_REQUIRED")
         return _release(
             authoring.publish(
                 teacher.id, course, list(course.lessons), payload.idempotency_key, rights

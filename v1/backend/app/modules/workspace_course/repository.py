@@ -11,7 +11,10 @@ def get_workspace_by_teacher(session: Session, teacher_id: str) -> Workspace | N
 def list_courses(session: Session, workspace_id: str) -> list[Course]:
     return list(
         session.scalars(
-            select(Course).where(Course.workspace_id == workspace_id).order_by(Course.created_at)
+            select(Course)
+            .options(selectinload(Course.lessons))
+            .where(Course.workspace_id == workspace_id)
+            .order_by(Course.created_at)
         )
     )
 

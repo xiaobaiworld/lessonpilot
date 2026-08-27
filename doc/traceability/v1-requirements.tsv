@@ -110,6 +110,7 @@ FR-GRANT-009	doc/requirements/v1/04-functional-requirements.md	授权范围裁�
 FR-GRANT-010	doc/requirements/v1/04-functional-requirements.md	仍具资格时可以重新下载和取得更新	已接受	P0	`SCOPE-04`；`SCN-STU-04`；`TERM-044`、`TERM-045`	`FR-LIB-*`					待设计	
 FR-GRANT-011	doc/requirements/v1/04-functional-requirements.md	在线资格失效不删除本机已安装内容	已接受	P0	`SCOPE-04`、`SCOPE-06`；`SCN-TCH-06`、`SCN-STU-03`、`SCN-STU-04`	`FR-LIB-*`、`FR-LEARN-*`					待设计	
 FR-GRANT-012	doc/requirements/v1/04-functional-requirements.md	授权和领取失败保持原状态且限制信息泄露	已接受	P0	`SCOPE-04`、`SCOPE-08`；`SCN-STU-01`、`SCN-ERR-01`、`SCN-ERR-02`	—					待设计	
+FR-GRANT-013	doc/requirements/v1/04-functional-requirements.md	授权码限制不同本机标识的使用数量	已接受	P0	`D-V1-015`；`SCN-TCH-05`、`SCN-STU-01`、`SCN-ERR-01`	`FR-GRANT-006`、`FR-GRANT-007`、`DATA-DELIVERY-006`					待设计
 FR-LIB-001	doc/requirements/v1/04-functional-requirements.md	当前机器维护独立且可恢复的学生课程库	已接受	P0	`SCOPE-05`、`SCOPE-06`；`SCN-STU-01`、`SCN-STU-03`；`TERM-032`	`FR-AUTH-*`、`FR-GRANT-*`、`DATA-LOCAL-*`					待设计	
 FR-LIB-002	doc/requirements/v1/04-functional-requirements.md	课程库展示多门课程、课节和当前版本	已接受	P0	`SCOPE-05`；`SCN-STU-01`、`SCN-STU-04`；`TERM-033`	`FR-COURSE-*`、`DATA-LOCAL-*`					待设计	
 FR-LIB-003	doc/requirements/v1/04-functional-requirements.md	学生在写入前确认将安装的课程内容	已接受	P0	`SCOPE-04`；`SCN-STU-01`	`FR-GRANT-*`					待设计	
@@ -180,6 +181,7 @@ DATA-DELIVERY-002	doc/requirements/v1/05-data-requirements.md	课程包是发布
 DATA-DELIVERY-003	doc/requirements/v1/05-data-requirements.md	授权码、授权项和授权范围分别保存	已接受	P0	`FR-GRANT-001` 至 `FR-GRANT-005`	`DATA-QUALITY-*`					待设计	
 DATA-DELIVERY-004	doc/requirements/v1/05-data-requirements.md	领取记录和有效资格是不同事实	已接受	P0	`FR-GRANT-006` 至 `FR-GRANT-010`	`DATA-QUALITY-*`					待设计	
 DATA-DELIVERY-005	doc/requirements/v1/05-data-requirements.md	在线资格与已安装课程生命周期分离	已接受	P0	`FR-GRANT-011`、`FR-LIB-001`、`FR-LIB-007`	`DATA-LOCAL-*`、`SEC-ACCESS-*`					待设计	
+DATA-DELIVERY-006	doc/requirements/v1/05-data-requirements.md	授权码按不同本机标识限制领取数量	已接受	P0	`D-V1-015`、`FR-GRANT-013`	`FR-GRANT-007`、`FR-GRANT-012`					待设计
 DATA-LOCAL-001	doc/requirements/v1/05-data-requirements.md	学生课程库是当前机器的独立数据集合	已接受	P0	`FR-LIB-001` 至 `FR-LIB-007`	—					待设计	
 DATA-LOCAL-002	doc/requirements/v1/05-data-requirements.md	学习状态绑定课程版本和稳定对象身份	已接受	P0	`FR-LEARN-001` 至 `FR-LEARN-004`	`DATA-QUALITY-*`					待设计	
 DATA-LOCAL-003	doc/requirements/v1/05-data-requirements.md	草稿、尝试和节点结果分别保存	已接受	P0	`FR-LEARN-004` 至 `FR-LEARN-007`	`DATA-QUALITY-*`					待设计	

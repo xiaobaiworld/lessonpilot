@@ -97,13 +97,9 @@ def test_draft_preview_atomic_release_and_immutable_snapshot() -> None:
     assert (
         client.post(
             f"/api/v1/teacher/courses/{course['id']}/releases",
-            json={"idempotency_key": "publish-0001"},
+            json={"idempotency_key": "publish-before-preview"},
         ).json()["error"]["code"]
-        == "RELEASE_RIGHTS_REQUIRED"
-    )
-    client.post(
-        f"/api/v1/teacher/courses/{course['id']}/rights-attestation",
-        json={"statement_version": "1", "accepted": True},
+        == "RELEASE_PREVIEW_REQUIRED"
     )
     preview = client.post(
         f"/api/v1/teacher/lessons/{lesson['id']}/preview-sessions",
@@ -196,10 +192,6 @@ def test_subtitle_is_saved_restored_and_frozen_in_release_but_not_package() -> N
     assert imported_draft["config"]["subtitle"] == SUBTITLE
     assert imported_draft["config"]["nodes"][0]["id"] != NODE["id"]
 
-    client.post(
-        f"/api/v1/teacher/courses/{course['id']}/rights-attestation",
-        json={"statement_version": "1", "accepted": True},
-    )
     preview = client.post(
         f"/api/v1/teacher/lessons/{lesson['id']}/preview-sessions", json={}
     ).json()

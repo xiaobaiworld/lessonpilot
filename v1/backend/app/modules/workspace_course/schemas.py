@@ -30,6 +30,21 @@ class CourseSummary(BaseModel):
     updated_at: datetime
 
 
+class CourseMetrics(BaseModel):
+    lesson_count: int
+    draft_lesson_count: int
+    draft_node_count: int
+    published_node_count: int
+    access_code_count: int
+    redeemed_count: int
+    release_number: int | None
+    published_at: datetime | None
+
+
+class CourseListItem(CourseSummary):
+    metrics: CourseMetrics
+
+
 class LessonCreate(BaseModel):
     title: str = Field(min_length=1, max_length=200)
     video_ref: VideoRef
@@ -59,7 +74,7 @@ class CourseDetail(CourseSummary):
 
 
 class CourseListResponse(BaseModel):
-    items: list[CourseSummary]
+    items: list[CourseListItem]
 
 
 class LessonOrderRequest(BaseModel):
