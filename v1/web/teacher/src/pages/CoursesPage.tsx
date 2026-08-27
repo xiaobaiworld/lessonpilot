@@ -1,11 +1,19 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Topbar, AuthField, CredentialDialog, errorMessage } from '@v1/web/shared';
-import { TeacherAPI, Teacher, TeacherCourseFile, CourseListItem } from '../api';
+import { Topbar, AuthField, errorMessage } from '@v1/web/shared';
+import {
+  TeacherAPI,
+  Teacher,
+  TeacherCourseFile,
+  CourseListItem,
+} from '../api';
+
+type VersionMode = 'modify' | 'add';
 
 interface Props {
   api: TeacherAPI;
   teacher: Teacher;
   onOpenCourse: (courseId: string) => void;
+  onOpenAccessCodes?: (courseId: string) => void;
   onSignedOut: () => void;
 }
 
@@ -13,13 +21,17 @@ export const CoursesPage: React.FC<Props> = ({
   api,
   teacher,
   onOpenCourse,
+  onOpenAccessCodes = () => {},
   onSignedOut,
 }) => {
   const [courses, setCourses] = useState<CourseListItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [accessCode, setAccessCode] = useState<string | null>(null);
+  const [versionAction, setVersionAction] = useState<{
+    course: CourseListItem;
+    mode: VersionMode;
+  } | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
@@ -85,12 +97,17 @@ export const CoursesPage: React.FC<Props> = ({
     }
   };
 
-  const makeCode = async (courseId: string) => {
+  const createVersionDraft = async () => {
+    if (!versionAction) return;
     setBusy(true);
     setError(null);
     try {
-      const result = await api.createAccessCode(courseId);
-      setAccessCode(result.access_code);
+      const result = await api.createVersionDraft(
+        versionAction.course.id,
+        versionAction.mode
+      );
+      setVersionAction(null);
+      onOpenCourse(result.course.id);
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -153,9 +170,10 @@ export const CoursesPage: React.FC<Props> = ({
           <DashboardContent
             courses={courses}
             onOpenCourse={onOpenCourse}
+            onOpenAccessCodes={onOpenAccessCodes}
             onPublishCourse={publishCourse}
-            onGenerateAccessCode={makeCode}
-            actionDisabled={busy || accessCode !== null}
+            onVersionAction={(course, mode) => setVersionAction({ course, mode })}
+            actionDisabled={busy}
           />
         )}
 
@@ -179,11 +197,13 @@ export const CoursesPage: React.FC<Props> = ({
         />
       )}
 
-      {accessCode && (
-        <CredentialDialog
-          title="发给学生的授权码"
-          secret={accessCode}
-          onClose={() => setAccessCode(null)}
+      {versionAction && (
+        <VersionActionDialog
+          course={versionAction.course}
+          mode={versionAction.mode}
+          busy={busy}
+          onCancel={() => setVersionAction(null)}
+          onConfirm={createVersionDraft}
         />
       )}
     </div>
@@ -193,10 +213,18 @@ export const CoursesPage: React.FC<Props> = ({
 const DashboardContent: React.FC<{
   courses: CourseListItem[];
   onOpenCourse: (courseId: string) => void;
+  onOpenAccessCodes: (courseId: string) => void;
   onPublishCourse: (courseId: string) => void;
-  onGenerateAccessCode: (courseId: string) => void;
+  onVersionAction: (course: CourseListItem, mode: VersionMode) => void;
   actionDisabled: boolean;
-}> = ({ courses, onOpenCourse, onPublishCourse, onGenerateAccessCode, actionDisabled }) => {
+}> = ({
+  courses,
+  onOpenCourse,
+  onOpenAccessCodes,
+  onPublishCourse,
+  onVersionAction,
+  actionDisabled,
+}) => {
   const drafts = courses.filter(
     (course) => course.status !== 'archived' && course.metrics.release_number === null
   );
@@ -252,8 +280,8 @@ const DashboardContent: React.FC<{
               <PublishedCourseCard
                 key={course.id}
                 course={course}
-                onOpenCourse={onOpenCourse}
-                onGenerateAccessCode={onGenerateAccessCode}
+                onOpenAccessCodes={onOpenAccessCodes}
+                onVersionAction={onVersionAction}
                 actionDisabled={actionDisabled}
               />
             ))}
@@ -375,10 +403,15 @@ const DraftCourseCard: React.FC<{
 
 const PublishedCourseCard: React.FC<{
   course: CourseListItem;
-  onOpenCourse: (courseId: string) => void;
-  onGenerateAccessCode: (courseId: string) => void;
+  onOpenAccessCodes: (courseId: string) => void;
+  onVersionAction: (course: CourseListItem, mode: VersionMode) => void;
   actionDisabled: boolean;
-}> = ({ course, onOpenCourse, onGenerateAccessCode, actionDisabled }) => {
+}> = ({
+  course,
+  onOpenAccessCodes,
+  onVersionAction,
+  actionDisabled,
+}) => {
   const { metrics } = course;
   const submissionCount = metrics.student_submission_count;
   const hasSubmissionCount = submissionCount != null;
@@ -395,19 +428,28 @@ const PublishedCourseCard: React.FC<{
         </div>
         <div className="published-course-actions">
           <button
-            className="course-card-action"
+            className="course-version-action is-modify"
             type="button"
-            onClick={() => onOpenCourse(course.id)}
-          >
-            管理课程 <span aria-hidden="true">→</span>
-          </button>
-          <button
-            className="light-button"
-            type="button"
-            onClick={() => onGenerateAccessCode(course.id)}
+            onClick={() => onVersionAction(course, 'modify')}
             disabled={actionDisabled}
           >
-            生成授权码
+            修改本版本
+          </button>
+          <button
+            className="course-version-action is-add"
+            type="button"
+            onClick={() => onVersionAction(course, 'add')}
+            disabled={actionDisabled}
+          >
+            增加版本
+          </button>
+          <button
+            className="course-version-action is-access"
+            type="button"
+            onClick={() => onOpenAccessCodes(course.id)}
+            disabled={actionDisabled}
+          >
+            授权码管理
           </button>
         </div>
       </div>
@@ -435,6 +477,49 @@ const PublishedCourseCard: React.FC<{
         <span className="course-data-note">学生回答保存在学生本机，当前不会上传</span>
       </div>
     </article>
+  );
+};
+
+const VersionActionDialog: React.FC<{
+  course: CourseListItem;
+  mode: VersionMode;
+  busy: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}> = ({ course, mode, busy, onCancel, onConfirm }) => {
+  const isModify = mode === 'modify';
+  return (
+    <div className="modal-backdrop" role="dialog" aria-modal="true">
+      <div className={`version-action-dialog is-${mode}`}>
+        <div className="version-action-dialog-head">
+          <div>
+            <span className="eyebrow">{isModify ? '修改本版本' : '增加版本'}</span>
+            <h2>{course.title}</h2>
+          </div>
+          <span className="release-label">第 {course.metrics.release_number} 版</span>
+        </div>
+        <p className="version-action-copy">
+          {isModify
+            ? '当前已发布版本将退回草稿区，发布区不再保留这个版本；课程内容可继续修改。'
+            : '当前已发布版本继续保留，同时复制一份到草稿区，作为新版本继续修改。'}
+        </p>
+        <div className="version-action-flow" aria-label={isModify ? '版本退回草稿' : '增加新草稿'}>
+          <span>已发布 · 第 {course.metrics.release_number} 版</span>
+          <b aria-hidden="true">{isModify ? '→' : '+'}</b>
+          <span className="is-draft">
+            {isModify ? '草稿' : `新草稿 · 第 ${(course.metrics.release_number ?? 0) + 1} 版`}
+          </span>
+        </div>
+        <div className="modal-actions">
+          <button className="light-button" type="button" onClick={onCancel} disabled={busy}>
+            取消
+          </button>
+          <button className="dark-button" type="button" onClick={onConfirm} disabled={busy}>
+            {busy ? '处理中…' : isModify ? '确认修改本版本' : '确认增加版本'}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 

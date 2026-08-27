@@ -40,7 +40,7 @@ describe('CoursesPage current course-level access flow', () => {
     vi.restoreAllMocks();
   });
 
-  it('shows the revised copy, opens draft titles, publishes drafts, and generates a code', async () => {
+  it('shows the revised copy, opens draft titles, publishes drafts, and opens access management', async () => {
     const draft = course({ id: 'course-draft' });
     const published = course({
       id: 'course-published',
@@ -51,13 +51,6 @@ describe('CoursesPage current course-level access flow', () => {
         published_at: '2026-08-27T00:00:00Z',
       },
     });
-    const createAccessCode = vi.fn().mockResolvedValue({
-      access_code: 'KM-COURSE-0001',
-      id: 'grant-1',
-      display_tail: '0001',
-      status: 'active',
-      created_at: '2026-08-27T00:00:00Z',
-    });
     const publish = vi.fn().mockResolvedValue({
       id: 'release-1',
       course_id: 'course-draft',
@@ -67,9 +60,9 @@ describe('CoursesPage current course-level access flow', () => {
     const api = {
       listCourses: vi.fn().mockResolvedValue([draft, published]),
       publish,
-      createAccessCode,
     } as unknown as TeacherAPI;
     const onOpenCourse = vi.fn();
+    const onOpenAccessCodes = vi.fn();
     const container = document.createElement('div');
     document.body.appendChild(container);
     const root = createRoot(container);
@@ -80,6 +73,7 @@ describe('CoursesPage current course-level access flow', () => {
           api,
           teacher,
           onOpenCourse,
+          onOpenAccessCodes,
           onSignedOut: vi.fn(),
         })
       );
@@ -107,14 +101,82 @@ describe('CoursesPage current course-level access flow', () => {
     expect(publish).toHaveBeenCalledWith('course-draft');
 
     const accessButton = Array.from(container.querySelectorAll('button')).find(
-      (button) => button.textContent?.trim() === '生成授权码'
+      (button) => button.textContent?.trim() === '授权码管理'
     );
     expect(accessButton).toBeDefined();
+    await act(async () => accessButton?.click());
+    expect(onOpenAccessCodes).toHaveBeenCalledWith('course-published');
+  });
+
+  it('confirms published version actions with their exact state semantics', async () => {
+    const published = course({
+      id: 'course-published',
+      title: '已发布课程',
+      metrics: {
+        ...course({}).metrics,
+        release_number: 2,
+        published_at: '2026-08-27T00:00:00Z',
+      },
+    });
+    const createVersionDraft = vi.fn()
+      .mockResolvedValueOnce({ course: { id: 'modified-draft' } })
+      .mockResolvedValueOnce({ course: { id: 'added-draft' } });
+    const api = {
+      listCourses: vi.fn().mockResolvedValue([published]),
+      createVersionDraft,
+    } as unknown as TeacherAPI;
+    const onOpenCourse = vi.fn();
+    const onOpenAccessCodes = vi.fn();
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    vi.stubGlobal('confirm', vi.fn().mockReturnValue(true));
+
     await act(async () => {
-      accessButton?.click();
+      root.render(
+        React.createElement(CoursesPage, {
+          api,
+          teacher,
+          onOpenCourse,
+          onOpenAccessCodes,
+          onSignedOut: vi.fn(),
+        })
+      );
       await Promise.resolve();
     });
-    expect(createAccessCode).toHaveBeenCalledWith('course-published');
-    expect(container.querySelector('input[aria-label="发给学生的授权码"]')).not.toBeNull();
+
+    const button = (label: string) =>
+      Array.from(container.querySelectorAll('button')).find(
+        (item) => item.textContent?.trim() === label
+      );
+
+    await act(async () => {
+      button('修改本版本')?.click();
+      await Promise.resolve();
+    });
+    expect(container.textContent).toContain('退回草稿区');
+    expect(container.textContent).toContain('发布区不再保留这个版本');
+    await act(async () => {
+      button('确认修改本版本')?.click();
+      await Promise.resolve();
+    });
+    expect(createVersionDraft).toHaveBeenNthCalledWith(1, 'course-published', 'modify');
+    expect(onOpenCourse).toHaveBeenCalledWith('modified-draft');
+
+    await act(async () => {
+      button('增加版本')?.click();
+      await Promise.resolve();
+    });
+    expect(container.textContent).toContain('当前已发布版本继续保留');
+    expect(container.textContent).toContain('复制一份到草稿区');
+    await act(async () => {
+      button('确认增加版本')?.click();
+      await Promise.resolve();
+    });
+    expect(createVersionDraft).toHaveBeenNthCalledWith(2, 'course-published', 'add');
+    expect(onOpenCourse).toHaveBeenCalledWith('added-draft');
+
+    await act(async () => button('授权码管理')?.click());
+    expect(onOpenAccessCodes).toHaveBeenCalledWith('course-published');
   });
 });

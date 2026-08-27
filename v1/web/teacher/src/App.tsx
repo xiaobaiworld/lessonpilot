@@ -11,6 +11,11 @@ const CoursesPage = lazy(() =>
 const CoursePage = lazy(() =>
   import('./pages/CoursePage').then(({ CoursePage }) => ({ default: CoursePage }))
 );
+const AccessCodesPage = lazy(() =>
+  import('./pages/AccessCodesPage').then(({ AccessCodesPage }) => ({
+    default: AccessCodesPage,
+  }))
+);
 const LessonPage = lazy(() =>
   import('./pages/LessonPage').then(({ LessonPage }) => ({ default: LessonPage }))
 );
@@ -33,6 +38,7 @@ interface Route {
   course?: string;
   lesson?: string;
   lessonTitle?: string;
+  accessCourse?: string;
 }
 
 function readRoute(): Route {
@@ -41,6 +47,7 @@ function readRoute(): Route {
     course: q.get('course') ?? undefined,
     lesson: q.get('lesson') ?? undefined,
     lessonTitle: q.get('title') ?? undefined,
+    accessCourse: q.get('access') ?? undefined,
   };
 }
 
@@ -49,6 +56,7 @@ function pushRoute(route: Route) {
   if (route.course) q.set('course', route.course);
   if (route.lesson) q.set('lesson', route.lesson);
   if (route.lessonTitle) q.set('title', route.lessonTitle);
+  if (route.accessCourse) q.set('access', route.accessCourse);
   const search = q.toString();
   history.pushState(null, '', search ? `?${search}` : location.pathname);
 }
@@ -105,7 +113,17 @@ export const TeacherApp: React.FC = () => {
 
   let page: React.ReactNode;
 
-  if (route.course && route.lesson) {
+  if (route.accessCourse) {
+    page = (
+      <AccessCodesPage
+        api={api}
+        teacher={teacher}
+        courseId={route.accessCourse}
+        onBack={() => go({})}
+        onSignedOut={signOut}
+      />
+    );
+  } else if (route.course && route.lesson) {
     page = (
       <LessonPage
         api={api}
@@ -139,6 +157,7 @@ export const TeacherApp: React.FC = () => {
         api={api}
         teacher={teacher}
         onOpenCourse={(course) => go({ course })}
+        onOpenAccessCodes={(course) => go({ accessCourse: course })}
         onSignedOut={signOut}
       />
     );

@@ -160,4 +160,74 @@ describe('TeacherAPI authentication paths', () => {
       grants: [{ course_id: 'course-1', scope: 'course' }],
     });
   });
+
+  it('管理课程版本草稿和授权码', async () => {
+    const responses = [
+      {
+        status: 201,
+        body: {
+          source_course_id: 'course-1',
+          source_release_id: 'release-1',
+          mode: 'modify',
+          source_retained: false,
+          replayed: false,
+          course: { id: 'course-draft', title: '课程草稿' },
+        },
+      },
+      {
+        status: 200,
+        body: { items: [{ id: 'code-1', access_code: 'KM-AAAAA-BBBBB-CCCCC' }] },
+      },
+      {
+        status: 201,
+        body: {
+          items: [
+            { id: 'code-2', access_code: 'KM-DDDDD-EEEEE-FFFFF' },
+            { id: 'code-3', access_code: 'KM-GGGGG-HHHHH-IIIII' },
+            { id: 'code-4', access_code: 'KM-JJJJJ-KKKKK-LLLLL' },
+          ],
+        },
+      },
+      {
+        status: 200,
+        body: { id: 'code-1', access_code: 'KM-AAAAA-BBBBB-CCCCC', status: 'terminated' },
+      },
+    ];
+    const fetchMock = vi.fn().mockImplementation(async () => {
+      const response = responses.shift();
+      return {
+        ok: true,
+        status: response?.status ?? 200,
+        json: async () => response?.body,
+      };
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const api = new TeacherAPI(new APIClient('http://127.0.0.1:8001'));
+
+    await expect(api.createVersionDraft('course-1', 'modify')).resolves.toMatchObject({
+      course: { id: 'course-draft' },
+    });
+    await expect(api.listAccessCodes('course-1')).resolves.toHaveLength(1);
+    await expect(api.createAccessCodeBatch('course-1', 3)).resolves.toHaveLength(3);
+    await expect(api.terminateAccessCode('code-1')).resolves.toMatchObject({
+      status: 'terminated',
+    });
+
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'http://127.0.0.1:8001/api/v1/teacher/courses/course-1/version-drafts'
+    );
+    expect(JSON.parse(String(fetchMock.mock.calls[0][1].body))).toMatchObject({
+      mode: 'modify',
+    });
+    expect(fetchMock.mock.calls[1][0]).toBe(
+      'http://127.0.0.1:8001/api/v1/teacher/access-codes?course_id=course-1'
+    );
+    expect(JSON.parse(String(fetchMock.mock.calls[2][1].body))).toMatchObject({
+      count: 3,
+      grants: [{ course_id: 'course-1', scope: 'course' }],
+    });
+    expect(fetchMock.mock.calls[3][0]).toBe(
+      'http://127.0.0.1:8001/api/v1/teacher/access-codes/code-1/terminate'
+    );
+  });
 });

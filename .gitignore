@@ -18,6 +18,7 @@ v1/backend/asset-storage/
 config.local.*
 *.key
 *.pem
+/sync-data.sh
 
 # Logs
 logs/

@@ -15,9 +15,14 @@ export interface Teacher {
 
 export interface CourseSummary {
   id: string;
+  version_family_id?: string;
+  source_course_id?: string | null;
+  source_release_id?: string | null;
+  version_number?: number;
   title: string;
   description: string | null;
   status: string;
+  revision?: number;
   created_at: string;
   updated_at: string;
 }
@@ -108,6 +113,34 @@ export interface AccessCode {
   display_tail: string;
   status: string;
   created_at: string;
+}
+
+export interface VersionDraftResult {
+  source_course_id: string;
+  source_release_id: string;
+  mode: 'modify' | 'add';
+  source_retained: boolean;
+  replayed: boolean;
+  course: CourseSummary;
+}
+
+export interface ManagedAccessCode {
+  id: string;
+  access_code: string;
+  display_tail: string;
+  status: string;
+  redeem_from: string | null;
+  redeem_until: string | null;
+  created_at: string;
+  redemption_count: number;
+  first_redeemed_at: string | null;
+  last_redeemed_at: string | null;
+  grants: Array<{
+    course_id: string;
+    scope: string;
+    lesson_ids: string[];
+    node_ids: string[];
+  }>;
 }
 
 export class TeacherAPI {
@@ -237,5 +270,43 @@ export class TeacherAPI {
       idempotency_key: crypto.randomUUID(),
       grants: [{ course_id: courseId, scope: 'course' }],
     });
+  }
+
+  createVersionDraft(
+    courseId: string,
+    mode: 'modify' | 'add'
+  ): Promise<VersionDraftResult> {
+    return this.http.post<VersionDraftResult>(
+      `/api/v1/teacher/courses/${courseId}/version-drafts`,
+      { mode, idempotency_key: crypto.randomUUID() }
+    );
+  }
+
+  async listAccessCodes(courseId: string): Promise<ManagedAccessCode[]> {
+    const res = await this.http.get<{ items: ManagedAccessCode[] }>(
+      `/api/v1/teacher/access-codes?course_id=${encodeURIComponent(courseId)}`
+    );
+    return res.items;
+  }
+
+  async createAccessCodeBatch(
+    courseId: string,
+    count: number
+  ): Promise<ManagedAccessCode[]> {
+    const res = await this.http.post<{ items: ManagedAccessCode[] }>(
+      '/api/v1/teacher/access-codes/batch',
+      {
+        idempotency_key: crypto.randomUUID(),
+        count,
+        grants: [{ course_id: courseId, scope: 'course' }],
+      }
+    );
+    return res.items;
+  }
+
+  terminateAccessCode(accessCodeId: string): Promise<ManagedAccessCode> {
+    return this.http.post<ManagedAccessCode>(
+      `/api/v1/teacher/access-codes/${encodeURIComponent(accessCodeId)}/terminate`
+    );
   }
 }
