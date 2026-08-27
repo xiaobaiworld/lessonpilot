@@ -132,6 +132,84 @@ def validate_subtitle(value: object) -> dict | None:
     return dict(value)
 
 
+def repair_subtitle_document(value: object) -> tuple[dict, list[str]]:
+    """Repair only deterministic cue overlaps, then run the final validator."""
+    if not isinstance(value, dict) or set(value) != SUBTITLE_FIELDS:
+        _invalid("SUBTITLE_REPAIR_INVALID")
+    if value.get("schemaVersion") != 1:
+        _invalid("SUBTITLE_REPAIR_INVALID")
+    filename = value.get("filename")
+    subtitle_format = value.get("format")
+    content = value.get("content")
+    if (
+        not isinstance(filename, str)
+        or not _text(filename)
+        or len(filename) > 255
+        or any(char in filename for char in ("/", "\\", "\x00"))
+        or not isinstance(subtitle_format, str)
+        or subtitle_format not in {"srt", "vtt"}
+        or not isinstance(content, str)
+        or not _text(content)
+        or not filename.lower().endswith(f".{subtitle_format}")
+    ):
+        _invalid("SUBTITLE_REPAIR_INVALID")
+    try:
+        if len(content.encode("utf-8")) > SUBTITLE_MAX_BYTES:
+            _invalid("SUBTITLE_REPAIR_TOO_LARGE")
+    except UnicodeEncodeError as error:
+        raise AuthoringReleaseError("SUBTITLE_REPAIR_INVALID") from error
+
+    normalized = content.removeprefix("\ufeff").replace("\r\n", "\n").replace("\r", "\n")
+    if subtitle_format == "vtt" and not normalized.lstrip().startswith("WEBVTT"):
+        _invalid("SUBTITLE_REPAIR_INVALID")
+    if subtitle_format == "srt" and normalized.lstrip().startswith("WEBVTT"):
+        _invalid("SUBTITLE_REPAIR_INVALID")
+
+    blocks = re.split(r"\n{2,}", normalized.strip())
+    repaired_blocks: list[str] = []
+    previous_end: float | None = None
+    previous_end_token: str | None = None
+    changes: list[str] = []
+    cue_number = 0
+
+    for block in blocks:
+        lines = [line.strip() for line in block.split("\n") if line.strip()]
+        time_index = next((index for index, line in enumerate(lines) if "-->" in line), None)
+        if time_index is None:
+            repaired_blocks.append("\n".join(lines))
+            continue
+        cue_number += 1
+        if time_index + 1 >= len(lines):
+            _invalid("SUBTITLE_REPAIR_INVALID")
+        start_raw, end_raw = lines[time_index].split("-->", 1)
+        start_token = start_raw.strip()
+        end_token = end_raw.strip().split()[0]
+        start = _subtitle_seconds(start_token)
+        end = _subtitle_seconds(end_token)
+        text = re.sub(r"<[^>]+>", "", " ".join(lines[time_index + 1 :])).strip()
+        if start is None or end is None or end <= start or not text:
+            _invalid("SUBTITLE_REPAIR_INVALID")
+
+        if previous_end is not None and start < previous_end:
+            if end <= previous_end or previous_end_token is None:
+                _invalid("SUBTITLE_REPAIR_INVALID")
+            start_token = previous_end_token
+            lines[time_index] = f"{start_token} --> {end_raw.strip()}"
+            start = previous_end
+            changes.append(f"第 {cue_number} 条字幕的开始时间已调整为上一条字幕的结束时间")
+
+        repaired_blocks.append("\n".join(lines))
+        previous_end = end
+        previous_end_token = end_token
+
+    repaired_content = "\n\n".join(repaired_blocks)
+    if normalized.endswith("\n"):
+        repaired_content += "\n"
+    repaired = {**value, "content": repaired_content}
+    validate_subtitle(repaired)
+    return repaired, changes
+
+
 def _validate_inline(value: object) -> bool:
     if (
         not isinstance(value, dict)

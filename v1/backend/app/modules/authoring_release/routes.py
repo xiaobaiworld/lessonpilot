@@ -8,6 +8,8 @@ from app.modules.admin_support.application_service import AdminSupportApplicatio
 from app.modules.authoring_release.application_service import (
     AuthoringReleaseApplicationService,
     AuthoringReleaseError,
+    SUBTITLE_MAX_BYTES,
+    repair_subtitle_document,
 )
 from app.modules.authoring_release.asset_storage import AssetStorage, AssetStorageError
 from app.modules.authoring_release.models import PreviewSession, ScriptDraft
@@ -24,6 +26,7 @@ from app.modules.authoring_release.schemas import (
     PreviewStart,
     ReleaseWrite,
     RightsWrite,
+    SubtitleRepairPublic,
 )
 from app.modules.identity.dependencies import require_teacher
 from app.modules.identity.models import TeacherAccount
@@ -38,6 +41,8 @@ router = APIRouter(prefix="/api/v1/teacher", tags=["teacher-authoring-release"])
 AUTHORING_ERROR_MESSAGES = {
     "DRAFT_SUBTITLE_INVALID": "字幕内容无效，请检查时间戳、顺序和字幕文字",
     "DRAFT_SUBTITLE_TOO_LARGE": "字幕文件不能超过 5 MB",
+    "SUBTITLE_REPAIR_INVALID": "字幕无法自动修复，请检查时间戳、顺序和字幕文字",
+    "SUBTITLE_REPAIR_TOO_LARGE": "字幕文件不能超过 5 MB",
     "DRAFT_NODES_INVALID": "节点数据无效，请重新添加节点",
     "DRAFT_NODE_ID_INVALID": "节点标识无效，请重新添加节点",
     "DRAFT_NODE_TYPE_INVALID": "节点类型或启用状态无效，请重新编辑节点",
@@ -187,6 +192,43 @@ def get_asset(
         return FileResponse(path, media_type=record["mimeType"], filename=asset_id)
     except AssetStorageError as error:
         raise _asset_error(error) from error
+
+
+@router.post("/subtitles/repair", response_model=SubtitleRepairPublic)
+async def repair_subtitle(
+    file: UploadFile = File(...),
+    teacher: TeacherAccount = Depends(require_teacher),
+) -> dict:
+    del teacher
+    filename = file.filename or ""
+    subtitle_format = (
+        "vtt"
+        if filename.lower().endswith(".vtt")
+        else "srt"
+        if filename.lower().endswith(".srt")
+        else None
+    )
+    if subtitle_format is None:
+        raise _error(AuthoringReleaseError("SUBTITLE_REPAIR_INVALID"))
+    data = await file.read(SUBTITLE_MAX_BYTES + 1)
+    if len(data) > SUBTITLE_MAX_BYTES:
+        raise _error(AuthoringReleaseError("SUBTITLE_REPAIR_TOO_LARGE"))
+    try:
+        content = data.decode("utf-8")
+    except UnicodeDecodeError as error:
+        raise _error(AuthoringReleaseError("SUBTITLE_REPAIR_INVALID")) from error
+    try:
+        subtitle, changes = repair_subtitle_document(
+            {
+                "schemaVersion": 1,
+                "filename": filename,
+                "format": subtitle_format,
+                "content": content,
+            }
+        )
+        return {"valid": True, "repaired": bool(changes), "changes": changes, "subtitle": subtitle}
+    except AuthoringReleaseError as error:
+        raise _error(error) from error
 
 
 @router.get("/courses/{course_id}/course-file")

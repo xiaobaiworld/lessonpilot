@@ -4,9 +4,10 @@ import {
   parseSubtitle,
   SubtitleDocument,
   SUBTITLE_MAX_BYTES,
+  errorMessage,
 } from '@v1/web/shared';
 import { NODE_KINDS } from '../nodes';
-import { NodeKind } from '../api';
+import { NodeKind, SubtitleRepairResult } from '../api';
 
 interface Props {
   /** 已有节点的时刻，用来标出哪句已经放过节点 */
@@ -21,6 +22,7 @@ interface Props {
   onSubtitle: (subtitle: SubtitleDocument | null) => void;
   initialSubtitle: SubtitleDocument | null;
   onFilename?: (filename: string) => void;
+  repairSubtitle: (file: File) => Promise<SubtitleRepairResult>;
   disabled: boolean;
 }
 
@@ -29,7 +31,7 @@ interface Props {
  *
  * 字幕文件自带精确时间戳，是节点定位的真源——播放器只是用来确认内容的。
  * 老师从字幕里挑一句，节点就落在那句话的起点，不用手填 mm:ss。
- * 文件先在浏览器内解析，只有保存草稿时才随课节草稿提交。
+ * 文件先交给服务端临时检查/修复，再在浏览器内解析；只有保存草稿时才进入服务端草稿。
  */
 export const SubtitlePicker: React.FC<Props> = ({
   usedSeconds,
@@ -39,6 +41,7 @@ export const SubtitlePicker: React.FC<Props> = ({
   onSubtitle,
   initialSubtitle,
   onFilename,
+  repairSubtitle,
   disabled,
 }) => {
   const fileInput = useRef<HTMLInputElement>(null);
@@ -46,12 +49,15 @@ export const SubtitlePicker: React.FC<Props> = ({
   const [error, setError] = useState<string | null>(null);
   const [filename, setFilename] = useState('');
   const [picking, setPicking] = useState<Caption | null>(null);
+  const [repairNotice, setRepairNotice] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!initialSubtitle) {
       setCaptions(null);
       setFilename('');
       setPicking(null);
+      setRepairNotice(null);
       return;
     }
     const result = parseSubtitle(initialSubtitle.content, initialSubtitle.filename);
@@ -64,28 +70,38 @@ export const SubtitlePicker: React.FC<Props> = ({
 
   const load = async (file: File) => {
     setError(null);
+    setRepairNotice(null);
     if (file.size > SUBTITLE_MAX_BYTES) {
       setError('字幕文件不能超过 5 MB。');
       return;
     }
-    const format = /\.vtt$/i.test(file.name) ? 'vtt' : /\.srt$/i.test(file.name) ? 'srt' : null;
-    if (!format) {
+    if (!/\.(srt|vtt)$/i.test(file.name)) {
       setError('请选择 .srt 或 .vtt 字幕文件。');
       return;
     }
-    const content = await file.text();
-    const result = parseSubtitle(content, file.name);
-    if (!result.ok) {
-      setError(result.message);
-      return;
+    setLoading(true);
+    try {
+      const repaired = await repairSubtitle(file);
+      const result = parseSubtitle(repaired.subtitle.content, repaired.subtitle.filename);
+      if (!result.ok) {
+        setError(result.message);
+        return;
+      }
+      setCaptions(result.captions);
+      onCaptions(result.captions);
+      onSubtitle(repaired.subtitle);
+      setFilename(repaired.subtitle.filename);
+      onFilename?.(repaired.subtitle.filename);
+      if (repaired.repaired) {
+        setRepairNotice(`已自动修复 ${repaired.changes.length} 处字幕时间问题。`);
+      }
+      const last = result.captions[result.captions.length - 1];
+      if (last) onDuration(Math.ceil(last.endSeconds));
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setLoading(false);
     }
-    setCaptions(result.captions);
-    onCaptions(result.captions);
-    onSubtitle({ schemaVersion: 1, filename: file.name, format, content });
-    setFilename(file.name);
-    onFilename?.(file.name);
-    const last = result.captions[result.captions.length - 1];
-    if (last) onDuration(Math.ceil(last.endSeconds));
   };
 
   if (!captions) {
@@ -113,9 +129,9 @@ export const SubtitlePicker: React.FC<Props> = ({
           className="light-button"
           type="button"
           onClick={() => fileInput.current?.click()}
-          disabled={disabled}
+          disabled={disabled || loading}
         >
-          选择 SRT / VTT 文件
+          {loading ? '检查字幕中…' : '选择 SRT / VTT 文件'}
         </button>
         {error && <p className="field-error">{error}</p>}
       </div>
@@ -136,11 +152,13 @@ export const SubtitlePicker: React.FC<Props> = ({
             onSubtitle(null);
             onFilename?.('');
             setPicking(null);
+            setRepairNotice(null);
           }}
         >
           换一份
         </button>
       </div>
+      {repairNotice && <p className="subtitle-repair-notice">{repairNotice}</p>}
 
       <ul className="caption-list">
         {captions.map((c) => {

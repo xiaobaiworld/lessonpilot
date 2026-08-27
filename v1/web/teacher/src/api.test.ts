@@ -31,6 +31,34 @@ describe('TeacherAPI authentication paths', () => {
     );
   });
 
+  it('uploads a subtitle to the repair endpoint before draft save', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        valid: true,
+        repaired: true,
+        changes: ['第 2 条字幕的开始时间已调整为上一条字幕的结束时间'],
+        subtitle: {
+          schemaVersion: 1,
+          filename: '相信自己，自信地说英语.srt',
+          format: 'srt',
+          content: 'fixed',
+        },
+      }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const file = new File(['subtitle'], '相信自己，自信地说英语.srt', { type: 'text/plain' });
+
+    await expect(
+      new TeacherAPI(new APIClient('http://127.0.0.1:8001')).repairSubtitle(file)
+    ).resolves.toMatchObject({ repaired: true });
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://127.0.0.1:8001/api/v1/teacher/subtitles/repair',
+      expect.objectContaining({ method: 'POST', credentials: 'include', body: expect.any(FormData) })
+    );
+  });
+
   it('saves the subtitle document together with the complete draft aggregate', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,

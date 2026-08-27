@@ -472,6 +472,7 @@ export const LessonPage: React.FC<Props> = ({
                 setNotice(null);
               }}
               onFilename={setFilename}
+              repairSubtitle={(file) => api.repairSubtitle(file)}
               disabled={busy}
             />
             {filename && <p className="subtitle-source-note">当前字幕来源：{filename}</p>}

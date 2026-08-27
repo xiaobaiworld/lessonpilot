@@ -283,3 +283,54 @@ def test_invalid_subtitle_does_not_create_or_replace_draft() -> None:
         client.get(f"/api/v1/teacher/lessons/{lesson['id']}/draft").json()["config"]["subtitle"]
         == SUBTITLE
     )
+
+
+def test_subtitle_repair_endpoint_fixes_overlap_before_draft_save() -> None:
+    client = make_client()
+    content = "169\n0:7:45,43 --> 0:7:48,14\n上一条字幕\n\n170\n0:7:48,5 --> 0:7:49,9\n这完全正确\n"
+    repaired = client.post(
+        "/api/v1/teacher/subtitles/repair",
+        files={"file": ("相信自己，自信地说英语.srt", content.encode("utf-8"), "text/plain")},
+    )
+    assert repaired.status_code == 200
+    repaired_body = repaired.json()
+    assert repaired_body["valid"] is True
+    assert repaired_body["repaired"] is True
+    assert repaired_body["changes"] == ["第 2 条字幕的开始时间已调整为上一条字幕的结束时间"]
+    assert "0:7:48,14 --> 0:7:49,9" in repaired_body["subtitle"]["content"]
+
+    course = client.post("/api/v1/teacher/courses", json={"title": "修复字幕保存课程"}).json()
+    lesson = client.post(
+        f"/api/v1/teacher/courses/{course['id']}/lessons",
+        json={
+            "title": "第一课",
+            "video_ref": {"platform": "bilibili", "video_id": "BV1Ac41187Lm"},
+        },
+    ).json()
+    saved = client.put(
+        f"/api/v1/teacher/lessons/{lesson['id']}/draft",
+        json={
+            "schema_version": 1,
+            "config": {"nodes": [NODE], "subtitle": repaired_body["subtitle"]},
+        },
+    )
+    assert saved.status_code == 200
+    restored = client.get(f"/api/v1/teacher/lessons/{lesson['id']}/draft")
+    assert restored.status_code == 200
+    assert restored.json()["config"]["subtitle"] == repaired_body["subtitle"]
+
+
+def test_subtitle_repair_endpoint_rejects_unrepairable_content() -> None:
+    client = make_client()
+    response = client.post(
+        "/api/v1/teacher/subtitles/repair",
+        files={
+            "file": (
+                "无法修复.srt",
+                b"1\n00:00:01,000 --> 00:00:00,500\ninvalid\n",
+                "text/plain",
+            )
+        },
+    )
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "SUBTITLE_REPAIR_INVALID"

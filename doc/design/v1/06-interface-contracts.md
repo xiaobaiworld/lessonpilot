@@ -276,6 +276,7 @@
 | POST | `/api/v1/teacher/assets/upload` | 新建 | `FR-AUTHOR-014`、`DATA-CONTENT-006`；上传图片、音频或视频并生成 `assetId` |
 | POST | `/api/v1/teacher/assets/import-url` | 新建 | `FR-AUTHOR-014`、`DATA-CONTENT-006`；服务器导入安全的 HTTP(S) 媒体 URL |
 | GET | `/api/v1/teacher/assets/{asset_id}` | 新建 | 教师预览和后续资源交付按稳定 `assetId` 读取 |
+| POST | `/api/v1/teacher/subtitles/repair` | 新建 | `D-V1-017`；上传 SRT/VTT，临时检查并自动修复可确定的时间重叠，不写入草稿 |
 | GET | `/api/v1/teacher/lessons/{lesson_id}/draft` | 已有 | `FR-AUTHOR-*` |
 | PUT | `/api/v1/teacher/lessons/{lesson_id}/draft` | 已有 | 整份聚合替换，带 `revision` |
 | GET | `/api/v1/teacher/courses/{course_id}/course-file` | 新建 | `FR-PORT-001`、`FR-PORT-005`；导出已保存草稿或指定发布版本 |
@@ -325,7 +326,7 @@ v1 通过服务器端排障访问，不建面向页面的审计查询 API（`FR-
 
 #### 清单口径与偏离规则
 
-- 当前实现 44 个端点；本清单 44 个（`已有` 14、`改名` 7、`新建` 23）。
+- 当前实现 48 个端点；本清单 48 个（`已有` 14、`改名` 7、`新建` 27）。
   其中 44 个已对齐；新增的教师课程文件导入预览、导入和导出端点属于本轮实现。
   差额主要来自课节顺序、预览会话、发布资源化、授权码终止、试用跟进和版本元数据。
   数量由 `node tools/endpoint-check.mjs` 实时统计，本段只说明差额来源，不手工维护数字。

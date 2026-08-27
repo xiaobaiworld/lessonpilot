@@ -14,6 +14,13 @@ class SubtitleDocument(BaseModel):
     content: str = Field(min_length=1)
 
 
+class SubtitleRepairPublic(BaseModel):
+    valid: Literal[True] = True
+    repaired: bool
+    changes: list[str]
+    subtitle: SubtitleDocument
+
+
 class DraftConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

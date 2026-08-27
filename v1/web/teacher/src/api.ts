@@ -71,6 +71,13 @@ export interface ScriptDraft {
   updated_at: string;
 }
 
+export interface SubtitleRepairResult {
+  valid: true;
+  repaired: boolean;
+  changes: string[];
+  subtitle: SubtitleDocument;
+}
+
 export interface TeacherCourseFile {
   schemaVersion: 1;
   fileType: 'teacher-course';
@@ -118,6 +125,12 @@ export class TeacherAPI {
 
   assetUrl(assetId: string): string {
     return this.http.url(`/api/v1/teacher/assets/${encodeURIComponent(assetId)}`);
+  }
+
+  repairSubtitle(file: File): Promise<SubtitleRepairResult> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.postForm<SubtitleRepairResult>('/api/v1/teacher/subtitles/repair', form);
   }
 
   async login(loginName: string, password: string): Promise<Teacher> {
