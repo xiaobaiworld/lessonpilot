@@ -248,19 +248,6 @@ export const LessonPage: React.FC<Props> = ({
     }
   };
 
-  const testPreview = async () => {
-    setBusy(true);
-    setError(null);
-    try {
-      await api.testPreview(lessonId);
-      setNotice('当前草稿的测试预览已通过');
-    } catch (err) {
-      setError(errorMessage(err));
-    } finally {
-      setBusy(false);
-    }
-  };
-
   const selectLesson = (nextLessonId: string) => {
     if (nextLessonId === lessonId) return;
     if (dirty && !window.confirm('当前课节有未保存修改，确定切换吗？')) return;
@@ -275,7 +262,11 @@ export const LessonPage: React.FC<Props> = ({
 
   return (
     <div className="app-shell">
-      <Topbar subtitle="互动课程工具" account={teacher.display_name} onLogout={onSignedOut} />
+      <Topbar
+        subtitle="互动课程工具"
+        account={teacher.display_name.trim() || teacher.login_name}
+        onLogout={onSignedOut}
+      />
       <main className="view workspace-home teacher-editor-page">
         <button className="text-button back-link" type="button" onClick={backToCourse}>
           ← 返回课程
@@ -293,14 +284,6 @@ export const LessonPage: React.FC<Props> = ({
             </p>
           </div>
           <div className="teacher-editor-actions">
-            <button
-              className="light-button"
-              type="button"
-              onClick={testPreview}
-              disabled={busy || dirty || revision === null}
-            >
-              测试预览
-            </button>
             <button className="dark-button" type="button" onClick={save} disabled={busy || !dirty}>
               {busy ? '保存中…' : '保存草稿'}
             </button>

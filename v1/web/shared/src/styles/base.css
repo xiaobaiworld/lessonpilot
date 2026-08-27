@@ -2138,7 +2138,6 @@ a.brand {
   margin-top: 16px;
   border-bottom: 1px solid var(--line-dark);
   background:
-    linear-gradient(90deg, rgba(215, 213, 203, 0.7) 1px, transparent 1px) 0 0 / 14.2857% 100%,
     linear-gradient(180deg, transparent 0 42%, rgba(29, 92, 67, 0.08) 42% 43%, transparent 43% 57%, rgba(29, 92, 67, 0.08) 57% 58%, transparent 58%);
   cursor: crosshair;
 }
@@ -2300,24 +2299,6 @@ a.brand {
   z-index: 3;
   border-width: 2px;
   box-shadow: 0 5px 12px rgba(22, 37, 31, 0.12);
-}
-
-.timeline-node-summary::after {
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  width: 1px;
-  height: var(--timeline-summary-connector);
-  background: currentColor;
-  content: "";
-  opacity: 0.52;
-  transform: translateX(-50%);
-}
-
-.timeline-node-summary[data-lane="1"]::after,
-.timeline-node-summary[data-lane="3"]::after {
-  top: auto;
-  bottom: 100%;
 }
 
 .timeline-drop-indicator {

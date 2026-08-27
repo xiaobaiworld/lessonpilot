@@ -125,15 +125,6 @@ export const Timeline: React.FC<Props> = ({
             if (event.target === event.currentTarget) place(event.clientX);
           }}
         >
-          <div className="visual-timeline-grid" aria-hidden="true">
-            {ticks.map((tick) => (
-              <span
-                key={tick.seconds}
-                className="visual-timeline-tick-line"
-                style={{ left: `${tick.percentage}%` }}
-              />
-            ))}
-          </div>
           <span className="timeline-boundary timeline-boundary-start">开始</span>
           <span className="timeline-boundary timeline-boundary-end">结束</span>
           {dragSeconds !== null && (
@@ -182,6 +173,12 @@ export const Timeline: React.FC<Props> = ({
                   </span>
                   <small>{formatTime(seconds)}</small>
                 </button>
+                <span
+                  className={`timeline-node-connector timeline-node-${node.interaction}`}
+                  data-lane={lane % 2}
+                  style={{ left: `${position}%` }}
+                  aria-hidden="true"
+                />
                 <button
                   type="button"
                   className={`timeline-node-summary timeline-node-${node.interaction}${selectedId === node.id ? ' is-selected' : ''}`}
