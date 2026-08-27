@@ -35,7 +35,7 @@ v1 架构优先保证以下结果：
 
 1. 一套系统可以重复服务多位教师、多门课程和多个课节，不需要课程专用代码；
 2. 管理员、教师、公开申请者和学生本机运行时具有明确且不可互换的边界；
-3. 教师草稿、独立课程版本、授权资格、学生已安装课程和本机学习状态各有唯一责任方；
+3. 教师草稿、课程发布快照、授权资格、学生已安装课程和本机学习状态各有唯一责任方；独立课程版本属于后续演进；
 4. Web、API、课程包、插件和 B 站宿主之间使用显式版本契约，失败不产生半写入或假成功；
 5. 当前生产数据可以受控迁移、回退和恢复，重构不以清空数据换取简单；
 6. 系统保持适合测试原型和小规模交付的复杂度，不预建规模化平台能力。
@@ -56,7 +56,7 @@ v1 架构优先保证以下结果：
 | AI | v1 不接入 AI 制作、评分、追问或个性化路径 | `D-V1-002` |
 | 公开申请 | 销售页跳转飞书公开表单，申请与教师身份分离 | `D-V1-001`、`INT-TRIAL-*` |
 | 内容权利 | 接入和发布前确认，争议时暂停相关课程与授权 | `D-V1-008` |
-| 课程版本 | 每次发布形成独立课程身份；版本级授权不自动覆盖其它版本；课程升级关系和旧授权码兼容属于后续能力 | `D-V1-018` |
+| 课程版本 | 当前按 `course_id` 管理发布快照，授权码自动解析该课程最新可交付版本；独立课程身份、版本级授权和升级关系属于后续能力 | `D-V1-018`、`D-V1-019` |
 
 ## 4. 总体形态：单仓库、多个客户端、模块化单体服务
 
@@ -161,7 +161,7 @@ FastAPI 内部按业务责任划分为六个模块。模块是代码和事务边
 | --- | --- | --- |
 | 身份与会话 | 管理员/教师认证、会话、密码重置、停用后的会话失效 | 课程授权、学生身份、页面导航 |
 | 工作空间与课程 | 工作空间归属、课程、课节、顺序、归档和视频引用 | 节点正文、发布快照、授权资格 |
-| 制作与发布 | 草稿、四类节点校验、节点资源引用、预览版本、独立课程版本发布、版本操作和历史 | 学生本机进度、B 站播放视频和节点媒体文件本体 |
+| 制作与发布 | 草稿、四类节点校验、节点资源引用、预览版本、课程发布快照和历史；独立课程版本操作后置 | 学生本机进度、B 站播放视频和节点媒体文件本体 |
 | 授权与交付 | 授权码、领取窗口、授权项、来源并集、在线资格、课程包裁剪与下载 | 学生回答、本机安装删除 |
 | 管理与支持 | 教师接入、必要状态摘要、高风险操作和受限诊断 | 默认读取课程正文、冒充教师操作 |
 | 运行与审计 | 健康、版本、结构化日志、操作审计、保留任务和恢复探针 | 代替业务模块决定成功或权限 |
@@ -175,7 +175,7 @@ FastAPI 内部按业务责任划分为六个模块。模块是代码和事务边
 | --- | --- | --- |
 | 身份与会话 | `admins`、`admin_sessions`、`teachers`、`teacher_sessions` | `AdminAccount`、`AdminSession`、`TeacherAccount`、`TeacherSession` |
 | 工作空间与课程 | `workspaces`、`courses`、`lessons` | `Workspace`、`Course`、`Lesson`、`VideoReference` |
-| 制作与发布 | `script_drafts`、`published_scripts`（v1 改为独立课程版本相关的 `course_releases`、`release_lesson_snapshots`、`release_availability`、`preview_sessions`） | `ScriptDraft`、`InteractionNode`、`PreviewSession`、独立课程版本的 `CourseRelease`、`ReleaseLessonSnapshot`、`ReleaseAvailability` |
+| 制作与发布 | `script_drafts`、`published_scripts`（v1 使用 `course_releases`、`release_lesson_snapshots`、`release_availability`、`preview_sessions`） | `ScriptDraft`、`InteractionNode`、`PreviewSession`、课程发布快照的 `CourseRelease`、`ReleaseLessonSnapshot`、`ReleaseAvailability` |
 | 授权与交付 | `access_codes`、`access_grants`（v1 增加 `redemptions`） | `AccessCode`、`GrantItem`、`Redemption` |
 | 管理与支持 | v1 增加 `trial_followups`、`rights_attestations` | `TrialFollowup`、`RightsAttestation` |
 | 运行与审计 | `operation_logs` | `OperationAudit` |

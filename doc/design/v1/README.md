@@ -2,7 +2,7 @@
 
 文档版本：`1.1.0`
 
-状态：01–09 均已通过人工审核并冻结；2026-08-27 按 `D-V1-018` 同步独立课程版本、版本级授权和后续升级兼容边界；测试计划与开发计划已建立；当前处于 v1 实现阶段 0（工程基线与干净初始化）
+状态：01–09 均已通过人工审核并冻结；2026-08-27 按 `D-V1-018` 记录后续独立课程版本方向，并按 `D-V1-019` 同步当前课程级最新版本授权；测试计划与开发计划已建立；当前处于 v1 实现阶段 0（工程基线与干净初始化）
 
 需求真源：[`../../requirements/v1/README.md`](../../requirements/v1/README.md)
 
@@ -38,10 +38,10 @@
 | 01 | [`01-current-system-assessment.md`](01-current-system-assessment.md) | 当前代码、运行证据、经验和原型负担 | 已接受 |
 | 02 | [`02-legacy-document-register.md`](02-legacy-document-register.md) | `SRC-001` 至 `SRC-082` 的演化、价值、冲突和最终去向 | 已接受 |
 | 03 | [`03-system-architecture.md`](03-system-architecture.md) | v1 目标架构、模块边界、表归属和运行/部署拓扑 | 已接受；`1.0.2` 增补第 7.0 节表归属 |
-| 04 | [`04-domain-data-model.md`](04-domain-data-model.md) | 领域模型、独立课程版本、数据结构、身份和约束 | 已接受；`D-V1-018` 已同步 |
-| 05 | [`05-data-flow-lifecycle.md`](05-data-flow-lifecycle.md) | 发布、草稿消费、版本操作、数据流、保留、删除和恢复 | 已接受；`D-V1-018` 已同步 |
-| 06 | [`06-interface-contracts.md`](06-interface-contracts.md) | API、端点清单、版本级授权、插件消息、课程包、文件和外部集成 | 已接受；`D-V1-018` 已同步 |
-| 07 | [`07-product-interaction-state.md`](07-product-interaction-state.md) | 页面职责、用户流程、课程版本操作、交互状态和恢复 | 已接受；`D-V1-018` 已同步 |
+| 04 | [`04-domain-data-model.md`](04-domain-data-model.md) | 领域模型、课程发布快照、数据结构、身份和约束 | 已接受；`D-V1-018` 后续方向与 `D-V1-019` 当前授权规则已同步 |
+| 05 | [`05-data-flow-lifecycle.md`](05-data-flow-lifecycle.md) | 发布、课程级最新版本授权、数据流、保留、删除和恢复 | 已接受；`D-V1-018` 后续方向与 `D-V1-019` 当前授权规则已同步 |
+| 06 | [`06-interface-contracts.md`](06-interface-contracts.md) | API、端点清单、课程级最新版本授权、插件消息、课程包、文件和外部集成 | 已接受；`D-V1-018` 后续方向与 `D-V1-019` 当前授权规则已同步 |
+| 07 | [`07-product-interaction-state.md`](07-product-interaction-state.md) | 页面职责、教师/学生流程、课程授权、交互状态和恢复 | 已接受；`D-V1-018` 后续方向与 `D-V1-019` 当前授权规则已同步 |
 | 08 | [`08-security-operations-design.md`](08-security-operations-design.md) | 权限、秘密、输入、日志、发布、备份和恢复 | 已接受 |
 | 09 | [`09-migration-cutover-design.md`](09-migration-cutover-design.md) | 保留、重写、迁移、切换、回滚和旧入口退役 | 已接受 |
 
