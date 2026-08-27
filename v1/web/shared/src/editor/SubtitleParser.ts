@@ -24,6 +24,8 @@ export interface SubtitleDocument {
 
 export const SUBTITLE_MAX_BYTES = 5 * 1024 * 1024;
 
+const SUBTITLE_INVALID_MESSAGE = '字幕内容无效，请检查时间戳、顺序和字幕文字';
+
 export type ParseResult =
   | { ok: true; captions: Caption[] }
   | { ok: false; message: string };
@@ -37,7 +39,7 @@ export type ParseResult =
 export function toSeconds(timestamp: string): number | null {
   const m = String(timestamp)
     .trim()
-    .match(/^(?:(\d{1,2}):)?(\d{1,2}):(\d{1,2})[,.](\d{1,3})$/);
+    .match(/^(?:(\d+):)?(\d{1,2}):(\d{1,2})[,.](\d{1,3})$/);
   if (!m) return null;
 
   const hours = Number(m[1] || 0);
@@ -67,22 +69,28 @@ export function parseSubtitle(text: string, filename = ''): ParseResult {
     return { ok: false, message: '字幕文件不能超过 5 MB。' };
   }
 
-  const blocks = String(text || '')
+  const normalized = String(text || '')
     .replace(/^\uFEFF/, '') // BOM
-    .replace(/\r\n?/g, '\n') // CRLF / CR
-    .trim()
-    .split(/\n{2,}/);
+    .replace(/\r\n?/g, '\n'); // CRLF / CR
+
+  if (normalized.trimStart().startsWith('WEBVTT') !== /\.vtt$/i.test(filename)) {
+    return { ok: false, message: SUBTITLE_INVALID_MESSAGE };
+  }
+
+  const blocks = normalized.trim().split(/\n{2,}/);
 
   const captions: Caption[] = [];
+  let previousEndSeconds = -Infinity;
 
-  blocks.forEach((block, index) => {
+  for (const [index, block] of blocks.entries()) {
     const lines = block
       .split('\n')
       .map((line) => line.trim())
       .filter(Boolean);
 
     const timeIndex = lines.findIndex((line) => line.includes('-->'));
-    if (timeIndex < 0) return;
+    // VTT 头部、注释和样式块没有时间轴，不是字幕 cue，继续检查后续块。
+    if (timeIndex < 0) continue;
 
     const [startRaw, endWithSettings] = lines[timeIndex].split('-->');
     const startSeconds = toSeconds(startRaw);
@@ -99,9 +107,10 @@ export function parseSubtitle(text: string, filename = ''): ParseResult {
       startSeconds === null ||
       endSeconds === null ||
       endSeconds <= startSeconds ||
-      !captionText
+      !captionText ||
+      startSeconds < previousEndSeconds
     ) {
-      return;
+      return { ok: false, message: SUBTITLE_INVALID_MESSAGE };
     }
 
     captions.push({
@@ -112,13 +121,14 @@ export function parseSubtitle(text: string, filename = ''): ParseResult {
       endSeconds,
       text: captionText,
     });
-  });
+    previousEndSeconds = endSeconds;
+  }
 
   return captions.length
     ? { ok: true, captions }
     : {
         ok: false,
-        message: '未识别到有效字幕。请确认文件包含时间戳和字幕文字。',
+        message: SUBTITLE_INVALID_MESSAGE,
       };
 }
 
