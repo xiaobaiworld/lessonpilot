@@ -1,3 +1,13 @@
+import {
+  WINDOW_POSITIONS,
+  WINDOW_SIZES,
+  WINDOW_STYLES,
+  resolvePresentationHints,
+  type WindowPosition,
+  type WindowSize,
+  type WindowStyle,
+} from '../../web/shared/src';
+
 const ALLOWED_TAGS = new Set([
   'A',
   'AUDIO',
@@ -21,13 +31,14 @@ const ALLOWED_TAGS = new Set([
   'VIDEO',
 ]);
 
-export const WINDOW_SIZES = ['s', 'm', 'l', 'overlay'] as const;
-export const WINDOW_STYLES = ['card', 'document'] as const;
-export const WINDOW_POSITIONS = ['bottom-left', 'bottom-right', 'center'] as const;
-
-export type WindowSize = (typeof WINDOW_SIZES)[number];
-export type WindowStyle = (typeof WINDOW_STYLES)[number];
-export type WindowPosition = (typeof WINDOW_POSITIONS)[number];
+export {
+  WINDOW_POSITIONS,
+  WINDOW_SIZES,
+  WINDOW_STYLES,
+  type WindowPosition,
+  type WindowSize,
+  type WindowStyle,
+};
 
 export function isSafeRichTextHref(value: string, base = 'https://knownmap.invalid/'): boolean {
   try {
@@ -137,16 +148,5 @@ export function resolveWindowPresentation(hints: Record<string, unknown>): {
   style: WindowStyle;
   position: WindowPosition;
 } {
-  const size = WINDOW_SIZES.includes(hints.windowSize as WindowSize)
-    ? (hints.windowSize as WindowSize)
-    : 's';
-  const style = WINDOW_STYLES.includes(hints.windowStyle as WindowStyle)
-    ? (hints.windowStyle as WindowStyle)
-    : 'card';
-  const position = WINDOW_POSITIONS.includes(hints.windowPosition as WindowPosition)
-    ? (hints.windowPosition as WindowPosition)
-    : size === 'overlay'
-      ? 'center'
-      : 'bottom-right';
-  return { size, style, position };
+  return resolvePresentationHints(hints);
 }

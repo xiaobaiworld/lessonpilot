@@ -22,7 +22,13 @@ export interface RichPageDocument {
 }
 
 export type NodeKind = 'notice' | 'choice' | 'blank' | 'free_text';
-export type WindowPosition = 'bottom-left' | 'bottom-right' | 'center';
+export const WINDOW_SIZES = ['s', 'm', 'l', 'overlay'] as const;
+export const WINDOW_STYLES = ['card', 'document'] as const;
+export const WINDOW_POSITIONS = ['bottom-left', 'bottom-right', 'center'] as const;
+
+export type WindowSize = (typeof WINDOW_SIZES)[number];
+export type WindowStyle = (typeof WINDOW_STYLES)[number];
+export type WindowPosition = (typeof WINDOW_POSITIONS)[number];
 
 export interface PresentationHints {
   windowSize?: 's' | 'm' | 'l' | 'overlay';
@@ -41,6 +47,33 @@ export interface AssetRecord {
   durationSeconds?: number;
   alt?: string;
   sourceType: 'uploaded' | 'licensed';
+}
+
+export interface ResolvedPresentationHints {
+  size: WindowSize;
+  style: WindowStyle;
+  position: WindowPosition;
+}
+
+/**
+ * 将课程包中的可选展示参数解析为两端都能使用的完整值。
+ * 缺失或非法值必须在显示前回退，避免教师预览与学习窗各自猜测。
+ */
+export function resolvePresentationHints(
+  hints: Partial<PresentationHints> | Record<string, unknown>
+): ResolvedPresentationHints {
+  const size = WINDOW_SIZES.includes(hints.windowSize as WindowSize)
+    ? (hints.windowSize as WindowSize)
+    : 's';
+  const style = WINDOW_STYLES.includes(hints.windowStyle as WindowStyle)
+    ? (hints.windowStyle as WindowStyle)
+    : 'card';
+  const position = WINDOW_POSITIONS.includes(hints.windowPosition as WindowPosition)
+    ? (hints.windowPosition as WindowPosition)
+    : size === 'overlay'
+      ? 'center'
+      : 'bottom-right';
+  return { size, style, position };
 }
 
 export interface PortableNode {

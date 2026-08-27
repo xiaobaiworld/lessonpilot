@@ -1,5 +1,16 @@
 import React, { useState } from 'react';
-import { AssetRecord, richDocumentFromHtml, richDocumentToHtml, richDocumentToPlainText } from '@v1/web/shared';
+import {
+  AssetRecord,
+  InlineContent,
+  RichPageBlock,
+  RichPageDocument,
+  WindowPosition,
+  WindowSize,
+  WindowStyle,
+  richDocumentFromHtml,
+  richDocumentToHtml,
+  resolvePresentationHints,
+} from '@v1/web/shared';
 import { ScriptNode } from '../api';
 import { RichTextEditor } from './RichTextEditor';
 
@@ -14,21 +25,21 @@ interface Props {
 }
 
 const WINDOW_SIZE_OPTIONS = [
-  { value: 's', label: '小卡片' },
-  { value: 'm', label: '中等' },
-  { value: 'l', label: '大文档' },
-  { value: 'overlay', label: '铺开' },
+  { value: 's' as WindowSize, label: '小卡片' },
+  { value: 'm' as WindowSize, label: '中等' },
+  { value: 'l' as WindowSize, label: '大文档' },
+  { value: 'overlay' as WindowSize, label: '铺开' },
 ] as const;
 
 const WINDOW_STYLE_OPTIONS = [
-  { value: 'card', label: '卡片' },
-  { value: 'document', label: '文档' },
+  { value: 'card' as WindowStyle, label: '卡片' },
+  { value: 'document' as WindowStyle, label: '文档' },
 ] as const;
 
 const WINDOW_POSITION_OPTIONS = [
-  { value: 'bottom-left', label: '左下' },
-  { value: 'bottom-right', label: '右下' },
-  { value: 'center', label: '居中' },
+  { value: 'bottom-left' as WindowPosition, label: '左下' },
+  { value: 'bottom-right' as WindowPosition, label: '右下' },
+  { value: 'center' as WindowPosition, label: '居中' },
 ] as const;
 
 /** 各字段名由后端校验固定，见 v1/backend/app/modules/authoring_release/application_service.py */
@@ -127,7 +138,7 @@ export const NodeForm: React.FC<Props> = ({ node, disabled, onChange, onUploadAs
         </div>
       </div>
 
-      <StudentNodePreview node={node} disabled={disabled} onChange={setHints} />
+      <StudentNodePreview node={node} disabled={disabled} onChange={setHints} assetUrlForId={assetUrlForId} />
     </div>
   );
 };
@@ -136,12 +147,10 @@ const StudentNodePreview: React.FC<{
   node: ScriptNode;
   disabled: boolean;
   onChange: (patch: Record<string, unknown>) => void;
-}> = ({ node, disabled, onChange }) => {
+  assetUrlForId?: (assetId: string) => string;
+}> = ({ node, disabled, onChange, assetUrlForId }) => {
   const [previewConfirmed, setPreviewConfirmed] = useState(false);
-  const previewText = richDocumentToPlainText(node.content) || '这里会显示节点正文。';
-  const windowSize = node.presentationHints?.windowSize ?? 'm';
-  const windowStyle = node.presentationHints?.windowStyle ?? 'document';
-  const windowPosition = node.presentationHints?.windowPosition ?? 'bottom-right';
+  const { size: windowSize, style: windowStyle, position: windowPosition } = resolvePresentationHints(node.presentationHints ?? {});
   const data = (node.interactionData ?? {}) as Record<string, any>;
   const options = Array.isArray(data.options) ? data.options : [];
   const interactionLabel =
@@ -171,7 +180,7 @@ const StudentNodePreview: React.FC<{
         <article className="student-node-card">
           <span className="student-node-card-badge">{interactionLabel}</span>
           <h4>{node.title || '未命名节点'}</h4>
-          <p>{previewText}</p>
+          <PreviewRichContent document={node.content} assetUrlForId={assetUrlForId} />
           {node.interaction === 'choice' && options.length > 0 && (
             <div className="student-node-card-options">
               {options.slice(0, 3).map((option: { id: string; label: string }) => (
@@ -266,6 +275,111 @@ const ChoiceGroup: React.FC<{
 
 function windowSizeLabel(value: string): string {
   return WINDOW_SIZE_OPTIONS.find((option) => option.value === value)?.label ?? '中等';
+}
+
+const PreviewRichContent: React.FC<{
+  document: RichPageDocument;
+  assetUrlForId?: (assetId: string) => string;
+}> = ({ document, assetUrlForId }) => {
+  if (document.schemaVersion !== 1 || document.blocks.length === 0) {
+    return <p className="student-node-card-placeholder">这里会显示节点正文。</p>;
+  }
+
+  return (
+    <div className="student-node-card-content">
+      {document.blocks.map((block, index) => renderPreviewBlock(block, index, assetUrlForId))}
+    </div>
+  );
+};
+
+function renderPreviewBlock(
+  block: RichPageBlock,
+  index: number,
+  assetUrlForId?: (assetId: string) => string
+): React.ReactNode {
+  switch (block.type) {
+    case 'paragraph':
+      return <p key={index}>{renderInlineContent(block.children, `paragraph-${index}`)}</p>;
+    case 'heading': {
+      const Heading = block.level === 2 ? 'h2' : 'h3';
+      return <Heading key={index}>{renderInlineContent(block.children, `heading-${index}`)}</Heading>;
+    }
+    case 'quote':
+      return <blockquote key={index}>{renderInlineContent(block.children, `quote-${index}`)}</blockquote>;
+    case 'list': {
+      const List = block.ordered ? 'ol' : 'ul';
+      return (
+        <List key={index}>
+          {block.items.map((item, itemIndex) => (
+            <li key={itemIndex}>{renderInlineContent(item.children, `list-${index}-${itemIndex}`)}</li>
+          ))}
+        </List>
+      );
+    }
+    case 'image': {
+      const src = assetUrlForId?.(block.assetId);
+      return src ? (
+        <img key={index} src={src} alt={block.alt} />
+      ) : (
+        <MediaPlaceholder key={index} label="图片资源未加载" />
+      );
+    }
+    case 'audio': {
+      const src = assetUrlForId?.(block.assetId);
+      return src ? (
+        <audio key={index} controls src={src} aria-label={block.title || '音频'} />
+      ) : (
+        <MediaPlaceholder key={index} label={block.title || '音频资源未加载'} />
+      );
+    }
+    case 'video': {
+      const src = assetUrlForId?.(block.assetId);
+      const poster = block.posterAssetId ? assetUrlForId?.(block.posterAssetId) : undefined;
+      return src ? (
+        <video key={index} controls src={src} poster={poster} aria-label={block.title || '视频'} />
+      ) : (
+        <MediaPlaceholder key={index} label={block.title || '视频资源未加载'} />
+      );
+    }
+  }
+}
+
+const MediaPlaceholder: React.FC<{ label: string }> = ({ label }) => (
+  <div className="student-node-card-media-placeholder" role="img" aria-label={label}>
+    {label}
+  </div>
+);
+
+function renderInlineContent(children: InlineContent[], keyPrefix: string): React.ReactNode[] {
+  return children.map((inline, index) => {
+    let content: React.ReactNode = inline.text.split('\n').map((line, lineIndex, lines) => (
+      <React.Fragment key={`${keyPrefix}-${index}-${lineIndex}`}>
+        {line}
+        {lineIndex < lines.length - 1 && <br />}
+      </React.Fragment>
+    ));
+
+    if (inline.link && isSafePreviewHref(inline.link.href)) {
+      content = <a href={inline.link.href} target="_blank" rel="noreferrer noopener">{content}</a>;
+    }
+    for (const mark of [...(inline.marks ?? [])].reverse()) {
+      if (mark === 'strong') content = <strong>{content}</strong>;
+      if (mark === 'em') content = <em>{content}</em>;
+      if (mark === 'underline') content = <u>{content}</u>;
+    }
+
+    const color = inline.color && /^#[0-9a-f]{3,8}$/i.test(inline.color) ? inline.color : undefined;
+    return <span key={`${keyPrefix}-${index}`} style={color ? { color } : undefined}>{content}</span>;
+  });
+}
+
+function isSafePreviewHref(value: string): boolean {
+  try {
+    const url = new URL(value, 'https://knownmap.invalid/');
+    return ['http:', 'https:', 'mailto:'].includes(url.protocol);
+  } catch {
+    return false;
+  }
 }
 
 function windowPositionLabel(value: string): string {

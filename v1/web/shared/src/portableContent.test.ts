@@ -1,7 +1,12 @@
 /** @vitest-environment happy-dom */
 
 import { describe, expect, it } from 'vitest';
-import { richDocumentFromHtml, richDocumentToHtml, richDocumentToPlainText } from './portableContent';
+import {
+  resolvePresentationHints,
+  richDocumentFromHtml,
+  richDocumentToHtml,
+  richDocumentToPlainText,
+} from './portableContent';
 
 describe('RichPageDocument', () => {
   it('把排版和链接转换为跨客户端 JSON', () => {
@@ -49,6 +54,29 @@ describe('RichPageDocument', () => {
     expect(richDocumentFromHtml(html)).toEqual({
       schemaVersion: 1,
       blocks: [{ type: 'video', assetId: 'video-1', posterAssetId: 'image-1' }],
+    });
+  });
+
+  it('教师预览和插件对缺失展示参数使用同一套默认值', () => {
+    expect(resolvePresentationHints({})).toEqual({
+      size: 's',
+      style: 'card',
+      position: 'bottom-right',
+    });
+    expect(resolvePresentationHints({ windowSize: 'overlay' })).toEqual({
+      size: 'overlay',
+      style: 'card',
+      position: 'center',
+    });
+    expect(resolvePresentationHints({
+      windowSize: 'l',
+      windowStyle: 'document',
+      windowPosition: 'bottom-left',
+    })).toEqual({ size: 'l', style: 'document', position: 'bottom-left' });
+    expect(resolvePresentationHints({ windowSize: 'unknown', windowPosition: 'unknown' })).toEqual({
+      size: 's',
+      style: 'card',
+      position: 'bottom-right',
     });
   });
 });

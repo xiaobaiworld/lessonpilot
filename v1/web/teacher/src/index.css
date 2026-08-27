@@ -514,6 +514,7 @@
 
 .student-node-preview-stage {
   position: relative;
+  display: block;
   min-height: 244px;
   padding: 17px;
   overflow: hidden;
@@ -529,6 +530,7 @@
 
 .student-node-preview-video-label {
   position: relative;
+  z-index: 1;
   color: rgba(255,255,255,.66);
   font-size: 10px;
   letter-spacing: .08em;
@@ -536,6 +538,7 @@
 
 .student-node-preview-play {
   position: absolute;
+  z-index: 1;
   top: 50%;
   left: 50%;
   display: grid;
@@ -550,15 +553,80 @@
 }
 
 .student-node-card {
-  position: relative;
-  z-index: 1;
-  margin: 54px 0 0 auto;
-  max-width: 380px;
+  position: absolute;
+  z-index: 2;
+  right: 17px;
+  bottom: 17px;
+  left: auto;
+  box-sizing: border-box;
+  width: min(380px, calc(100% - 34px));
+  max-width: calc(100% - 34px);
+  max-height: calc(100% - 34px);
+  overflow: auto;
   padding: 15px;
   border: 1px solid rgba(255,255,255,.48);
   border-radius: 11px;
   background: rgba(255,254,250,.97);
   box-shadow: 0 12px 26px rgba(0,0,0,.22);
+}
+
+/* 教师预览与插件 LearningWindow 使用同一组尺寸、位置和样式语义。 */
+.student-node-preview-s .student-node-card {
+  width: min(380px, calc(100% - 34px));
+}
+
+.student-node-preview-m .student-node-card {
+  width: min(560px, calc(100% - 34px));
+}
+
+.student-node-preview-l .student-node-card {
+  width: min(720px, calc(100% - 34px));
+}
+
+.student-node-preview-overlay .student-node-preview-stage::after {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background: rgba(20, 32, 51, .38);
+  content: '';
+}
+
+.student-node-preview-overlay .student-node-card {
+  width: min(860px, calc(100% - 34px));
+  max-height: calc(100% - 34px);
+}
+
+.student-node-preview-bottom-left .student-node-card {
+  right: auto;
+  left: 17px;
+}
+
+.student-node-preview-bottom-right .student-node-card {
+  right: 17px;
+  left: auto;
+}
+
+.student-node-preview-center .student-node-card {
+  top: 50%;
+  right: auto;
+  bottom: auto;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.student-node-preview-card .student-node-card {
+  border-radius: 11px;
+  background: rgba(255, 254, 250, .97);
+}
+
+.student-node-preview-document .student-node-card {
+  padding: 22px 25px;
+  border-color: #dce7ee;
+  border-radius: 12px;
+  background: #fff;
+  color: #142033;
+  font-size: 13px;
+  line-height: 1.7;
 }
 
 .student-node-card-badge {
@@ -577,11 +645,84 @@
   font-size: 15px;
 }
 
-.student-node-card p {
+.student-node-card-content {
+  margin: 0 0 10px;
+  color: #607068;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.student-node-card-content p,
+.student-node-card-content h2,
+.student-node-card-content h3,
+.student-node-card-content blockquote,
+.student-node-card-content ul,
+.student-node-card-content ol {
+  margin: 0 0 9px;
+}
+
+.student-node-card-content h2 {
+  color: inherit;
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.student-node-card-content h3 {
+  color: #1d5c43;
+  font-size: 13px;
+}
+
+.student-node-card-content blockquote {
+  padding-left: 9px;
+  border-left: 3px solid #f0b74b;
+  color: #5b6675;
+}
+
+.student-node-card-content ul,
+.student-node-card-content ol {
+  padding-left: 20px;
+}
+
+.student-node-card-content a {
+  color: #1d5c43;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.student-node-card-content img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 0 9px;
+  border-radius: 6px;
+}
+
+.student-node-card-content audio,
+.student-node-card-content video {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 0 9px;
+}
+
+.student-node-card-placeholder,
+.student-node-card-media-placeholder {
   margin: 0;
   color: #607068;
   font-size: 11px;
   line-height: 1.65;
+}
+
+.student-node-card-media-placeholder {
+  display: grid;
+  min-height: 52px;
+  margin-bottom: 9px;
+  place-items: center;
+  border: 1px dashed #b9c8bd;
+  border-radius: 6px;
+  color: #718078;
+  background: #f3f7f1;
+  font-size: 10px;
 }
 
 .student-node-card-options {
@@ -754,6 +895,14 @@
 
   .student-node-preview-stage {
     min-height: 220px;
+  }
+
+  .student-node-card {
+    max-height: calc(100% - 30px);
+  }
+
+  .student-node-preview-document .student-node-card {
+    padding: 17px;
   }
 
   .node-dialog-actions {

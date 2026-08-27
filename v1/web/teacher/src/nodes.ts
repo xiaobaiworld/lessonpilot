@@ -128,6 +128,7 @@ export function changeNodeKind(node: ScriptNode, kind: NodeKind): ScriptNode {
     title,
     anchor: { ...next.anchor, captionId: node.anchor.captionId ?? null },
     content: node.content,
+    presentationHints: node.presentationHints ?? next.presentationHints,
   };
 }
 

@@ -23,10 +23,16 @@ describe('结构化互动节点', () => {
     const original = createNode('notice', 12);
     original.content = richDocumentFromText('正文');
     original.anchor.captionId = 'caption-2';
+    original.presentationHints = {
+      windowSize: 'l',
+      windowStyle: 'card',
+      windowPosition: 'center',
+    };
     const next = changeNodeKind(original, 'choice');
     expect(next.id).toBe(original.id);
     expect(next.anchor).toMatchObject({ timeSeconds: 12, captionId: 'caption-2' });
     expect(next.content).toEqual(original.content);
+    expect(next.presentationHints).toEqual(original.presentationHints);
     expect(next.interactionData).toMatchObject({ options: [{ id: 'a' }, { id: 'b' }] });
   });
 

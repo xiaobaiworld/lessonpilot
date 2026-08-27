@@ -4,6 +4,7 @@
     "useDefineForClassFields": true,
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
+    "moduleResolution": "bundler",
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -13,7 +14,9 @@
     "noFallthroughCasesInSwitch": true,
     "resolveJsonModule": true,
     "jsx": "react-jsx",
+    "baseUrl": ".",
     "paths": {
+      "@v1/web/shared/editor": ["../shared/src/editor"],
       "@v1/web/shared": ["../shared/src"]
     }
   },
