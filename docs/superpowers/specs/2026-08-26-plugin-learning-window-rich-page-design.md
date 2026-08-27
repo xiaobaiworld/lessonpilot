@@ -1,16 +1,16 @@
 # 互动学习窗口：可调外观与类网页正文
 
-状态：已实现结构化内容契约、草稿/发布保存、教师媒体输入与插件复验；学生端资源交付另行实现
+状态：已实现结构化内容契约、草稿/发布保存、教师媒体输入、教师预览与插件复验；学生端资源交付另行实现
 
 日期：2026-08-26
 
 ## 背景
 
-学生在 B 站看到的互动窗由内容脚本 `LearningWindow` 画出，不是浏览器工具栏 popup。当前窗口是右下角固定小卡片；编辑器将所有节点正文保存为结构化 `content`，题型数据保存为 `interactionData`，并允许选择窗口大小和样式。
+学生在 B 站看到的互动窗由内容脚本 `LearningWindow` 画出，不是浏览器工具栏 popup。默认窗口是右下角小卡片，但节点可以通过受限的展示提示调整大小、位置和样式；编辑器将所有节点正文保存为结构化 `content`，题型数据保存为 `interactionData`。
 
 产品要求：
 
-1. 外观可调：编辑节点时选择大小和样式。
+1. 外观可调：编辑节点时选择大小、位置和样式。
 2. 排版接近 HTML 页面：颜色、链接、图片。
 3. 选择题、填空题、问答题同一套页面，下面再加可提交的表单。答案已写在节点里，本机判分，不新增与教师后端的判分交互。
 
@@ -144,11 +144,19 @@ type Inline = {
 ```ts
 type PortableNode = {
   id: string;
+  enabled: boolean;
+  family: 'attention' | 'practice';
   interaction: 'notice' | 'choice' | 'blank' | 'free_text';
   anchor: { kind: 'time_cross'; timeSeconds: number; captionId?: string | null };
+  title: string;
   content: RichPageDocument;
   interactionData: Record<string, unknown> | null;
-  presentationHints?: { windowSize?: 's' | 'm' | 'l' | 'overlay'; windowStyle?: 'card' | 'document' };
+  presentationHints?: {
+    windowSize?: 's' | 'm' | 'l' | 'overlay';
+    windowStyle?: 'card' | 'document';
+    windowPosition?: 'bottom-left' | 'bottom-right' | 'center';
+  };
+  effects: { pause: true };
 };
 ```
 
@@ -167,13 +175,21 @@ HTML 仅作为当前编辑器的输入/输出适配层；结构化文档、资�
 
 ### 学生窗
 
-`LearningWindow` 给 `.km-panel` 加上 `km-size-*` 与 `km-style-*`。`overlay` 时另加遮罩节点。练习题与重点标注都走 `appendRichText`，再按类型画表单。图片 CSS 限制 `max-width: 100%`。删除已无对应 DOM 的 `.km-notice-*` 规则。
+`LearningWindow` 给 `.km-panel` 加上 `km-size-*`、`km-style-*` 和 `km-position-*`。`overlay` 时另加遮罩节点。
+教师端预览使用对应的 `student-node-preview-*` 语义 class，但不直接复用插件 Shadow DOM CSS；两端通过
+共享 `resolvePresentationHints` 保持默认值和非法值回退一致。练习题与重点标注都走
+`appendRichText`，再按类型画表单。图片 CSS 限制 `max-width: 100%`。删除已无对应 DOM 的
+`.km-notice-*` 规则。
 
 新节点教师侧默认 `windowSize: 'm'`、`windowStyle: 'document'`。空字段检查仍看富文本转纯文本后是否为空。
 
 ### 教师编辑
 
-`NodeForm` 顶部两个下拉框：窗口大小、窗口样式。四类节点共用重写后的 `RichTextEditor`：顶栏 Tab「可视化 / HTML」，媒体按钮调用教师资源上传/导入接口，并在返回 `assetId` 后插入可回显的媒体节点。练习题的选项、正确答案、解析、可接受答案、参考答案保持现有结构化表单，放在编辑器下面。不新增 Quill 依赖。
+`NodeForm` 的 `StudentNodePreview` 下方提供窗口大小、位置和样式分段控件；设置变更即时反映在预览画布，
+`预览确认` 不替代 `保存节点`。四类节点共用重写后的 `RichTextEditor`：顶栏 Tab「可视化 / HTML」，
+媒体按钮调用教师资源上传/导入接口，并在返回 `assetId` 后插入可回显的媒体节点。教师预览再通过
+`assetUrlForId` 显示图片、音频和节点视频，保存时仍只保留结构化内容和资源 ID。练习题的选项、正确答案、
+解析、可接受答案、参考答案保持现有结构化表单，放在编辑器下面。不新增 Quill 依赖。
 
 示例课至少一处重点标注带链接或图片，并设为 `l` + `document`，便于肉眼验收。
 
@@ -191,6 +207,7 @@ HTML 仅作为当前编辑器的输入/输出适配层；结构化文档、资�
 - 后端：枚举非法被拒；旧 `display/body/prompt` 结构不再作为保存格式。
 - 内容契约：节点 id 稳定、每个节点可独立取出并回放；文档版本、未知块、资源缺失和课程包往返校验都有明确结果。
 - 教师页：可视化插入颜色、链接和已登记的 `assetId`，切到 HTML Tab 能看到临时 HTML 表示，保存时转换为结构化文档。
+- 教师页：窗口大小、位置和样式改变实际预览画布；预览显示结构化排版和已登记媒体；保存节点与保存草稿后重新读取仍保持展示提示。
 - 重建插件后在 B 站示例课：小卡片与「铺开」两档可见；重点标注可点链接、可见图片；选择题提交仍本机给出「答对了 / 再想想」，不请求教师判分 API。
 
 ## 假设与重开条件
@@ -210,3 +227,10 @@ HTML 仅作为当前编辑器的输入/输出适配层；结构化文档、资�
 本文件前面的探索性段落曾使用 `display.richBody`、`prompt` 作为过渡描述；实施时以本节和课程包 v3 契约为准：节点正文统一保存为 `content: RichPageDocument`，题型数据统一保存为 `interactionData`，窗口配置统一保存为 `presentationHints`。不保留普通 `body` 回退，也不保留 HTML 作为第二份可编辑真源。
 
 互动节点内的图片、音频和视频通过 `assetId` 引用课程资源；课节的 B 站播放视频仍只由 `videoRef` 引用，绝不进入节点资源下载流程。当前阶段完成结构化契约、草稿/发布快照保存和资源元数据校验；上传、CDN、源站回源和 IndexedDB 二进制缓存由后续资源交付阶段实现。
+
+## 2026-08-27 教师预览实施同步
+
+此前设计只描述了插件 `LearningWindow` 的真实渲染，未明确教师端示意预览必须达到的消费边界，
+导致参数虽然进入 `presentationHints`，画布仍固定在右侧且只显示纯文本。本轮已补齐教师预览：
+尺寸、位置、样式和 `overlay` 遮罩均有实际视觉效果，结构化 `content` 和节点媒体也会通过教师资源
+接口回显。该预览仍不是 B 站播放器，也不下载 B 站播放视频；它只验证节点窗口和内容资源的最终投影。

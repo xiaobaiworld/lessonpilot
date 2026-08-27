@@ -8,6 +8,8 @@
 
 **Tech Stack:** React 18, TypeScript, Vite, FastAPI, Pydantic/SQLAlchemy, JSON Schema, Vitest, pytest, Shadow DOM CSS.
 
+**Implementation status:** 已实现并于 2026-08-27 完成浏览器验收。下面的复选清单保留为原始执行记录；实际同步以文末“实施结果”及当前代码为准。
+
 ---
 
 ## 文件清单
@@ -425,3 +427,14 @@ Confirm that the same allowed values and default appear in:
 - [ ] **Step 3: Report residual risk**
 
 Report any browser-only limitation, especially if the full node form is too tall for a specific desktop viewport or if the existing account cannot be used for live verification.
+
+## 实施结果（2026-08-27）
+
+- 共享类型、课程包 Schema、后端校验和插件位置渲染已在本计划对应的前一阶段完成；本轮教师预览修复没有新增数据库表或 API。
+- 实际修改：`v1/web/shared/src/portableContent.ts`、`v1/extension/content/richText.ts`、
+  `v1/web/teacher/src/components/NodeForm.tsx`、`v1/web/teacher/src/index.css`、
+  `v1/web/teacher/src/nodes.ts` 及对应测试；教师端 `tsconfig` 同步修复模块解析别名。
+- 教师预览现在从同一份节点草稿读取 `presentationHints` 和 `content`，尺寸/位置/样式可见，
+  图片、音频、节点视频使用 `assetUrlForId` 回显；`保存节点` 与 `保存草稿` 的边界不变。
+- `changeNodeKind` 会保留原节点的 `presentationHints`，因为展示设置是节点级属性而非题型专属属性。
+- 验证：v1 测试 225 项、lint、教师端/插件端类型检查、教师端生产构建、插件本地构建，以及桌面和 375px 浏览器验收通过。

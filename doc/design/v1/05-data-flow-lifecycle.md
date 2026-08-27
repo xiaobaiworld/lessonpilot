@@ -77,6 +77,20 @@ flowchart LR
 
 发布失败时不得出现只有部分课节的新发布版本；原草稿和此前有效发布保持不变。
 
+节点展示设置与正文遵循同一保存边界：
+
+```text
+打开/创建节点
+  -> dialogNode（浏览器临时编辑状态）
+  -> 保存节点（更新 LessonPage 内存中的 nodes，标记 dirty）
+  -> 保存草稿（整节原子写入 v1_script_drafts.content）
+  -> 发布（复制到 ReleaseLessonSnapshot / 课程包）
+```
+
+窗口大小、位置和样式位于对应 `nodes[].presentationHints`；结构化正文位于 `nodes[].content`。
+创建课程只保存课程基础记录，创建课节只保存课节和 B 站 `videoRef`，两者都不会自动产生节点或草稿。
+教师预览修改只先改变临时状态，不能绕过“保存节点”和“保存草稿”。
+
 ### 4.2 创建授权码
 
 1. 教师选择一个或多个已经发布的课程，配置课程级、课节级或节点级 `GrantItem`。
