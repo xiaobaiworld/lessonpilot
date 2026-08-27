@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useEffect, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { APIClient } from '@v1/web/shared';
 import { TeacherAPI, Teacher } from './api';
 import { TeacherLoginPage } from './pages/TeacherLoginPage';
@@ -55,13 +55,19 @@ function pushRoute(route: Route) {
 
 export const TeacherApp: React.FC = () => {
   const [teacher, setTeacher] = useState<Teacher | null>(null);
+  const authGeneration = useRef(0);
   const [route, setRoute] = useState<Route>(readRoute);
 
   useEffect(() => {
+    const generation = authGeneration.current;
     api
       .me()
-      .then(setTeacher)
-      .catch(() => setTeacher(null));
+      .then((nextTeacher) => {
+        if (authGeneration.current === generation) setTeacher(nextTeacher);
+      })
+      .catch(() => {
+        if (authGeneration.current === generation) setTeacher(null);
+      });
   }, []);
 
   useEffect(() => {
@@ -76,6 +82,7 @@ export const TeacherApp: React.FC = () => {
   };
 
   const signOut = async () => {
+    authGeneration.current += 1;
     try {
       await api.logout();
     } finally {
@@ -85,9 +92,15 @@ export const TeacherApp: React.FC = () => {
     }
   };
 
+  const signIn = (nextTeacher: Teacher) => {
+    // 使尚未返回的会话恢复结果失效，避免覆盖刚完成的登录。
+    authGeneration.current += 1;
+    setTeacher(nextTeacher);
+  };
+
   if (!teacher) {
     // 会话恢复只决定是否切换到工作台，不阻塞默认登录表单的首屏显示。
-    return <TeacherLoginPage api={api} onSignedIn={setTeacher} />;
+    return <TeacherLoginPage api={api} onSignedIn={signIn} />;
   }
 
   let page: React.ReactNode;
