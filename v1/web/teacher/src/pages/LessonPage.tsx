@@ -264,7 +264,7 @@ export const LessonPage: React.FC<Props> = ({
     <div className="app-shell">
       <Topbar
         subtitle="互动课程工具"
-        account={teacher.display_name.trim() || teacher.login_name}
+        account={teacher.login_name}
         onLogout={onSignedOut}
       />
       <main className="view workspace-home teacher-editor-page">

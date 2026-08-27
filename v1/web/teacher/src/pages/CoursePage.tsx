@@ -120,7 +120,7 @@ export const CoursePage: React.FC<Props> = ({
     <div className="app-shell">
       <Topbar
         subtitle="互动课程工具"
-        account={teacher.display_name}
+        account={teacher.login_name}
         onLogout={onSignedOut}
       />
 
