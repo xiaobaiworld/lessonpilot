@@ -63,9 +63,6 @@ AUTHORING_ERROR_MESSAGES = {
     "DRAFT_DOCUMENT_VERSION_UNSUPPORTED": "节点正文版本不受支持，请重新编辑正文",
     "DRAFT_CONTENT_BLOCK_UNSUPPORTED": "节点正文包含不受支持的内容块",
     "RELEASE_NOT_DELIVERABLE": "当前课程暂时不能发布，请检查课程状态和课节",
-    "RELEASE_DRAFT_MISSING": "有课节还没有保存草稿，请先保存每一节课",
-    "RELEASE_DRAFT_EMPTY": "有课节没有互动节点，请先添加并保存节点",
-    "RELEASE_PREVIEW_REQUIRED": "请先对所有课节的最终草稿完成测试预览",
 }
 
 

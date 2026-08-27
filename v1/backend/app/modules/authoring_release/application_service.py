@@ -680,34 +680,17 @@ class AuthoringReleaseApplicationService:
         if course.status in {CourseStatus.archived, CourseStatus.delivery_paused} or not lessons:
             raise AuthoringReleaseError("RELEASE_NOT_DELIVERABLE")
 
-        drafts: list[ScriptDraft] = []
+        snapshots: list[tuple[Lesson, dict, int, str]] = []
         for lesson in sorted(lessons, key=lambda item: item.sequence):
             try:
                 draft = self.get_draft(lesson.id)
             except AuthoringReleaseError as error:
-                raise AuthoringReleaseError("RELEASE_DRAFT_MISSING") from error
-            if not draft.content.get("nodes"):
-                raise AuthoringReleaseError("RELEASE_DRAFT_EMPTY")
-            if self.asset_store:
-                for asset in draft.content.get("assets", []):
-                    try:
-                        stored, _ = self.asset_store.get(teacher_id, asset["assetId"])
-                    except AssetStorageError as error:
-                        raise AuthoringReleaseError("DRAFT_ASSET_NOT_FOUND") from error
-                    if stored != asset:
-                        raise AuthoringReleaseError("DRAFT_ASSET_METADATA_MISMATCH")
-            preview = self.session.scalar(
-                select(PreviewSession).where(
-                    PreviewSession.teacher_id == teacher_id,
-                    PreviewSession.lesson_id == lesson.id,
-                    PreviewSession.draft_revision == draft.revision,
-                    PreviewSession.content_digest == draft.content_digest,
-                    PreviewSession.succeeded.is_(True),
-                )
-            )
-            if not preview:
-                raise AuthoringReleaseError("RELEASE_PREVIEW_REQUIRED")
-            drafts.append(draft)
+                if error.code != "DRAFT_NOT_FOUND":
+                    raise
+                content = {"nodes": [], "assets": []}
+                snapshots.append((lesson, content, 0, _digest(content)))
+                continue
+            snapshots.append((lesson, draft.content, draft.revision, draft.content_digest))
 
         release_number = (
             self.session.scalar(
@@ -731,9 +714,7 @@ class AuthoringReleaseApplicationService:
             published_by_teacher_id=teacher_id,
         )
         self.session.add(release)
-        for lesson, draft in zip(
-            sorted(lessons, key=lambda item: item.sequence), drafts, strict=True
-        ):
+        for lesson, content, draft_revision, content_digest in snapshots:
             video = lesson.video_reference
             self.session.add(
                 ReleaseLessonSnapshot(
@@ -746,11 +727,11 @@ class AuthoringReleaseApplicationService:
                     lesson_description=lesson.description,
                     video_platform=video.platform,
                     video_platform_id=video.platform_video_id,
-                    nodes=draft.content["nodes"],
-                    assets=draft.content.get("assets", []),
-                    subtitle=draft.content.get("subtitle"),
-                    draft_revision=draft.revision,
-                    content_digest=draft.content_digest,
+                    nodes=content["nodes"],
+                    assets=content.get("assets", []),
+                    subtitle=content.get("subtitle"),
+                    draft_revision=draft_revision,
+                    content_digest=content_digest,
                 )
             )
         self.session.add(

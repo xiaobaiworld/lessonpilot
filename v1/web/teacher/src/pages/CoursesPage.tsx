@@ -72,6 +72,19 @@ export const CoursesPage: React.FC<Props> = ({
     }
   };
 
+  const publishCourse = async (courseId: string) => {
+    setBusy(true);
+    setError(null);
+    try {
+      await api.publish(courseId);
+      await load();
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const makeCode = async (courseId: string) => {
     setBusy(true);
     setError(null);
@@ -140,6 +153,7 @@ export const CoursesPage: React.FC<Props> = ({
           <DashboardContent
             courses={courses}
             onOpenCourse={onOpenCourse}
+            onPublishCourse={publishCourse}
             onGenerateAccessCode={makeCode}
             actionDisabled={busy || accessCode !== null}
           />
@@ -179,9 +193,10 @@ export const CoursesPage: React.FC<Props> = ({
 const DashboardContent: React.FC<{
   courses: CourseListItem[];
   onOpenCourse: (courseId: string) => void;
+  onPublishCourse: (courseId: string) => void;
   onGenerateAccessCode: (courseId: string) => void;
   actionDisabled: boolean;
-}> = ({ courses, onOpenCourse, onGenerateAccessCode, actionDisabled }) => {
+}> = ({ courses, onOpenCourse, onPublishCourse, onGenerateAccessCode, actionDisabled }) => {
   const drafts = courses.filter(
     (course) => course.status !== 'archived' && course.metrics.release_number === null
   );
@@ -215,6 +230,8 @@ const DashboardContent: React.FC<{
                 key={course.id}
                 course={course}
                 onOpenCourse={onOpenCourse}
+                onPublishCourse={onPublishCourse}
+                actionDisabled={actionDisabled}
               />
             ))}
           </div>
@@ -305,7 +322,9 @@ const CourseSection: React.FC<{
 const DraftCourseCard: React.FC<{
   course: CourseListItem;
   onOpenCourse: (courseId: string) => void;
-}> = ({ course, onOpenCourse }) => (
+  onPublishCourse: (courseId: string) => void;
+  actionDisabled: boolean;
+}> = ({ course, onOpenCourse, onPublishCourse, actionDisabled }) => (
   <article className="draft-course-card">
     <div className="course-card-topline">
       <span className="course-status is-draft"><i />草稿</span>
@@ -334,13 +353,23 @@ const DraftCourseCard: React.FC<{
         <dd>{course.metrics.draft_lesson_count}/{course.metrics.lesson_count}</dd>
       </div>
     </dl>
-    <button
-      className="course-card-action"
-      type="button"
-      onClick={() => onOpenCourse(course.id)}
-    >
-      继续制作 <span aria-hidden="true">→</span>
-    </button>
+    <div className="draft-course-actions">
+      <button
+        className="course-card-action"
+        type="button"
+        onClick={() => onOpenCourse(course.id)}
+      >
+        继续制作 <span aria-hidden="true">→</span>
+      </button>
+      <button
+        className="dark-button"
+        type="button"
+        onClick={() => onPublishCourse(course.id)}
+        disabled={actionDisabled || course.metrics.lesson_count === 0}
+      >
+        发布课程
+      </button>
+    </div>
   </article>
 );
 

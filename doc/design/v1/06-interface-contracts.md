@@ -285,7 +285,7 @@
 | POST | `/api/v1/teacher/lessons/{lesson_id}/preview-sessions` | 新建 | 04 第 7.3 节 `PreviewSession` |
 | POST | `/api/v1/teacher/preview-sessions/{preview_session_id}/end` | 新建 | 预览结束/过期，不产生学生数据 |
 | POST | `/api/v1/teacher/courses/{course_id}/rights-attestation` | 新建 | `D-V1-008`、04 第 10 节 |
-| POST | `/api/v1/teacher/courses/{course_id}/releases` | 改名 | 带 `idempotencyKey`；在当前课程下创建新的发布快照；旧路径：`POST /api/v1/teacher/courses/{course_id}/publish` |
+| POST | `/api/v1/teacher/courses/{course_id}/releases` | 改名 | 带 `idempotencyKey`；课程至少有一节课节即可创建新的发布快照，不要求测试预览；旧路径：`POST /api/v1/teacher/courses/{course_id}/publish` |
 | GET | `/api/v1/teacher/courses/{course_id}/releases` | 新建 | 发布历史与当前可交付版本 |
 | GET | `/api/v1/teacher/releases/{release_id}` | 新建 | 单次发布及课节快照 |
 | POST | `/api/v1/teacher/releases/{release_id}/availability` | 新建 | 04 第 8 节 `ReleaseAvailability` 与内容分离 |

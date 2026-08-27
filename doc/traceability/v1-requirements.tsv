@@ -69,7 +69,7 @@ FR-COURSE-001	doc/requirements/v1/04-functional-requirements.md	教师管理多�
 FR-COURSE-002	doc/requirements/v1/04-functional-requirements.md	教师编辑课程信息但不改变课程身份	已接受	P0	`SCOPE-02`；`SCN-TCH-02`、`SCN-TCH-06`	—					待设计	
 FR-COURSE-003	doc/requirements/v1/04-functional-requirements.md	教师归档课程并保留历史	已接受	P0	`SCOPE-02`、`SCOPE-04`；`SCN-TCH-06`	`FR-GRANT-*`、`FR-LIB-*`、`DATA-LIFE-*`					待设计	
 FR-COURSE-004	doc/requirements/v1/04-functional-requirements.md	教师建立和维护有序课节	已接受	P0	`SCOPE-02`；`SCN-TCH-02`、`SCN-TCH-06`	`FR-WS-004`					待设计	
-FR-COURSE-005	doc/requirements/v1/04-functional-requirements.md	课程交付前至少有一个有效课节	已接受	P0	`SCOPE-02`、`SCOPE-03`；`SCN-TCH-02`、`SCN-TCH-04`	`FR-PUBLISH-*`、`FR-GRANT-*`					待设计	
+FR-COURSE-005	doc/requirements/v1/04-functional-requirements.md	课程交付前至少有一个课节	已接受	P0	`SCOPE-02`、`SCOPE-03`；`SCN-TCH-02`、`SCN-TCH-04`	`FR-PUBLISH-*`、`FR-GRANT-*`	`doc/design/v1/05-data-flow-lifecycle.md`	`v1/backend/app/modules/authoring_release/application_service.py`	`v1/backend/tests/test_authoring_release_api.py`	—	已验证	2026-08-27
 FR-COURSE-006	doc/requirements/v1/04-functional-requirements.md	课节身份不随标题、顺序或视频变化	已接受	P0	`SCOPE-02`；`SCN-TCH-02`、`SCN-STU-04`	`FR-PUBLISH-*`、`FR-LIB-*`、`FR-LEARN-*`					待设计	
 FR-COURSE-007	doc/requirements/v1/04-functional-requirements.md	每个课节绑定一个可精确匹配的视频引用	已接受	P0	`SCOPE-02`、`SCOPE-05`；`SCN-TCH-02`、`SCN-STU-02`	`FR-RUNTIME-*`					待设计	
 FR-COURSE-008	doc/requirements/v1/04-functional-requirements.md	视频引用可以由多个独立课节复用	已接受	P0	`SCOPE-02`；`SCN-TCH-02`；`D-023`、`D-024`、`D-V1-010`	`FR-RUNTIME-*`、`SEC-ACCESS-*`					待设计	
@@ -93,7 +93,7 @@ FR-PUBLISH-001	doc/requirements/v1/04-functional-requirements.md	真实预览使
 FR-PUBLISH-002	doc/requirements/v1/04-functional-requirements.md	每次预览锁定可识别的已保存草稿	已接受	P0	`SCOPE-03`；`SCN-TCH-03`、`SCN-TCH-04`	—					待设计	
 FR-PUBLISH-003	doc/requirements/v1/04-functional-requirements.md	预览活动与学生真实学习状态隔离	已接受	P0	`SCOPE-03`、`SCOPE-06`；`SCN-TCH-04`	`FR-LEARN-*`					待设计	
 FR-PUBLISH-004	doc/requirements/v1/04-functional-requirements.md	预览失败提供可恢复且不过度泄露的结果	已接受	P0	`SCOPE-03`、`SCOPE-05`；`SCN-TCH-04`、`SCN-ERR-02`	—					待设计	
-FR-PUBLISH-005	doc/requirements/v1/04-functional-requirements.md	发布前校验整门课程的交付完整性	已接受	P0	`SCOPE-02`、`SCOPE-03`；`SCN-TCH-04`；`FR-COURSE-005`	`FR-COURSE-*`、`FR-AUTHOR-*`					待设计	
+FR-PUBLISH-005	doc/requirements/v1/04-functional-requirements.md	发布前确认课程至少有一节课节	已接受	P0	`SCOPE-02`、`SCOPE-03`；`SCN-TCH-04`；`FR-COURSE-005`	`FR-COURSE-*`、`FR-AUTHOR-*`	`doc/design/v1/07-product-interaction-state.md`	`v1/backend/app/modules/authoring_release/application_service.py`	`v1/backend/tests/test_authoring_release_api.py`	—	已验证	2026-08-27
 FR-PUBLISH-006	doc/requirements/v1/04-functional-requirements.md	教师通过显式确认发布整门课程	已接受	P0	`SCOPE-03`；`SCN-TCH-04`、`SCN-TCH-06`；`TERM-028`	`FR-WS-*`、`SEC-ACCESS-*`					待设计	
 FR-PUBLISH-007	doc/requirements/v1/04-functional-requirements.md	发布版本唯一、不可变且可以追溯（被 `FR-PUBLISH-012`、`FR-PUBLISH-013` 替代）	已替代（被 `FR-PUBLISH-012`、`FR-PUBLISH-013` 替代）	P0	`SCOPE-03`、`SCOPE-06`；`SCN-TCH-04`、`SCN-TCH-06`；`TERM-029`	—					待设计	
 FR-PUBLISH-008	doc/requirements/v1/04-functional-requirements.md	草稿修改不改变任何已发布版本（被 `FR-PUBLISH-013` 替代）	已替代（被 `FR-PUBLISH-013` 替代）	P0	`SCOPE-03`、`SCOPE-04`；`SCN-TCH-03`、`SCN-TCH-06`	`FR-GRANT-*`、`FR-LIB-*`					待设计	

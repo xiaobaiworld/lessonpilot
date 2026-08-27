@@ -458,6 +458,16 @@
 
 .course-card-action:hover span { transform: translateX(4px); }
 
+.draft-course-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: auto;
+}
+
+.draft-course-actions .dark-button { min-height: 34px; padding-inline: 15px; }
+
 .published-course-list {
   display: grid;
   gap: 14px;
@@ -618,6 +628,7 @@
   .dashboard-stat:nth-child(3) { border-left: 0; border-top: 1px solid var(--line); }
   .dashboard-stat:nth-child(4) { border-top: 1px solid var(--line); }
   .draft-course-grid { grid-template-columns: 1fr; }
+  .draft-course-actions { align-items: flex-start; flex-direction: column; }
   .published-course-heading { display: block; }
   .published-course-actions { align-items: flex-start; flex-direction: column; gap: 10px; margin-top: 18px; }
   .published-course-metrics { grid-template-columns: repeat(2, 1fr); }

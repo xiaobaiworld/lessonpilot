@@ -94,13 +94,11 @@ def test_draft_preview_atomic_release_and_immutable_snapshot() -> None:
         == 409
     )
 
-    assert (
-        client.post(
-            f"/api/v1/teacher/courses/{course['id']}/releases",
-            json={"idempotency_key": "publish-before-preview"},
-        ).json()["error"]["code"]
-        == "RELEASE_PREVIEW_REQUIRED"
+    without_preview = client.post(
+        f"/api/v1/teacher/courses/{course['id']}/releases",
+        json={"idempotency_key": "publish-before-preview"},
     )
+    assert without_preview.status_code == 201
     preview = client.post(
         f"/api/v1/teacher/lessons/{lesson['id']}/preview-sessions",
         json={"plugin_version": "1.0.0"},
@@ -109,15 +107,11 @@ def test_draft_preview_atomic_release_and_immutable_snapshot() -> None:
         f"/api/v1/teacher/preview-sessions/{preview['id']}/end",
         json={"succeeded": True},
     )
-    release = client.post(
-        f"/api/v1/teacher/courses/{course['id']}/releases",
-        json={"idempotency_key": "publish-0001"},
-    )
-    assert release.status_code == 201
+    release = without_preview
     release_id = release.json()["id"]
     replay = client.post(
         f"/api/v1/teacher/courses/{course['id']}/releases",
-        json={"idempotency_key": "publish-0001"},
+        json={"idempotency_key": "publish-before-preview"},
     )
     assert replay.json()["id"] == release_id
     assert len(client.get(f"/api/v1/teacher/courses/{course['id']}/releases").json()["items"]) == 1
@@ -142,6 +136,30 @@ def test_draft_preview_atomic_release_and_immutable_snapshot() -> None:
         json={"deliverable": False, "reason": "rights_dispute"},
     )
     assert paused.json() == {"deliverable": False, "reason": "rights_dispute"}
+
+
+def test_course_with_one_lesson_publishes_without_draft_or_preview() -> None:
+    client = make_client()
+    course = client.post("/api/v1/teacher/courses", json={"title": "空互动课程"}).json()
+    lesson = client.post(
+        f"/api/v1/teacher/courses/{course['id']}/lessons",
+        json={
+            "title": "第一课",
+            "video_ref": {"platform": "bilibili", "video_id": "BV1Ac41187Lm"},
+        },
+    ).json()
+
+    published = client.post(
+        f"/api/v1/teacher/courses/{course['id']}/releases",
+        json={"idempotency_key": "publish-without-preview"},
+    )
+
+    assert published.status_code == 201
+    release_id = published.json()["id"]
+    snapshot = client.get(f"/api/v1/teacher/releases/{release_id}")
+    assert snapshot.status_code == 200
+    assert snapshot.json()["lessons"][0]["lesson_id"] == lesson["id"]
+    assert snapshot.json()["lessons"][0]["draft_revision"] == 0
 
 
 def test_subtitle_is_saved_restored_and_frozen_in_release_but_not_package() -> None:

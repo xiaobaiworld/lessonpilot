@@ -40,7 +40,7 @@ describe('CoursesPage current course-level access flow', () => {
     vi.restoreAllMocks();
   });
 
-  it('shows the revised copy, opens draft titles, and generates a code for a published course', async () => {
+  it('shows the revised copy, opens draft titles, publishes drafts, and generates a code', async () => {
     const draft = course({ id: 'course-draft' });
     const published = course({
       id: 'course-published',
@@ -58,8 +58,15 @@ describe('CoursesPage current course-level access flow', () => {
       status: 'active',
       created_at: '2026-08-27T00:00:00Z',
     });
+    const publish = vi.fn().mockResolvedValue({
+      id: 'release-1',
+      course_id: 'course-draft',
+      release_number: 1,
+      lessons: [{ lesson_id: 'lesson-1', title: '第一课' }],
+    });
     const api = {
       listCourses: vi.fn().mockResolvedValue([draft, published]),
+      publish,
       createAccessCode,
     } as unknown as TeacherAPI;
     const onOpenCourse = vi.fn();
@@ -88,6 +95,16 @@ describe('CoursesPage current course-level access flow', () => {
     expect(titleButton?.textContent).toBe('互动课程一');
     await act(async () => titleButton?.click());
     expect(onOpenCourse).toHaveBeenCalledWith('course-draft');
+
+    const publishButton = Array.from(container.querySelectorAll('button')).find(
+      (button) => button.textContent?.trim() === '发布课程'
+    );
+    expect(publishButton).toBeDefined();
+    await act(async () => {
+      publishButton?.click();
+      await Promise.resolve();
+    });
+    expect(publish).toHaveBeenCalledWith('course-draft');
 
     const accessButton = Array.from(container.querySelectorAll('button')).find(
       (button) => button.textContent?.trim() === '生成授权码'
