@@ -167,6 +167,31 @@
   text-underline-offset: 2px;
 }
 
+.rich-text-content img,
+.rich-text-content video {
+  display: block;
+  max-width: 100%;
+  margin: 10px 0;
+  border-radius: 8px;
+}
+
+.rich-text-content img {
+  max-height: 280px;
+  object-fit: contain;
+  background: #f3f5ef;
+}
+
+.rich-text-content audio {
+  display: block;
+  width: min(100%, 420px);
+  margin: 10px 0;
+}
+
+.rich-text-content video {
+  width: min(100%, 520px);
+  background: #17251f;
+}
+
 .node-kind-select {
   position: relative;
 }

@@ -103,4 +103,14 @@ describe('节点媒体引用', () => {
     expect(target.querySelector('img')?.getAttribute('data-asset-id')).toBe('asset-1');
     expect(target.querySelector('img')?.getAttribute('src')).toBeNull();
   });
+
+  it('清洗带服务器回显 URL 的节点媒体时仍保留资源 ID', () => {
+    const html = sanitizeRichTextHtml(
+      '<img data-asset-id="asset-1" src="/api/v1/teacher/assets/asset-1" alt="示例">' +
+        '<audio data-asset-id="asset-2" src="/api/v1/teacher/assets/asset-2" controls></audio>'
+    );
+    expect(html).toContain('data-asset-id="asset-1"');
+    expect(html).toContain('data-asset-id="asset-2"');
+    expect(html).not.toContain('/api/v1/teacher/assets/');
+  });
 });

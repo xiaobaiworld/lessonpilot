@@ -36,7 +36,10 @@ export const RichTextEditor: React.FC<Props> = ({ label, value, disabled, onChan
     wrapper.innerHTML = clean;
     wrapper.querySelectorAll<HTMLElement>('[data-asset-id]').forEach((element) => {
       const match = (element.dataset.assetId ?? '').match(/^asset:\/\/(.+)$/);
-      if (match && ['IMG', 'AUDIO', 'VIDEO'].includes(element.tagName)) element.setAttribute('src', assetUrlForId(match[1]));
+      const assetId = match?.[1] ?? (element.dataset.assetId && /^[a-zA-Z0-9._:-]+$/.test(element.dataset.assetId) ? element.dataset.assetId : null);
+      if (assetId && ['IMG', 'AUDIO', 'VIDEO'].includes(element.tagName)) {
+        element.setAttribute('src', assetUrlForId(assetId));
+      }
     });
     return wrapper.innerHTML;
   };
@@ -83,6 +86,7 @@ export const RichTextEditor: React.FC<Props> = ({ label, value, disabled, onChan
     const paragraph = document.createElement('p');
     const element = document.createElement(asset.kind === 'image' ? 'img' : asset.kind);
     element.setAttribute('data-asset-id', `asset://${asset.assetId}`);
+    if (assetUrlForId) element.setAttribute('src', assetUrlForId(asset.assetId));
     if (asset.kind === 'image') element.setAttribute('alt', asset.alt ?? '');
     else element.setAttribute('controls', '');
     paragraph.append(element);

@@ -55,6 +55,16 @@ function assetIdFromUri(value: string): string | null {
   return match?.[1] ?? null;
 }
 
+/**
+ * `data-asset-id` is emitted as a bare ID after the runtime sanitizer has
+ * detached the portable `asset://` URI from the DOM.  Never apply this
+ * fallback to `src`: a normal external URL must remain an external image.
+ */
+function assetIdFromDataAttribute(value: string | null): string | null {
+  const normalized = value?.trim() ?? '';
+  return assetIdFromUri(normalized) ?? (/^[a-zA-Z0-9._:-]+$/.test(normalized) ? normalized : null);
+}
+
 export function isSafeRichTextColor(value: string): boolean {
   const color = value.trim();
   return /^#[0-9a-f]{3,8}$/i.test(color) || /^rgb(a)?\([\d\s.,%]+\)$/i.test(color);
@@ -76,7 +86,7 @@ function cloneSafeNode(node: Node): Node | null {
   }
   if (node.tagName === 'IMG') {
     const src = node.getAttribute('src') ?? '';
-    const assetId = assetIdFromUri(src) ?? assetIdFromUri(node.getAttribute('data-asset-id') ?? '');
+    const assetId = assetIdFromUri(src) ?? assetIdFromDataAttribute(node.getAttribute('data-asset-id'));
     if (assetId) clean.setAttribute('data-asset-id', assetId);
     else if (isSafeRichTextImageSrc(src, window.location.origin)) clean.setAttribute('src', src);
     else return null;
@@ -84,11 +94,15 @@ function cloneSafeNode(node: Node): Node | null {
     return clean;
   }
   if (node.tagName === 'AUDIO' || node.tagName === 'VIDEO') {
-    const assetId = assetIdFromUri(node.getAttribute('data-asset-id') ?? '');
+    const assetId = assetIdFromDataAttribute(node.getAttribute('data-asset-id'));
     if (!assetId) return null;
     clean.setAttribute('data-asset-id', assetId);
     if (node.getAttribute('controls') !== null) clean.setAttribute('controls', '');
     if (node.getAttribute('title')) clean.setAttribute('title', node.getAttribute('title')!);
+    if (node.tagName === 'VIDEO') {
+      const posterAssetId = assetIdFromDataAttribute(node.getAttribute('data-poster-asset-id'));
+      if (posterAssetId) clean.setAttribute('data-poster-asset-id', posterAssetId);
+    }
     return clean;
   }
   if (node.tagName === 'SPAN' || node.tagName === 'FONT') {

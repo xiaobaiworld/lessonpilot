@@ -27,6 +27,19 @@ describe('RichPageDocument', () => {
     ]);
   });
 
+  it('可以读取教师编辑器清洗后的裸 assetId，并忽略回显 URL', () => {
+    const documentValue = richDocumentFromHtml(
+      '<p><img data-asset-id="image-1" src="/api/v1/teacher/assets/image-1" alt="图"></p>' +
+        '<audio data-asset-id="audio-1" src="/api/v1/teacher/assets/audio-1" controls></audio>' +
+        '<video data-asset-id="video-1" src="/api/v1/teacher/assets/video-1" controls></video>'
+    );
+    expect(documentValue.blocks).toEqual([
+      { type: 'image', assetId: 'image-1', alt: '图' },
+      { type: 'audio', assetId: 'audio-1' },
+      { type: 'video', assetId: 'video-1' },
+    ]);
+  });
+
   it('保留节点视频的海报资源引用', () => {
     const html = richDocumentToHtml({
       schemaVersion: 1,

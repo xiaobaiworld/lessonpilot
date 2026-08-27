@@ -1,6 +1,6 @@
 # 互动学习窗口：可调外观与类网页正文
 
-状态：已实现结构化内容契约、草稿/发布保存与插件复验；资源上传/CDN 交付另行实现
+状态：已实现结构化内容契约、草稿/发布保存、教师媒体输入与插件复验；学生端资源交付另行实现
 
 日期：2026-08-26
 
@@ -20,7 +20,7 @@
 - 开关窗与暂停归属在 `v1/extension/content/runtime.ts`；判分状态机在 `v1/extension/runtime/session.ts`。本次不改这两处。
 - 互动节点正文由 `RichPageDocument` 保存；教师端 HTML 编辑表示与插件安全渲染器都只处理有限排版标签，媒体只接受 `assetId`。
 - 练习题提交已经在本机 `evaluate()`；`attempt` 只写入插件本机存储。不新增教师 API 判分。
-- 图片上传与 IndexedDB 本机资源库不在本次范围，见 `doc/插件文件资源管理.md`。
+- 学生端 IndexedDB 本机资源库不在本次范围，见 `doc/插件文件资源管理.md`；教师端媒体输入已按 `D-V1-016` 单独实现。
 - 禁止课程包携带任意 CSS 或脚本。大小和样式只用命名预设。
 
 容易认错的窗口（本次都不改职责）：
@@ -33,13 +33,13 @@
 
 ### 正文编辑器
 
-方案 A：继续扩展自制 `execCommand` 编辑器。无成熟源码 Tab，图片支持差，API 已弃用。放弃。
+方案 A：继续扩展自制 `execCommand` 编辑器。无成熟源码 Tab，图片支持差，API 已弃用。当前实现保留原生编辑区域，但通过受限工具栏和统一清洗器补齐必要能力。
 
 方案 B：TinyMCE。能力全，体积大，v7 许可更紧，源码模式也不是两个并列 Tab。放弃。
 
-方案 C：Quill 2 做可视化 Tab，旁边自建受限 HTML Tab，保存与切 Tab 时走同一套消毒器。选此方案：依赖小、两个 Tab 与需求一致、许可宽松。
+方案 C：Quill 2 做可视化 Tab，旁边自建受限 HTML Tab，保存与切 Tab 时走同一套消毒器。探索阶段曾考虑此方案；因当前 Quill 2.0.3 没有已发布的安全修复版本，实施时改用原生可编辑区域 + 统一清洗器，保持同样的可视化/HTML 两 Tab 边界。
 
-图片这一轮只允许引用已登记的 `assetId`，不做上传；外部 URL 不是节点媒体的持久化格式。
+教师端图片、音频和节点视频可通过服务器上传或 URL 导入，插入后只写入已登记的 `assetId`；外部 URL 不是节点媒体的持久化格式。学生端 CDN、源站回源和 IndexedDB 落地仍不在本文件实施范围。
 
 ### 大小和样式
 
@@ -66,16 +66,16 @@
 ```mermaid
 flowchart LR
   teacherForm[NodeForm]
-  quill[Quill可视化Tab]
+  visual[原生可视化编辑Tab]
   htmlTab[受限HTML_Tab]
   sanitizer[同一套消毒器]
   package[课程包content]
   window[LearningWindow]
   form[本地表单]
 
-  teacherForm --> quill
+  teacherForm --> visual
   teacherForm --> htmlTab
-  quill --> sanitizer
+  visual --> sanitizer
   htmlTab --> sanitizer
   sanitizer --> package
   package --> window
@@ -100,13 +100,13 @@ flowchart LR
 
 教师保存与插件渲染必须使用同一份允许名单，避免两套逻辑再分叉。实现以 `v1/extension/content/richText.ts` 为真源，教师编辑器改为引用它，或抽到双方都能 import 的纯 TypeScript 模块。
 
-允许标签：`p`, `h2`, `h3`, `blockquote`, `ul`, `ol`, `li`, `br`, `div`, `span`, `strong`, `b`, `em`, `i`, `u`, `a`, `img`。
+允许标签：`p`, `h2`, `h3`, `blockquote`, `ul`, `ol`, `li`, `br`, `div`, `span`, `strong`, `b`, `em`, `i`, `u`, `a`, `img`, `audio`, `video`。
 
 允许属性：
 
 - `a[href]`：仅 `http:` / `https:` / `mailto:`，强制 `target=_blank rel=noreferrer noopener`
 - `span[style]`：仅 `color`，且为 `#hex` 或 `rgb/rgba`
-- `img[src][alt]`：`src` 仅 `http:` / `https:`，禁止 `javascript:` / `data:` / `blob:`
+- `img[data-asset-id][alt]`、`audio[data-asset-id]`、`video[data-asset-id]`：媒体正文只保留资源 ID；教师端回显 URL 只存在于编辑器 DOM，不进入持久化文档。
 
 其余标签和 `on*` 一律丢弃。正文仍用 DOM 节点写入，不把未消毒字符串赋给 `innerHTML` 后直接展示。
 
@@ -173,7 +173,7 @@ HTML 仅作为当前编辑器的输入/输出适配层；结构化文档、资�
 
 ### 教师编辑
 
-`NodeForm` 顶部两个下拉框：窗口大小、窗口样式。四类节点共用重写后的 `RichTextEditor`：顶栏 Tab「可视化 / HTML」。练习题的选项、正确答案、解析、可接受答案、参考答案保持现有结构化表单，放在编辑器下面。Quill 2 只加到 `@v1/web-teacher`。
+`NodeForm` 顶部两个下拉框：窗口大小、窗口样式。四类节点共用重写后的 `RichTextEditor`：顶栏 Tab「可视化 / HTML」，媒体按钮调用教师资源上传/导入接口，并在返回 `assetId` 后插入可回显的媒体节点。练习题的选项、正确答案、解析、可接受答案、参考答案保持现有结构化表单，放在编辑器下面。不新增 Quill 依赖。
 
 示例课至少一处重点标注带链接或图片，并设为 `l` + `document`，便于肉眼验收。
 
@@ -182,7 +182,7 @@ HTML 仅作为当前编辑器的输入/输出适配层；结构化文档、资�
 - `v1/extension/runtime/session.ts` 判分状态机
 - `v1/extension/content/runtime.ts` 暂停与续播
 - `v1/extension/popup/` 工具栏课程库
-- 图片上传与本机资源库
+- 学生端媒体下载与本机资源库
 
 ## 测试
 
@@ -195,9 +195,9 @@ HTML 仅作为当前编辑器的输入/输出适配层；结构化文档、资�
 
 ## 假设与重开条件
 
-- B 站页面允许学习窗加载 `https` 外链图片。若内容安全策略挡住图片，应改为本机资源方案，而不是放开 `data:` 或 `blob:`。
+- 教师端预览通过同源资源接口显示媒体；学生端若要在学习窗显示，必须先完成后台资源下载与校验，不应把教师接口 URL 或外链直接写入课程包。
 - 「类似 HTML 页面」指消毒后的文档排版加可选铺开尺寸，不是让老师在节点里写完整站点或自定义 CSS。
-- 若后续要做图片上传，按 `doc/插件文件资源管理.md` 重开，不在本设计里加上传入口。
+- 若后续要做学生端媒体交付，按 `doc/插件文件资源管理.md` 的 R2–R10 重开；本设计不把学生下载实现伪装成教师编辑器功能。
 
 ## 影响
 

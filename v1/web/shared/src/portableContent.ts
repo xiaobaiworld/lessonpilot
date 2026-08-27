@@ -127,9 +127,12 @@ function nonEmptyChildren(children: InlineContent[]): InlineContent[] {
 }
 
 function assetIdFromElement(element: HTMLElement): string | null {
-  const raw = element.getAttribute('data-asset-id') ?? element.getAttribute('src') ?? '';
-  const match = ASSET_URI.exec(raw.trim());
-  return match?.[1] ?? null;
+  const dataId = element.getAttribute('data-asset-id')?.trim() ?? '';
+  const dataMatch = ASSET_URI.exec(dataId);
+  if (dataMatch) return dataMatch[1];
+  if (dataId && /^[a-zA-Z0-9._:-]+$/.test(dataId)) return dataId;
+  const srcMatch = ASSET_URI.exec((element.getAttribute('src') ?? '').trim());
+  return srcMatch?.[1] ?? null;
 }
 
 function blockFromElement(element: HTMLElement): RichPageBlock | null {
