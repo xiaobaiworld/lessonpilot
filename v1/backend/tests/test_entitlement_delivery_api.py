@@ -174,9 +174,7 @@ def test_empty_database_full_delivery_flow() -> None:
     )
     assert latest.status_code == 200
     assert latest.json()["data"]["courses"][0]["releaseId"] == second_release["id"]
-    assert latest.json()["data"]["courses"][0]["package"]["lessons"][0]["nodes"] == [
-        second_node
-    ]
+    assert latest.json()["data"]["courses"][0]["package"]["lessons"][0]["nodes"] == [second_node]
 
     client.post(f"/api/v1/teacher/access-codes/{code_id}/terminate")
     updates = client.post(

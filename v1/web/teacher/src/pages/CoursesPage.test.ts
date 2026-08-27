@@ -1,0 +1,103 @@
+/** @vitest-environment happy-dom */
+
+import React, { act } from 'react';
+import { createRoot } from 'react-dom/client';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { CoursesPage } from './CoursesPage';
+import type { CourseListItem, Teacher, TeacherAPI } from '../api';
+
+const teacher: Teacher = {
+  id: 'teacher-1',
+  login_name: 'teacher-01',
+  display_name: '测试教师',
+  status: 'active',
+};
+
+const course = (overrides: Partial<CourseListItem>): CourseListItem => ({
+  id: 'course-1',
+  title: '互动课程一',
+  description: '课程简介',
+  status: 'active',
+  created_at: '2026-08-27T00:00:00Z',
+  updated_at: '2026-08-27T00:00:00Z',
+  metrics: {
+    lesson_count: 1,
+    draft_lesson_count: 1,
+    draft_node_count: 1,
+    published_node_count: 1,
+    access_code_count: 0,
+    redeemed_count: 0,
+    student_submission_count: null,
+    release_number: null,
+    published_at: null,
+  },
+  ...overrides,
+});
+
+describe('CoursesPage current course-level access flow', () => {
+  afterEach(() => {
+    document.body.innerHTML = '';
+    vi.restoreAllMocks();
+  });
+
+  it('shows the revised copy, opens draft titles, and generates a code for a published course', async () => {
+    const draft = course({ id: 'course-draft' });
+    const published = course({
+      id: 'course-published',
+      title: '已发布课程',
+      metrics: {
+        ...draft.metrics,
+        release_number: 1,
+        published_at: '2026-08-27T00:00:00Z',
+      },
+    });
+    const createAccessCode = vi.fn().mockResolvedValue({
+      access_code: 'KM-COURSE-0001',
+      id: 'grant-1',
+      display_tail: '0001',
+      status: 'active',
+      created_at: '2026-08-27T00:00:00Z',
+    });
+    const api = {
+      listCourses: vi.fn().mockResolvedValue([draft, published]),
+      createAccessCode,
+    } as unknown as TeacherAPI;
+    const onOpenCourse = vi.fn();
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const root = createRoot(container);
+
+    await act(async () => {
+      root.render(
+        React.createElement(CoursesPage, {
+          api,
+          teacher,
+          onOpenCourse,
+          onSignedOut: vi.fn(),
+        })
+      );
+      await Promise.resolve();
+    });
+
+    expect(container.querySelector('h1')?.textContent).toBe('互动课程制作');
+    expect(container.textContent).toContain(
+      '为视频课程增加互动能力，视频学习过程中加入互动环节，让学习更有趣，提升课程价值。'
+    );
+
+    const titleButton = container.querySelector<HTMLButtonElement>('.course-card-title-button');
+    expect(titleButton?.textContent).toBe('互动课程一');
+    await act(async () => titleButton?.click());
+    expect(onOpenCourse).toHaveBeenCalledWith('course-draft');
+
+    const accessButton = Array.from(container.querySelectorAll('button')).find(
+      (button) => button.textContent?.trim() === '生成授权码'
+    );
+    expect(accessButton).toBeDefined();
+    await act(async () => {
+      accessButton?.click();
+      await Promise.resolve();
+    });
+    expect(createAccessCode).toHaveBeenCalledWith('course-published');
+    expect(container.querySelector('input[aria-label="发给学生的授权码"]')).not.toBeNull();
+  });
+});
