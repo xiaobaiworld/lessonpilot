@@ -51,7 +51,7 @@ export class APIClient {
         signal: controller.signal,
         // 会话走 HttpOnly Cookie，不在前端持有 token
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        headers: body instanceof FormData ? undefined : { 'Content-Type': 'application/json' },
         body: body === undefined ? undefined : JSON.stringify(body),
       });
 
@@ -81,12 +81,49 @@ export class APIClient {
     }
   }
 
+  private async requestForm<T>(method: string, path: string, form: FormData): Promise<T> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+    try {
+      const res = await fetch(`${this.baseURL}${path}`, {
+        method,
+        signal: controller.signal,
+        credentials: 'include',
+        body: form,
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new APIError(
+          res.status >= 500 ? 'ServerError' : 'ClientError',
+          res.status,
+          data?.error?.code,
+          data?.error?.message ?? validationMessage(data?.detail)
+        );
+      }
+      return res.status === 204 ? (undefined as T) : await res.json();
+    } catch (err) {
+      if (err instanceof APIError) throw err;
+      const aborted = err instanceof Error && err.name === 'AbortError';
+      throw new APIError('NetworkError', undefined, undefined, aborted ? '请求超时' : undefined);
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
   get<T>(path: string) {
     return this.request<T>('GET', path);
   }
 
   post<T>(path: string, body?: unknown) {
     return this.request<T>('POST', path, body ?? {});
+  }
+
+  postForm<T>(path: string, form: FormData) {
+    return this.requestForm<T>('POST', path, form);
+  }
+
+  url(path: string) {
+    return `${this.baseURL}${path}`;
   }
 
   put<T>(path: string, body?: unknown) {

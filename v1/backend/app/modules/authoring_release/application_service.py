@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.modules.admin_support.models import RightsAttestation
 from app.modules.authoring_release.models import PreviewSession, ScriptDraft
+from app.modules.authoring_release.asset_storage import AssetStorage, AssetStorageError
 from app.modules.authoring_release.release_models import (
     CourseRelease,
     ReleaseAvailability,
@@ -420,8 +421,9 @@ def validate_nodes(nodes: object) -> list[dict]:
 
 
 class AuthoringReleaseApplicationService:
-    def __init__(self, session: Session):
+    def __init__(self, session: Session, asset_store: AssetStorage | None = None):
         self.session = session
+        self.asset_store = asset_store
 
     def get_draft(self, lesson_id: str) -> ScriptDraft:
         draft = self.session.scalar(select(ScriptDraft).where(ScriptDraft.lesson_id == lesson_id))
@@ -450,6 +452,14 @@ class AuthoringReleaseApplicationService:
         commit: bool = True,
     ) -> ScriptDraft:
         nodes, assets = validate_config(config)
+        if self.asset_store:
+            for asset in assets:
+                try:
+                    stored, _ = self.asset_store.get(teacher_id, asset["assetId"])
+                except AssetStorageError as error:
+                    raise AuthoringReleaseError("DRAFT_ASSET_NOT_FOUND") from error
+                if stored != asset:
+                    raise AuthoringReleaseError("DRAFT_ASSET_METADATA_MISMATCH")
         subtitle = validate_subtitle(config.get("subtitle"))
         content = {"nodes": nodes, "assets": assets}
         if subtitle is not None:
@@ -600,6 +610,14 @@ class AuthoringReleaseApplicationService:
                 raise AuthoringReleaseError("RELEASE_DRAFT_MISSING") from error
             if not draft.content.get("nodes"):
                 raise AuthoringReleaseError("RELEASE_DRAFT_EMPTY")
+            if self.asset_store:
+                for asset in draft.content.get("assets", []):
+                    try:
+                        stored, _ = self.asset_store.get(teacher_id, asset["assetId"])
+                    except AssetStorageError as error:
+                        raise AuthoringReleaseError("DRAFT_ASSET_NOT_FOUND") from error
+                    if stored != asset:
+                        raise AuthoringReleaseError("DRAFT_ASSET_METADATA_MISMATCH")
             preview = self.session.scalar(
                 select(PreviewSession).where(
                     PreviewSession.teacher_id == teacher_id,

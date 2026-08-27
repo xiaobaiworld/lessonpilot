@@ -12,6 +12,7 @@ from app.modules.identity.routes import (
     teacher_auth_router,
 )
 from app.modules.authoring_release.routes import router as authoring_release_router
+from app.modules.authoring_release.asset_storage import AssetStorage
 from app.modules.admin_support.routes import router as admin_support_router
 from app.modules.entitlement_delivery.routes import student_router, teacher_router
 from app.modules.runtime_audit.routes import router as runtime_router
@@ -33,6 +34,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.settings = resolved_settings
     app.state.engine = engine
     app.state.session_factory = create_session_factory(engine)
+    app.state.asset_storage = AssetStorage(
+        resolved_settings.asset_storage_dir,
+        max_bytes=resolved_settings.asset_max_bytes,
+        timeout_seconds=resolved_settings.asset_link_timeout_seconds,
+    )
     app.add_middleware(RequestIdMiddleware)
     app.add_middleware(
         CORSMiddleware,

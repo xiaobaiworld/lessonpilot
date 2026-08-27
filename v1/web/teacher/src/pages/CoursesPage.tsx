@@ -311,6 +311,8 @@ const PublishedCourseCard: React.FC<{
   onOpenCourse: (courseId: string) => void;
 }> = ({ course, onOpenCourse }) => {
   const { metrics } = course;
+  const submissionCount = metrics.student_submission_count;
+  const hasSubmissionCount = submissionCount != null;
   return (
     <article className="published-course-card">
       <div className="published-course-heading">
@@ -342,7 +344,12 @@ const PublishedCourseCard: React.FC<{
           value={metrics.redeemed_count}
           note="个浏览器设备"
         />
-        <Metric label="学生作答" value="—" note="当前未接入" unavailable />
+        <Metric
+          label="学生作答"
+          value={submissionCount ?? '—'}
+          note={hasSubmissionCount ? '已提交作业' : '当前未接入'}
+          unavailable={!hasSubmissionCount}
+        />
       </dl>
       <div className="published-course-footer">
         <span>最近发布于 {formatDate(metrics.published_at)}</span>

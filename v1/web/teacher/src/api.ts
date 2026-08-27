@@ -29,6 +29,7 @@ export interface CourseMetrics {
   published_node_count: number;
   access_code_count: number;
   redeemed_count: number;
+  student_submission_count: number | null;
   release_number: number | null;
   published_at: string | null;
 }
@@ -104,6 +105,20 @@ export interface AccessCode {
 
 export class TeacherAPI {
   constructor(private http: APIClient) {}
+
+  uploadAsset(file: File): Promise<AssetRecord> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.postForm<AssetRecord>('/api/v1/teacher/assets/upload', form);
+  }
+
+  importAssetUrl(url: string): Promise<AssetRecord> {
+    return this.http.post<AssetRecord>('/api/v1/teacher/assets/import-url', { url });
+  }
+
+  assetUrl(assetId: string): string {
+    return this.http.url(`/api/v1/teacher/assets/${encodeURIComponent(assetId)}`);
+  }
 
   async login(loginName: string, password: string): Promise<Teacher> {
     const res = await this.http.post<{ teacher: Teacher }>('/api/v1/teacher/auth/login', {

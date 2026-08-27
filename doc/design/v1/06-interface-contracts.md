@@ -1,8 +1,8 @@
 # 06 v1 接口与集成契约设计
 
-文档版本：`1.0.2`
+文档版本：`1.0.3`
 
-状态：已于 2026-08-22 通过人工审核；2026-08-27 增补教师课程列表聚合指标；本文件把已接受接口需求落为可实现的跨边界契约，不替代业务需求、数据模型或安全运维设计
+状态：已于 2026-08-22 通过人工审核；2026-08-27 增补教师课程列表聚合指标及学生作答统计预留字段；本文件把已接受接口需求落为可实现的跨边界契约，不替代业务需求、数据模型或安全运维设计
 
 `1.0.1` 增补第 4.5 节 v1 HTTP 端点清单。这是**增量补充，不改变已冻结的契约语义**：
 原文定义了信封、兑换和更新的字段边界，但从未枚举完整端点，实现时缺少可对照的基准。
@@ -263,14 +263,19 @@
 
 教师课程列表响应的每个 `item` 额外返回 `metrics` 聚合字段：`lesson_count`、
 `draft_lesson_count`、`draft_node_count`、`published_node_count`、`access_code_count`、
-`redeemed_count`、`release_number` 和 `published_at`。这些字段只用于教师工作台总览，分别由课程、
+`redeemed_count`、`student_submission_count`、`release_number` 和 `published_at`。这些字段只用于教师工作台总览，分别由课程、
 制作/发布和授权模块提供；`redeemed_count` 是按不可逆本机标识去重后的已领取浏览器设备数量，不代表学生账号或学生作答。
-当前学生回答留在学生本机，不在教师列表响应中提供统计。
+`student_submission_count` 是为后续学生作答统计预留的可空字段：当前阶段固定返回 `null`，因为学生回答只保存在学生本机，
+现有服务端没有接收或保存作答事件。后续实现前必须另行确定统计口径（按学生、设备、课程版本、作业还是提交事件去重）、数据来源、保留期限和隐私边界；
+在此之前前端不得把 `redeemed_count` 或其他数字当作学生作答数。
 
 #### 制作与发布
 
 | 方法 | 路径 | 状态 | 依据 |
 | --- | --- | --- | --- |
+| POST | `/api/v1/teacher/assets/upload` | 新建 | `FR-AUTHOR-014`、`DATA-CONTENT-006`；上传图片、音频或视频并生成 `assetId` |
+| POST | `/api/v1/teacher/assets/import-url` | 新建 | `FR-AUTHOR-014`、`DATA-CONTENT-006`；服务器导入安全的 HTTP(S) 媒体 URL |
+| GET | `/api/v1/teacher/assets/{asset_id}` | 新建 | 教师预览和后续资源交付按稳定 `assetId` 读取 |
 | GET | `/api/v1/teacher/lessons/{lesson_id}/draft` | 已有 | `FR-AUTHOR-*` |
 | PUT | `/api/v1/teacher/lessons/{lesson_id}/draft` | 已有 | 整份聚合替换，带 `revision` |
 | GET | `/api/v1/teacher/courses/{course_id}/course-file` | 新建 | `FR-PORT-001`、`FR-PORT-005`；导出已保存草稿或指定发布版本 |

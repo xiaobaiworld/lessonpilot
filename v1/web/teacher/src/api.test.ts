@@ -88,6 +88,7 @@ describe('TeacherAPI authentication paths', () => {
         published_node_count: 8,
         access_code_count: 4,
         redeemed_count: 6,
+        student_submission_count: null,
         release_number: 2,
         published_at: '2026-08-26T00:00:00Z',
       },

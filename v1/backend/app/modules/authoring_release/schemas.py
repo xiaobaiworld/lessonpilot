@@ -38,6 +38,22 @@ class DraftPublic(BaseModel):
     updated_at: datetime
 
 
+class AssetLinkWrite(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    url: str = Field(min_length=1, max_length=2048)
+
+
+class AssetPublic(BaseModel):
+    asset_id: str = Field(alias="assetId")
+    kind: Literal["image", "audio", "video"]
+    mime_type: str = Field(alias="mimeType")
+    byte_size: int = Field(alias="byteSize", ge=0)
+    sha256: str
+    source_type: Literal["uploaded", "licensed"] = Field(alias="sourceType")
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
 class CourseFileWrite(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

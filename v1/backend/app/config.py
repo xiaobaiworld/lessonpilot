@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     contracts_manifest_path: Path = (
         Path(__file__).resolve().parents[2] / "contracts" / "versions.json"
     )
+    asset_storage_dir: Path = Path("./asset-storage")
+    asset_max_bytes: int = 50 * 1024 * 1024
+    asset_link_timeout_seconds: int = 10
 
     model_config = SettingsConfigDict(
         env_file=".env",

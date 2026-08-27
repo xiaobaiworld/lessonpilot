@@ -118,6 +118,7 @@ def test_empty_database_full_delivery_flow() -> None:
         "published_node_count": 1,
         "access_code_count": 1,
         "redeemed_count": 1,
+        "student_submission_count": None,
         "release_number": 1,
         "published_at": dashboard_item["metrics"]["published_at"],
     }

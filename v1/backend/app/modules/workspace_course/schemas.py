@@ -37,6 +37,7 @@ class CourseMetrics(BaseModel):
     published_node_count: int
     access_code_count: int
     redeemed_count: int
+    student_submission_count: int | None
     release_number: int | None
     published_at: datetime | None
 

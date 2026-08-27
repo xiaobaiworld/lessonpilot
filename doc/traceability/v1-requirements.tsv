@@ -87,6 +87,7 @@ FR-AUTHOR-010	doc/requirements/v1/04-functional-requirements.md	制作内容按�
 FR-AUTHOR-011	doc/requirements/v1/04-functional-requirements.md	所有节点类型遵守统一管理契约	已接受	P0	`SCOPE-03`；`SCN-TCH-03`；`TERM-022`、`TERM-023`	`FR-PUBLISH-*`、`FR-RUNTIME-*`、`FR-PORT-*`					待设计	
 FR-AUTHOR-012	doc/requirements/v1/04-functional-requirements.md	教师为指定课节导入字幕作为创建节点的唯一时间依据（替代 `FR-AUTHOR-001`）	已接受	P0	`SCOPE-03`；`SCN-TCH-03`；`D-V1-014`	—					待设计	
 FR-AUTHOR-013	doc/requirements/v1/04-functional-requirements.md	字幕经保存草稿动作进入服务端草稿与发布快照，不进入课程包或插件（替代 `FR-AUTHOR-002`）	已接受	P0	`SCOPE-03`；`SCN-TCH-03`；`TERM-017`、`TERM-018`；`D-V1-014`	—					待设计	
+FR-AUTHOR-014	doc/requirements/v1/04-functional-requirements.md	教师通过上传或 URL 导入节点媒体并使用稳定资源身份	已接受	P0	`SCOPE-03`；`SCN-TCH-03`；`D-V1-016`	`DATA-CONTENT-006`					待设计
 FR-PUBLISH-001	doc/requirements/v1/04-functional-requirements.md	真实预览使用学生正式交付路径	已接受	P0	`SCOPE-03`、`SCOPE-05`；`SCN-TCH-04`；`TERM-026`、`TERM-027`	`FR-RUNTIME-*`					待设计	
 FR-PUBLISH-002	doc/requirements/v1/04-functional-requirements.md	每次预览锁定可识别的已保存草稿	已接受	P0	`SCOPE-03`；`SCN-TCH-03`、`SCN-TCH-04`	—					待设计	
 FR-PUBLISH-003	doc/requirements/v1/04-functional-requirements.md	预览活动与学生真实学习状态隔离	已接受	P0	`SCOPE-03`、`SCOPE-06`；`SCN-TCH-04`	`FR-LEARN-*`					待设计	
@@ -176,6 +177,7 @@ DATA-CONTENT-002	doc/requirements/v1/05-data-requirements.md	视频引用独立�
 DATA-CONTENT-003	doc/requirements/v1/05-data-requirements.md	字幕是教师本机临时制作数据	已替代（被 `DATA-CONTENT-005` 替代）	P0	`FR-AUTHOR-001`、`FR-AUTHOR-002`、`FR-PORT-002`	`INT-FILE-*`					待设计	
 DATA-CONTENT-004	doc/requirements/v1/05-data-requirements.md	脚本草稿和节点遵守统一结构	已接受	P0	`FR-AUTHOR-003` 至 `FR-AUTHOR-011`	`DATA-QUALITY-*`					待设计	
 DATA-CONTENT-005	doc/requirements/v1/05-data-requirements.md	字幕原文止步于教师草稿与发布快照（替代 `DATA-CONTENT-003`）	已接受	P0	`FR-AUTHOR-012`、`FR-AUTHOR-013`、`FR-PORT-005`、`D-V1-014`	—					待设计	
+DATA-CONTENT-006	doc/requirements/v1/05-data-requirements.md	节点媒体使用服务端资源身份而不是教师输入来源	已接受	P0	`FR-AUTHOR-014`、`D-V1-016`	`FR-AUTHOR-014`					待设计
 DATA-DELIVERY-001	doc/requirements/v1/05-data-requirements.md	整门课程发布形成不可变版本	已接受	P0	`FR-PUBLISH-005` 至 `FR-PUBLISH-009`；`TERM-029`	`DATA-QUALITY-*`					待设计	
 DATA-DELIVERY-002	doc/requirements/v1/05-data-requirements.md	课程包是发布版本和授权范围的派生结果	已接受	P0	`FR-PUBLISH-010`、`FR-GRANT-009`、`FR-LIB-005`	`INT-PACKAGE-*`、`DATA-QUALITY-*`					待设计	
 DATA-DELIVERY-003	doc/requirements/v1/05-data-requirements.md	授权码、授权项和授权范围分别保存	已接受	P0	`FR-GRANT-001` 至 `FR-GRANT-005`	`DATA-QUALITY-*`					待设计	

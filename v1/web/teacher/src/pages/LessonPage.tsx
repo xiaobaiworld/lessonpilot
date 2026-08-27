@@ -488,6 +488,10 @@ export const LessonPage: React.FC<Props> = ({
           onSave={saveDialog}
           onDelete={deleteDialogNode}
           onCancel={() => setDialogNode(null)}
+          onUploadAsset={api.uploadAsset.bind(api)}
+          onImportAsset={api.importAssetUrl.bind(api)}
+          assetUrlForId={api.assetUrl.bind(api)}
+          onAssetCreated={(asset) => setAssets((current) => current.some((item) => item.assetId === asset.assetId) ? current : [...current, asset])}
         />
       )}
     </div>
@@ -502,7 +506,11 @@ const NodeDialog: React.FC<{
   onSave: (node: ScriptNode) => void;
   onDelete: () => void;
   onCancel: () => void;
-}> = ({ node, isNew, disabled, onChange, onSave, onDelete, onCancel }) => {
+  onUploadAsset: (file: File) => Promise<AssetRecord>;
+  onImportAsset: (url: string) => Promise<AssetRecord>;
+  assetUrlForId: (assetId: string) => string;
+  onAssetCreated: (asset: AssetRecord) => void;
+}> = ({ node, isNew, disabled, onChange, onSave, onDelete, onCancel, onUploadAsset, onImportAsset, assetUrlForId, onAssetCreated }) => {
   const [timeText, setTimeText] = useState(formatTime(node.anchor.timeSeconds));
   const [timeError, setTimeError] = useState(false);
   const iconId = NODE_ICON_IDS[node.interaction];
@@ -552,7 +560,7 @@ const NodeDialog: React.FC<{
             />
           </label>
         </div>
-        <NodeForm node={node} disabled={disabled} onChange={onChange} />
+        <NodeForm node={node} disabled={disabled} onChange={onChange} onUploadAsset={onUploadAsset} onImportAsset={onImportAsset} assetUrlForId={assetUrlForId} onAssetCreated={onAssetCreated} />
         {timeError && <p className="field-error">时间格式应为 mm:ss。</p>}
         <footer className="node-dialog-actions">
           <button className="text-button" type="button" onClick={onCancel} disabled={disabled}>

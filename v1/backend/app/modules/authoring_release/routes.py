@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, File, Query, Request, UploadFile
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.api.errors import ApiError
@@ -8,10 +9,13 @@ from app.modules.authoring_release.application_service import (
     AuthoringReleaseApplicationService,
     AuthoringReleaseError,
 )
+from app.modules.authoring_release.asset_storage import AssetStorage, AssetStorageError
 from app.modules.authoring_release.models import PreviewSession, ScriptDraft
 from app.modules.authoring_release.release_models import CourseRelease
 from app.modules.authoring_release.schemas import (
     AvailabilityWrite,
+    AssetLinkWrite,
+    AssetPublic,
     CourseFileWrite,
     DraftPublic,
     DraftWrite,
@@ -49,6 +53,8 @@ AUTHORING_ERROR_MESSAGES = {
     "DRAFT_ASSETS_INVALID": "节点媒体资源清单无效，请检查资源信息",
     "DRAFT_ASSET_REFERENCE_INVALID": "节点引用的媒体资源类型不匹配",
     "DRAFT_ASSET_REFERENCE_MISSING": "节点引用了不存在的媒体资源",
+    "DRAFT_ASSET_NOT_FOUND": "节点引用的媒体资源不存在或无权访问",
+    "DRAFT_ASSET_METADATA_MISMATCH": "节点媒体资源信息已变化，请重新插入该资源",
     "DRAFT_DOCUMENT_VERSION_UNSUPPORTED": "节点正文版本不受支持，请重新编辑正文",
     "DRAFT_CONTENT_BLOCK_UNSUPPORTED": "节点正文包含不受支持的内容块",
     "RELEASE_NOT_DELIVERABLE": "当前课程暂时不能发布，请检查课程状态和课节",
@@ -121,8 +127,66 @@ def _error(error: Exception) -> ApiError:
 
 def _services(
     db: Session,
+    asset_store: AssetStorage | None = None,
 ) -> tuple[WorkspaceCourseApplicationService, AuthoringReleaseApplicationService]:
-    return WorkspaceCourseApplicationService(db), AuthoringReleaseApplicationService(db)
+    return WorkspaceCourseApplicationService(db), AuthoringReleaseApplicationService(
+        db, asset_store
+    )
+
+
+def _asset_store(request: Request) -> AssetStorage:
+    return request.app.state.asset_storage
+
+
+def _asset_error(error: AssetStorageError) -> ApiError:
+    status = 404 if error.code == "ASSET_NOT_FOUND" else 422
+    messages = {
+        "ASSET_FILE_TYPE_INVALID": "只支持 PNG、JPEG、GIF、WebP、MP3、WAV、OGG、MP4 或 WebM",
+        "ASSET_TOO_LARGE": "媒体文件不能超过 50 MB",
+        "ASSET_SOURCE_INVALID": "媒体链接不安全或不是 HTTP(S) 地址",
+        "ASSET_SOURCE_UNAVAILABLE": "媒体链接无法访问",
+        "ASSET_STORAGE_FAILED": "媒体保存失败，请稍后重试",
+        "ASSET_NOT_FOUND": "资源不存在或无权访问",
+    }
+    return ApiError(status, error.code, messages.get(error.code, "媒体资源操作失败"))
+
+
+@router.post("/assets/upload", response_model=AssetPublic, status_code=201)
+async def upload_asset(
+    file: UploadFile = File(...),
+    teacher: TeacherAccount = Depends(require_teacher),
+    store: AssetStorage = Depends(_asset_store),
+) -> dict:
+    try:
+        data = await file.read(store.max_bytes + 1)
+        return store.save_upload(teacher.id, data, file.content_type, file.filename)
+    except AssetStorageError as error:
+        raise _asset_error(error) from error
+
+
+@router.post("/assets/import-url", response_model=AssetPublic, status_code=201)
+def import_asset_url(
+    payload: AssetLinkWrite,
+    teacher: TeacherAccount = Depends(require_teacher),
+    store: AssetStorage = Depends(_asset_store),
+) -> dict:
+    try:
+        return store.import_url(teacher.id, payload.url)
+    except AssetStorageError as error:
+        raise _asset_error(error) from error
+
+
+@router.get("/assets/{asset_id}")
+def get_asset(
+    asset_id: str,
+    teacher: TeacherAccount = Depends(require_teacher),
+    store: AssetStorage = Depends(_asset_store),
+) -> FileResponse:
+    try:
+        record, path = store.get(teacher.id, asset_id)
+        return FileResponse(path, media_type=record["mimeType"], filename=asset_id)
+    except AssetStorageError as error:
+        raise _asset_error(error) from error
 
 
 @router.get("/courses/{course_id}/course-file")
@@ -200,10 +264,11 @@ def get_draft(
 def save_draft(
     lesson_id: str,
     payload: DraftWrite,
+    request: Request,
     teacher: TeacherAccount = Depends(require_teacher),
     db: Session = Depends(get_db),
 ) -> DraftPublic:
-    courses, authoring = _services(db)
+    courses, authoring = _services(db, _asset_store(request))
     try:
         courses.get_lesson(teacher.id, lesson_id)
         return _draft(
@@ -274,10 +339,11 @@ def attest_rights(
 def publish_course(
     course_id: str,
     payload: ReleaseWrite,
+    request: Request,
     teacher: TeacherAccount = Depends(require_teacher),
     db: Session = Depends(get_db),
 ) -> dict:
-    courses, authoring = _services(db)
+    courses, authoring = _services(db, _asset_store(request))
     try:
         course = courses.get_course(teacher.id, course_id)
         # 权属确认改由合约完成，发布不再依赖 rights-attestation。

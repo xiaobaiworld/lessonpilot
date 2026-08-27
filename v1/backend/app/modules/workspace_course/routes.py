@@ -105,6 +105,8 @@ def list_courses(
             "lesson_count": len(lesson_ids_by_course[course.id]),
             **authoring_metrics[course.id],
             **delivery_metrics[course.id],
+            # 学生作答统计先冻结接口字段，具体数据源和聚合规则后续实现。
+            "student_submission_count": None,
         }
         items.append(
             CourseListItem(**_course(course).model_dump(), metrics=CourseMetrics(**metrics))

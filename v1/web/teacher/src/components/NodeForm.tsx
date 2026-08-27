@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { richDocumentFromHtml, richDocumentToHtml, richDocumentToPlainText } from '@v1/web/shared';
+import { AssetRecord, richDocumentFromHtml, richDocumentToHtml, richDocumentToPlainText } from '@v1/web/shared';
 import { ScriptNode } from '../api';
 import { RichTextEditor } from './RichTextEditor';
 
@@ -7,6 +7,10 @@ interface Props {
   node: ScriptNode;
   disabled: boolean;
   onChange: (node: ScriptNode) => void;
+  onUploadAsset?: (file: File) => Promise<AssetRecord>;
+  onImportAsset?: (url: string) => Promise<AssetRecord>;
+  assetUrlForId?: (assetId: string) => string;
+  onAssetCreated?: (asset: AssetRecord) => void;
 }
 
 const WINDOW_SIZE_OPTIONS = [
@@ -28,7 +32,7 @@ const WINDOW_POSITION_OPTIONS = [
 ] as const;
 
 /** 各字段名由后端校验固定，见 v1/backend/app/modules/authoring_release/application_service.py */
-export const NodeForm: React.FC<Props> = ({ node, disabled, onChange }) => {
+export const NodeForm: React.FC<Props> = ({ node, disabled, onChange, onUploadAsset, onImportAsset, assetUrlForId, onAssetCreated }) => {
   const setHints = (patch: Record<string, unknown>) =>
     onChange({ ...node, presentationHints: { ...node.presentationHints, ...patch } });
 
@@ -66,6 +70,10 @@ export const NodeForm: React.FC<Props> = ({ node, disabled, onChange }) => {
             value={richDocumentToHtml(node.content)}
             disabled={disabled}
             onChange={setPageHtml}
+            onUploadAsset={onUploadAsset}
+            onImportAsset={onImportAsset}
+            assetUrlForId={assetUrlForId}
+            onAssetCreated={onAssetCreated}
           />
         </section>
 
