@@ -70,6 +70,7 @@
 | `D-V1-011` | 脚本/发布聚合 JSON 与本机学习记录策略，见 [数据持久化策略](decisions/2026-08-22-v1-data-persistence-strategy.md) |
 | `D-V1-012` | [不迁移无价值旧服务端数据与学生本机数据](decisions/2026-08-22-v1-no-legacy-data-migration.md) |
 | `D-V1-013` | [初期开发与运行阶段的发布流程](decisions/2026-08-26-early-stage-release-process.md) |
+| 当前性能决策 | [教师端首屏性能优化](decisions/2026-08-27-teacher-first-load-performance.md) |
 
 ### 经验与状态
 

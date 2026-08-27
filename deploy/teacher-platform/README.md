@@ -61,6 +61,7 @@ SEED_ADMIN_DISPLAY_NAME='KnownMap 管理员' \
 - SSH 仅允许密钥登录；公网只开放 `22/80/443`。
 - Nginx 对教师登录和学生课程下载分别限速，超限返回 `429`。
 - HSTS、CSP、点击劫持防护、权限策略和 MIME 嗅探防护由 Nginx 统一设置。
+- 教师和管理员的 hash 静态资源启用 gzip、HTTP/2 和一年 immutable 缓存；`tools/release.sh` 会在切换前安全校验并 reload 当前 Nginx 配置。
 - FastAPI 以 `knownmap` 用户运行，systemd 清空 capability 并限制可写目录。
 - 初期发布不把 GitHub CI、远端全量测试或每次备份恢复演练当作切换门禁；日常备份 timer 仍启用。
 - 依赖若需要在服务器安装，使用仓库锁定的 `uv` 与 `uv sync --frozen`；lockfile 未变则复用已有环境。

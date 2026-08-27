@@ -323,6 +323,41 @@ mv -Tf "$temporary_link" "$app_root/current"
 REMOTE
 }
 
+install_remote_nginx() {
+  local release_id="$1"
+  local config_file="$2"
+  local remote_tmp="/etc/nginx/sites-available/.knownmap-$release_id"
+
+  [[ -f "$config_file" ]] || fail "nginx config missing: $config_file"
+  scp_host "$config_file" "$SSH_HOST:$remote_tmp"
+  ssh_host bash -s -- "$remote_tmp" "$release_id" <<'REMOTE'
+set -euo pipefail
+remote_tmp="$1"
+release_id="$2"
+current="/etc/nginx/sites-available/knownmap"
+backup="/etc/nginx/sites-available/.knownmap-backup-$release_id"
+
+cp "$current" "$backup"
+restore() {
+  install -m 644 "$backup" "$current"
+  rm -f "$remote_tmp" "$backup"
+}
+
+install -m 644 "$remote_tmp" "$current"
+if ! nginx -t >/dev/null; then
+  restore
+  exit 1
+fi
+if ! systemctl reload nginx; then
+  restore
+  nginx -t >/dev/null
+  systemctl reload nginx
+  exit 1
+fi
+rm -f "$remote_tmp" "$backup"
+REMOTE
+}
+
 restore_backend() {
   local target="$1"
   [[ -n "$target" ]] || return 0
@@ -420,6 +455,11 @@ REMOTE
 
   scp_host "$temporary/backend/deploy/teacher-platform/knownmap-teacher-api.service" \
     "$SSH_HOST:/etc/systemd/system/$SERVICE_NAME"
+  if ! install_remote_nginx "$release_id" \
+      "$temporary/backend/deploy/teacher-platform/knownmap-nginx.conf"; then
+    restore_backend "$previous_backend"
+    fail "nginx config update failed; restored previous backend"
+  fi
   ssh_host "systemctl daemon-reload && systemctl enable '$SERVICE_NAME' >/dev/null && systemctl restart '$SERVICE_NAME' && systemctl is-active --quiet '$SERVICE_NAME'" || {
     restore_backend "$previous_backend"
     fail "systemd restart failed; restored previous"

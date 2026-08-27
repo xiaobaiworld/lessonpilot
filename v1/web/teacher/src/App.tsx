@@ -1,10 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
 import { APIClient } from '@v1/web/shared';
 import { TeacherAPI, Teacher } from './api';
 import { TeacherLoginPage } from './pages/TeacherLoginPage';
-import { CoursesPage } from './pages/CoursesPage';
-import { CoursePage } from './pages/CoursePage';
-import { LessonPage } from './pages/LessonPage';
+
+// 登录是默认入口，不应为了显示登录表单下载课程编辑器和字幕工具。
+// 页面文件保持命名导出，动态导入只把它们放进认证后的异步 chunk。
+const CoursesPage = lazy(() =>
+  import('./pages/CoursesPage').then(({ CoursesPage }) => ({ default: CoursesPage }))
+);
+const CoursePage = lazy(() =>
+  import('./pages/CoursePage').then(({ CoursePage }) => ({ default: CoursePage }))
+);
+const LessonPage = lazy(() =>
+  import('./pages/LessonPage').then(({ LessonPage }) => ({ default: LessonPage }))
+);
 
 // 本地开发后端在 8000；生产同源，由 Nginx 代理 /api。
 // 本机页面可能从 localhost 或 127.0.0.1 打开，API 也要使用相同主机，
@@ -46,15 +55,13 @@ function pushRoute(route: Route) {
 
 export const TeacherApp: React.FC = () => {
   const [teacher, setTeacher] = useState<Teacher | null>(null);
-  const [checking, setChecking] = useState(true);
   const [route, setRoute] = useState<Route>(readRoute);
 
   useEffect(() => {
     api
       .me()
       .then(setTeacher)
-      .catch(() => setTeacher(null))
-      .finally(() => setChecking(false));
+      .catch(() => setTeacher(null));
   }, []);
 
   useEffect(() => {
@@ -78,14 +85,15 @@ export const TeacherApp: React.FC = () => {
     }
   };
 
-  if (checking) return null;
-
   if (!teacher) {
+    // 会话恢复只决定是否切换到工作台，不阻塞默认登录表单的首屏显示。
     return <TeacherLoginPage api={api} onSignedIn={setTeacher} />;
   }
 
+  let page: React.ReactNode;
+
   if (route.course && route.lesson) {
-    return (
+    page = (
       <LessonPage
         api={api}
         teacher={teacher}
@@ -99,10 +107,8 @@ export const TeacherApp: React.FC = () => {
         onSignedOut={signOut}
       />
     );
-  }
-
-  if (route.course) {
-    return (
+  } else if (route.course) {
+    page = (
       <CoursePage
         api={api}
         teacher={teacher}
@@ -114,14 +120,28 @@ export const TeacherApp: React.FC = () => {
         }
       />
     );
+  } else {
+    page = (
+      <CoursesPage
+        api={api}
+        teacher={teacher}
+        onOpenCourse={(course) => go({ course })}
+        onSignedOut={signOut}
+      />
+    );
   }
 
   return (
-    <CoursesPage
-      api={api}
-      teacher={teacher}
-      onOpenCourse={(course) => go({ course })}
-      onSignedOut={signOut}
-    />
+    <Suspense
+      fallback={
+        <section className="auth-view" aria-busy="true">
+          <div className="auth-panel">
+            <p>工作台加载中…</p>
+          </div>
+        </section>
+      }
+    >
+      {page}
+    </Suspense>
   );
 };
