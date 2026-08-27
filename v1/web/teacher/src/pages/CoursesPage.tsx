@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Topbar, AuthField, errorMessage } from '@v1/web/shared';
+import { Topbar, AuthField, CredentialDialog, errorMessage } from '@v1/web/shared';
 import { TeacherAPI, Teacher, TeacherCourseFile, CourseListItem } from '../api';
 
 interface Props {
@@ -19,6 +19,7 @@ export const CoursesPage: React.FC<Props> = ({
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [accessCode, setAccessCode] = useState<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
@@ -71,6 +72,19 @@ export const CoursesPage: React.FC<Props> = ({
     }
   };
 
+  const makeCode = async (courseId: string) => {
+    setBusy(true);
+    setError(null);
+    try {
+      const result = await api.createAccessCode(courseId);
+      setAccessCode(result.access_code);
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="app-shell">
       <Topbar
@@ -83,9 +97,9 @@ export const CoursesPage: React.FC<Props> = ({
         <div className="dashboard-intro">
           <div>
             <p className="eyebrow">教师工作台</p>
-            <h1>课程</h1>
+            <h1>互动课程制作</h1>
             <p className="dashboard-lead">
-              从草稿继续制作，或从已发布课程查看交付情况。
+              为视频课程增加互动能力，视频学习过程中加入互动环节，让学习更有趣，提升课程价值。
             </p>
           </div>
           <div className="dashboard-actions">
@@ -123,7 +137,12 @@ export const CoursesPage: React.FC<Props> = ({
         {courses === null && <p className="table-state">正在读取课程…</p>}
 
         {courses && courses.length > 0 && (
-          <DashboardContent courses={courses} onOpenCourse={onOpenCourse} />
+          <DashboardContent
+            courses={courses}
+            onOpenCourse={onOpenCourse}
+            onGenerateAccessCode={makeCode}
+            actionDisabled={busy || accessCode !== null}
+          />
         )}
 
         {courses?.length === 0 && (
@@ -145,6 +164,14 @@ export const CoursesPage: React.FC<Props> = ({
           onSubmit={create}
         />
       )}
+
+      {accessCode && (
+        <CredentialDialog
+          title="发给学生的授权码"
+          secret={accessCode}
+          onClose={() => setAccessCode(null)}
+        />
+      )}
     </div>
   );
 };
@@ -152,7 +179,9 @@ export const CoursesPage: React.FC<Props> = ({
 const DashboardContent: React.FC<{
   courses: CourseListItem[];
   onOpenCourse: (courseId: string) => void;
-}> = ({ courses, onOpenCourse }) => {
+  onGenerateAccessCode: (courseId: string) => void;
+  actionDisabled: boolean;
+}> = ({ courses, onOpenCourse, onGenerateAccessCode, actionDisabled }) => {
   const drafts = courses.filter(
     (course) => course.status !== 'archived' && course.metrics.release_number === null
   );
@@ -207,6 +236,8 @@ const DashboardContent: React.FC<{
                 key={course.id}
                 course={course}
                 onOpenCourse={onOpenCourse}
+                onGenerateAccessCode={onGenerateAccessCode}
+                actionDisabled={actionDisabled}
               />
             ))}
           </div>
@@ -280,7 +311,14 @@ const DraftCourseCard: React.FC<{
       <span className="course-status is-draft"><i />草稿</span>
       <span className="course-updated">更新于 {formatDate(course.updated_at)}</span>
     </div>
-    <h3>{course.title}</h3>
+    <button
+      className="course-card-title-button"
+      type="button"
+      onClick={() => onOpenCourse(course.id)}
+      aria-label={`修改课程：${course.title}`}
+    >
+      {course.title}
+    </button>
     <p>{course.description || '还没有课程简介'}</p>
     <dl className="draft-course-meta">
       <div>
@@ -309,7 +347,9 @@ const DraftCourseCard: React.FC<{
 const PublishedCourseCard: React.FC<{
   course: CourseListItem;
   onOpenCourse: (courseId: string) => void;
-}> = ({ course, onOpenCourse }) => {
+  onGenerateAccessCode: (courseId: string) => void;
+  actionDisabled: boolean;
+}> = ({ course, onOpenCourse, onGenerateAccessCode, actionDisabled }) => {
   const { metrics } = course;
   const submissionCount = metrics.student_submission_count;
   const hasSubmissionCount = submissionCount != null;
@@ -324,13 +364,23 @@ const PublishedCourseCard: React.FC<{
           <h3>{course.title}</h3>
           <p>{course.description || '暂无课程简介'}</p>
         </div>
-        <button
-          className="course-card-action"
-          type="button"
-          onClick={() => onOpenCourse(course.id)}
-        >
-          管理课程 <span aria-hidden="true">→</span>
-        </button>
+        <div className="published-course-actions">
+          <button
+            className="course-card-action"
+            type="button"
+            onClick={() => onOpenCourse(course.id)}
+          >
+            管理课程 <span aria-hidden="true">→</span>
+          </button>
+          <button
+            className="light-button"
+            type="button"
+            onClick={() => onGenerateAccessCode(course.id)}
+            disabled={actionDisabled}
+          >
+            生成授权码
+          </button>
+        </div>
       </div>
       <dl className="published-course-metrics">
         <Metric

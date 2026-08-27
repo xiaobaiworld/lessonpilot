@@ -157,7 +157,7 @@ export const CoursePage: React.FC<Props> = ({
                 onClick={makeCode}
                 disabled={locked || lessons.length === 0}
               >
-                创建授权码
+                生成授权码
               </button>
               <button
                 className="dark-button"

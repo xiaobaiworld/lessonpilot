@@ -136,4 +136,28 @@ describe('TeacherAPI authentication paths', () => {
       expect.objectContaining({ method: 'GET', credentials: 'include' })
     );
   });
+
+  it('为课程总览生成按 course_id 绑定的授权码', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({
+        access_code: 'KM-COURSE-0001',
+        id: 'grant-1',
+        display_tail: '0001',
+        status: 'active',
+        created_at: '2026-08-27T00:00:00Z',
+      }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(
+      new TeacherAPI(new APIClient('http://127.0.0.1:8001')).createAccessCode('course-1')
+    ).resolves.toMatchObject({ access_code: 'KM-COURSE-0001' });
+
+    const [, request] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(JSON.parse(String(request.body))).toMatchObject({
+      grants: [{ course_id: 'course-1', scope: 'course' }],
+    });
+  });
 });

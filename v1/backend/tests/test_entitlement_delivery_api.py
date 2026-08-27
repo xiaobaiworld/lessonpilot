@@ -144,6 +144,40 @@ def test_empty_database_full_delivery_flow() -> None:
         == "LOCAL_PROOF_INVALID"
     )
 
+    second_node = {**NODE, "id": "node-2", "title": "新版重点"}
+    saved = client.put(
+        f"/api/v1/teacher/lessons/{lesson['id']}/draft",
+        json={"revision": 1, "config": {"nodes": [second_node]}},
+    )
+    assert saved.status_code == 200
+    preview = client.post(
+        f"/api/v1/teacher/lessons/{lesson['id']}/preview-sessions", json={}
+    ).json()
+    client.post(
+        f"/api/v1/teacher/preview-sessions/{preview['id']}/end",
+        json={"succeeded": True},
+    )
+    second_release = client.post(
+        f"/api/v1/teacher/courses/{course['id']}/releases",
+        json={"idempotency_key": "publish-0002"},
+    ).json()
+    latest = client.post(
+        "/api/v1/student/course-updates",
+        json={
+            "schemaVersion": 1,
+            "idempotencyKey": "update-0001",
+            "localIdentityId": "local-identity-0001",
+            "localProof": "a-high-entropy-local-proof",
+            "courseIds": [course["id"]],
+            "knownReleases": [{"courseId": course["id"], "releaseId": release["id"]}],
+        },
+    )
+    assert latest.status_code == 200
+    assert latest.json()["data"]["courses"][0]["releaseId"] == second_release["id"]
+    assert latest.json()["data"]["courses"][0]["package"]["lessons"][0]["nodes"] == [
+        second_node
+    ]
+
     client.post(f"/api/v1/teacher/access-codes/{code_id}/terminate")
     updates = client.post(
         "/api/v1/student/course-updates",
