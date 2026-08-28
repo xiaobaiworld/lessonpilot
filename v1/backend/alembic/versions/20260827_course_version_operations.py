@@ -20,9 +20,7 @@ def upgrade() -> None:
     )
     op.execute("UPDATE v1_courses SET version_family_id = id WHERE version_family_id IS NULL")
     with op.batch_alter_table("v1_courses") as batch_op:
-        batch_op.alter_column(
-            "version_family_id", existing_type=sa.String(36), nullable=False
-        )
+        batch_op.alter_column("version_family_id", existing_type=sa.String(36), nullable=False)
     op.create_index(
         "ix_courses_version_family_id", "v1_courses", ["version_family_id"], unique=False
     )

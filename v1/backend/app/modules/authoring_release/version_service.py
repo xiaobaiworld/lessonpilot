@@ -154,9 +154,7 @@ class CourseVersionApplicationService:
         for index, snapshot in enumerate(snapshots, start=1):
             lesson = current.get(snapshot["lesson_id"])
             if lesson is None:
-                lesson = Lesson(
-                    id=snapshot["lesson_id"], course_id=course.id, sequence=-index
-                )
+                lesson = Lesson(id=snapshot["lesson_id"], course_id=course.id, sequence=-index)
                 lesson.video_reference = VideoReference(id=str(uuid4()), lesson_id=lesson.id)
                 self.session.add(lesson)
             lesson.sequence = -index
@@ -206,9 +204,7 @@ class CourseVersionApplicationService:
         self.session.add(course)
         self.session.flush()
         drafts: list[ScriptDraft] = []
-        for release_snapshot in sorted(
-            release.lessons, key=lambda row: row.lesson_sequence
-        ):
+        for release_snapshot in sorted(release.lessons, key=lambda row: row.lesson_sequence):
             snapshot = self._snapshot_record(release_snapshot)
             lesson = Lesson(
                 id=str(uuid4()),

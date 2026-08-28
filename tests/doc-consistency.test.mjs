@@ -177,7 +177,7 @@ test('端点清单每一行都归属六个业务模块之一', () => {
 });
 
 test('端点清单的状态取值受限', () => {
-  const allowed = new Set(['已有', '改名', '新建']);
+  const allowed = new Set(['已有', '改名', '新建', '设计新增', '已有，语义扩展']);
   const { inventory } = compareEndpoints('.');
   const invalid = inventory
     .filter((e) => !allowed.has(e.state))

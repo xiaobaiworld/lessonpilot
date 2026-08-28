@@ -124,9 +124,7 @@ def test_add_version_retains_source_and_creates_one_independent_draft() -> None:
     assert len(client.get(f"/api/v1/teacher/courses/{course['id']}/releases").json()["items"]) == 1
 
     detail = client.get(f"/api/v1/teacher/courses/{draft['id']}").json()
-    copied_draft = client.get(
-        f"/api/v1/teacher/lessons/{detail['lessons'][0]['id']}/draft"
-    ).json()
+    copied_draft = client.get(f"/api/v1/teacher/lessons/{detail['lessons'][0]['id']}/draft").json()
     assert copied_draft["config"]["nodes"] == [NODE]
 
     replay = client.post(
