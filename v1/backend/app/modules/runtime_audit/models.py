@@ -16,6 +16,7 @@ class OperationAudit(Base):
     target_id = Column(String(36), nullable=True)
     result = Column(String(30), nullable=False)
     reason_code = Column(String(100), nullable=True)
+    idempotency_key = Column(String(64), nullable=True)
     metadata_json = Column("metadata", String(500), nullable=True)
     request_id = Column(String(36), nullable=True)
     occurred_at = Column(

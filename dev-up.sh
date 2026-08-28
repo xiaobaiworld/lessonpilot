@@ -147,6 +147,15 @@ start_frontends() {
   echo $! >"${TEACHER_PID_FILE}"
 }
 
+migrate_database() {
+  log "执行数据库迁移"
+  (
+    cd "${BACKEND_DIR}"
+    uv run alembic upgrade head
+  )
+  log "数据库已升级到最新版本"
+}
+
 wait_http() {
   local url="$1"
   local name="$2"
@@ -192,6 +201,7 @@ start_all() {
     log "本地服务未运行 → 开始启动"
   fi
   stop_all
+  migrate_database
   start_frontends
 
   log "启动后端 :${API_PORT}（日志输出到本终端）"

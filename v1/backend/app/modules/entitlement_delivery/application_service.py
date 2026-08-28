@@ -39,6 +39,8 @@ class EntitlementApplicationService:
         grants: list[dict],
         redeem_from: datetime | None,
         redeem_until: datetime | None,
+        recipient_label: str | None = None,
+        recipient_note: str | None = None,
         commit: bool = True,
     ) -> tuple[AccessCode, str, bool]:
         existing = self.session.scalar(
@@ -60,6 +62,8 @@ class EntitlementApplicationService:
             idempotency_key=intent,
             redeem_from=redeem_from,
             redeem_until=redeem_until,
+            recipient_label=recipient_label,
+            recipient_note=recipient_note,
         )
         code.grants = [
             GrantItem(
@@ -85,6 +89,9 @@ class EntitlementApplicationService:
         grants: list[dict],
         redeem_from: datetime | None,
         redeem_until: datetime | None,
+        recipient_label: str | None = None,
+        recipient_note: str | None = None,
+        commit: bool = True,
     ) -> tuple[list[tuple[AccessCode, str]], bool]:
         created: list[tuple[AccessCode, str]] = []
         replayed_flags: list[bool] = []
@@ -98,11 +105,14 @@ class EntitlementApplicationService:
                     grants,
                     redeem_from,
                     redeem_until,
+                    recipient_label,
+                    recipient_note,
                     commit=False,
                 )
                 created.append((code, raw))
                 replayed_flags.append(replayed)
-            self.session.commit()
+            if commit:
+                self.session.commit()
             return created, all(replayed_flags)
         except Exception:
             self.session.rollback()
@@ -162,12 +172,76 @@ class EntitlementApplicationService:
             raise EntitlementError("ACCESS_CODE_NOT_FOUND")
         return code
 
-    def terminate(self, teacher_id: str, code_id: str) -> AccessCode:
+    def set_recipient(
+        self,
+        teacher_id: str,
+        code_id: str,
+        recipient_label: str | None,
+        recipient_note: str | None,
+        commit: bool = True,
+    ) -> AccessCode:
         code = self.get_code(teacher_id, code_id)
-        if code.status != "terminated":
-            code.status = "terminated"
-            code.terminated_at = datetime.now(timezone.utc)
+        code.recipient_label = recipient_label
+        code.recipient_note = recipient_note
+        if commit:
             self.session.commit()
+        return code
+
+    def set_status(
+        self, teacher_id: str, code_id: str, action: str, commit: bool = True
+    ) -> tuple[AccessCode, bool]:
+        code = self.get_code(teacher_id, code_id)
+        changed = self._apply_status(code, action)
+        if commit:
+            self.session.commit()
+        return code, changed
+
+    def batch_set_status(
+        self,
+        teacher_id: str,
+        code_ids: list[str],
+        action: str,
+        commit: bool = True,
+    ) -> tuple[list[AccessCode], bool]:
+        if len(code_ids) != len(set(code_ids)):
+            raise EntitlementError("ACCESS_CODE_BATCH_DUPLICATE")
+        codes = [self.get_code(teacher_id, code_id) for code_id in code_ids]
+        changed = False
+        try:
+            for code in codes:
+                changed = self._apply_status(code, action) or changed
+            if commit:
+                self.session.commit()
+        except Exception:
+            self.session.rollback()
+            raise
+        return codes, not changed
+
+    @staticmethod
+    def _apply_status(code: AccessCode, action: str) -> bool:
+        transitions = {
+            "freeze": {"active": "frozen", "frozen": "frozen"},
+            "restore": {"active": "active", "frozen": "active"},
+            "terminate": {
+                "active": "terminated",
+                "frozen": "terminated",
+                "terminated": "terminated",
+            },
+        }
+        next_status = transitions.get(action, {}).get(code.status)
+        if next_status is None:
+            raise EntitlementError("ACCESS_CODE_STATE_INVALID")
+        if next_status == code.status:
+            return False
+        code.status = next_status
+        if next_status == "terminated":
+            code.terminated_at = datetime.now(timezone.utc)
+        else:
+            code.terminated_at = None
+        return True
+
+    def terminate(self, teacher_id: str, code_id: str) -> AccessCode:
+        code, _ = self.set_status(teacher_id, code_id, "terminate")
         return code
 
     def redeem(self, raw_code: str, local_identity: str, local_proof: str) -> Redemption:

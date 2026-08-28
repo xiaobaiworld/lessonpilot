@@ -20,10 +20,25 @@ class AccessCodeWrite(BaseModel):
     grants: list[GrantWrite] = Field(min_length=1)
     redeem_from: datetime | None = None
     redeem_until: datetime | None = None
+    recipient_label: str | None = Field(default=None, max_length=200)
+    recipient_note: str | None = Field(default=None, max_length=1000)
 
 
 class AccessCodeBatchWrite(AccessCodeWrite):
     count: int = Field(ge=1, le=100)
+
+
+class AccessCodeRecipientWrite(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    recipient_label: str | None = Field(default=None, max_length=200)
+    recipient_note: str | None = Field(default=None, max_length=1000)
+
+
+class AccessCodeBatchActionWrite(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    access_code_ids: list[str] = Field(min_length=1, max_length=100)
+    action: Literal["freeze", "restore", "terminate"]
+    idempotency_key: str = Field(min_length=8, max_length=64)
 
 
 class StudentBase(BaseModel):

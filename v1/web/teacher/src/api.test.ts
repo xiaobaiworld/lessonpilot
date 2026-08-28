@@ -230,4 +230,76 @@ describe('TeacherAPI authentication paths', () => {
       'http://127.0.0.1:8001/api/v1/teacher/access-codes/code-1/terminate'
     );
   });
+
+  it('提交授权码范围、接收人记录和批量状态动作', async () => {
+    const responses = [
+      {
+        status: 201,
+        body: { items: [{ id: 'code-1', access_code: 'TEACHER-001', status: 'active' }] },
+      },
+      {
+        status: 200,
+        body: { id: 'code-1', access_code: 'TEACHER-001', status: 'frozen' },
+      },
+      {
+        status: 200,
+        body: { id: 'code-1', access_code: 'TEACHER-001', status: 'frozen' },
+      },
+    ];
+    const fetchMock = vi.fn().mockImplementation(async () => {
+      const response = responses.shift();
+      return {
+        ok: true,
+        status: response?.status ?? 200,
+        json: async () => response?.body,
+      };
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const api = new TeacherAPI(new APIClient('http://127.0.0.1:8001'));
+
+    await api.createAccessCodeBatch('course-1', 4, {
+      grants: [
+        {
+          course_id: 'course-1',
+          scope: 'lessons',
+          lesson_ids: ['lesson-1'],
+          valid_from: '2026-08-28T00:00:00Z',
+          valid_until: '2026-09-28T00:00:00Z',
+        },
+        { course_id: 'course-2', scope: 'course' },
+      ],
+      redeem_from: '2026-08-28T00:00:00Z',
+      redeem_until: '2026-09-28T00:00:00Z',
+      recipient_label: '线下学员 A',
+      recipient_note: '周三交付',
+    });
+    await api.updateAccessCodeRecipient('code-1', '线下学员 A+', '已确认');
+    await api.batchAccessCodeAction(['code-1', 'code-2'], 'freeze');
+
+    expect(JSON.parse(String(fetchMock.mock.calls[0][1].body))).toMatchObject({
+      count: 4,
+      recipient_label: '线下学员 A',
+      recipient_note: '周三交付',
+      grants: [
+        expect.objectContaining({
+          course_id: 'course-1',
+          scope: 'lessons',
+          lesson_ids: ['lesson-1'],
+        }),
+        { course_id: 'course-2', scope: 'course' },
+      ],
+    });
+    expect(fetchMock.mock.calls[1][0]).toBe(
+      'http://127.0.0.1:8001/api/v1/teacher/access-codes/code-1/recipient'
+    );
+    expect(fetchMock.mock.calls[1][1]).toMatchObject({ method: 'PUT' });
+    expect(fetchMock.mock.calls[2][0]).toBe(
+      'http://127.0.0.1:8001/api/v1/teacher/access-codes/batch-actions'
+    );
+    expect(fetchMock.mock.calls[2][1]).toMatchObject({ method: 'POST' });
+    expect(JSON.parse(String(fetchMock.mock.calls[2][1].body))).toMatchObject({
+      access_code_ids: ['code-1', 'code-2'],
+      action: 'freeze',
+    });
+  });
 });

@@ -129,12 +129,20 @@ export interface ManagedAccessCode {
   access_code: string;
   display_tail: string;
   status: string;
+  recipient_label: string | null;
+  recipient_note: string | null;
   redeem_from: string | null;
   redeem_until: string | null;
   created_at: string;
   redemption_count: number;
   first_redeemed_at: string | null;
   last_redeemed_at: string | null;
+  status_events?: Array<{
+    action: string;
+    result: string;
+    reason_code: string | null;
+    occurred_at: string;
+  }>;
   grants: Array<{
     course_id: string;
     scope: string;
@@ -142,6 +150,25 @@ export interface ManagedAccessCode {
     node_ids: string[];
   }>;
 }
+
+export interface AccessCodeGrantInput {
+  course_id: string;
+  scope: 'course' | 'lessons' | 'nodes';
+  lesson_ids?: string[];
+  node_ids?: string[];
+  valid_from?: string | null;
+  valid_until?: string | null;
+}
+
+export interface AccessCodeCreateOptions {
+  grants?: AccessCodeGrantInput[];
+  redeem_from?: string | null;
+  redeem_until?: string | null;
+  recipient_label?: string | null;
+  recipient_note?: string | null;
+}
+
+export type AccessCodeBatchAction = 'freeze' | 'restore' | 'terminate';
 
 export class TeacherAPI {
   constructor(private http: APIClient) {}
@@ -265,10 +292,14 @@ export class TeacherAPI {
     });
   }
 
-  createAccessCode(courseId: string): Promise<AccessCode> {
+  createAccessCode(courseId: string, options: AccessCodeCreateOptions = {}): Promise<AccessCode> {
     return this.http.post<AccessCode>('/api/v1/teacher/access-codes', {
       idempotency_key: crypto.randomUUID(),
-      grants: [{ course_id: courseId, scope: 'course' }],
+      grants: options.grants ?? [{ course_id: courseId, scope: 'course' }],
+      redeem_from: options.redeem_from ?? null,
+      redeem_until: options.redeem_until ?? null,
+      recipient_label: options.recipient_label ?? null,
+      recipient_note: options.recipient_note ?? null,
     });
   }
 
@@ -289,16 +320,65 @@ export class TeacherAPI {
     return res.items;
   }
 
+  async getAccessCode(accessCodeId: string): Promise<ManagedAccessCode> {
+    return this.http.get<ManagedAccessCode>(
+      `/api/v1/teacher/access-codes/${encodeURIComponent(accessCodeId)}`
+    );
+  }
+
   async createAccessCodeBatch(
     courseId: string,
-    count: number
+    count: number,
+    options: AccessCodeCreateOptions = {}
   ): Promise<ManagedAccessCode[]> {
     const res = await this.http.post<{ items: ManagedAccessCode[] }>(
       '/api/v1/teacher/access-codes/batch',
       {
         idempotency_key: crypto.randomUUID(),
         count,
-        grants: [{ course_id: courseId, scope: 'course' }],
+        grants: options.grants ?? [{ course_id: courseId, scope: 'course' }],
+        redeem_from: options.redeem_from ?? null,
+        redeem_until: options.redeem_until ?? null,
+        recipient_label: options.recipient_label ?? null,
+        recipient_note: options.recipient_note ?? null,
+      }
+    );
+    return res.items;
+  }
+
+  async updateAccessCodeRecipient(
+    accessCodeId: string,
+    recipientLabel: string | null,
+    recipientNote: string | null
+  ): Promise<ManagedAccessCode> {
+    return this.http.put<ManagedAccessCode>(
+      `/api/v1/teacher/access-codes/${encodeURIComponent(accessCodeId)}/recipient`,
+      { recipient_label: recipientLabel, recipient_note: recipientNote }
+    );
+  }
+
+  freezeAccessCode(accessCodeId: string): Promise<ManagedAccessCode> {
+    return this.http.post<ManagedAccessCode>(
+      `/api/v1/teacher/access-codes/${encodeURIComponent(accessCodeId)}/freeze`
+    );
+  }
+
+  restoreAccessCode(accessCodeId: string): Promise<ManagedAccessCode> {
+    return this.http.post<ManagedAccessCode>(
+      `/api/v1/teacher/access-codes/${encodeURIComponent(accessCodeId)}/restore`
+    );
+  }
+
+  async batchAccessCodeAction(
+    accessCodeIds: string[],
+    action: AccessCodeBatchAction
+  ): Promise<ManagedAccessCode[]> {
+    const res = await this.http.post<{ items: ManagedAccessCode[] }>(
+      '/api/v1/teacher/access-codes/batch-actions',
+      {
+        access_code_ids: accessCodeIds,
+        action,
+        idempotency_key: crypto.randomUUID(),
       }
     );
     return res.items;

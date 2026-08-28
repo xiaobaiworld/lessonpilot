@@ -40,6 +40,14 @@ def test_empty_database_upgrades_to_single_v1_head(tmp_path: Path, monkeypatch) 
     } == tables
     with engine.connect() as connection:
         assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
+        access_code_columns = {
+            row[1] for row in connection.execute(text("PRAGMA table_info(v1_access_codes)"))
+        }
+        assert {"recipient_label", "recipient_note"} <= access_code_columns
+        audit_columns = {
+            row[1] for row in connection.execute(text("PRAGMA table_info(v1_operation_audit)"))
+        }
+        assert "idempotency_key" in audit_columns
 
     command.upgrade(config, "head")
     command.check(config)

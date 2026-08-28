@@ -34,6 +34,8 @@ const code = (overrides: Partial<ManagedAccessCode> = {}): ManagedAccessCode => 
   access_code: 'KM-AAAAA-BBBBB-CCCCC',
   display_tail: 'CCCCC',
   status: 'active',
+  recipient_label: null,
+  recipient_note: null,
   redeem_from: null,
   redeem_until: null,
   created_at: '2026-08-27T00:00:00Z',
@@ -99,7 +101,7 @@ describe('AccessCodesPage', () => {
       await Promise.resolve();
     });
     await act(async () => {
-      container.querySelector<HTMLButtonElement>('.access-code-create button')?.click();
+      container.querySelector<HTMLButtonElement>('.access-code-create-footer button')?.click();
       await Promise.resolve();
     });
     expect(createAccessCodeBatch).toHaveBeenCalledWith('course-1', 3);
@@ -110,7 +112,9 @@ describe('AccessCodesPage', () => {
       const originalRow = Array.from(container.querySelectorAll('tr')).find((row) =>
         row.textContent?.includes('KM-AAAAA-BBBBB-CCCCC')
       );
-      originalRow?.querySelector<HTMLButtonElement>('button')?.click();
+      originalRow
+        ?.querySelector<HTMLButtonElement>('[data-label="操作"] button')
+        ?.click();
       await Promise.resolve();
     });
     expect(terminateAccessCode).toHaveBeenCalledWith('code-1');

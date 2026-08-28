@@ -17,6 +17,8 @@ class AccessCode(Base):
     redeem_from = Column(DateTime(timezone=True), nullable=True)
     redeem_until = Column(DateTime(timezone=True), nullable=True)
     status = Column(String(20), default="active", nullable=False)
+    recipient_label = Column(String(200), nullable=True)
+    recipient_note = Column(String(1000), nullable=True)
     created_at = Column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False
     )

@@ -45,6 +45,10 @@ def test_course_lesson_revision_order_and_workspace_isolation() -> None:
     second_password = create_teacher(client, "teacher-two")
     login_teacher(client, "teacher-one", first_password)
 
+    empty_courses = client.get("/api/v1/teacher/courses")
+    assert empty_courses.status_code == 200
+    assert empty_courses.json() == {"items": []}
+
     course = client.post(
         "/api/v1/teacher/courses",
         json={"title": "课程一", "description": "课程说明"},
@@ -52,6 +56,10 @@ def test_course_lesson_revision_order_and_workspace_isolation() -> None:
     assert course.status_code == 201
     course_id = course.json()["id"]
     assert course.json()["revision"] == 1
+
+    listed_courses = client.get("/api/v1/teacher/courses")
+    assert listed_courses.status_code == 200
+    assert [item["id"] for item in listed_courses.json()["items"]] == [course_id]
 
     first_lesson = client.post(
         f"/api/v1/teacher/courses/{course_id}/lessons",

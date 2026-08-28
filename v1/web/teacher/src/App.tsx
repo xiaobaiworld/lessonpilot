@@ -1,6 +1,7 @@
 import React, { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { APIClient } from '@v1/web/shared';
 import { TeacherAPI, Teacher } from './api';
+import { getTeacherApiOrigin } from './api-origin';
 import { TeacherLoginPage } from './pages/TeacherLoginPage';
 
 // 登录是默认入口，不应为了显示登录表单下载课程编辑器和字幕工具。
@@ -23,10 +24,7 @@ const LessonPage = lazy(() =>
 // 本地开发后端在 8000；生产同源，由 Nginx 代理 /api。
 // 本机页面可能从 localhost 或 127.0.0.1 打开，API 也要使用相同主机，
 // 否则登录 Cookie 会落到另一个 host，后续请求会变成未登录。
-const localHosts = new Set(['localhost', '127.0.0.1', '[::1]', '::1']);
-const apiOrigin = localHosts.has(location.hostname)
-  ? `${location.protocol}//${location.hostname}:8000`
-  : location.origin;
+const apiOrigin = getTeacherApiOrigin(location);
 
 const api = new TeacherAPI(new APIClient(apiOrigin));
 

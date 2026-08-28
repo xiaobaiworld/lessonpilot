@@ -109,9 +109,9 @@ def test_empty_database_full_delivery_flow() -> None:
     assert delivered["releaseId"] == release["id"]
     assert delivered["package"]["lessons"][0]["nodes"] == [NODE]
     assert code not in str(delivered["package"])
-    usage = client.get(
-        "/api/v1/teacher/access-codes", params={"course_id": course["id"]}
-    ).json()["items"][0]
+    usage = client.get("/api/v1/teacher/access-codes", params={"course_id": course["id"]}).json()[
+        "items"
+    ][0]
     assert usage["access_code"] == code
     assert usage["redemption_count"] == 1
     assert usage["first_redeemed_at"] is not None
@@ -183,9 +183,7 @@ def test_empty_database_full_delivery_flow() -> None:
     )
     assert latest.status_code == 200
     assert latest.json()["data"]["courses"][0]["releaseId"] == second_release["id"]
-    assert latest.json()["data"]["courses"][0]["package"]["lessons"][0]["nodes"] == [
-        second_node
-    ]
+    assert latest.json()["data"]["courses"][0]["package"]["lessons"][0]["nodes"] == [second_node]
 
     client.post(f"/api/v1/teacher/access-codes/{code_id}/terminate")
     updates = client.post(
@@ -250,8 +248,135 @@ def test_batch_access_codes_are_atomic_recoverable_and_idempotent() -> None:
     replay = client.post("/api/v1/teacher/access-codes/batch", json=payload).json()
     assert replay["replayed"] is True
     assert [item["access_code"] for item in replay["items"]] == codes
-    listed = client.get(
-        "/api/v1/teacher/access-codes", params={"course_id": course["id"]}
-    ).json()["items"]
+    listed = client.get("/api/v1/teacher/access-codes", params={"course_id": course["id"]}).json()[
+        "items"
+    ]
     assert len(listed) == 3
     assert {item["access_code"] for item in listed} == set(codes)
+
+
+def _managed_access_code_client() -> tuple[TestClient, dict]:
+    settings = make_settings()
+    app = create_app(settings)
+    Base.metadata.create_all(app.state.engine)
+    with app.state.session_factory() as session:
+        IdentityApplicationService(session, settings.session_secret).seed_admin(
+            "admin", "管理员", "admin-password"
+        )
+    client = TestClient(app)
+    client.post(
+        "/api/v1/admin/auth/login",
+        json={"login_name": "admin", "password": "admin-password"},
+    )
+    teacher = client.post(
+        "/api/v1/admin/teachers",
+        json={"login_name": "manage-teacher", "display_name": "管理教师"},
+    ).json()
+    client.post(
+        "/api/v1/teacher/auth/login",
+        json={
+            "login_name": "manage-teacher",
+            "password": teacher["temporary_password"],
+        },
+    )
+    course = client.post("/api/v1/teacher/courses", json={"title": "授权码管理课程"}).json()
+    client.post(
+        f"/api/v1/teacher/courses/{course['id']}/lessons",
+        json={
+            "title": "第一课",
+            "video_ref": {"platform": "bilibili", "video_id": "BV1Ac41187Lm"},
+        },
+    )
+    client.post(
+        f"/api/v1/teacher/courses/{course['id']}/releases",
+        json={"idempotency_key": "publish-managed-course"},
+    )
+    return client, course
+
+
+def test_access_code_management_supports_recipient_and_lifecycle() -> None:
+    client, course = _managed_access_code_client()
+    created = client.post(
+        "/api/v1/teacher/access-codes/batch",
+        json={
+            "idempotency_key": "managed-code-batch-1",
+            "count": 2,
+            "recipient_label": "线下学员 A",
+            "recipient_note": "周三交付",
+            "grants": [{"course_id": course["id"], "scope": "course"}],
+        },
+    )
+    assert created.status_code == 201
+    items = created.json()["items"]
+    assert len(items) == 2
+    assert all(item["recipient_label"] == "线下学员 A" for item in items)
+    assert all(item["recipient_note"] == "周三交付" for item in items)
+
+    access_code_id = items[0]["id"]
+    updated = client.put(
+        f"/api/v1/teacher/access-codes/{access_code_id}/recipient",
+        json={"recipient_label": "线下学员 A（已确认）", "recipient_note": None},
+    )
+    assert updated.status_code == 200
+    assert updated.json()["recipient_label"] == "线下学员 A（已确认）"
+    assert updated.json()["recipient_note"] is None
+
+    frozen = client.post(f"/api/v1/teacher/access-codes/{access_code_id}/freeze")
+    assert frozen.status_code == 200
+    assert frozen.json()["status"] == "frozen"
+
+    restored = client.post(f"/api/v1/teacher/access-codes/{access_code_id}/restore")
+    assert restored.status_code == 200
+    assert restored.json()["status"] == "active"
+
+    terminated = client.post(f"/api/v1/teacher/access-codes/{access_code_id}/terminate")
+    assert terminated.status_code == 200
+    assert terminated.json()["status"] == "terminated"
+
+    detail = client.get(f"/api/v1/teacher/access-codes/{access_code_id}")
+    assert detail.status_code == 200
+    assert detail.json()["status"] == "terminated"
+    assert [event["action"] for event in detail.json()["status_events"]] == [
+        "access_code_created",
+        "access_code_recipient_updated",
+        "access_code_frozen",
+        "access_code_restored",
+        "access_code_terminated",
+    ]
+
+
+def test_access_code_batch_actions_apply_to_selected_codes_and_replay() -> None:
+    client, course = _managed_access_code_client()
+    created = client.post(
+        "/api/v1/teacher/access-codes/batch",
+        json={
+            "idempotency_key": "managed-code-batch-2",
+            "count": 3,
+            "grants": [{"course_id": course["id"], "scope": "course"}],
+        },
+    )
+    ids = [item["id"] for item in created.json()["items"]]
+    payload = {
+        "access_code_ids": ids[:2],
+        "action": "freeze",
+        "idempotency_key": "managed-action-1",
+    }
+
+    result = client.post("/api/v1/teacher/access-codes/batch-actions", json=payload)
+    assert result.status_code == 200
+    assert {item["status"] for item in result.json()["items"]} == {"frozen"}
+
+    replay = client.post("/api/v1/teacher/access-codes/batch-actions", json=payload)
+    assert replay.status_code == 200
+    assert replay.json()["replayed"] is True
+    assert [item["id"] for item in replay.json()["items"]] == ids[:2]
+
+    restored = client.post(
+        "/api/v1/teacher/access-codes/batch-actions",
+        json={
+            "access_code_ids": ids[:2],
+            "action": "restore",
+            "idempotency_key": "managed-action-2",
+        },
+    )
+    assert {item["status"] for item in restored.json()["items"]} == {"active"}

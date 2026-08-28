@@ -1,3 +1,6 @@
+import hashlib
+import json
+
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.orm import Session
 
@@ -14,13 +17,16 @@ from app.modules.entitlement_delivery.application_service import (
 )
 from app.modules.entitlement_delivery.models import AccessCode
 from app.modules.entitlement_delivery.schemas import (
+    AccessCodeBatchActionWrite,
     AccessCodeBatchWrite,
+    AccessCodeRecipientWrite,
     AccessCodeWrite,
     RedemptionWrite,
     UpdateWrite,
 )
 from app.modules.identity.dependencies import require_teacher
 from app.modules.identity.models import TeacherAccount
+from app.modules.runtime_audit.application_service import RuntimeAuditApplicationService
 from app.modules.workspace_course.application_service import (
     WorkspaceCourseApplicationService,
     WorkspaceCourseError,
@@ -37,23 +43,25 @@ def _service(request: Request, db: Session) -> EntitlementApplicationService:
     return EntitlementApplicationService(db, settings.access_code_secret)
 
 
-def _public(service: EntitlementApplicationService, code: AccessCode) -> dict:
+def _public(
+    service: EntitlementApplicationService,
+    code: AccessCode,
+    status_events: list[dict] | None = None,
+) -> dict:
     redemptions = list(code.redemptions)
     return {
         "id": code.id,
         "access_code": service.reveal_code(code),
         "display_tail": code.display_tail,
         "status": code.status,
+        "recipient_label": code.recipient_label,
+        "recipient_note": code.recipient_note,
         "redeem_from": code.redeem_from,
         "redeem_until": code.redeem_until,
         "created_at": code.created_at,
         "redemption_count": len(redemptions),
-        "first_redeemed_at": min(
-            (item.first_redeemed_at for item in redemptions), default=None
-        ),
-        "last_redeemed_at": max(
-            (item.last_redeemed_at for item in redemptions), default=None
-        ),
+        "first_redeemed_at": min((item.first_redeemed_at for item in redemptions), default=None),
+        "last_redeemed_at": max((item.last_redeemed_at for item in redemptions), default=None),
         "grants": [
             {
                 "course_id": grant.course_id,
@@ -63,7 +71,45 @@ def _public(service: EntitlementApplicationService, code: AccessCode) -> dict:
             }
             for grant in code.grants
         ],
+        **({"status_events": status_events} if status_events is not None else {}),
     }
+
+
+def _audit(
+    db: Session,
+    request: Request,
+    *,
+    action: str,
+    teacher_id: str,
+    code_id: str,
+    target_type: str = "access_code",
+    target_id: str | None = None,
+    idempotency_key: str | None = None,
+    metadata: dict | None = None,
+) -> None:
+    RuntimeAuditApplicationService(db).record(
+        action=action,
+        actor_type="teacher",
+        actor_id=teacher_id,
+        target_type=target_type,
+        target_id=target_id or code_id,
+        idempotency_key=idempotency_key,
+        metadata=metadata,
+        request_id=request.state.request_id,
+    )
+
+
+def _status_events(db: Session, code_id: str) -> list[dict]:
+    events = RuntimeAuditApplicationService(db).list_target_events("access_code", code_id)
+    return [
+        {
+            "action": event.action,
+            "result": event.result,
+            "reason_code": event.reason_code,
+            "occurred_at": event.occurred_at,
+        }
+        for event in events
+    ]
 
 
 def _validated_grants(
@@ -117,7 +163,21 @@ def create_access_code(
             _validated_grants(payload, teacher, db),
             payload.redeem_from,
             payload.redeem_until,
+            payload.recipient_label,
+            payload.recipient_note,
+            commit=False,
         )
+        if not replayed:
+            _audit(
+                db,
+                request,
+                action="access_code_created",
+                teacher_id=teacher.id,
+                code_id=code.id,
+                idempotency_key=payload.idempotency_key,
+                metadata={"idempotency_key": payload.idempotency_key},
+            )
+        db.commit()
         return {**_public(service, code), "access_code": raw, "replayed": replayed}
     except (WorkspaceCourseError, EntitlementError) as error:
         raise _error(error) from error
@@ -139,11 +199,27 @@ def create_access_code_batch(
             _validated_grants(payload, teacher, db),
             payload.redeem_from,
             payload.redeem_until,
+            payload.recipient_label,
+            payload.recipient_note,
+            commit=False,
         )
+        if not replayed:
+            for code, _ in items:
+                _audit(
+                    db,
+                    request,
+                    action="access_code_created",
+                    teacher_id=teacher.id,
+                    code_id=code.id,
+                    idempotency_key=payload.idempotency_key,
+                    metadata={
+                        "idempotency_key": payload.idempotency_key,
+                        "batch_count": payload.count,
+                    },
+                )
+        db.commit()
         return {
-            "items": [
-                {**_public(service, code), "access_code": raw} for code, raw in items
-            ],
+            "items": [{**_public(service, code), "access_code": raw} for code, raw in items],
             "replayed": replayed,
         }
     except (WorkspaceCourseError, EntitlementError) as error:
@@ -158,11 +234,7 @@ def list_access_codes(
     db: Session = Depends(get_db),
 ) -> dict:
     service = _service(request, db)
-    return {
-        "items": [
-            _public(service, item) for item in service.list_codes(teacher.id, course_id)
-        ]
-    }
+    return {"items": [_public(service, item) for item in service.list_codes(teacher.id, course_id)]}
 
 
 @teacher_router.get("/{access_code_id}")
@@ -174,7 +246,155 @@ def get_access_code(
 ) -> dict:
     try:
         service = _service(request, db)
-        return _public(service, service.get_code(teacher.id, access_code_id))
+        code = service.get_code(teacher.id, access_code_id)
+        return _public(service, code, _status_events(db, code.id))
+    except EntitlementError as error:
+        raise _error(error) from error
+
+
+@teacher_router.put("/{access_code_id}/recipient")
+def update_access_code_recipient(
+    access_code_id: str,
+    payload: AccessCodeRecipientWrite,
+    request: Request,
+    teacher: TeacherAccount = Depends(require_teacher),
+    db: Session = Depends(get_db),
+) -> dict:
+    try:
+        service = _service(request, db)
+        code = service.set_recipient(
+            teacher.id,
+            access_code_id,
+            payload.recipient_label,
+            payload.recipient_note,
+            commit=False,
+        )
+        _audit(
+            db,
+            request,
+            action="access_code_recipient_updated",
+            teacher_id=teacher.id,
+            code_id=code.id,
+        )
+        db.commit()
+        return _public(service, code)
+    except EntitlementError as error:
+        raise _error(error) from error
+
+
+def _change_access_code_status(
+    access_code_id: str,
+    action: str,
+    request: Request,
+    teacher: TeacherAccount,
+    db: Session,
+) -> dict:
+    service = _service(request, db)
+    code, changed = service.set_status(teacher.id, access_code_id, action, commit=False)
+    if changed:
+        event_actions = {
+            "freeze": "access_code_frozen",
+            "restore": "access_code_restored",
+            "terminate": "access_code_terminated",
+        }
+        _audit(
+            db,
+            request,
+            action=event_actions[action],
+            teacher_id=teacher.id,
+            code_id=code.id,
+        )
+    db.commit()
+    return _public(service, code)
+
+
+@teacher_router.post("/batch-actions")
+def batch_change_access_code_status(
+    payload: AccessCodeBatchActionWrite,
+    request: Request,
+    teacher: TeacherAccount = Depends(require_teacher),
+    db: Session = Depends(get_db),
+) -> dict:
+    try:
+        service = _service(request, db)
+        fingerprint = hashlib.sha256("\0".join(payload.access_code_ids).encode()).hexdigest()
+        audit = RuntimeAuditApplicationService(db)
+        prior = audit.find_operation(
+            teacher.id, "access_code_batch_action", payload.idempotency_key
+        )
+        if prior:
+            metadata = json.loads(prior.metadata_json or "{}")
+            if metadata.get("fingerprint") != fingerprint:
+                raise EntitlementError("ACCESS_CODE_IDEMPOTENCY_CONFLICT")
+            codes = [service.get_code(teacher.id, code_id) for code_id in payload.access_code_ids]
+            return {
+                "items": [_public(service, code) for code in codes],
+                "replayed": True,
+            }
+        codes, replayed = service.batch_set_status(
+            teacher.id, payload.access_code_ids, payload.action, commit=False
+        )
+        if not replayed:
+            _audit(
+                db,
+                request,
+                action="access_code_batch_action",
+                teacher_id=teacher.id,
+                code_id=payload.idempotency_key,
+                target_type="access_code_batch",
+                target_id=payload.idempotency_key,
+                idempotency_key=payload.idempotency_key,
+                metadata={
+                    "action": payload.action,
+                    "fingerprint": fingerprint,
+                },
+            )
+            event_action = {
+                "freeze": "access_code_frozen",
+                "restore": "access_code_restored",
+                "terminate": "access_code_terminated",
+            }[payload.action]
+            for code in codes:
+                _audit(
+                    db,
+                    request,
+                    action=event_action,
+                    teacher_id=teacher.id,
+                    code_id=code.id,
+                    idempotency_key=payload.idempotency_key,
+                    metadata={"idempotency_key": payload.idempotency_key},
+                )
+        db.commit()
+        return {
+            "items": [_public(service, code) for code in codes],
+            "replayed": replayed,
+        }
+    except EntitlementError as error:
+        raise _error(error) from error
+
+
+@teacher_router.post("/{access_code_id}/freeze")
+def freeze_access_code(
+    access_code_id: str,
+    request: Request,
+    teacher: TeacherAccount = Depends(require_teacher),
+    db: Session = Depends(get_db),
+) -> dict:
+    try:
+        return _change_access_code_status(access_code_id, "freeze", request, teacher, db)
+    except EntitlementError as error:
+        raise _error(error) from error
+
+
+@teacher_router.post("/{access_code_id}/restore")
+def restore_access_code(
+    access_code_id: str,
+    request: Request,
+    teacher: TeacherAccount = Depends(require_teacher),
+    db: Session = Depends(get_db),
+) -> dict:
+    try:
+        return _change_access_code_status(access_code_id, "restore", request, teacher, db)
     except EntitlementError as error:
         raise _error(error) from error
 
@@ -187,8 +407,7 @@ def terminate_access_code(
     db: Session = Depends(get_db),
 ) -> dict:
     try:
-        service = _service(request, db)
-        return _public(service, service.terminate(teacher.id, access_code_id))
+        return _change_access_code_status(access_code_id, "terminate", request, teacher, db)
     except EntitlementError as error:
         raise _error(error) from error
 
