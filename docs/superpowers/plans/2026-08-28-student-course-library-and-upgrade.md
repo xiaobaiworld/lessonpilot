@@ -4,7 +4,7 @@
 
 **Goal:** 按已确认的第十二版设计，实现学生插件的课程列表分页、课程升级、学习记录迁移、首页显示设置和授权码入口，并为学生登录与真实推荐保留清晰的后端边界。
 
-**Architecture:** 课程内容仍以服务端最新可交付 `CourseRelease` 为真源，插件 background 继续作为唯一网络与本地存储边界。插件以 `courseId` 锁定课程，以 `releaseId` 判断版本，以 `lessonId + node.id` 迁移学习记录；popup 只负责显示和发起操作。首页显示偏好保存在插件本地，不写入课程包。学生登录和推荐课程不伪造数据，作为后续独立账户/目录域。
+**Architecture:** 课程内容仍以服务端最新可交付 `CourseRelease` 为真源，插件 background 继续作为唯一网络与本地存储边界。插件以 `courseId` 锁定课程，以 `releaseId` 判断版本，以 `lessonId + node.id` 迁移学习记录；popup 打开时只触发一次轻量版本检查，popup 只负责显示和发起操作。版本检查先返回新课程/升级摘要，真正升级时再单独请求课程包并由服务端二次校验。首页显示偏好保存在插件本地，不写入课程包。学生登录和推荐课程不伪造数据，作为后续独立账户/目录域。
 
 **Tech Stack:** TypeScript、Vite、Chrome MV3、`chrome.storage.local`、FastAPI、Pydantic、SQLAlchemy、Alembic、Vitest、pytest、JSON Schema。
 
@@ -53,38 +53,53 @@
   -> B 站页面按 BVID + page/cid 找到课程并运行
 ```
 
-当前已经存在但未接入插件 UI 的升级检查流程：
+当前已经存在但未接入插件 UI 的升级检查基础能力：
 
 ```text
-插件应读取本机 courseId + 已安装 releaseId
-  -> POST /api/v1/student/course-updates
-  -> 服务端重新计算有效授权
-  -> 返回最新可交付课程包，或返回空 courses 表示无需更新
+插件 popup 打开
+  -> background 读取本机 courseId + 已安装 releaseId
+  -> POST /api/v1/student/course-updates/check（只返回版本摘要）
+  -> 服务端重新计算当前本机有效授权集合
+  -> 返回全部授权课程的 status=unchanged|new|update 摘要，或空 courses 表示当前本机没有有效授权
+  -> 学生点击升级，或自动模式确认没有活跃学习会话
+  -> POST /api/v1/student/course-updates/apply（请求完整课程包）
+  -> 服务端再次核对授权、courseId 和期望 releaseId
   -> 插件按稳定 lessonId + node.id 迁移 LearningState
   -> 原子替换课程并保存新 releaseId
 ```
 
-当前缺口是：`checkCoursePackage()` 丢弃了 `releaseId`/`releaseNumber`；`CourseLibrary` 没有课程升级方法；background 没有升级消息；popup 只有授权码兑换和插件 ZIP 更新入口；设置没有本地偏好存储；课程列表没有按 3 门限制和分页。
+当前缺口是：`CourseRelease` 的版本信息尚未完整落到插件本地；现有 `POST /api/v1/student/course-updates` 一次返回课程包，不能作为轻量检查接口；`CourseLibrary` 没有课程升级方法；background 没有 popup 打开检查和升级消息；popup 只有授权码兑换和插件 ZIP 更新入口；设置没有本地偏好存储；课程列表没有按 3 门限制和分页。
 
 ## 后端接口清单
 
-### 本轮复用并接通的已有接口
+### 本轮后端接口设计
 
 1. `POST /api/v1/student/redemptions`
    - 作用：输入授权码，创建或复用当前本机的 `Redemption`，按 `course_id` 返回最新可交付课程包。
    - 保持现有字段：`schemaVersion`、`idempotencyKey`、`accessCode`、`localIdentityId`、`localProof`、`client`。
    - 插件首次领取继续使用现有接口，不新增“领取课程码”后端路径。
 
-2. `POST /api/v1/student/course-updates`
-   - 作用：检查指定课程是否有新 `releaseId`，返回最新课程包；没有更新时返回空 `courses`。
-   - 请求继续使用 `courseIds`、`knownReleases`、本机身份和证明。
-   - 将 `knownReleases` 从裸 `dict` 收紧为明确的 `courseId` + `releaseId` 结构，拒绝未知字段和空标识。
-   - 响应继续返回 `courseId`、`releaseId`、`releaseNumber`、`installKind`、`authorizedScope` 和 `package`；本轮不返回变更明细，因为产品已选择只提示“有新版本”。
+2. `POST /api/v1/student/course-updates/check`（新增轻量检查接口）
+   - 触发时机：仅 popup 打开且 `autoCheckUpdates=true`，或学生手工点击“检查更新”。
+   - 请求提交本机 `installedCourses: [{courseId, releaseId, releaseNumber}]`、本机身份和证明。
+   - 服务端通过 `effective_grants()` 得到当前本机的有效授权集合，不依赖客户端先知道“拥有的课程”清单。
+   - 返回当前本机有效授权集合中的全部课程摘要：`courseId`、标题、当前 `releaseId`、`releaseNumber`、`status: unchanged|new|update`；不返回未授权课程，也不返回完整课程包。
+   - `courseId` 不在本机列表中即标记为 `new`；`courseId` 相同但 `releaseId` 不同即标记为 `update`；相同版本标记为 `unchanged`；缺少本地 `releaseId` 按未知版本处理并标记为 `update`。
+
+3. `POST /api/v1/student/course-updates/apply`（新增升级交付接口）
+   - 请求提交学生选中的 `courseId`、检查时看到的期望 `releaseId`、本机身份和证明。
+   - 服务端再次计算有效授权，并确认期望版本仍是该课程当前可交付版本；不一致则拒绝并要求重新检查。
+   - 通过现有 `crop_package()` 返回授权范围内的完整课程包，避免仅凭客户端摘要安装内容。
+   - 插件升级失败时继续保留旧课程；成功后才替换本地课程和版本元数据。
+
+4. 现有 `POST /api/v1/student/course-updates`
+   - 暂作为兼容路径处理已有调用，后续迁移到 `check`/`apply` 两阶段契约后再决定是否下线。
+   - 若保留，必须收紧 `knownReleases` 为明确的 `courseId + releaseId` 结构，拒绝未知字段和空标识，不能继续用裸 `dict`。
 
 ### 本轮不新增的接口
 
 - 课程列表、课程分页和首页显示设置全部基于插件本地 `InstalledCourse` 和 `StudentSettings`，不新增服务端课程列表接口。
-- 自动升级和手工升级共用 `course-updates`，不拆成两个后端路径。
+- 自动检查、提示升级和手工检查共用 `course-updates/check`；实际升级共用 `course-updates/apply`，不按 UI 模式复制后端业务。
 - `GET /api/v1/meta/version` 仅为服务探针，不参与课程升级判断。
 
 ### 后续独立账户与推荐域的接口草案
@@ -111,8 +126,8 @@
 - 修改 `v1/extension/popup/index.ts`、`v1/extension/popup/popup.css`：实现首页课程上限、更多分页、升级浮窗、授权码入口和设置入口。
 - 新建 `v1/extension/popup/settings.ts`：渲染本地设置页并提交设置消息。
 - 修改 `v1/extension/shared/library-view.ts`：提供最多 3 门展示、分页数据和需要升级状态视图。
-- 修改 `v1/backend/app/modules/entitlement_delivery/schemas.py`、`routes.py`：收紧 `knownReleases` 请求结构并保持现有升级响应。
-- 修改 `v1/backend/tests/test_entitlement_delivery_api.py`：覆盖空更新、最新 release 更新、未知字段和授权范围裁剪。
+- 修改 `v1/backend/app/modules/entitlement_delivery/schemas.py`、`routes.py`：增加 `course-updates/check` 版本摘要接口和 `course-updates/apply` 课程包交付接口，保留兼容路径并收紧版本请求结构。
+- 修改 `v1/backend/tests/test_entitlement_delivery_api.py`：覆盖新课程发现、同版本无变化、旧版本升级、期望版本过期、未知字段和授权范围裁剪。
 - 修改 `v1/extension/storage/storage.test.ts`、新建 `v1/extension/runtime/course-upgrade.test.ts`、扩展 `v1/extension/background/redeem.test.ts`、`v1/extension/popup/popup.test.ts`：覆盖存储兼容、节点迁移、原子失败、消息和显示规则。
 - 修改 `docs/superpowers/specs/2026-08-28-student-course-library-and-upgrade-design.md`、`changelog.md`、`next.md`：完成后记录已验证行为。
 
@@ -143,7 +158,7 @@
 - Test: `v1/extension/storage/storage.test.ts`
 
 - [ ] 让 `checkCoursePackage()` 返回 `releaseId` 和 `releaseNumber`，并在 `InstalledCourse` 中保存。
-- [ ] 对缺失版本字段的旧本机课程保留可学习能力，但升级检查发送空的已知版本，使服务端返回当前可交付包。
+- [ ] 对缺失版本字段的旧本机课程保留可学习能力，但升级检查发送“版本未知”的条目，使服务端返回当前可交付版本摘要。
 - [ ] 重复安装同一课程时只替换该课程；其它课程、授权来源和学习记录不变。
 - [ ] 增加测试：首次兑换保存版本、旧课程读取兼容、错误版本不写入、同课程更新不清除其它课程。
 - [ ] 运行 `npm --prefix v1 test -- background/redeem.test.ts storage/storage.test.ts`，预期全部通过。
@@ -173,9 +188,10 @@
 - Modify: `v1/extension/background/messages.test.ts`
 - Test: `v1/extension/runtime/course-upgrade.test.ts`
 
-- [ ] 增加 `checkCourseUpdates` 消息：background 读取本地课程版本和本机身份，调用 `POST /api/v1/student/course-updates`，只返回候选更新摘要，不写入课程。
-- [ ] 增加 `upgradeCourse` 消息：接收已检查的候选包，重新校验完整课程包，执行节点进度迁移，再原子写入新课程。
-- [ ] 自动、提示、手动三种模式都通过这两个消息；自动模式在当前学习会话活跃时返回“延后”，不得热切换。
+- [ ] 增加 `checkCourseUpdates` 消息：仅由 popup 打开事件或手工检查触发；background 读取本地课程版本和本机身份，调用 `POST /api/v1/student/course-updates/check`，返回当前本机有效授权集合的课程版本摘要，不写入课程。
+- [ ] 增加 `upgradeCourse` 消息：接收已检查的 `courseId + expectedReleaseId`，调用 `POST /api/v1/student/course-updates/apply` 获取完整课程包，重新校验课程包，执行节点进度迁移，再原子写入新课程。
+- [ ] 自动、提示、手动三种模式都使用同一检查/交付链路；模式只决定检查结果后的处理方式。自动模式在当前学习会话活跃时返回“延后”，不得热切换。
+- [ ] 明确禁止 background 定时轮询、浏览器启动轮询和 B 站页面触发检查；popup 未打开时不得因课程升级逻辑产生网络请求。
 - [ ] 所有网络请求留在 background；popup 不直接访问 API，不直接读写 `chrome.storage`。
 - [ ] 增加未知消息、未知课程、版本回退、响应畸形、网络超时和重复点击测试。
 - [ ] 运行 `npm --prefix v1 test -- background/messages.test.ts runtime/course-upgrade.test.ts`，预期消息和失败路径通过。
@@ -188,9 +204,11 @@
 - Modify: `v1/backend/app/modules/entitlement_delivery/routes.py`
 - Modify: `v1/backend/tests/test_entitlement_delivery_api.py`
 
-- [ ] 新增 `KnownRelease` Pydantic 模型，字段只允许 `course_id`/`release_id` 的别名映射，禁止未知字段。
-- [ ] 让 `UpdateWrite.known_releases` 使用该模型，并保持现有 course-id 授权、最新可交付 release 和范围裁剪行为。
-- [ ] 增加回归：已知最新版本返回空、旧版本返回最新包、未知课程不泄露包、部分授权只返回允许课节/节点、未知字段返回 422。
+- [ ] 新增 `InstalledCourseVersion`、`CourseUpdateCheckWrite` 和 `CourseUpdateApplyWrite` Pydantic 模型，字段只允许 `course_id`、`release_id`、`release_number` 及本机身份字段，禁止未知字段。
+- [ ] 新增 check 路由：遍历该本机 `effective_grants()` 的全部课程；本机没有 `courseId` 返回 `new`，有但 `releaseId` 不同返回 `update`，相同版本返回 `unchanged`；不返回未授权课程信息和完整课程包。
+- [ ] 新增 apply 路由：只接受选中的课程和检查时的期望 `releaseId`，服务端再次确认它仍是最新可交付版本，再用现有 `crop_package()` 返回课程包。
+- [ ] 保持旧 `/course-updates` 的兼容行为并标明迁移边界，避免旧插件突然失效。
+- [ ] 增加回归：新课程发现、已知最新版本无候选、旧版本出现升级、期望版本过期、未知课程不泄露包、部分授权只返回允许课节/节点、未知字段返回 422。
 - [ ] 运行 `cd v1/backend && uv run pytest tests/test_entitlement_delivery_api.py`，预期现有和新增用例全部通过。
 - [ ] Commit: `fix: validate course update release references`
 
@@ -203,9 +221,9 @@
 - Test: `v1/extension/shared/library-view.test.ts`
 - Test: `v1/extension/popup/popup.test.ts`
 
-- [ ] 把课程视图分成“需要升级”和“全部课程”，各自最多直接取 3 门；总数大于 3 时返回分页状态和更多入口，总数不大于 3 时返回无更多入口。
+- [ ] 把课程视图分成“发现新课程”“需要升级”和“全部课程”，每个列表区最多直接取 3 门；总数大于 3 时返回分页状态和更多入口，总数不大于 3 时返回无更多入口。
 - [ ] 课程排序固定为最近安装/最近学习规则，并用 `courseId` 作为分页稳定键，避免升级后列表抖动。
-- [ ] 课程卡片整体可点击打开；明确的“打开课程”按钮和“升级”按钮分别执行打开与升级。
+- [ ] 已安装课程卡片整体可点击打开；明确的“打开课程”按钮和“升级”按钮分别执行打开与升级；新课程卡片提供“领取/安装”动作，调用同一 `apply` 交付接口。
 - [ ] 实现小型升级浮窗：淡红色、普通蓝色升级按钮、小箭头收起、叉号关闭；关闭只影响浮窗，不清除待升级状态。
 - [ ] 顶部复用标准 KnownMap 图标与 K/M 字标，不生成新的渐变图标。
 - [ ] 增加测试：2 门/3 门不显示更多，4 门显示前 3 门和更多入口，升级文案不残留“同步”，卡片打开入口存在。
@@ -259,14 +277,16 @@
 - [ ] 运行 `npm test`，预期根测试和 v1 测试全部通过。
 - [ ] 运行 `npm run check`、`node tools/doc-check.mjs`、`npm --prefix v1 run type-check`、`npm --prefix v1 run build`、`npm --prefix v1/extension run build:all`。
 - [ ] 运行 `cd v1/backend && uv run ruff check . && uv run ruff format --check . && uv run pytest`，预期后端检查和测试全部通过。
-- [ ] 检查本地/远程分支、构建 manifest、生产下载包和线上 `/api/v1/student/course-updates` 行为，再决定版本发布。
+- [ ] 检查本地/远程分支、构建 manifest、生产下载包和线上 `/api/v1/student/course-updates/check`、`apply` 行为，再决定版本发布。
 - [ ] Commit: `test: verify course library and upgrade release`
 
 ## 验收标准
 
 - 学生有 12 门课程时，首页每个列表区最多显示 3 门；超过 3 门出现正确的更多入口，3 门或更少不出现。
+- 检查发现的新课程只在存在 `status=new` 时显示，且同样遵守每区最多 3 门和超过 3 门才显示更多的规则。
 - “领取新课程”默认在首页显示，授权码可复用现有兑换接口；“为你推荐”默认显示但没有真实推荐数据时不伪造课程。
-- 已安装课程能保存 `releaseId`，打开插件或进入课程页面能检查升级；提示模式需要学生确认，自动模式不打断当前学习，手动模式不主动检查。
+- 检查接口能从当前本机有效授权集合中发现本机未安装的 `courseId`，标记为 `new`；同一 `courseId` 的 `releaseId` 变化标记为 `update`；同版本不产生候选。
+- 已安装课程能保存 `releaseId`，打开插件触发一次版本检查，插件未打开和 B 站页面访问都不触发后台请求；提示模式需要学生确认，自动模式不打断当前学习，手动模式不自动应用升级。
 - 升级时只按稳定身份迁移：未变节点保留完成状态，改动节点清除完成状态但保留历史，新节点未完成，删除节点不再显示。
 - 网络、权限、校验或存储失败均保留旧课程，不产生半更新。
 - 首页和设置页复用标准 KnownMap 资源，生产代码中不存在设计草稿的渐变占位图标。
