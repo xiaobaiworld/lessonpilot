@@ -12,6 +12,7 @@
     "build": "vite build",
     "build:local": "KNOWNMAP_TARGET=local vite build",
     "build:production": "KNOWNMAP_TARGET=production vite build",
+    "build:all": "npm run build:local && npm run build:production",
     "type-check": "tsc --noEmit"
   },
   "devDependencies": {
