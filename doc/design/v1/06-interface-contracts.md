@@ -299,11 +299,15 @@
 
 | 方法 | 路径 | 状态 | 依据 |
 | --- | --- | --- | --- |
-| POST | `/api/v1/teacher/access-codes` | 改名 | 请求指定一个已发布课程的 `course_id`，返回完整码；兑换/更新时自动解析最新可交付版本；旧路径：`POST /api/v1/teacher/courses/{course_id}/access-codes` |
-| POST | `/api/v1/teacher/access-codes/batch` | 新建 | 以批次幂等键原子生成 1–100 个课程级授权码，失败不留下半批结果 |
-| GET | `/api/v1/teacher/access-codes` | 改名 | 支持按课程过滤；仅对所属教师返回完整码、领取数量及首次/最近领取时间；旧路径：`GET /api/v1/teacher/courses/{course_id}/access-codes` |
-| GET | `/api/v1/teacher/access-codes/{access_code_id}` | 新建 | 所属教师可读取完整码、范围、窗口、状态和领取使用摘要，不返回校验摘要或本机标识摘要 |
-| POST | `/api/v1/teacher/access-codes/{access_code_id}/terminate` | 新建 | `FR-GRANT-*`；只重算未来在线资格 |
+| POST | `/api/v1/teacher/access-codes` | 改名 | 请求指定一个或多个当前教师自己的已发布课程授权项，返回完整码；兑换/更新时自动解析最新可交付版本；旧路径：`POST /api/v1/teacher/courses/{course_id}/access-codes` |
+| POST | `/api/v1/teacher/access-codes/batch` | 新建 | 以批次幂等键原子生成 1–100 个授权码，共享范围、时间和教师侧接收人默认记录，失败不留下半批结果 |
+| GET | `/api/v1/teacher/access-codes` | 改名 | 支持按课程过滤；仅对所属教师返回完整码、接收人记录、范围、领取数量及首次/最近领取时间；旧路径：`GET /api/v1/teacher/courses/{course_id}/access-codes` |
+| GET | `/api/v1/teacher/access-codes/{access_code_id}` | 新建 | 所属教师可读取完整码、范围、窗口、接收人记录、状态和领取使用摘要，不返回校验摘要或本机标识摘要 |
+| PUT | `/api/v1/teacher/access-codes/{access_code_id}/recipient` | 设计新增 | 修改教师侧接收人和备注，不改变授权范围、时间、状态或学生资格 |
+| POST | `/api/v1/teacher/access-codes/{access_code_id}/freeze` | 设计新增 | 将有效码冻结；阻止未来领取、重新下载和更新，但不删除领取关系 |
+| POST | `/api/v1/teacher/access-codes/{access_code_id}/restore` | 设计新增 | 将冻结码恢复为有效；作废码不可恢复 |
+| POST | `/api/v1/teacher/access-codes/{access_code_id}/terminate` | 已有，语义扩展 | 教师界面称“作废授权码”；只重算未来在线资格，不物理删除记录 |
+| POST | `/api/v1/teacher/access-codes/batch-actions` | 设计新增 | 以幂等键原子执行批量 `freeze`、`restore` 或 `terminate`；不适用状态或任一写入失败时整体拒绝 |
 | POST | `/api/v1/student/redemptions` | 改名 | 首次兑换，见 4.3；旧路径：`POST /api/v1/public/course-download` |
 | POST | `/api/v1/student/course-updates` | 新建 | 免输授权码更新，见 4.4 |
 
@@ -318,6 +322,10 @@
 `/teacher/access-codes`：一个授权码可以通过多个 `GrantItem` 覆盖多门课程
 （04 第 9 节），挂在单门课程路径下会暗示「授权码属于某课程」这一错误模型。
 当前实现的这个嵌套也正是 `access_code_service` 直接查 `Course`/`Lesson` 表的诱因之一。
+
+教师管理状态使用 `active`、`frozen`、`terminated` 三态；时间到期是独立的服务端计算结果。
+批量状态动作必须由服务端在一个事务中完成，前端不得循环调用单条端点模拟原子批量操作。
+自定义授权码生成规则暂不加入接口；后续规则只能生成满足最小长度、格式校验和全局唯一性的不重复候选码。
 
 学生端点使用 `/api/v1/student/` 而不是 `/public/`：兑换与更新都要求 `localIdentityId`
 和 `localProof`，不是匿名公开能力。真正无需任何身份的只有销售页静态资源和健康检查。

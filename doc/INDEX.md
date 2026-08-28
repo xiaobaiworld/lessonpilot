@@ -1,6 +1,6 @@
 # KnownMap 文档索引
 
-最近审计：2026-08-27；2026-08-25 增补插件本机资源管理备忘；2026-08-27 增补 `D-V1-017` 字幕上传修复流程、`D-V1-018` 教师工作台课程版本方向和 `D-V1-019` 当前课程级授权规则，并完成相关后端端点可组合性审计
+最近审计：2026-08-28；2026-08-25 增补插件本机资源管理备忘；2026-08-27 增补 `D-V1-017` 字幕上传修复流程、`D-V1-018` 教师工作台课程版本方向和 `D-V1-019` 当前课程级授权规则，并完成相关后端端点可组合性审计；2026-08-28 增补 `D-V1-020` 授权码创建与管理设计，待实现前评审
 
 当前阶段：v1 已完成生产切换并进入新功能开发；当前授权码按 `course_id` 自动解析最新可交付版本，可复用现有后端端点；独立课程版本、草稿消费、版本操作和版本级授权仍等待后续端点/业务服务变更批准；v1 需求现为 `1.1.0`，设计 04–07 已同步互动节点结构化内容、展示提示保存、教师预览和课程版本方向；设计 07 已按
 `FR-LIB-014` 增补学生插件使用说明页。插件大资源本机方案见 [`插件文件资源管理.md`](插件文件资源管理.md)；教师端媒体资源输入决策见
@@ -29,6 +29,7 @@
 | [`../README.md`](../README.md) | 项目入口、当前状态、运行命令 |
 | [`decisions/2026-08-26-early-stage-release-process.md`](decisions/2026-08-26-early-stage-release-process.md) | 初期开发与运行阶段的发布流程（`D-V1-013`）；后期改流程须另写决策 |
 | [`decisions/2026-08-27-course-version-and-access-code-management.md`](decisions/2026-08-27-course-version-and-access-code-management.md) | 教师工作台独立课程版本、草稿消费、版本操作与版本级授权（`D-V1-018`） |
+| [`../docs/superpowers/specs/2026-08-28-access-code-management-design.md`](../docs/superpowers/specs/2026-08-28-access-code-management-design.md) | 授权码创建、接收人记录、冻结/恢复/作废和批量管理设计（`D-V1-020`，待实现前评审） |
 
 ### 后续能力备忘
 
@@ -54,7 +55,7 @@
 
 ### v1 已接受决策
 
-`D-V1-001` 至 `D-V1-017`，以及当前性能决策，全部在 [`decisions/`](decisions/)：
+`D-V1-001` 至 `D-V1-020`，以及当前性能决策，全部在 [`decisions/`](decisions/)：
 
 | 编号 | 决策 |
 | --- | --- |
@@ -77,6 +78,7 @@
 | `D-V1-017` | [字幕上传先由服务端检查并修复，再进入草稿保存](decisions/2026-08-27-subtitle-repair.md) |
 | `D-V1-018` | [教师工作台按课程版本管理发布与授权](decisions/2026-08-27-course-version-and-access-code-management.md) |
 | `D-V1-019` | [当前阶段授权码按课程绑定并自动解析最新可交付版本](decisions/2026-08-27-course-access-latest-release.md) |
+| `D-V1-020` | [授权码记录与教师侧管理状态](decisions/2026-08-28-access-code-management.md)；设计与实现待评审 |
 | 当前性能决策 | [教师端首屏性能优化](decisions/2026-08-27-teacher-first-load-performance.md) |
 
 ### 经验与状态
