@@ -310,6 +310,10 @@
 | POST | `/api/v1/teacher/access-codes/batch-actions` | 设计新增 | 以幂等键原子执行批量 `freeze`、`restore` 或 `terminate`；不适用状态或任一写入失败时整体拒绝 |
 | POST | `/api/v1/student/redemptions` | 改名 | 首次兑换，见 4.3；旧路径：`POST /api/v1/public/course-download` |
 | POST | `/api/v1/student/course-updates` | 新建 | 免输授权码更新，见 4.4 |
+| POST | `/api/v1/student/course-updates/check` | 新建 | 只检查客户端提交的已安装课程版本摘要，不返回完整课程包；依据 `FR-LIB-007`、`FR-LIB-008`、`INT-PACKAGE-002` |
+| POST | `/api/v1/student/course-updates/apply` | 新建 | 二次校验授权与期望 `releaseId` 后返回选定课程的完整授权课程包；依据 `FR-LIB-009`、`FR-LIB-010`、`INT-PACKAGE-002` |
+| POST | `/api/v1/student/course-assets/authorize` | 新建 | 为指定课程发布版本引用的资源签发短期、限定范围的学生访问凭证；依据 `FR-LIB-005`、`SEC-TRUST-003` |
+| GET | `/api/v1/student/course-assets/{asset_id}` | 新建 | 使用短期凭证读取已授权课程资源，支持媒体 `Range`/`ETag`；不得复用教师资源端点；依据 `FR-LIB-005`、`INT-PACKAGE-002` |
 
 当前课程级授权接口边界：`POST /teacher/access-codes` 和 `/teacher/access-codes/batch` 的目标对象是一个已发布课程的 `courseId`；兑换和更新时服务端自动解析该课程最新可交付版本。
 请求与响应必须能回溯授权的 `courseId` 以及实际返回的 `releaseId`；版本级授权目标后续再增加。
