@@ -29,7 +29,7 @@
 3. `AuthorizationSource`：记录哪次兑换带来了哪些课程，不保存授权码原文。
 4. `LearningState`：按 `courseId -> lessonId -> nodeId` 保存完成状态、尝试历史和播放位置。
 5. `QuarantineEntry`：损坏数据的隔离记录，升级失败不能绕过这条保护边界。
-6. 新增 `StudentSettings`：只保存本机偏好，包括 `showRedeemEntry`、`showRecommendations`、`syncMode`、`autoCheckUpdates`、快捷键和受限的 mascot 选项。
+6. 新增 `StudentSettings`：只保存本机偏好，包括 `showRedeemEntry`、`showRecommendations`、`syncMode`、快捷键和受限的 mascot 选项；打开 popup/设置页和精确匹配课程页的检查不由设置开关屏蔽。
 
 ### 品牌与视觉资产
 
@@ -79,7 +79,7 @@ B 站 content script 解析当前 URL
   -> 有差异则提示/升级，无差异则继续学习
 ```
 
-当前缺口是：`CourseRelease` 的版本信息尚未完整落到插件本地；现有 `POST /api/v1/student/course-updates` 一次返回课程包，不能作为轻量检查接口；`CourseLibrary` 没有课程升级方法；background 没有 popup 打开检查和升级消息；popup 只有授权码兑换和插件 ZIP 更新入口；设置没有本地偏好存储；课程列表没有按 3 门限制和分页。
+当前缺口是：`CourseRelease` 的版本信息尚未完整落到插件本地；现有 `POST /api/v1/student/course-updates` 一次返回课程包，不能作为轻量检查接口；`CourseLibrary` 没有课程升级方法；background 没有 popup/设置页打开检查和升级消息；popup 只有授权码兑换和插件 ZIP 更新入口；设置没有本地偏好存储；课程列表没有按 3 门限制和分页。
 
 ## 后端接口清单
 
@@ -91,7 +91,7 @@ B 站 content script 解析当前 URL
    - 插件首次领取继续使用现有接口，不新增“领取课程码”后端路径。
 
 2. `POST /api/v1/student/course-updates/check`（新增轻量检查接口）
-   - 触发时机：popup 打开且 `autoCheckUpdates=true`、精确匹配到已安装课程的 B 站页面，或学生手工点击“检查更新”。
+   - 触发时机：popup 或设置页打开、精确匹配到已安装课程的 B 站页面，或学生手工点击“检查更新”。
    - 请求提交本机 `installedCourses: [{courseId, releaseId, releaseNumber}]`、本机身份和证明；B 站课程页触发时额外提交 `courseIds: [matchedCourseId]`，popup 全量检查不提交筛选项。
    - 服务端通过 `effective_grants()` 得到当前本机的有效授权集合，不依赖客户端先知道“拥有的课程”清单。
    - 返回当前本机有效授权集合中的全部课程摘要：`courseId`、标题、当前 `releaseId`、`releaseNumber`、`status: unchanged|new|update`；不返回未授权课程，也不返回完整课程包。
@@ -153,7 +153,7 @@ B 站 content script 解析当前 URL
 - Test: `v1/extension/storage/contract.test.ts`
 
 - [ ] 为 `InstalledCourse` 增加可选 `releaseId` 和 `releaseNumber`，旧课程读取时规范化为 `null`；不改变现有 storage root 主版本，避免旧用户整根隔离。
-- [ ] 为 root 增加可选 `settings`，缺失时填入：`showRedeemEntry: true`、`showRecommendations: true`、`syncMode: 'prompt'`、`autoCheckUpdates: true`、默认快捷键 `Alt+K`、标准 mascot。
+- [ ] 为 root 增加可选 `settings`，缺失时填入：`showRedeemEntry: true`、`showRecommendations: true`、`syncMode: 'prompt'`、默认快捷键 `Alt+K`、标准 mascot；不增加会屏蔽必要检查的开关。
 - [ ] 用字符串联合类型限制 `syncMode` 和 mascot 选项，不接受任意 URL、脚本或 CSS。
 - [ ] 增加契约测试：旧 root 仍可读，新字段能通过 schema，未知设置字段被拒绝，默认值与设计一致。
 - [ ] 运行 `npm --prefix v1 test -- storage/contract.test.ts`，预期新增契约测试通过。
@@ -297,7 +297,7 @@ B 站 content script 解析当前 URL
 - 检查发现的新课程只在存在 `status=new` 时显示，且同样遵守每区最多 3 门和超过 3 门才显示更多的规则。
 - “领取新课程”默认在首页显示，授权码可复用现有兑换接口；“为你推荐”默认显示但没有真实推荐数据时不伪造课程。
 - 检查接口能从当前本机有效授权集合中发现本机未安装的 `courseId`，标记为 `new`；同一 `courseId` 的 `releaseId` 变化标记为 `update`；同版本不产生候选。
-- 已安装课程能保存 `releaseId`；打开插件触发全量版本检查，精确匹配到已安装课程的 B 站页面触发该课程的整课检查，其他 B 站页面不触发后台请求；提示模式需要学生确认，自动模式不打断当前学习，手动模式不自动应用升级。
+- 已安装课程能保存 `releaseId`；点击插件小图标打开主 popup 或设置页触发全量版本检查，精确匹配到已安装课程的 B 站页面触发该课程的整课检查，其他 B 站页面不触发后台请求；提示模式需要学生确认，自动模式不打断当前学习，手动模式不自动应用升级。
 - 升级时只按稳定身份迁移：未变节点保留完成状态，改动节点清除完成状态但保留历史，新节点未完成，删除节点不再显示。
 - 网络、权限、校验或存储失败均保留旧课程，不产生半更新。
 - 首页和设置页复用标准 KnownMap 资源，生产代码中不存在设计草稿的渐变占位图标。
