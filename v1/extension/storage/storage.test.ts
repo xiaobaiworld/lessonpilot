@@ -205,6 +205,67 @@ describe('并发写入', () => {
 });
 
 describe('损坏隔离', () => {
+  it('旧 2.x 根缺少新增字段时补默认设置和发布元数据', async () => {
+    area.data[STORAGE_ROOT_KEY] = {
+      storage_schema_version: '2.0.0',
+      installedCourses: { old: course('old') },
+      localLearningState: {},
+      authorizationSourceCache: { sources: [] },
+      quarantine: { entries: [] },
+    };
+
+    const root = await lib.read();
+
+    expect(root.settings).toEqual({
+      showRedeemEntry: true,
+      showRecommendations: true,
+      syncMode: 'prompt',
+      shortcut: 'Alt+K',
+      mascot: 'standard',
+    });
+    expect(root.installedCourses.old.releaseId).toBeNull();
+    expect(root.installedCourses.old.releaseNumber).toBeNull();
+    expect(root.quarantine.entries).toEqual([]);
+  });
+
+  it('支持其它 2.x 根版本，不因小版本变化隔离课程库', async () => {
+    area.data[STORAGE_ROOT_KEY] = {
+      storage_schema_version: '2.9.0',
+      installedCourses: { old: course('old') },
+      localLearningState: {},
+      authorizationSourceCache: { sources: [] },
+      quarantine: { entries: [] },
+    };
+
+    const root = await lib.read();
+
+    expect(root.installedCourses.old.title).toBe('课程 old');
+    expect(root.quarantine.entries).toEqual([]);
+  });
+
+  it('设置字段损坏时只回退设置并记录隔离原因', async () => {
+    area.data[STORAGE_ROOT_KEY] = {
+      storage_schema_version: STORAGE_SCHEMA_VERSION,
+      settings: { showRedeemEntry: false, remoteScript: 'https://example.com/x.js' },
+      installedCourses: { old: course('old') },
+      localLearningState: {},
+      authorizationSourceCache: { sources: [] },
+      quarantine: { entries: [] },
+    };
+
+    const root = await lib.read();
+
+    expect(root.settings).toEqual({
+      showRedeemEntry: false,
+      showRecommendations: true,
+      syncMode: 'prompt',
+      shortcut: 'Alt+K',
+      mascot: 'standard',
+    });
+    expect(root.installedCourses.old.title).toBe('课程 old');
+    expect(root.quarantine.entries[0]?.reason).toContain('设置字段无效');
+  });
+
   it('版本不认识时整根隔离，不当有效数据读', async () => {
     area.data[STORAGE_ROOT_KEY] = {
       storage_schema_version: '0.9.0',

@@ -1,4 +1,8 @@
 import type { PortableNode } from '../../web/shared/src/portableContent';
+import {
+  DEFAULT_STUDENT_SETTINGS,
+  StudentSettings,
+} from './settings';
 
 /**
  * 本机存储根。
@@ -13,7 +17,7 @@ export const STORAGE_ROOT_KEY = 'knownmapV1';
  * 取值必须匹配 schema 里的 `^2\.\d+\.\d+$`。
  * 这是契约字段，不是内部版本号——改它等于要求所有已安装的插件隔离重建。
  */
-export const STORAGE_SCHEMA_VERSION = '2.0.0';
+export const STORAGE_SCHEMA_VERSION = '2.1.0';
 
 /** 旧根，明确拒绝，不迁移（D-V1-012 要求干净初始化） */
 export const LEGACY_KEYS = [
@@ -63,6 +67,9 @@ export interface InstalledCourse {
   lessons: InstalledLesson[];
   /** 仅保存资源清单；二进制本体由后续后台资源缓存存入 IndexedDB。 */
   assets: AssetRecord[];
+  /** 发布身份；旧本机课程读取时规范化为 null */
+  releaseId?: string | null;
+  releaseNumber?: number | null;
   /** 发布时刻，用来判断远端是否有更新 */
   publishedAt: string;
   installedAt: string;
@@ -116,6 +123,7 @@ export interface StorageRoot {
   authorizationSourceCache: { sources: AuthorizationSource[] };
   localLearningState: LearningState;
   quarantine: { entries: QuarantineEntry[] };
+  settings: StudentSettings;
 }
 
 export function emptyRoot(): StorageRoot {
@@ -126,5 +134,6 @@ export function emptyRoot(): StorageRoot {
     authorizationSourceCache: { sources: [] },
     localLearningState: {},
     quarantine: { entries: [] },
+    settings: { ...DEFAULT_STUDENT_SETTINGS },
   };
 }

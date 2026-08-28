@@ -11,6 +11,10 @@ import {
   QuarantineEntry,
   emptyRoot,
 } from './types';
+import {
+  isStudentSettings,
+  normalizeStudentSettings,
+} from './settings';
 import type { PortableNode } from '../../web/shared/src/portableContent';
 
 /** chrome.storage.local 的最小接口，便于在测试里替换 */
@@ -32,6 +36,7 @@ function isPlainObject(v: unknown): v is Record<string, unknown> {
 }
 
 const BVID = /^BV[0-9A-Za-z]{10}$/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SHA256 = /^[0-9a-f]{64}$/i;
 const COLOR = /^#[0-9a-f]{3,8}$/i;
 const MARKS = new Set(['strong', 'em', 'underline']);
@@ -200,6 +205,14 @@ function isInstalledCourse(value: unknown): value is InstalledCourse {
     !Array.isArray(value.lessons) ||
     !Array.isArray(value.assets) ||
     !value.assets.every(isAssetRecord) ||
+    (value.releaseId !== undefined &&
+      value.releaseId !== null &&
+      (typeof value.releaseId !== 'string' || !UUID.test(value.releaseId))) ||
+    (value.releaseNumber !== undefined &&
+      value.releaseNumber !== null &&
+      (typeof value.releaseNumber !== 'number' ||
+        !Number.isSafeInteger(value.releaseNumber) ||
+        value.releaseNumber < 1)) ||
     !['example', 'authorized'].includes(String(value.source)) ||
     typeof value.readOnly !== 'boolean' ||
     typeof value.sourceId !== 'string' ||
@@ -268,7 +281,10 @@ export class CourseLibrary {
     }
 
     // 版本不认识就整根隔离：结构未知时任何字段读取都是猜测
-    if (value.storage_schema_version !== STORAGE_SCHEMA_VERSION) {
+    if (
+      typeof value.storage_schema_version !== 'string' ||
+      !/^2\.\d+\.\d+$/.test(value.storage_schema_version)
+    ) {
       return this.quarantined(
         emptyRoot(),
         `存储版本 ${String(value.storage_schema_version)} 不受支持`,
@@ -311,12 +327,23 @@ export class CourseLibrary {
               page: lesson.page ?? 1,
               cid: lesson.cid ?? null,
             })),
+            releaseId: course.releaseId ?? null,
+            releaseNumber: course.releaseNumber ?? null,
             source,
             readOnly: source === 'example' || course.readOnly === true,
           };
         } else {
           drop(`课程 ${courseId} 结构损坏`, course);
         }
+      }
+    }
+
+    if (value.settings !== undefined) {
+      if (isStudentSettings(value.settings)) {
+        root.settings = value.settings;
+      } else {
+        root.settings = normalizeStudentSettings(value.settings);
+        drop('设置字段无效，已回退默认值', value.settings);
       }
     }
 

@@ -42,6 +42,14 @@ const validRoot = {
   quarantine: { entries: [] },
 };
 
+const currentSettings = {
+  showRedeemEntry: true,
+  showRecommendations: true,
+  syncMode: 'prompt',
+  shortcut: 'Alt+K',
+  mascot: 'standard',
+};
+
 function validator() {
   const ajv = new Ajv({ allErrors: true, strict: false });
   addFormats(ajv);
@@ -51,6 +59,24 @@ function validator() {
 describe('extension storage contract', () => {
   it('accepts the shape written by CourseLibrary', () => {
     expect(validator()(validRoot)).toBe(true);
+  });
+
+  it('accepts the optional settings and release metadata', () => {
+    const value = structuredClone(validRoot) as any;
+    value.settings = currentSettings;
+    value.installedCourses['00000002-0000-4000-8000-000000000000'].releaseId =
+      '00000004-0000-4000-8000-000000000000';
+    value.installedCourses['00000002-0000-4000-8000-000000000000'].releaseNumber = 2;
+    expect(validator()(value)).toBe(true);
+  });
+
+  it('rejects unknown settings fields and values', () => {
+    const value = structuredClone(validRoot) as any;
+    value.settings = { ...currentSettings, remoteScript: 'https://example.com/x.js' };
+    expect(validator()(value)).toBe(false);
+
+    value.settings = { ...currentSettings, syncMode: 'silent' };
+    expect(validator()(value)).toBe(false);
   });
 
   it('rejects the old embedded-coursePackage shape', () => {

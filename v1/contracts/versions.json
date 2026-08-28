@@ -4,7 +4,7 @@
   "description": "v1 契约与构建版本清单。占位符已按阶段 3-5 的实际实现替换。",
   "contracts": {
     "http_api": {
-      "version": "2.0.0",
+      "version": "2.1.0",
       "spec_file": "schemas/openapi.schema.json",
       "status": "implemented",
       "stage": "1A",
@@ -23,7 +23,7 @@
       "implementedBy": "v1/extension/background/validate.ts"
     },
     "extension_messages": {
-      "version": "2.0.0",
+      "version": "2.1.0",
       "schema_file": "schemas/extension-messages.schema.json",
       "status": "implemented",
       "stage": "0C",
@@ -35,7 +35,7 @@
       "implementedBy": "v1/extension/background/service-worker.ts"
     },
     "extension_storage": {
-      "version": "2.0.0",
+      "version": "2.1.0",
       "schema_file": "schemas/extension-storage.schema.json",
       "status": "implemented",
       "stage": "0B",
@@ -95,10 +95,10 @@
       "release": "v1.0.0",
       "status": "development",
       "releaseTarget": "stage 7",
-      "httpApi": "2.0.0",
+      "httpApi": "2.1.0",
       "coursePackage": "3.1.0",
-      "extensionMessages": "2.0.0",
-      "extensionStorage": "2.0.0",
+      "extensionMessages": "2.1.0",
+      "extensionStorage": "2.1.0",
       "webBuild": "1.0.0",
       "extensionBuild": "1.0.0",
       "backendMigration": "20260826_rich_node_assets",

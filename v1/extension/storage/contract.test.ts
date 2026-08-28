@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { STORAGE_SCHEMA_VERSION, emptyRoot } from './types';
+import { DEFAULT_STUDENT_SETTINGS } from './settings';
+import { VERSIONS } from '../../contracts/version-manifest';
 
 /**
  * 把实现钉在契约上。
@@ -23,11 +25,21 @@ describe('存储契约一致性', () => {
     expect(STORAGE_SCHEMA_VERSION).toMatch(pattern);
   });
 
+  it('版本清单与存储常量保持一致', () => {
+    const component = VERSIONS.components.find((item) => item.component === 'extensionStorage');
+    expect(component?.version).toBe(STORAGE_SCHEMA_VERSION);
+    expect(VERSIONS.supportMatrix[0]?.extensionStorage).toBe(STORAGE_SCHEMA_VERSION);
+  });
+
   it('空根带齐 schema 声明的全部顶层字段', () => {
     const root = emptyRoot() as unknown as Record<string, unknown>;
     for (const field of Object.keys(schema.properties)) {
       expect(root, `缺少字段 ${field}`).toHaveProperty(field);
     }
+  });
+
+  it('空根带有稳定的设置默认值', () => {
+    expect(emptyRoot().settings).toEqual(DEFAULT_STUDENT_SETTINGS);
   });
 
   it('空根不含 schema 未声明的字段', () => {

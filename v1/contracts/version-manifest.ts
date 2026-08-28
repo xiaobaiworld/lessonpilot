@@ -43,7 +43,7 @@ export const VERSIONS: VersionSupport = {
   components: [
     {
       component: 'httpApi',
-      version: '2.0.0',
+      version: '2.1.0',
       status: 'development',
       notes: 'Code-generated from design/v1/06-interface-contracts.md'
     },
@@ -55,13 +55,13 @@ export const VERSIONS: VersionSupport = {
     },
     {
       component: 'extensionMessages',
-      version: '2.0.0',
+      version: '2.1.0',
       status: 'development',
       notes: 'Extension-to-page messaging contract; replaces localStorage passthrough'
     },
     {
       component: 'extensionStorage',
-      version: '2.0.0',
+      version: '2.1.0',
       status: 'development',
       notes: 'Extension local storage schema; stage 0B task'
     },
@@ -81,10 +81,10 @@ export const VERSIONS: VersionSupport = {
   supportMatrix: [
     {
       release: 'v1.0.0',
-      httpApi: '2.0.0',
+      httpApi: '2.1.0',
       coursePackage: '3.1.0',
-      extensionMessages: '2.0.0',
-      extensionStorage: '2.0.0',
+      extensionMessages: '2.1.0',
+      extensionStorage: '2.1.0',
       webBuild: '1.0.0',
       extensionBuild: '1.0.0'
     }
