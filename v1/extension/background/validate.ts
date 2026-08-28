@@ -166,5 +166,20 @@ export function checkCoursePackage(raw: unknown, sourceId: string): Checked<Inst
     lessonIds.add(checked.value.lessonId); lessons.push(checked.value);
     videoRefs.add(refKey);
   }
-  return { ok: true, value: { courseId: String(raw.courseId), title: String(raw.title).trim(), lessons, assets, publishedAt: String(raw.updatedAt), installedAt: new Date().toISOString(), source: 'authorized', readOnly: false, sourceId } };
+  return {
+    ok: true,
+    value: {
+      courseId: String(raw.courseId),
+      title: String(raw.title).trim(),
+      lessons,
+      assets,
+      releaseId: String(raw.releaseId),
+      releaseNumber: Number(raw.releaseNumber),
+      publishedAt: String(raw.updatedAt),
+      installedAt: new Date().toISOString(),
+      source: 'authorized',
+      readOnly: false,
+      sourceId,
+    },
+  };
 }

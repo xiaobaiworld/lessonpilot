@@ -367,6 +367,22 @@ describe('课程隔离与更新', () => {
     expect(root.localLearningState.b['b-l1'].attempts.n1).toHaveLength(1);
   });
 
+  it('课程发布版本元数据随课程保存，不影响其它课程', async () => {
+    await lib.installCourse(
+      { ...course('a'), releaseId: '00000001-0000-4000-8000-000000000000', releaseNumber: 3 },
+      source('a', ['a'])
+    );
+    await lib.installCourse(course('b'), source('b', ['b']));
+
+    const root = await lib.read();
+
+    expect(root.installedCourses.a).toMatchObject({
+      releaseId: '00000001-0000-4000-8000-000000000000',
+      releaseNumber: 3,
+    });
+    expect(root.installedCourses.b.title).toBe('课程 b');
+  });
+
   it('重装默认保留进度，显式要求才清', async () => {
     await lib.installCourse(course('a'), source('a', ['a']));
     await lib.recordAttempt('a', 'a-l1', 'n1', { at: 't', answer: 'x', correct: true });

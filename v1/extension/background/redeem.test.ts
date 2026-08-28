@@ -100,6 +100,10 @@ describe('成功路径', () => {
     expect(r.ok).toBe(true);
     const root = area.root();
     expect(Object.keys(root.installedCourses)).toEqual([uuid(1)]);
+    expect(root.installedCourses[uuid(1)]).toMatchObject({
+      releaseId: uuid(5),
+      releaseNumber: 1,
+    });
     expect(root.authorizationSourceCache.sources).toHaveLength(1);
   });
 
@@ -271,6 +275,13 @@ describe('课程包复验', () => {
   it('主版本不认识时安全拒绝', () => {
     expect(bad({ schemaVersion: 2 })).toMatchObject({ ok: false });
     expect(bad({ schemaVersion: undefined })).toMatchObject({ ok: false });
+  });
+
+  it('拒绝缺失或非法发布版本字段', () => {
+    expect(bad({ releaseId: undefined })).toMatchObject({ ok: false });
+    expect(bad({ releaseId: 'not-a-uuid' })).toMatchObject({ ok: false });
+    expect(bad({ releaseNumber: undefined })).toMatchObject({ ok: false });
+    expect(bad({ releaseNumber: 0 })).toMatchObject({ ok: false });
   });
 
   it('拒绝空课节与空节点', () => {
