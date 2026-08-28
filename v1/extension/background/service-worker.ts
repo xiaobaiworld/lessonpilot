@@ -1,5 +1,10 @@
 import { CourseLibrary } from '../storage';
 import {
+  AssetCache,
+  AssetCacheError,
+  IndexedDbAssetDatabase,
+} from '../storage/assets';
+import {
   checkCourseUpdates,
   redeemAccessCode,
   upgradeCourse,
@@ -17,6 +22,7 @@ import { isBilibiliVideoRef } from '../shared/video-reference';
  */
 
 const library = new CourseLibrary(chrome.storage.local);
+const assetStore = new AssetCache(new IndexedDbAssetDatabase());
 const exampleCourse = (() => {
   try {
     return createExampleCourse();
@@ -55,6 +61,7 @@ async function handle(message: unknown): Promise<Reply> {
       if (typeof m.code !== 'string') return err('BAD_MESSAGE', '缺少授权码。');
       const result = await redeemAccessCode(m.code, {
         library,
+        assetStore,
         apiOrigin: API_ORIGIN,
         fetch: globalThis.fetch.bind(globalThis),
         now: () => new Date(),
@@ -62,6 +69,38 @@ async function handle(message: unknown): Promise<Reply> {
       return result.ok
         ? ok({ installed: result.installed.map((c) => ({ courseId: c.courseId, title: c.title })) })
         : err(result.code, result.message);
+    }
+
+    case 'asset': {
+      if (typeof m.courseId !== 'string' || typeof m.assetId !== 'string') {
+        return err('BAD_MESSAGE', '缺少课程或资源。');
+      }
+      try {
+        const root = await library.read();
+        const course = root.installedCourses[m.courseId];
+        if (!course?.releaseId) return err('ASSET_MISSING', '本机没有这个课程资源。');
+        const cached = await assetStore.get(
+          m.courseId,
+          course.releaseId,
+          m.assetId
+        );
+        if (!cached) return err('ASSET_MISSING', '本机没有这个课程资源。');
+        return ok({
+          assetId: cached.assetId,
+          mimeType: cached.mimeType,
+          bytes: await cached.blob.arrayBuffer(),
+        });
+      } catch (error) {
+        if (error instanceof AssetCacheError) {
+          return err(
+            error.code,
+            error.code === 'ASSET_CORRUPT'
+              ? '本机资源校验失败。'
+              : '本机资源读取失败。'
+          );
+        }
+        return err('STORAGE', '本机资源读取失败。');
+      }
     }
 
     case 'checkCourseUpdates': {
@@ -75,6 +114,7 @@ async function handle(message: unknown): Promise<Reply> {
       const result = await checkCourseUpdates(
         {
           library,
+          assetStore,
           apiOrigin: API_ORIGIN,
           fetch: globalThis.fetch.bind(globalThis),
         },
@@ -92,6 +132,7 @@ async function handle(message: unknown): Promise<Reply> {
       }
       const result = await upgradeCourse(m.courseId, m.expectedReleaseId, {
         library,
+        assetStore,
         apiOrigin: API_ORIGIN,
         fetch: globalThis.fetch.bind(globalThis),
       });

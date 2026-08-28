@@ -1,10 +1,17 @@
 import { CourseLibrary } from '../storage';
 import { AuthorizationSource, InstalledCourse } from '../storage/types';
+import {
+  AssetCacheError,
+  AssetStoreLike,
+  CachedAsset,
+  sha256Hex,
+} from '../storage/assets';
 import { checkCoursePackage } from './validate';
 import { migrateLearningState } from '../runtime/course-upgrade';
 
 export interface RedeemDeps {
   library: CourseLibrary;
+  assetStore?: AssetStoreLike;
   /** 由构建目标注入，不在运行时猜环境 */
   apiOrigin: string;
   fetch: typeof globalThis.fetch;
@@ -33,6 +40,7 @@ export type RedeemErrorCode =
 
 export interface CourseUpdateDeps {
   library: CourseLibrary;
+  assetStore?: AssetStoreLike;
   apiOrigin: string;
   fetch: typeof globalThis.fetch;
   timeoutMs?: number;
@@ -146,18 +154,30 @@ async function requestWithTimeout(
   path: string,
   body: unknown
 ): Promise<Response | CourseUpdateErrorCode> {
-  const controller = new AbortController();
-  const timeout = setTimeout(
-    () => controller.abort(),
-    deps.timeoutMs ?? 15000
-  );
-  try {
-    return await deps.fetch(`${deps.apiOrigin}${path}`, {
+  return requestResponseWithTimeout(
+    deps.fetch,
+    deps.timeoutMs,
+    `${deps.apiOrigin}${path}`,
+    {
       method: 'POST',
-      signal: controller.signal,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-    });
+    }
+  );
+}
+
+type RequestError = 'NETWORK' | 'TIMEOUT';
+
+async function requestResponseWithTimeout(
+  fetcher: typeof globalThis.fetch,
+  timeoutMs: number | undefined,
+  url: string,
+  init: RequestInit
+): Promise<Response | RequestError> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs ?? 15000);
+  try {
+    return await fetcher(url, { ...init, signal: controller.signal });
   } catch (error) {
     return error instanceof Error && error.name === 'AbortError'
       ? 'TIMEOUT'
@@ -165,6 +185,128 @@ async function requestWithTimeout(
   } finally {
     clearTimeout(timeout);
   }
+}
+
+function assetResponseError(response: Response): RedeemErrorCode | null {
+  if (response.status === 401 || response.status === 403 || response.status === 404) {
+    return 'REJECTED';
+  }
+  if (response.status >= 500) return 'SERVER';
+  if (!response.ok) return 'MALFORMED';
+  return null;
+}
+
+async function downloadCourseAssets(
+  course: InstalledCourse,
+  identity: { clientId: string; proof: string },
+  deps: RedeemDeps | CourseUpdateDeps
+): Promise<RedeemErrorCode | null> {
+  if (course.assets.length === 0) return null;
+  if (!deps.assetStore) return 'STORAGE';
+  if (!course.releaseId) return 'MALFORMED';
+
+  const authorizeResponse = await requestResponseWithTimeout(
+    deps.fetch,
+    deps.timeoutMs,
+    `${deps.apiOrigin}/api/v1/student/course-assets/authorize`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        schemaVersion: 1,
+        courseId: course.courseId,
+        releaseId: course.releaseId,
+        assets: course.assets.map((asset) => ({
+          assetId: asset.assetId,
+          sha256: asset.sha256,
+        })),
+        localIdentityId: identity.clientId,
+        localProof: identity.proof,
+        client: clientInfo(),
+      }),
+    }
+  );
+  if (typeof authorizeResponse === 'string') return authorizeResponse;
+
+  const authorizationError = assetResponseError(authorizeResponse);
+  if (authorizationError) return authorizationError;
+
+  let body: unknown;
+  try {
+    body = await authorizeResponse.json();
+  } catch {
+    return 'MALFORMED';
+  }
+  const data = isObject(body) ? body.data : undefined;
+  if (
+    !isObject(data) ||
+    typeof data.token !== 'string' ||
+    data.token.length === 0 ||
+    !Array.isArray(data.assetIds) ||
+    data.assetIds.length !== course.assets.length ||
+    data.assetIds.some((assetId) => typeof assetId !== 'string') ||
+    new Set(data.assetIds).size !== course.assets.length ||
+    course.assets.some((asset) => !data.assetIds.includes(asset.assetId))
+  ) {
+    return 'MALFORMED';
+  }
+
+  try {
+    for (const asset of course.assets) {
+      const assetResponse = await requestResponseWithTimeout(
+        deps.fetch,
+        deps.timeoutMs,
+        `${deps.apiOrigin}/api/v1/student/course-assets/${encodeURIComponent(
+          asset.assetId
+        )}?token=${encodeURIComponent(data.token)}`,
+        { method: 'GET' }
+      );
+      if (typeof assetResponse === 'string') throw new Error(assetResponse);
+      const downloadError = assetResponseError(assetResponse);
+      if (downloadError) throw new Error(downloadError);
+
+      const mimeType = (assetResponse.headers.get('content-type') ?? '')
+        .split(';', 1)[0]
+        .trim()
+        .toLowerCase();
+      if (mimeType !== asset.mimeType.toLowerCase()) throw new Error('MALFORMED');
+
+      const bytes = await assetResponse.arrayBuffer();
+      if (bytes.byteLength !== asset.byteSize) throw new Error('MALFORMED');
+      const digest = await sha256Hex(bytes);
+      if (digest.toLowerCase() !== asset.sha256.toLowerCase()) {
+        throw new Error('MALFORMED');
+      }
+
+      const cached: CachedAsset = {
+        courseId: course.courseId,
+        releaseId: course.releaseId,
+        assetId: asset.assetId,
+        sha256: asset.sha256,
+        mimeType: asset.mimeType,
+        byteSize: asset.byteSize,
+        blob: new Blob([bytes], { type: asset.mimeType }),
+      };
+      await deps.assetStore.put(cached);
+    }
+  } catch (error) {
+    await deps.assetStore
+      .clearRelease(course.courseId, course.releaseId)
+      .catch(() => undefined);
+    if (error instanceof AssetCacheError && error.code === 'STORAGE') return 'STORAGE';
+    if (error instanceof Error && error.message === 'NETWORK') return 'NETWORK';
+    if (error instanceof Error && error.message === 'TIMEOUT') return 'TIMEOUT';
+    if (error instanceof Error && error.message === 'REJECTED') return 'REJECTED';
+    if (error instanceof Error && error.message === 'SERVER') return 'SERVER';
+    return 'MALFORMED';
+  }
+  return null;
+}
+
+function asCourseUpdateError(code: RedeemErrorCode): CourseUpdateErrorCode {
+  if (code === 'REJECTED') return 'UNAUTHORIZED';
+  if (code === 'EMPTY_CODE' || code === 'EMPTY_RESULT') return 'MALFORMED';
+  return code;
 }
 
 async function parseJsonResponse(
@@ -347,6 +489,11 @@ export async function upgradeCourse(
     return updateFail('MALFORMED', checked.ok ? '课程或版本不匹配' : checked.reason) as CourseUpgradeResult;
   }
 
+  const assetError = await downloadCourseAssets(checked.value, identity, deps);
+  if (assetError) {
+    return updateFail(asCourseUpdateError(assetError)) as CourseUpgradeResult;
+  }
+
   try {
     await deps.library.replaceCourseWithMigration(
       checked.value,
@@ -465,6 +612,25 @@ export async function redeemAccessCode(
     courseIds: checked.map((c) => c.courseId),
     expiresAt: null,
   };
+
+  const stagedCourses: InstalledCourse[] = [];
+  for (const course of checked) {
+    const assetError = await downloadCourseAssets(course, identity, deps);
+    if (assetError) {
+      await Promise.all(
+        stagedCourses
+          .concat(course)
+          .filter((item) => item.releaseId)
+          .map((item) =>
+            deps.assetStore
+              ?.clearRelease(item.courseId, item.releaseId!)
+              .catch(() => undefined)
+          )
+      );
+      return fail(assetError);
+    }
+    stagedCourses.push(course);
+  }
 
   try {
     for (const course of checked) {

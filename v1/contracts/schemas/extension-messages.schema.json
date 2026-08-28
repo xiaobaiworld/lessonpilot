@@ -18,6 +18,7 @@
           "enum": [
             "library",
             "redeem",
+            "asset",
             "checkCourseUpdates",
             "upgradeCourse",
             "candidates",
@@ -47,6 +48,11 @@
           "description": "candidates：当前 B 站页面的完整视频引用"
         },
         "courseId": { "type": "string", "format": "uuid" },
+        "assetId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "asset：本机课程资源的稳定标识"
+        },
         "courseIds": {
           "type": "array",
           "items": { "type": "string", "format": "uuid" },

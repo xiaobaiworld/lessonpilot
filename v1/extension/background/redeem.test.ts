@@ -8,6 +8,12 @@ import {
 import { checkCoursePackage } from './validate';
 import { CourseLibrary, StorageArea } from '../storage';
 import { STORAGE_ROOT_KEY } from '../storage/types';
+import {
+  AssetCache,
+  AssetDatabase,
+  AssetStoreLike,
+  CachedAsset,
+} from '../storage/assets';
 
 class FakeArea implements StorageArea {
   data: Record<string, unknown> = {};
@@ -26,6 +32,52 @@ class FakeArea implements StorageArea {
   }
   root() {
     return this.data[STORAGE_ROOT_KEY] as any;
+  }
+}
+
+class MemoryAssetDatabase implements AssetDatabase {
+  blobs = new Map<string, Blob>();
+  references = new Map<string, Omit<CachedAsset, 'blob'>>();
+
+  private blobKey(sha256: string, mimeType: string): string {
+    return `${sha256}\u0000${mimeType}`;
+  }
+
+  async write(asset: CachedAsset): Promise<'stored' | 'reused'> {
+    const reused = this.blobs.has(this.blobKey(asset.sha256, asset.mimeType));
+    if (!reused) {
+      this.blobs.set(this.blobKey(asset.sha256, asset.mimeType), asset.blob);
+    }
+    const { blob: _blob, ...reference } = asset;
+    this.references.set(
+      `${asset.courseId}\u0000${asset.releaseId}\u0000${asset.assetId}`,
+      reference
+    );
+    return reused ? 'reused' : 'stored';
+  }
+
+  async readReference(courseId: string, releaseId: string, assetId: string) {
+    return (
+      this.references.get(`${courseId}\u0000${releaseId}\u0000${assetId}`) ?? null
+    );
+  }
+
+  async readBlob(sha256: string, mimeType: string) {
+    return this.blobs.get(this.blobKey(sha256, mimeType)) ?? null;
+  }
+
+  async clearRelease(courseId: string, releaseId: string) {
+    const prefix = `${courseId}\u0000${releaseId}\u0000`;
+    for (const key of this.references.keys()) {
+      if (key.startsWith(prefix)) this.references.delete(key);
+    }
+  }
+
+  async removeCourse(courseId: string) {
+    const prefix = `${courseId}\u0000`;
+    for (const key of this.references.keys()) {
+      if (key.startsWith(prefix)) this.references.delete(key);
+    }
   }
 }
 
@@ -86,6 +138,7 @@ const updateJson = (body: unknown, status = 200) =>
 
 let area: FakeArea;
 let deps: RedeemDeps;
+let assetStore: AssetStoreLike;
 
 function withFetch(fn: RedeemDeps['fetch']): RedeemDeps {
   return { ...deps, fetch: fn };
@@ -100,6 +153,7 @@ beforeEach(() => {
     now: () => new Date('2026-08-23T12:00:00.000Z'),
     timeoutMs: 50,
   };
+  assetStore = new AssetCache(new MemoryAssetDatabase());
 });
 
 describe('成功路径', () => {
@@ -148,6 +202,55 @@ describe('成功路径', () => {
     expect(r.ok).toBe(true);
     expect(Object.keys(area.root().installedCourses).sort()).toEqual(
       [uuid(1), uuid(3)].sort()
+    );
+  });
+
+  it('领取课程后先授权并下载资源，再提交课程 JSON', async () => {
+    const image = {
+      assetId: 'image-1',
+      kind: 'image',
+      mimeType: 'image/png',
+      byteSize: 5,
+      sha256: '2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824',
+      sourceType: 'uploaded',
+    };
+    const course = pkg({ assets: [image] });
+    const fetch = vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
+      const path = String(url);
+      if (path.endsWith('/student/redemptions')) {
+        return json({ courses: [course] });
+      }
+      if (path.endsWith('/student/course-assets/authorize')) {
+        return updateJson({
+          data: {
+            token: 'asset-token',
+            assetIds: ['image-1'],
+          },
+        });
+      }
+      expect(init?.method).toBe('GET');
+      return new Response('hello', {
+        status: 200,
+        headers: { 'Content-Type': 'image/png' },
+      });
+    });
+
+    const result = await redeemAccessCode('KM-ASSET', {
+      ...deps,
+      assetStore,
+      fetch,
+    });
+
+    expect(result.ok).toBe(true);
+    const cached = await assetStore.get(
+      uuid(1),
+      uuid(5),
+      'image-1'
+    );
+    expect(await cached?.blob.text()).toBe('hello');
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/student/course-assets/authorize'),
+      expect.objectContaining({ method: 'POST' })
     );
   });
 });

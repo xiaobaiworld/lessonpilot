@@ -1,12 +1,13 @@
 /** @vitest-environment happy-dom */
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   appendRichText,
   isSafeRichTextColor,
   isSafeRichTextHref,
   isSafeRichTextImageSrc,
   resolveWindowPresentation,
+  resolveRichTextAssets,
   sanitizeRichTextHtml,
 } from './richText';
 
@@ -112,5 +113,32 @@ describe('节点媒体引用', () => {
     expect(html).toContain('data-asset-id="asset-1"');
     expect(html).toContain('data-asset-id="asset-2"');
     expect(html).not.toContain('/api/v1/teacher/assets/');
+  });
+
+  it('在 content 世界把资源 ID 解析为 blob URL，并支持统一释放', async () => {
+    const target = document.createElement('div');
+    appendRichText(
+      target,
+      '<img src="asset://image-1" alt="图">' +
+        '<audio data-asset-id="audio-1" controls></audio>'
+    );
+    const createObjectURL = vi
+      .spyOn(URL, 'createObjectURL')
+      .mockImplementation((blob) => `blob:${(blob as Blob).type}`);
+    const revokeObjectURL = vi
+      .spyOn(URL, 'revokeObjectURL')
+      .mockImplementation(() => undefined);
+
+    const release = await resolveRichTextAssets(target, async (assetId) => ({
+      mimeType: assetId.startsWith('image') ? 'image/png' : 'audio/mpeg',
+      bytes: new TextEncoder().encode(assetId).buffer,
+    }));
+
+    expect(target.querySelector('img')?.getAttribute('src')).toBe('blob:image/png');
+    expect(target.querySelector('audio')?.getAttribute('src')).toBe('blob:audio/mpeg');
+    release();
+    expect(revokeObjectURL).toHaveBeenCalledTimes(2);
+    createObjectURL.mockRestore();
+    revokeObjectURL.mockRestore();
   });
 });

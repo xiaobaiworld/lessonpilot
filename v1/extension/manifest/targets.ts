@@ -62,8 +62,8 @@ export function buildManifest(target: BuildTarget): Record<string, unknown> {
     name: target.name === 'local' ? 'KnownMap（本机）' : 'KnownMap',
     version: EXTENSION_VERSION,
     description: '把 B 站课程变成可互动的学习路径。',
-    // 课程库读写需要 storage，恢复旧版在线更新需要 downloads
-    permissions: ['storage', 'downloads'],
+    // 课程库读写需要 storage，媒体 Blob 使用 IndexedDB，恢复旧版在线更新需要 downloads
+    permissions: ['storage', 'downloads', 'unlimitedStorage'],
     host_permissions: [
       'https://www.bilibili.com/*',
       ...target.extraHostPermissions,

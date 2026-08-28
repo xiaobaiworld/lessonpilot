@@ -6,6 +6,7 @@ import {
   watchNavigation,
 } from '../host/bilibili';
 import { LearningWindow } from './window';
+import type { RuntimeAsset } from './richText';
 import { CandidatePicker } from './picker';
 import {
   CourseRuntime,
@@ -49,6 +50,13 @@ const messenger: Messenger = {
   position: async (courseId, lessonId, seconds) => {
     await send({ type: 'position', courseId, lessonId, seconds });
   },
+};
+
+const asset = async (
+  courseId: string,
+  assetId: string
+): Promise<RuntimeAsset | null> => {
+  return send<RuntimeAsset>({ type: 'asset', courseId, assetId });
 };
 
 const companion = new StudentCompanion({
@@ -109,7 +117,10 @@ const controller = new PageController(
         const video = await waitForVideo();
         return video ? attachPlayer(video) : null;
       },
-      createWindow: (callbacks) => new LearningWindow(callbacks, styleText),
+      createWindow: ({ courseId, ...callbacks }) =>
+        new LearningWindow(callbacks, styleText, (assetId) =>
+          asset(courseId, assetId)
+        ),
       modeStore: createVideoModeStore(modeStorage),
       createModeControl: (onToggle) => companion.createModeControl(onToggle),
       chooseCandidate: (candidates) =>

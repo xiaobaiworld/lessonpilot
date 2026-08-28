@@ -72,4 +72,10 @@ describe('消息契约与实现一致', () => {
       expect.arrayContaining(['checkCourseUpdates', 'upgradeCourse'])
     );
   });
+
+  it('资源消息只能由 background 读取本机缓存', () => {
+    expect(declaredTypes).toContain('asset');
+    expect(workerSource).toContain('assetStore.get');
+    expect(workerSource).toContain('ASSET_MISSING');
+  });
 });

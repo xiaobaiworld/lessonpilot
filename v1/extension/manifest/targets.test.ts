@@ -33,8 +33,12 @@ describe('构建目标', () => {
     }
   });
 
-  it('课程存储与旧版在线更新分别申请 storage 和 downloads', () => {
-    expect(buildManifest(TARGETS.production).permissions).toEqual(['storage', 'downloads']);
+  it('课程 JSON、媒体缓存与旧版在线更新分别申请必要权限', () => {
+    expect(buildManifest(TARGETS.production).permissions).toEqual([
+      'storage',
+      'downloads',
+      'unlimitedStorage',
+    ]);
   });
 
   it('内容脚本只注入投稿视频页', () => {

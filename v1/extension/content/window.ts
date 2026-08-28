@@ -1,7 +1,12 @@
 import { RuntimeNode, WindowState, NodeOutcome } from '../runtime/session';
 import { VideoMode } from './runtime';
 import { richDocumentToHtml } from '../../web/shared/src';
-import { appendRichText, resolveWindowPresentation } from './richText';
+import {
+  appendRichText,
+  resolveRichTextAssets,
+  resolveWindowPresentation,
+  RuntimeAssetLoader,
+} from './richText';
 
 /**
  * 学习窗口渲染。
@@ -32,13 +37,19 @@ export class LearningWindow {
   private host: HTMLElement | null = null;
   private root: ShadowRoot | null = null;
   private detachFullscreen: (() => void) | null = null;
+  private releaseAssetUrls: (() => void) | null = null;
+  private renderGeneration = 0;
 
   constructor(
     private callbacks: WindowCallbacks,
-    private styleText: string
+    private styleText: string,
+    private loadAsset?: RuntimeAssetLoader
   ) {}
 
   render(state: WindowState): void {
+    this.releaseAssetUrls?.();
+    this.releaseAssetUrls = null;
+    const generation = ++this.renderGeneration;
     if (state.kind === 'idle') {
       this.destroy();
       return;
@@ -68,7 +79,7 @@ export class LearningWindow {
         this.actions([this.button('继续播放', 'primary', this.callbacks.onClose)])
       );
     } else if (state.kind === 'open') {
-      this.renderQuestion(panel, state.node, state.draft);
+      this.renderQuestion(panel, state.node, state.draft, generation);
     } else {
       this.renderOutcome(panel, state.node, state.outcome);
     }
@@ -78,13 +89,27 @@ export class LearningWindow {
     panel.querySelector<HTMLElement>('textarea, input, button')?.focus();
   }
 
-  private renderQuestion(panel: HTMLElement, node: RuntimeNode, draft: string): void {
+  private renderQuestion(
+    panel: HTMLElement,
+    node: RuntimeNode,
+    draft: string,
+    generation: number
+  ): void {
     panel.append(this.heading(node.title));
 
     const page = document.createElement('div');
     page.className = 'km-rich-text';
     appendRichText(page, richDocumentToHtml(node.content));
     panel.append(page);
+    if (this.loadAsset) {
+      void resolveRichTextAssets(page, this.loadAsset).then((release) => {
+        if (generation === this.renderGeneration) {
+          this.releaseAssetUrls = release;
+        } else {
+          release();
+        }
+      });
+    }
 
     if (node.interaction === 'notice') {
       panel.append(
@@ -189,6 +214,9 @@ export class LearningWindow {
 
   /** 移除窗口与宿主节点。离开页面时必须调用，否则 SPA 切走后残留 DOM */
   destroy(): void {
+    this.renderGeneration += 1;
+    this.releaseAssetUrls?.();
+    this.releaseAssetUrls = null;
     this.detachFullscreen?.();
     this.detachFullscreen = null;
     this.host?.remove();

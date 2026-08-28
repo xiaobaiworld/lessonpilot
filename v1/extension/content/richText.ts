@@ -76,6 +76,13 @@ function assetIdFromDataAttribute(value: string | null): string | null {
   return assetIdFromUri(normalized) ?? (/^[a-zA-Z0-9._:-]+$/.test(normalized) ? normalized : null);
 }
 
+export interface RuntimeAsset {
+  mimeType: string;
+  bytes: ArrayBuffer;
+}
+
+export type RuntimeAssetLoader = (assetId: string) => Promise<RuntimeAsset | null>;
+
 export function isSafeRichTextColor(value: string): boolean {
   const color = value.trim();
   return /^#[0-9a-f]{3,8}$/i.test(color) || /^rgb(a)?\([\d\s.,%]+\)$/i.test(color);
@@ -134,6 +141,57 @@ export function appendRichText(target: HTMLElement, html: string): void {
     const safe = cloneSafeNode(node);
     if (safe) target.append(safe);
   });
+}
+
+function acceptsMime(element: Element, mimeType: string): boolean {
+  const normalized = mimeType.toLowerCase();
+  if (element.tagName === 'IMG') return normalized.startsWith('image/');
+  if (element.tagName === 'AUDIO') return normalized.startsWith('audio/');
+  if (element.tagName === 'VIDEO') return normalized.startsWith('video/');
+  return false;
+}
+
+/**
+ * Resolve only the asset IDs emitted by the sanitizer. Blob URLs are created
+ * in the content world because URLs created by the service worker are not
+ * usable by the page-facing DOM.
+ */
+export async function resolveRichTextAssets(
+  target: HTMLElement,
+  loadAsset: RuntimeAssetLoader
+): Promise<() => void> {
+  const urls: string[] = [];
+  const elements = [...target.querySelectorAll<HTMLElement>('[data-asset-id]')];
+  await Promise.all(
+    elements.map(async (element) => {
+      const assetId = assetIdFromDataAttribute(element.dataset.assetId ?? null);
+      if (!assetId) return;
+      const asset = await loadAsset(assetId).catch(() => null);
+      if (!asset || !acceptsMime(element, asset.mimeType)) return;
+      const url = URL.createObjectURL(new Blob([asset.bytes], { type: asset.mimeType }));
+      element.setAttribute('src', url);
+      urls.push(url);
+
+      if (element.tagName === 'VIDEO') {
+        const posterId = assetIdFromDataAttribute(
+          element.getAttribute('data-poster-asset-id')
+        );
+        if (posterId) {
+          const poster = await loadAsset(posterId).catch(() => null);
+          if (poster && poster.mimeType.toLowerCase().startsWith('image/')) {
+            const posterUrl = URL.createObjectURL(
+              new Blob([poster.bytes], { type: poster.mimeType })
+            );
+            element.setAttribute('poster', posterUrl);
+            urls.push(posterUrl);
+          }
+        }
+      }
+    })
+  );
+  return () => {
+    urls.forEach((url) => URL.revokeObjectURL(url));
+  };
 }
 
 /** 教师保存与切 Tab 时用：得到消毒后的 HTML 字符串。 */

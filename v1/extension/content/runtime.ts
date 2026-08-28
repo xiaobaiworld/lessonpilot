@@ -90,6 +90,7 @@ export interface RuntimeDeps {
   /** 等播放器出现。返回 null 表示等不到，此时不接线也不留 UI */
   waitForPlayer(): Promise<PlayerHandle | null>;
   createWindow(callbacks: {
+    courseId: string;
     onDraft(text: string): void;
     onSubmit(): void;
     onSkip(): void;
@@ -161,6 +162,7 @@ export class CourseRuntime {
     this.player = player;
     this.videoMode = this.deps.modeStore.read();
     this.view = this.deps.createWindow({
+      courseId: this.session.courseId,
       onDraft: (text) => this.session?.updateDraft(text),
       onSubmit: () => this.commit('submit'),
       onSkip: () => this.commit('skip'),
