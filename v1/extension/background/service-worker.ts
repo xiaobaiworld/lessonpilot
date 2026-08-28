@@ -3,6 +3,7 @@ import { redeemAccessCode } from './redeem';
 import { buildLibraryView, findCandidates, removalImpact } from '../shared/library-view';
 import { API_ORIGIN } from './config';
 import { createExampleCourse } from './example-course';
+import { isBilibiliVideoRef } from '../shared/video-reference';
 
 /**
  * background 是唯一的网络与持久化边界。
@@ -60,12 +61,8 @@ async function handle(message: unknown): Promise<Reply> {
     }
 
     case 'candidates': {
-      if (
-        typeof m.videoRef !== 'object' ||
-        m.videoRef === null ||
-        (m.videoRef as any).platform !== 'bilibili'
-      ) return err('BAD_MESSAGE', '缺少完整视频引用。');
-      return ok(findCandidates(await library.read(), m.videoRef as any));
+      if (!isBilibiliVideoRef(m.videoRef)) return err('BAD_MESSAGE', '缺少完整视频引用。');
+      return ok(findCandidates(await library.read(), m.videoRef));
     }
 
     case 'lesson': {
