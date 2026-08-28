@@ -157,6 +157,18 @@ class AssetStorage:
         return self._write(teacher_id, data, normalized_mime, "licensed")
 
     def get(self, teacher_id: str, asset_id: str) -> tuple[dict, Path]:
+        record, path = self.get_by_id(asset_id)
+        try:
+            payload = json.loads(
+                (self.root / f"{asset_id}.json").read_text(encoding="utf-8")
+            )
+        except (OSError, ValueError):
+            raise AssetStorageError("ASSET_NOT_FOUND") from None
+        if payload.get("teacherId") != teacher_id:
+            raise AssetStorageError("ASSET_NOT_FOUND")
+        return record, path
+
+    def get_by_id(self, asset_id: str) -> tuple[dict, Path]:
         file_path, metadata_path = self._paths(asset_id)
         if not file_path.is_file() or not metadata_path.is_file():
             raise AssetStorageError("ASSET_NOT_FOUND")
@@ -164,6 +176,7 @@ class AssetStorage:
             payload = json.loads(metadata_path.read_text(encoding="utf-8"))
         except (OSError, ValueError):
             raise AssetStorageError("ASSET_NOT_FOUND") from None
-        if payload.get("teacherId") != teacher_id:
+        record = payload.get("record")
+        if not isinstance(record, dict):
             raise AssetStorageError("ASSET_NOT_FOUND")
-        return payload["record"], file_path
+        return record, file_path

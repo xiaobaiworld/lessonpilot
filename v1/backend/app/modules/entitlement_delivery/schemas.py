@@ -83,6 +83,18 @@ class CourseUpdateApplyWrite(StudentIdentityWrite):
     )
 
 
+class AssetReferenceWrite(BaseModel):
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    asset_id: str = Field(alias="assetId", min_length=1, max_length=100)
+    sha256: str = Field(min_length=64, max_length=64)
+
+
+class CourseAssetAuthorizeWrite(StudentIdentityWrite):
+    course_id: str = Field(alias="courseId", min_length=1, max_length=100)
+    release_id: str = Field(alias="releaseId", min_length=1, max_length=100)
+    assets: list[AssetReferenceWrite] = Field(default_factory=list, max_length=1000)
+
+
 class KnownReleaseWrite(BaseModel):
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
     course_id: str = Field(alias="courseId", min_length=1, max_length=100)

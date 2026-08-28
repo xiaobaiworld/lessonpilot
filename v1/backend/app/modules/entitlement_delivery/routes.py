@@ -1,7 +1,9 @@
 import hashlib
 import json
 
-from fastapi import APIRouter, Depends, Query, Request
+from urllib.parse import quote
+
+from fastapi import APIRouter, Depends, Query, Request, Response
 from sqlalchemy.orm import Session
 
 from app.api.errors import ApiError
@@ -11,9 +13,15 @@ from app.modules.authoring_release.application_service import (
     AuthoringReleaseApplicationService,
     AuthoringReleaseError,
 )
+from app.modules.authoring_release.asset_storage import AssetStorageError
 from app.modules.entitlement_delivery.application_service import (
     EntitlementApplicationService,
     EntitlementError,
+)
+from app.modules.entitlement_delivery.asset_delivery import (
+    AssetDeliveryError,
+    issue_asset_token,
+    verify_asset_token,
 )
 from app.modules.entitlement_delivery.models import AccessCode
 from app.modules.entitlement_delivery.schemas import (
@@ -21,6 +29,7 @@ from app.modules.entitlement_delivery.schemas import (
     AccessCodeBatchWrite,
     AccessCodeRecipientWrite,
     AccessCodeWrite,
+    CourseAssetAuthorizeWrite,
     CourseUpdateApplyWrite,
     CourseUpdateCheckWrite,
     InstalledCourseVersionWrite,
@@ -540,6 +549,179 @@ def _student_update_summary(
         if item.release_id is not None and item.release_id == release.id
         else "update",
     }
+
+
+def _student_asset_error(error: Exception) -> ApiError:
+    code = getattr(error, "code", "ASSET_ACCESS_INVALID")
+    statuses = {
+        "ASSET_ACCESS_INVALID": 401,
+        "ASSET_NOT_AUTHORIZED": 403,
+        "ASSET_HASH_MISMATCH": 422,
+        "ASSET_RELEASE_INVALID": 422,
+        "ASSET_NOT_FOUND": 404,
+        "ASSET_RANGE_INVALID": 416,
+    }
+    messages = {
+        "ASSET_ACCESS_INVALID": "资源访问凭证无效或已过期",
+        "ASSET_NOT_AUTHORIZED": "当前课程无权访问该资源",
+        "ASSET_HASH_MISMATCH": "资源校验信息不匹配",
+        "ASSET_RELEASE_INVALID": "课程发布版本无效",
+        "ASSET_NOT_FOUND": "资源不存在或已不可用",
+        "ASSET_RANGE_INVALID": "资源范围请求无效",
+    }
+    return ApiError(statuses.get(code, 422), code, messages.get(code, "资源访问失败"))
+
+
+@student_router.post("/course-assets/authorize")
+def authorize_course_assets(
+    payload: CourseAssetAuthorizeWrite,
+    request: Request,
+    db: Session = Depends(get_db),
+) -> dict:
+    entitlements = _service(request, db)
+    try:
+        grants = entitlements.effective_grants(
+            payload.local_identity_id, payload.local_proof
+        )
+        scope = grants.get(payload.course_id)
+        if not scope:
+            raise AssetDeliveryError("ASSET_NOT_AUTHORIZED")
+
+        authoring = AuthoringReleaseApplicationService(db)
+        release = authoring.get_release(payload.release_id)
+        if release.course_id != payload.course_id:
+            raise AssetDeliveryError("ASSET_RELEASE_INVALID")
+        package = entitlements.crop_package(authoring.package(release), scope)
+        package_assets = {
+            asset["assetId"]: asset
+            for asset in package.get("assets", [])
+            if isinstance(asset, dict) and isinstance(asset.get("assetId"), str)
+        }
+        requested = (
+            [(item.asset_id, item.sha256) for item in payload.assets]
+            if payload.assets
+            else [(asset_id, asset["sha256"]) for asset_id, asset in package_assets.items()]
+        )
+        asset_hashes: dict[str, str] = {}
+        for asset_id, sha256 in requested:
+            if asset_id in asset_hashes:
+                raise AssetDeliveryError("ASSET_NOT_AUTHORIZED")
+            package_asset = package_assets.get(asset_id)
+            if not package_asset:
+                raise AssetDeliveryError("ASSET_NOT_AUTHORIZED")
+            if sha256 != package_asset.get("sha256"):
+                raise AssetDeliveryError("ASSET_HASH_MISMATCH")
+            record, _ = request.app.state.asset_storage.get_by_id(asset_id)
+            if (
+                record.get("sha256") != package_asset.get("sha256")
+                or record.get("mimeType") != package_asset.get("mimeType")
+                or record.get("byteSize") != package_asset.get("byteSize")
+            ):
+                raise AssetDeliveryError("ASSET_HASH_MISMATCH")
+            asset_hashes[asset_id] = sha256
+
+        secret = request.app.state.settings.access_code_secret
+        if not secret:
+            raise ApiError(503, "ACCESS_CODE_SECRET_UNAVAILABLE", "授权服务未配置")
+        token, expires_at = issue_asset_token(
+            secret, payload.course_id, payload.release_id, asset_hashes
+        )
+        first_asset_id = next(iter(asset_hashes), None)
+        asset_url = None
+        if first_asset_id:
+            asset_url = (
+                f"{request.url_for('get_student_course_asset', asset_id=first_asset_id)}"
+                f"?token={quote(token, safe='')}"
+            )
+        return {
+            "schemaVersion": 1,
+            "requestId": request.state.request_id,
+            "data": {
+                "courseId": payload.course_id,
+                "releaseId": payload.release_id,
+                "assetIds": list(asset_hashes),
+                "token": token,
+                "expiresAt": expires_at,
+                "assetUrl": asset_url,
+            },
+        }
+    except AssetDeliveryError as error:
+        raise _student_asset_error(error) from error
+    except (AssetStorageError, EntitlementError, AuthoringReleaseError) as error:
+        raise _student_asset_error(error) from error
+
+
+def _range_bounds(value: str, size: int) -> tuple[int, int]:
+    if not value.startswith("bytes=") or "," in value:
+        raise AssetDeliveryError("ASSET_RANGE_INVALID")
+    try:
+        start_text, end_text = value[6:].split("-", 1)
+        if not start_text:
+            suffix = int(end_text)
+            if suffix <= 0:
+                raise ValueError
+            start, end = max(size - suffix, 0), size - 1
+        else:
+            start = int(start_text)
+            end = int(end_text) if end_text else size - 1
+            if start < 0 or start >= size or end < start:
+                raise ValueError
+            end = min(end, size - 1)
+    except (ValueError, TypeError):
+        raise AssetDeliveryError("ASSET_RANGE_INVALID") from None
+    return start, end
+
+
+@student_router.get("/course-assets/{asset_id}", name="get_student_course_asset")
+def get_student_course_asset(
+    asset_id: str,
+    request: Request,
+) -> Response:
+    token = request.query_params.get("token")
+    if not token:
+        authorization = request.headers.get("Authorization", "")
+        token = authorization.removeprefix("Bearer ").strip() or None
+    if not token:
+        raise _student_asset_error(AssetDeliveryError("ASSET_ACCESS_INVALID"))
+
+    try:
+        secret = request.app.state.settings.access_code_secret
+        if not secret:
+            raise ApiError(503, "ACCESS_CODE_SECRET_UNAVAILABLE", "授权服务未配置")
+        expected_sha = verify_asset_token(secret, token, asset_id)
+        record, path = request.app.state.asset_storage.get_by_id(asset_id)
+        if record.get("sha256") != expected_sha:
+            raise AssetDeliveryError("ASSET_ACCESS_INVALID")
+        content = path.read_bytes()
+        etag = f'"{record["sha256"]}"'
+        headers = {
+            "Accept-Ranges": "bytes",
+            "Cache-Control": "private, max-age=300",
+            "ETag": etag,
+        }
+        if request.headers.get("If-None-Match") == etag:
+            return Response(status_code=304, headers=headers)
+        range_header = request.headers.get("Range")
+        if range_header:
+            start, end = _range_bounds(range_header, len(content))
+            headers.update(
+                {
+                    "Content-Range": f"bytes {start}-{end}/{len(content)}",
+                    "Content-Length": str(end - start + 1),
+                }
+            )
+            return Response(
+                content=content[start : end + 1],
+                status_code=206,
+                media_type=record["mimeType"],
+                headers=headers,
+            )
+        headers["Content-Length"] = str(len(content))
+        return Response(content=content, media_type=record["mimeType"], headers=headers)
+    except (AssetDeliveryError, AssetStorageError, AuthoringReleaseError) as error:
+        raise _student_asset_error(error) from error
+    except OSError as error:
+        raise _student_asset_error(AssetDeliveryError("ASSET_NOT_FOUND")) from error
 
 
 @student_router.post("/course-updates/check")
