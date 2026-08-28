@@ -1,5 +1,9 @@
 import { CourseLibrary } from '../storage';
-import { redeemAccessCode } from './redeem';
+import {
+  checkCourseUpdates,
+  redeemAccessCode,
+  upgradeCourse,
+} from './redeem';
 import { buildLibraryView, findCandidates, removalImpact } from '../shared/library-view';
 import { API_ORIGIN } from './config';
 import { createExampleCourse } from './example-course';
@@ -58,6 +62,40 @@ async function handle(message: unknown): Promise<Reply> {
       return result.ok
         ? ok({ installed: result.installed.map((c) => ({ courseId: c.courseId, title: c.title })) })
         : err(result.code, result.message);
+    }
+
+    case 'checkCourseUpdates': {
+      if (
+        m.courseIds !== undefined &&
+        (!Array.isArray(m.courseIds) ||
+          m.courseIds.some((courseId) => typeof courseId !== 'string'))
+      ) {
+        return err('BAD_MESSAGE', '课程筛选条件不正确。');
+      }
+      const result = await checkCourseUpdates(
+        {
+          library,
+          apiOrigin: API_ORIGIN,
+          fetch: globalThis.fetch.bind(globalThis),
+        },
+        m.courseIds as string[] | undefined
+      );
+      return result.ok ? ok({ courses: result.courses }) : err(result.code, result.message);
+    }
+
+    case 'upgradeCourse': {
+      if (
+        typeof m.courseId !== 'string' ||
+        typeof m.expectedReleaseId !== 'string'
+      ) {
+        return err('BAD_MESSAGE', '缺少课程或期望版本。');
+      }
+      const result = await upgradeCourse(m.courseId, m.expectedReleaseId, {
+        library,
+        apiOrigin: API_ORIGIN,
+        fetch: globalThis.fetch.bind(globalThis),
+      });
+      return result.ok ? ok({ course: result.course }) : err(result.code, result.message);
     }
 
     case 'candidates': {

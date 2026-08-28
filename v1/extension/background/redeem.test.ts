@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { redeemAccessCode, RedeemDeps } from './redeem';
+import {
+  checkCourseUpdates,
+  redeemAccessCode,
+  RedeemDeps,
+  upgradeCourse,
+} from './redeem';
 import { checkCoursePackage } from './validate';
 import { CourseLibrary, StorageArea } from '../storage';
 import { STORAGE_ROOT_KEY } from '../storage/types';
@@ -73,6 +78,12 @@ const json = (body: unknown, status = 200) => {
   });
 };
 
+const updateJson = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
+
 let area: FakeArea;
 let deps: RedeemDeps;
 
@@ -138,6 +149,97 @@ describe('成功路径', () => {
     expect(Object.keys(area.root().installedCourses).sort()).toEqual(
       [uuid(1), uuid(3)].sort()
     );
+  });
+});
+
+describe('课程升级消息链路', () => {
+  it('检查只提交本机已安装课程，并解析版本摘要', async () => {
+    await redeemAccessCode('KM-FIRST', withFetch(async () => json({ courses: [pkg()] })));
+    const fetch = vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) =>
+      updateJson({
+        data: {
+          courses: [
+            {
+              courseId: uuid(1),
+              title: '英文面试问答',
+              releaseId: uuid(6),
+              releaseNumber: 2,
+              status: 'update',
+            },
+          ],
+        },
+      })
+    );
+
+    const result = await checkCourseUpdates({ library: deps.library, apiOrigin: deps.apiOrigin, fetch });
+
+    expect(result).toMatchObject({
+      ok: true,
+      courses: [{ courseId: uuid(1), status: 'update', releaseId: uuid(6) }],
+    });
+    const body = JSON.parse(String(fetch.mock.calls[0][1]?.body));
+    expect(body.installedCourses).toEqual([
+      { courseId: uuid(1), releaseId: uuid(5), releaseNumber: 1 },
+    ]);
+    expect(body).not.toHaveProperty('coursePackage');
+  });
+
+  it('版本摘要响应畸形时不返回可执行候选', async () => {
+    const result = await checkCourseUpdates({
+      library: deps.library,
+      apiOrigin: deps.apiOrigin,
+      fetch: async () => updateJson({ data: { courses: [{ courseId: 'bad', status: 'update' }] } }),
+    });
+
+    expect(result).toMatchObject({ ok: false, code: 'MALFORMED' });
+  });
+
+  it('升级重新校验课程包并迁移本机学习状态', async () => {
+    await redeemAccessCode('KM-FIRST', withFetch(async () => json({ courses: [pkg()] })));
+    await deps.library.recordAttempt(uuid(1), uuid(2), 'n1', {
+      at: '2026-08-28T00:00:00.000Z',
+      answer: 'old',
+      correct: true,
+    });
+    const replacement = pkg({
+      releaseId: uuid(6),
+      releaseNumber: 2,
+      lessons: [
+        {
+          lessonId: uuid(2),
+          title: '第一节',
+          videoRef: { platform: 'bilibili', videoId: 'BV1Ac41187Lm' },
+          nodes: [node(30, 'n1')],
+        },
+      ],
+    });
+    const result = await upgradeCourse(
+      uuid(1),
+      uuid(6),
+      {
+        library: deps.library,
+        apiOrigin: deps.apiOrigin,
+        fetch: async () => updateJson({ data: { package: replacement } }),
+      }
+    );
+
+    expect(result).toMatchObject({ ok: true, course: { releaseId: uuid(6), releaseNumber: 2 } });
+    const root = await area.root();
+    expect(root.installedCourses[uuid(1)].releaseNumber).toBe(2);
+    expect(root.localLearningState[uuid(1)][uuid(2)].done).toEqual(['n1']);
+    expect(root.localLearningState[uuid(1)][uuid(2)].attempts.n1).toHaveLength(1);
+  });
+
+  it('服务端拒绝过期期望版本时保留旧课程', async () => {
+    await redeemAccessCode('KM-FIRST', withFetch(async () => json({ courses: [pkg()] })));
+    const result = await upgradeCourse(uuid(1), uuid(4), {
+      library: deps.library,
+      apiOrigin: deps.apiOrigin,
+      fetch: async () => updateJson({ detail: 'stale release' }, 409),
+    });
+
+    expect(result).toMatchObject({ ok: false, code: 'STALE' });
+    expect(area.root().installedCourses[uuid(1)].releaseId).toBe(uuid(5));
   });
 });
 

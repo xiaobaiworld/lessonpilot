@@ -16,6 +16,7 @@ const schema = JSON.parse(
 );
 
 const workerSource = readFileSync(resolve(__dirname, 'service-worker.ts'), 'utf8');
+const redeemSource = readFileSync(resolve(__dirname, 'redeem.ts'), 'utf8');
 
 const declaredTypes: string[] = schema.definitions.Request.properties.type.enum;
 
@@ -61,5 +62,14 @@ describe('消息契约与实现一致', () => {
     const [success, failure] = schema.definitions.Reply.oneOf;
     expect(success.required).toContain('ok');
     expect(failure.required).toEqual(expect.arrayContaining(['ok', 'code', 'message']));
+  });
+
+  it('升级消息只能通过 background 的两阶段 API', () => {
+    expect(redeemSource).toContain('/api/v1/student/course-updates/check');
+    expect(redeemSource).toContain('/api/v1/student/course-updates/apply');
+    expect(redeemSource).toContain('expectedReleaseId');
+    expect(schema.definitions.Request.properties.type.enum).toEqual(
+      expect.arrayContaining(['checkCourseUpdates', 'upgradeCourse'])
+    );
   });
 });

@@ -6,6 +6,7 @@ import {
   AssetRecord,
   InstalledCourse,
   AuthorizationSource,
+  LearningState,
   LessonProgress,
   NodeAttempt,
   QuarantineEntry,
@@ -483,6 +484,34 @@ export class CourseLibrary {
     learningState: Record<string, LessonProgress>
   ): Promise<StorageRoot> {
     return this.update((root) => {
+      root.installedCourses[course.courseId] = course;
+
+      const sources = root.authorizationSourceCache.sources.filter(
+        (s) => s.sourceId !== source.sourceId
+      );
+      sources.push(source);
+      root.authorizationSourceCache.sources = sources;
+      root.localLearningState[course.courseId] = learningState;
+    }).then((r) => r.root);
+  }
+
+  /** 在同一串行写操作内读取旧课程、迁移进度并提交新课程 */
+  replaceCourseWithMigration(
+    course: InstalledCourse,
+    source: AuthorizationSource,
+    migrate: (
+      previousCourse: InstalledCourse,
+      previousState: LearningState
+    ) => Record<string, LessonProgress>
+  ): Promise<StorageRoot> {
+    return this.update((root) => {
+      const previousCourse = root.installedCourses[course.courseId];
+      if (!previousCourse) throw new Error('课程未安装');
+
+      const learningState = migrate(
+        previousCourse,
+        root.localLearningState
+      );
       root.installedCourses[course.courseId] = course;
 
       const sources = root.authorizationSourceCache.sources.filter(

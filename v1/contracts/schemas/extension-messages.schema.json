@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://knownmap.local/schema/v2/extension-messages.schema.json",
-  "title": "KnownMap Extension Messages v2.0.0",
+  "title": "KnownMap Extension Messages v2.1.0",
   "description": "插件内部消息契约。background 是唯一的网络与持久化边界，content script 与 popup 只发请求、收响应；没有页面到插件的方向——教师预览已降级为静态示意图，老师改用插件在 B 站原页面查看（doc/lessons.md 2026-08-14）。",
   "type": "object",
   "oneOf": [
@@ -18,6 +18,8 @@
           "enum": [
             "library",
             "redeem",
+            "checkCourseUpdates",
+            "upgradeCourse",
             "candidates",
             "lesson",
             "attempt",
@@ -45,6 +47,16 @@
           "description": "candidates：当前 B 站页面的完整视频引用"
         },
         "courseId": { "type": "string", "format": "uuid" },
+        "courseIds": {
+          "type": "array",
+          "items": { "type": "string", "format": "uuid" },
+          "description": "checkCourseUpdates：可选的精确课程筛选"
+        },
+        "expectedReleaseId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "upgradeCourse：检查时看到的期望发布版本"
+        },
         "lessonId": { "type": "string", "format": "uuid" },
         "nodeId": { "type": "string", "minLength": 1 },
         "at": { "type": "string", "format": "date-time" },

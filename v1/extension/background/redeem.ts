@@ -1,6 +1,7 @@
 import { CourseLibrary } from '../storage';
 import { AuthorizationSource, InstalledCourse } from '../storage/types';
 import { checkCoursePackage } from './validate';
+import { migrateLearningState } from '../runtime/course-upgrade';
 
 export interface RedeemDeps {
   library: CourseLibrary;
@@ -30,6 +31,46 @@ export type RedeemErrorCode =
   | 'EMPTY_RESULT'
   | 'STORAGE';
 
+export interface CourseUpdateDeps {
+  library: CourseLibrary;
+  apiOrigin: string;
+  fetch: typeof globalThis.fetch;
+  timeoutMs?: number;
+}
+
+export interface CourseUpdateSummary {
+  courseId: string;
+  title: string;
+  releaseId: string | null;
+  releaseNumber: number | null;
+  status: 'unchanged' | 'update' | 'unauthorized';
+}
+
+export type CourseUpdateResult =
+  | { ok: true; courses: CourseUpdateSummary[] }
+  | { ok: false; code: CourseUpdateErrorCode; message: string };
+
+export type CourseUpdateErrorCode =
+  | 'NETWORK'
+  | 'TIMEOUT'
+  | 'SERVER'
+  | 'UNAUTHORIZED'
+  | 'STALE'
+  | 'MALFORMED'
+  | 'NOT_INSTALLED'
+  | 'STORAGE';
+
+const COURSE_UPDATE_MESSAGES: Record<CourseUpdateErrorCode, string> = {
+  NETWORK: '连不上服务，请检查网络后重试。',
+  TIMEOUT: '请求超时，请重试。',
+  SERVER: '服务暂时出错，请稍后重试。',
+  UNAUTHORIZED: '当前没有这门课程的在线更新资格。',
+  STALE: '课程已有更新，请重新检查后再升级。',
+  MALFORMED: '课程更新数据不完整，已取消升级。',
+  NOT_INSTALLED: '本机没有这门课程。',
+  STORAGE: '本机存储写入失败，已保留原有课程。',
+};
+
 /** 错误目录集中在一处，popup 与页面书包共用同一套文案 */
 export const REDEEM_MESSAGES: Record<RedeemErrorCode, string> = {
   EMPTY_CODE: '请输入授权码。',
@@ -48,6 +89,268 @@ function fail(code: RedeemErrorCode, detail?: string): RedeemResult {
     code,
     message: detail ? `${REDEEM_MESSAGES[code]}（${detail}）` : REDEEM_MESSAGES[code],
   };
+}
+
+function updateFail(
+  code: CourseUpdateErrorCode,
+  detail?: string
+): CourseUpdateResult {
+  return {
+    ok: false,
+    code,
+    message: detail
+      ? `${COURSE_UPDATE_MESSAGES[code]}（${detail}）`
+      : COURSE_UPDATE_MESSAGES[code],
+  };
+}
+
+function isObject(value: unknown): value is Record<string, any> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function onlyKeys(
+  value: Record<string, unknown>,
+  required: string[],
+  optional: string[] = []
+): boolean {
+  const allowed = new Set([...required, ...optional]);
+  return (
+    required.every((key) => key in value) &&
+    Object.keys(value).every((key) => allowed.has(key))
+  );
+}
+
+async function ensureIdentity(deps: CourseUpdateDeps): Promise<{
+  clientId: string;
+  proof: string;
+}> {
+  const identity = await deps.library.ensureIdentity(() => ({
+    clientId: crypto.randomUUID(),
+    proof: randomSecret(),
+    proofSalt: randomSecret(),
+  }));
+  if (!identity) throw new Error('identity unavailable');
+  return { clientId: identity.clientId, proof: identity.proof };
+}
+
+function clientInfo() {
+  return {
+    extensionVersion:
+      (globalThis as any).chrome?.runtime?.getManifest?.().version ?? '0.0.0',
+    browserFamily: 'chrome',
+  };
+}
+
+async function requestWithTimeout(
+  deps: CourseUpdateDeps,
+  path: string,
+  body: unknown
+): Promise<Response | CourseUpdateErrorCode> {
+  const controller = new AbortController();
+  const timeout = setTimeout(
+    () => controller.abort(),
+    deps.timeoutMs ?? 15000
+  );
+  try {
+    return await deps.fetch(`${deps.apiOrigin}${path}`, {
+      method: 'POST',
+      signal: controller.signal,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  } catch (error) {
+    return error instanceof Error && error.name === 'AbortError'
+      ? 'TIMEOUT'
+      : 'NETWORK';
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function parseJsonResponse(
+  response: Response
+): Promise<Record<string, any> | CourseUpdateErrorCode> {
+  if (response.status === 409) return 'STALE';
+  if (response.status === 401 || response.status === 403 || response.status === 404) {
+    return 'UNAUTHORIZED';
+  }
+  if (response.status >= 500) return 'SERVER';
+  if (!response.ok) return 'MALFORMED';
+  try {
+    const body: unknown = await response.json();
+    return isObject(body) ? body : 'MALFORMED';
+  } catch {
+    return 'MALFORMED';
+  }
+}
+
+function validReleaseId(value: unknown): value is string {
+  return (
+    typeof value === 'string' &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      value
+    )
+  );
+}
+
+function parseUpdateSummary(value: unknown): CourseUpdateSummary | null {
+  if (
+    !isObject(value) ||
+    !onlyKeys(value, ['courseId', 'title', 'releaseId', 'releaseNumber', 'status']) ||
+    typeof value.courseId !== 'string' ||
+    value.courseId.trim().length === 0 ||
+    typeof value.title !== 'string' ||
+    value.title.trim().length === 0 ||
+    !['unchanged', 'update', 'unauthorized'].includes(String(value.status))
+  ) {
+    return null;
+  }
+  const status = value.status as CourseUpdateSummary['status'];
+  if (status === 'unauthorized') {
+    if (value.releaseId !== null || value.releaseNumber !== null) return null;
+    return {
+      courseId: value.courseId,
+      title: value.title,
+      releaseId: null,
+      releaseNumber: null,
+      status,
+    };
+  }
+  if (
+    !validReleaseId(value.releaseId) ||
+    !Number.isSafeInteger(value.releaseNumber) ||
+    value.releaseNumber < 1
+  ) {
+    return null;
+  }
+  return {
+    courseId: value.courseId,
+    title: value.title,
+    releaseId: value.releaseId,
+    releaseNumber: value.releaseNumber,
+    status,
+  };
+}
+
+export async function checkCourseUpdates(
+  deps: CourseUpdateDeps,
+  courseIds?: string[]
+): Promise<CourseUpdateResult> {
+  let identity;
+  let root;
+  try {
+    identity = await ensureIdentity(deps);
+    root = await deps.library.read();
+  } catch {
+    return updateFail('STORAGE');
+  }
+
+  const selected = Object.values(root.installedCourses).filter(
+    (course) => courseIds === undefined || courseIds.includes(course.courseId)
+  );
+  const response = await requestWithTimeout(
+    deps,
+    '/api/v1/student/course-updates/check',
+    {
+      schemaVersion: 1,
+      installedCourses: selected.map((course) => ({
+        courseId: course.courseId,
+        releaseId: course.releaseId ?? null,
+        releaseNumber: course.releaseNumber ?? null,
+      })),
+      ...(courseIds === undefined ? {} : { courseIds }),
+      localIdentityId: identity.clientId,
+      localProof: identity.proof,
+      client: clientInfo(),
+    }
+  );
+  if (typeof response === 'string') return updateFail(response);
+
+  const body = await parseJsonResponse(response);
+  if (typeof body === 'string') return updateFail(body);
+  const data = body.data;
+  if (!isObject(data) || !Array.isArray(data.courses)) {
+    return updateFail('MALFORMED', '响应缺少 courses');
+  }
+
+  const selectedIds = new Set(selected.map((course) => course.courseId));
+  const courses = data.courses.map(parseUpdateSummary);
+  if (
+    courses.some((course) => course === null) ||
+    courses.some((course) => !selectedIds.has(course!.courseId))
+  ) {
+    return updateFail('MALFORMED', '响应包含未知课程');
+  }
+  return { ok: true, courses: courses as CourseUpdateSummary[] };
+}
+
+export type CourseUpgradeResult =
+  | { ok: true; course: InstalledCourse }
+  | { ok: false; code: CourseUpdateErrorCode; message: string };
+
+export async function upgradeCourse(
+  courseId: string,
+  expectedReleaseId: string,
+  deps: CourseUpdateDeps
+): Promise<CourseUpgradeResult> {
+  if (!courseId || !validReleaseId(expectedReleaseId)) {
+    return updateFail('MALFORMED', '课程或期望版本无效') as CourseUpgradeResult;
+  }
+
+  let identity;
+  let root;
+  try {
+    identity = await ensureIdentity(deps);
+    root = await deps.library.read();
+  } catch {
+    return updateFail('STORAGE') as CourseUpgradeResult;
+  }
+  const current = root.installedCourses[courseId];
+  if (!current) return updateFail('NOT_INSTALLED') as CourseUpgradeResult;
+  const source = root.authorizationSourceCache.sources.find(
+    (item) => item.sourceId === current.sourceId
+  );
+  if (!source) return updateFail('UNAUTHORIZED') as CourseUpgradeResult;
+
+  const response = await requestWithTimeout(
+    deps,
+    '/api/v1/student/course-updates/apply',
+    {
+      schemaVersion: 1,
+      courseId,
+      expectedReleaseId,
+      localIdentityId: identity.clientId,
+      localProof: identity.proof,
+      client: clientInfo(),
+    }
+  );
+  if (typeof response === 'string') {
+    return updateFail(response) as CourseUpgradeResult;
+  }
+  const body = await parseJsonResponse(response);
+  if (typeof body === 'string') return updateFail(body) as CourseUpgradeResult;
+  const data = body.data;
+  const rawPackage = isObject(data) ? data.package : undefined;
+  const checked = checkCoursePackage(rawPackage, source.sourceId);
+  if (
+    !checked.ok ||
+    checked.value.courseId !== courseId ||
+    checked.value.releaseId !== expectedReleaseId
+  ) {
+    return updateFail('MALFORMED', checked.ok ? '课程或版本不匹配' : checked.reason) as CourseUpgradeResult;
+  }
+
+  try {
+    await deps.library.replaceCourseWithMigration(
+      checked.value,
+      source,
+      (previousCourse, previousState) =>
+        migrateLearningState(previousCourse, checked.value, previousState)
+    );
+  } catch {
+    return updateFail('STORAGE') as CourseUpgradeResult;
+  }
+  return { ok: true, course: checked.value };
 }
 
 /** 授权码尾段，用于在课程库里说明这门课是哪个码带来的。不存明文 */
