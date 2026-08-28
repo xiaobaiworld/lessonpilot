@@ -383,6 +383,40 @@ describe('课程隔离与更新', () => {
     expect(root.installedCourses.b.title).toBe('课程 b');
   });
 
+  it('课程替换和迁移状态在同一次写入中完成，写失败保留旧课程', async () => {
+    const old = course('a');
+    await lib.installCourse(old, source('a', ['a']));
+    await lib.recordAttempt('a', 'a-l1', 'n1', { at: 't', answer: 'old', correct: true });
+
+    const replacement = {
+      ...old,
+      title: '新课程',
+      releaseId: '00000002-0000-4000-8000-000000000000',
+      releaseNumber: 2,
+    };
+    const migrated = {
+      a: {
+        'a-l1': {
+          done: [],
+          attempts: { n1: [{ at: 't', answer: 'old', correct: true }] },
+          lastPositionSeconds: 0,
+          updatedAt: 't',
+        },
+      },
+    };
+
+    area.failOn = 'set';
+    await expect(
+      lib.replaceCourseAndLearningState(replacement, source('a', ['a']), migrated.a)
+    ).rejects.toThrow();
+    area.failOn = null;
+
+    const root = await lib.read();
+    expect(root.installedCourses.a.title).toBe('课程 a');
+    expect(root.installedCourses.a.releaseNumber).toBeNull();
+    expect(root.localLearningState.a['a-l1'].attempts.n1).toHaveLength(1);
+  });
+
   it('重装默认保留进度，显式要求才清', async () => {
     await lib.installCourse(course('a'), source('a', ['a']));
     await lib.recordAttempt('a', 'a-l1', 'n1', { at: 't', answer: 'x', correct: true });

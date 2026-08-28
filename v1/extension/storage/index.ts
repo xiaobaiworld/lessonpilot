@@ -476,6 +476,24 @@ export class CourseLibrary {
     }).then((r) => r.root);
   }
 
+  /** 课程内容和已迁移学习状态必须作为一个原子替换写入 */
+  replaceCourseAndLearningState(
+    course: InstalledCourse,
+    source: AuthorizationSource,
+    learningState: Record<string, LessonProgress>
+  ): Promise<StorageRoot> {
+    return this.update((root) => {
+      root.installedCourses[course.courseId] = course;
+
+      const sources = root.authorizationSourceCache.sources.filter(
+        (s) => s.sourceId !== source.sourceId
+      );
+      sources.push(source);
+      root.authorizationSourceCache.sources = sources;
+      root.localLearningState[course.courseId] = learningState;
+    }).then((r) => r.root);
+  }
+
   /** 删除一门课连同它的学习状态。授权来源保留，便于说明它曾装过什么 */
   removeCourse(courseId: string): Promise<StorageRoot> {
     return this.update((root) => {
