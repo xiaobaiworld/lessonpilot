@@ -1,0 +1,67 @@
+<!--
+  KnownMap 学生插件课程库与升级布局资产。
+  定稿来源：.superpowers/brainstorm/90187-1787928046/content/course-sync-layout-v12.html
+  规则：课程总数 <= 3 显示全部；课程总数 > 3 显示前 3 门并提供“更多课程”。
+-->
++<style>
+  :root { --ink:#172033; --muted:#6b7280; --line:#e6eaf0; --paper:#f5f7fb; --blue:#2563eb; --gold:#e8b428; --clay:#c56e52; --red-muted:#b85c63; --soft-red:#fffafa; }
+  * { box-sizing:border-box; }
+  body { font-family:ui-sans-serif,-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif; }
+  .intro { max-width:820px; margin:0 auto 22px; }
+  .intro p { color:var(--muted); }
+  .states { display:grid; grid-template-columns:repeat(2,minmax(300px,380px)); justify-content:center; gap:24px; }
+  .label { color:var(--muted); font-size:12px; font-weight:800; padding:0 5px 9px; }
+  .phone { background:var(--paper); border:1px solid #cfd7e3; border-radius:18px; overflow:hidden; min-height:620px; box-shadow:0 14px 34px rgba(15,23,42,.1); }
+  .head { background:#fff; border-bottom:1px solid var(--line); padding:16px 15px 12px; }
+  .head-row { display:flex; align-items:center; justify-content:space-between; }
+  .brand { display:flex; align-items:center; gap:8px; color:var(--ink); }
+  .brand-mark { width:25px; height:25px; border-radius:7px; }
+  .wordmark { font-size:14px; font-weight:800; letter-spacing:-.03em; }
+  .wordmark .k { color:var(--gold); } .wordmark .m { color:var(--clay); }
+  .icon { width:28px; height:28px; border:1px solid var(--line); border-radius:8px; display:grid; place-items:center; color:#475569; background:#fff; }
+  h3 { margin:8px 0 0; color:var(--ink); font-size:20px; }
+  .sub { color:var(--muted); font-size:10px; margin-top:5px; }
+  .body { padding:12px; }
+  .floating { background:var(--soft-red); border:1px solid #f1e2e3; border-radius:9px; color:#805d61; padding:8px; font-size:10px; margin-bottom:10px; }
+  .floating b { color:var(--red-muted); }
+  .section { display:flex; justify-content:space-between; color:var(--ink); font-size:11px; font-weight:800; margin:3px 2px 7px; }
+  .section small { color:var(--muted); font-size:9px; font-weight:400; }
+  .course { background:#fff; border:1px solid var(--line); border-radius:11px; padding:10px; margin-bottom:7px; }
+  .course strong { display:block; color:var(--ink); font-size:11px; line-height:1.4; }
+  .meta { color:var(--muted); font-size:9px; margin-top:4px; }
+  .bar { height:4px; background:#e7edf5; border-radius:99px; overflow:hidden; margin:7px 0; }
+  .bar span { display:block; height:100%; background:#60a5fa; }
+  .actions { display:flex; gap:6px; }
+  button { border:0; border-radius:7px; padding:6px 8px; font-size:9px; font-weight:800; }
+  .open { flex:1; color:#334155; background:#f1f5f9; }
+  .upgrade { color:#fff; background:var(--blue); }
+  .more { width:100%; color:#475569; background:#fff; border:1px dashed #b7c2d1; margin-top:2px; }
+  .rule { color:var(--muted); background:#fff; border:1px solid var(--line); border-radius:9px; padding:8px 10px; font-size:9px; line-height:1.45; margin-top:11px; }
+  .footer { color:var(--muted); font-size:10px; line-height:1.5; text-align:center; margin:18px auto 0; max-width:700px; }
+  @media(max-width:760px){ .states{grid-template-columns:minmax(280px,380px);} }
+</style>
+
+<div class="intro">
+  <h2>第十二版：全部课程也按 3 门分页</h2>
+  <p class="subtitle">“全部课程”就是课程总列表，和“需要升级”使用同样的数量规则：最多展示 3 门；超过 3 门才显示“更多课程”。</p>
+</div>
+
+<div class="states">
+  <div>
+    <div class="label">总数超过 3 门 · 显示更多入口</div>
+    <div class="phone">
+      <div class="head"><div class="head-row"><div class="brand"><svg class="brand-mark" viewBox="0 0 260 260" aria-label="KnownMap 标准图标"><circle cx="130" cy="130" r="124" fill="#103B2B"/><g transform="translate(23.4 23.4) scale(.82)"><path d="M31 51l54-20 75 20 61-22v166l-61 23-75-21-54 22z" fill="none" stroke="#CFE4D8" stroke-width="8"/><path d="M55 160l43-38 33 29 61-70" fill="none" stroke="#FFFDF8" stroke-width="8" stroke-linecap="round"/><circle cx="55" cy="160" r="10" fill="#E8B428"/><circle cx="192" cy="81" r="10" fill="#C56E52"/></g></svg><span class="wordmark"><span class="k">K</span>nown<span class="m">M</span>ap</span></div><span class="icon">⚙</span></div><h3>我的课程</h3><div class="sub">12 门课程 · 最近学习</div></div>
+      <div class="body"><div class="floating"><b>有 2 门课程可以升级，当前学习不会被打断。</b>　⌃　×</div><div class="section"><span>需要升级</span><small>2 门</small></div><div class="course"><strong>英语听力精讲：真实语境训练</strong><div class="meta">8 课节 · 已完成 14/24 个互动</div><div class="actions"><button class="open">打开课程</button><button class="upgrade">升级</button></div></div><div class="course"><strong>产品思维入门：从问题到方案</strong><div class="meta">6 课节 · 已完成 9/18 个互动</div><div class="actions"><button class="open">打开课程</button><button class="upgrade">升级</button></div></div><div class="section" style="margin-top:15px"><span>全部课程</span><small>12 门</small></div><div class="course"><strong>英语听力精讲：真实语境训练</strong><div class="meta">8 课节 · 已完成 14/24 个互动</div><div class="bar"><span style="width:58%"></span></div><div class="actions"><button class="open">打开课程</button></div></div><div class="course"><strong>产品思维入门：从问题到方案</strong><div class="meta">6 课节 · 已完成 9/18 个互动</div><div class="bar"><span style="width:50%"></span></div><div class="actions"><button class="open">打开课程</button></div></div><div class="course"><strong>写作基础：把想法说清楚</strong><div class="meta">5 课节 · 已完成 11/15 个互动</div><div class="bar"><span style="width:73%"></span></div><div class="actions"><button class="open">打开课程</button></div></div><button class="more">⋯　更多课程（第 1 / 4 页）</button></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="label">总数不超过 3 门 · 不显示更多入口</div>
+    <div class="phone">
+      <div class="head"><div class="head-row"><div class="brand"><svg class="brand-mark" viewBox="0 0 260 260" aria-label="KnownMap 标准图标"><circle cx="130" cy="130" r="124" fill="#103B2B"/><g transform="translate(23.4 23.4) scale(.82)"><path d="M31 51l54-20 75 20 61-22v166l-61 23-75-21-54 22z" fill="none" stroke="#CFE4D8" stroke-width="8"/><path d="M55 160l43-38 33 29 61-70" fill="none" stroke="#FFFDF8" stroke-width="8" stroke-linecap="round"/><circle cx="55" cy="160" r="10" fill="#E8B428"/><circle cx="192" cy="81" r="10" fill="#C56E52"/></g></svg><span class="wordmark"><span class="k">K</span>nown<span class="m">M</span>ap</span></div><span class="icon">⚙</span></div><h3>我的课程</h3><div class="sub">3 门课程 · 最近学习</div></div>
+      <div class="body"><div class="section"><span>需要升级</span><small>1 门</small></div><div class="course"><strong>英语听力精讲：真实语境训练</strong><div class="meta">8 课节 · 已完成 14/24 个互动</div><div class="actions"><button class="open">打开课程</button><button class="upgrade">升级</button></div></div><div class="section" style="margin-top:15px"><span>全部课程</span><small>3 门</small></div><div class="course"><strong>英语听力精讲：真实语境训练</strong><div class="meta">8 课节 · 已完成 14/24 个互动</div><div class="actions"><button class="open">打开课程</button></div></div><div class="course"><strong>产品思维入门：从问题到方案</strong><div class="meta">6 课节 · 已完成 9/18 个互动</div><div class="actions"><button class="open">打开课程</button></div></div><div class="course"><strong>写作基础：把想法说清楚</strong><div class="meta">5 课节 · 已完成 11/15 个互动</div><div class="actions"><button class="open">打开课程</button></div></div><div class="rule"><b>显示规则：</b>全部课程只有 3 门，全部直接显示，不出现“更多课程”。</div></div>
+    </div>
+  </div>
+</div>
+
+<p class="footer">最终规则：课程总数 ≤ 3，显示全部且不显示更多按钮；课程总数 &gt; 3，只显示前 3 门，并显示“更多课程”，点击后按每页 10 门分页。</p>
