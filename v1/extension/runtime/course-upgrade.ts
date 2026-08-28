@@ -3,6 +3,7 @@ import type {
   InstalledCourse,
   LearningState,
   LessonProgress,
+  UpgradeTask,
 } from '../storage/types';
 
 export interface CourseNodeDiff {
@@ -145,4 +146,76 @@ export function migrateLearningState(
     };
   }
   return next;
+}
+
+export interface UpgradeQueuePort {
+  listUpgradeTasks(): Promise<UpgradeTask[]>;
+  updateUpgradeTask(
+    taskKey: string,
+    patch: Partial<
+      Pick<
+        UpgradeTask,
+        | 'status'
+        | 'currentAssetId'
+        | 'completedAssetHashes'
+        | 'retryCount'
+        | 'lastError'
+      >
+    >
+  ): Promise<UpgradeTask>;
+}
+
+export type UpgradeTaskExecutor = (task: UpgradeTask) => Promise<void>;
+export type UpgradeCourseAvailability = (courseId: string) => boolean;
+
+/**
+ * Serializes upgrade execution in the background context. A task is marked
+ * before execution, so a worker restart can recover it without running two
+ * courses concurrently or losing its last verified asset checkpoint.
+ */
+export class UpgradeQueueRunner {
+  private tail: Promise<unknown> = Promise.resolve();
+
+  constructor(
+    private readonly queue: UpgradeQueuePort,
+    private readonly execute: UpgradeTaskExecutor,
+    private readonly isCourseAvailable: UpgradeCourseAvailability = () => true
+  ) {}
+
+  runNext(): Promise<UpgradeTask | null> {
+    const next = this.tail.then(
+      () => this.runOne(),
+      () => this.runOne()
+    );
+    this.tail = next.catch(() => undefined);
+    return next;
+  }
+
+  private async runOne(): Promise<UpgradeTask | null> {
+    const task = (await this.queue.listUpgradeTasks()).find(
+      (candidate) =>
+        candidate.status === 'queued' &&
+        this.isCourseAvailable(candidate.courseId)
+    );
+    if (!task) return null;
+
+    const running = await this.queue.updateUpgradeTask(task.taskKey, {
+      status: 'downloading',
+      lastError: null,
+    });
+    try {
+      await this.execute(running);
+      return this.queue.updateUpgradeTask(task.taskKey, {
+        status: 'committed',
+        currentAssetId: null,
+        lastError: null,
+      });
+    } catch (error) {
+      return this.queue.updateUpgradeTask(task.taskKey, {
+        status: 'failed',
+        retryCount: task.retryCount + 1,
+        lastError: error instanceof Error ? error.message : '升级失败',
+      });
+    }
+  }
 }

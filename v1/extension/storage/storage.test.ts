@@ -402,6 +402,38 @@ describe('升级队列持久化与去重', () => {
     expect(root.upgradeQueue.tasks).toEqual([]);
     expect(root.quarantine.entries.at(-1)?.reason).toContain('升级队列');
   });
+
+  it('重启恢复时已提交课程标记完成，未提交任务回到队列并保留检查点', async () => {
+    await lib.enqueueUpgradeTask('course-1', 'release-2', 2);
+    const queued = (await lib.listUpgradeTasks())[0];
+    await lib.updateUpgradeTask(queued.taskKey, {
+      status: 'downloading',
+      currentAssetId: 'asset-1',
+      completedAssetHashes: { 'asset-0': 'a'.repeat(64) },
+    });
+    await lib.installCourse(
+      { ...course('course-2'), releaseId: '00000006-0000-4000-8000-000000000000', releaseNumber: 3 },
+      source('course-2', ['course-2'])
+    );
+    await lib.enqueueUpgradeTask(
+      'course-2',
+      '00000006-0000-4000-8000-000000000000',
+      3
+    );
+    const committed = (await lib.listUpgradeTasks()).find(
+      (task) => task.courseId === 'course-2'
+    )!;
+    await lib.updateUpgradeTask(committed.taskKey, { status: 'ready_to_commit' });
+
+    const recovered = await lib.recoverUpgradeTasks();
+    const pending = recovered.find((task) => task.courseId === 'course-1')!;
+    const done = recovered.find((task) => task.courseId === 'course-2')!;
+
+    expect(pending.status).toBe('queued');
+    expect(pending.currentAssetId).toBe('asset-1');
+    expect(pending.completedAssetHashes).toEqual({ 'asset-0': 'a'.repeat(64) });
+    expect(done.status).toBe('committed');
+  });
 });
 
 describe('课程隔离与更新', () => {

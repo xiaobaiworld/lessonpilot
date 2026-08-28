@@ -1,9 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import type { InstalledCourse, LearningState, LessonProgress } from '../storage/types';
+import type {
+  InstalledCourse,
+  LearningState,
+  LessonProgress,
+  UpgradeTask,
+} from '../storage/types';
 import {
   compareCourseNodes,
   migrateLearningState,
   nodeFingerprint,
+  UpgradeQueueRunner,
 } from './course-upgrade';
 
 const node = (
@@ -177,5 +183,75 @@ describe('学习状态迁移', () => {
         updatedAt: '2026-08-28T00:00:00.000Z',
       },
     });
+  });
+});
+
+const upgradeTask = (courseId: string, targetReleaseId: string): UpgradeTask => ({
+  taskKey: `${courseId}\u0000${targetReleaseId}`,
+  courseId,
+  previousReleaseId: 'release-1',
+  targetReleaseId,
+  targetReleaseNumber: 2,
+  createdAt: '2026-08-28T00:00:00.000Z',
+  updatedAt: '2026-08-28T00:00:00.000Z',
+  status: 'queued',
+  currentAssetId: null,
+  completedAssetHashes: {},
+  retryCount: 0,
+  lastError: null,
+});
+
+describe('升级队列运行器', () => {
+  it('一次只运行一个任务，并跳过当前活跃课程', async () => {
+    let tasks = [upgradeTask('active', 'release-2'), upgradeTask('other', 'release-3')];
+    const executed: string[] = [];
+    const runner = new UpgradeQueueRunner(
+      {
+        listUpgradeTasks: async () => tasks,
+        updateUpgradeTask: async (taskKey, patch) => {
+          tasks = tasks.map((task) =>
+            task.taskKey === taskKey ? { ...task, ...patch } : task
+          );
+          return tasks.find((task) => task.taskKey === taskKey)!;
+        },
+      },
+      async (task) => {
+        executed.push(task.courseId);
+      },
+      (courseId) => courseId !== 'active'
+    );
+
+    const first = await runner.runNext();
+    expect(first?.status).toBe('committed');
+    expect(executed).toEqual(['other']);
+    expect(tasks.find((task) => task.courseId === 'active')?.status).toBe('queued');
+  });
+
+  it('执行失败记录失败原因和重试次数，后续任务仍可运行', async () => {
+    let tasks = [upgradeTask('broken', 'release-2'), upgradeTask('next', 'release-3')];
+    const runner = new UpgradeQueueRunner(
+      {
+        listUpgradeTasks: async () => tasks,
+        updateUpgradeTask: async (taskKey, patch) => {
+          tasks = tasks.map((task) =>
+            task.taskKey === taskKey ? { ...task, ...patch } : task
+          );
+          return tasks.find((task) => task.taskKey === taskKey)!;
+        },
+      },
+      async (task) => {
+        if (task.courseId === 'broken') throw new Error('network');
+      }
+    );
+
+    const failed = await runner.runNext();
+    expect(failed).toMatchObject({
+      status: 'failed',
+      retryCount: 1,
+      lastError: 'network',
+    });
+    const next = await runner.runNext();
+    expect(next?.courseId).toBe('next');
+    expect(next?.status).toBe('committed');
   });
 });

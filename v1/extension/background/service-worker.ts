@@ -23,6 +23,7 @@ import { isBilibiliVideoRef } from '../shared/video-reference';
 
 const library = new CourseLibrary(chrome.storage.local);
 const assetStore = new AssetCache(new IndexedDbAssetDatabase());
+void library.recoverUpgradeTasks().catch(() => undefined);
 const exampleCourse = (() => {
   try {
     return createExampleCourse();

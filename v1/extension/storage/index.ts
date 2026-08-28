@@ -696,6 +696,37 @@ export class CourseLibrary {
     }).then((r) => r.result);
   }
 
+  recoverUpgradeTasks(): Promise<UpgradeTask[]> {
+    return this.update((root) => {
+      const now = new Date().toISOString();
+      root.upgradeQueue.tasks = root.upgradeQueue.tasks.map((task) => {
+        const installed = root.installedCourses[task.courseId];
+        if (installed?.releaseId === task.targetReleaseId) {
+          return {
+            ...task,
+            status: 'committed',
+            currentAssetId: null,
+            lastError: null,
+            updatedAt: now,
+          };
+        }
+        if (
+          task.status === 'downloading' ||
+          task.status === 'verifying' ||
+          task.status === 'ready_to_commit'
+        ) {
+          return {
+            ...task,
+            status: 'queued',
+            updatedAt: now,
+          };
+        }
+        return task;
+      });
+      return structuredClone(root.upgradeQueue.tasks);
+    }).then((r) => r.result);
+  }
+
   /** 记一次作答。追加而不覆盖，重做过的题保留全部尝试 */
   recordAttempt(
     courseId: string,
