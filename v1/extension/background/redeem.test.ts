@@ -316,6 +316,20 @@ describe('课程包复验', () => {
     if (!r.ok) expect(r.reason).toContain('BVID 重复');
   });
 
+  it('允许同一 BVID 的不同分 P 作为不同课节', () => {
+    const l = (id: number, page: number) => ({
+      lessonId: uuid(id),
+      title: `第 ${id}`,
+      videoRef: { platform: 'bilibili', videoId: 'BV1Ac41187Lm', page, cid: null },
+      nodes: [node(0, `n${id}`)],
+    });
+    const r = checkCoursePackage(
+      pkg({ lessons: [l(2, 1), l(3, 4)] }),
+      'source-1'
+    );
+    expect(r).toMatchObject({ ok: true });
+  });
+
   it('拒绝重复的课节 UUID', () => {
     const l = (video: string) => ({
       lessonId: uuid(2),

@@ -39,4 +39,12 @@ describe('学生页面入口回归', () => {
     expect(source).toMatch(/setInterval/);
     expect(source).toMatch(/clearInterval/);
   });
+
+  it('陪伴 UI 必须由完整视频引用候选决定，不在所有 B 站视频页常驻', () => {
+    const source = readFileSync(resolve(__dirname, 'index.ts'), 'utf8');
+    expect(source).toMatch(/syncCompanionVisibility/);
+    expect(source).toMatch(/companion\.hide\(\)/);
+    expect(source).toMatch(/messenger\.candidates\(videoRef\)/);
+    expect(source).toMatch(/candidates && candidates\.length > 0.*companion\.mount/s);
+  });
 });

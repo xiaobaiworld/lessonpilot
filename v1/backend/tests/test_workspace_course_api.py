@@ -65,7 +65,12 @@ def test_course_lesson_revision_order_and_workspace_isolation() -> None:
         f"/api/v1/teacher/courses/{course_id}/lessons",
         json={
             "title": "第一课",
-            "video_ref": {"platform": "bilibili", "video_id": "BV1Ac41187Lm"},
+            "video_ref": {
+                "platform": "bilibili",
+                "video_id": "BV1Ac41187Lm",
+                "page": 4,
+                "cid": "987654321",
+            },
         },
     ).json()
     second_lesson = client.post(
@@ -77,6 +82,12 @@ def test_course_lesson_revision_order_and_workspace_isolation() -> None:
     ).json()
     detail = client.get(f"/api/v1/teacher/courses/{course_id}").json()
     assert [item["sort_order"] for item in detail["lessons"]] == [1, 2]
+    assert detail["lessons"][0]["video_ref"] == {
+        "platform": "bilibili",
+        "video_id": "BV1Ac41187Lm",
+        "page": 4,
+        "cid": "987654321",
+    }
     assert detail["revision"] == 3
 
     stale = client.patch(

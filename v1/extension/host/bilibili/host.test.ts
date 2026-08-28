@@ -1,5 +1,31 @@
 import { describe, it, expect, vi } from 'vitest';
-import { currentVideoId, findVideo, attachPlayer } from './index';
+import { currentVideoId, currentVideoRef, findVideo, attachPlayer } from './index';
+
+describe('currentVideoRef', () => {
+  it('保留 BVID 与分 P，忽略 vd_source 等来源参数', () => {
+    expect(
+      currentVideoRef(
+        'https://www.bilibili.com/video/BV1bDoLYVE1k/?p=4&vd_source=e7c7f9591fda9ac995d213b1cf10137c'
+      )
+    ).toEqual({ platform: 'bilibili', videoId: 'BV1bDoLYVE1k', page: 4, cid: null });
+  });
+
+  it('读取 cid 时保留完整内容身份', () => {
+    expect(currentVideoRef('https://www.bilibili.com/video/BV1Ac41187Lm/?p=4&cid=987654321')).toEqual(
+      { platform: 'bilibili', videoId: 'BV1Ac41187Lm', page: 4, cid: '987654321' }
+    );
+  });
+
+  it('缺少 p 时规范化为第 1 P，非法 p 不产生课程引用', () => {
+    expect(currentVideoRef('https://www.bilibili.com/video/BV1Ac41187Lm/')).toEqual({
+      platform: 'bilibili',
+      videoId: 'BV1Ac41187Lm',
+      page: 1,
+      cid: null,
+    });
+    expect(currentVideoRef('https://www.bilibili.com/video/BV1Ac41187Lm/?p=0')).toBeNull();
+  });
+});
 
 describe('currentVideoId', () => {
   it('从视频页路径取出 BVID', () => {

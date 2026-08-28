@@ -96,7 +96,7 @@ class ReleaseLessonSnapshot(Base):
     """v1 ReleaseLessonSnapshot - immutable snapshot of lesson within release.
 
     - release_id + lesson_sequence is unique (preserves lesson order)
-    - Captures lesson_id, title, video_id at publish time
+    - Captures lesson_id, title, and complete video reference at publish time
     - Never updated after creation
     """
 
@@ -115,6 +115,8 @@ class ReleaseLessonSnapshot(Base):
     # Video reference snapshot
     video_platform = Column(String(50), nullable=False)  # bilibili, youtube, local_file
     video_platform_id = Column(String(255), nullable=False)  # BVID, video ID, SHA256
+    video_page = Column(Integer, nullable=False, default=1, server_default="1")
+    video_cid = Column(String(64), nullable=True)
     nodes = Column(JSON(), nullable=False)
     assets = Column(JSON(), nullable=False, default=list)
     subtitle = Column(JSON(), nullable=True)

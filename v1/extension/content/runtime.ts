@@ -1,6 +1,7 @@
 import { LearningSession, toRuntimeNodes } from '../runtime/session';
 import { RuntimeCandidate } from '../shared/library-view';
 import { PlayerHandle } from '../host/bilibili';
+import type { BilibiliVideoRef } from '../shared/video-reference';
 import type { PortableNode } from '../../web/shared/src/portableContent';
 
 /**
@@ -22,7 +23,7 @@ export interface LessonPayload {
 
 /** 与 background 的通信。返回 null 表示这次请求不可用 */
 export interface Messenger {
-  candidates(videoId: string): Promise<RuntimeCandidate[] | null>;
+  candidates(videoRef: BilibiliVideoRef | string): Promise<RuntimeCandidate[] | null>;
   lesson(courseId: string, lessonId: string): Promise<LessonPayload | null>;
   attempt(
     courseId: string,
@@ -120,8 +121,8 @@ export class CourseRuntime {
 
   constructor(private deps: RuntimeDeps) {}
 
-  async start(videoId: string): Promise<void> {
-    const candidates = await this.deps.messenger.candidates(videoId);
+  async start(videoRef: BilibiliVideoRef | string): Promise<void> {
+    const candidates = await this.deps.messenger.candidates(videoRef);
     // 没有匹配课程时安静退出，不在无关页面显示任何 KnownMap UI
     if (!candidates || candidates.length === 0 || this.stopped) return;
 
@@ -141,7 +142,7 @@ export class CourseRuntime {
     const nodes = toRuntimeNodes({
       lessonId: pick.lessonId,
       title: pick.lessonTitle,
-      videoId,
+      videoId: typeof videoRef === 'string' ? videoRef : videoRef.videoId,
       nodes: lesson.nodes,
     });
     if (nodes.length === 0) return;
@@ -294,12 +295,12 @@ export class PageController {
 
   constructor(private makeRuntime: () => CourseRuntime) {}
 
-  async navigate(videoId: string | null): Promise<void> {
+  async navigate(videoRef: BilibiliVideoRef | string | null): Promise<void> {
     this.runtime?.stop();
     this.runtime = null;
-    if (!videoId) return;
+    if (!videoRef) return;
     this.runtime = this.makeRuntime();
-    await this.runtime.start(videoId);
+    await this.runtime.start(videoRef);
   }
 
   current(): CourseRuntime | null {

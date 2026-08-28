@@ -727,6 +727,8 @@ class AuthoringReleaseApplicationService:
                     lesson_description=lesson.description,
                     video_platform=video.platform,
                     video_platform_id=video.platform_video_id,
+                    video_page=video.page,
+                    video_cid=video.cid,
                     nodes=content["nodes"],
                     assets=content.get("assets", []),
                     subtitle=content.get("subtitle"),
@@ -847,6 +849,8 @@ class AuthoringReleaseApplicationService:
                     "videoRef": {
                         "platform": snapshot.video_platform,
                         "videoId": snapshot.video_platform_id,
+                        "page": snapshot.video_page,
+                        "cid": snapshot.video_cid,
                     },
                     "nodes": snapshot.nodes,
                 }

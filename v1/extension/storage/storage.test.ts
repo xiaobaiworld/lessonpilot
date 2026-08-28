@@ -66,6 +66,8 @@ const course = (id: string, lessons = 1): InstalledCourse => ({
     lessonId: `${id}-l${i + 1}`,
     title: `第 ${i + 1} 节`,
     videoId: 'BV1Ac41187Lm',
+    page: 1,
+    cid: null,
     nodes: [testNode('n1')],
   })),
   publishedAt: '2026-08-23T00:00:00.000Z',

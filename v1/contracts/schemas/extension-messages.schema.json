@@ -32,10 +32,17 @@
           "type": "string",
           "description": "redeem：授权码明文，只在这一次消息中出现，不落盘"
         },
-        "videoId": {
-          "type": "string",
-          "pattern": "^BV[0-9A-Za-z]{10}$",
-          "description": "candidates：当前 B 站页面的 BVID"
+        "videoRef": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["platform", "videoId", "page", "cid"],
+          "properties": {
+            "platform": { "const": "bilibili" },
+            "videoId": { "type": "string", "pattern": "^BV[0-9A-Za-z]{10}$" },
+            "page": { "type": "integer", "minimum": 1 },
+            "cid": { "anyOf": [{ "type": "string", "pattern": "^[0-9]+$" }, { "type": "null" }] }
+          },
+          "description": "candidates：当前 B 站页面的完整视频引用"
         },
         "courseId": { "type": "string", "format": "uuid" },
         "lessonId": { "type": "string", "format": "uuid" },

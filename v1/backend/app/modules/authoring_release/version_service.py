@@ -93,6 +93,8 @@ class CourseVersionApplicationService:
             "lesson_revision": snapshot.lesson_revision,
             "video_platform": snapshot.video_platform,
             "video_platform_id": snapshot.video_platform_id,
+            "video_page": snapshot.video_page,
+            "video_cid": snapshot.video_cid,
             "nodes": deepcopy(snapshot.nodes),
             "assets": deepcopy(snapshot.assets or []),
             "subtitle": deepcopy(snapshot.subtitle),
@@ -163,6 +165,8 @@ class CourseVersionApplicationService:
             lesson.revision = max(snapshot["lesson_revision"], 1)
             lesson.video_reference.platform = snapshot["video_platform"]
             lesson.video_reference.platform_video_id = snapshot["video_platform_id"]
+            lesson.video_reference.page = snapshot["video_page"]
+            lesson.video_reference.cid = snapshot["video_cid"]
             lesson.video_reference.start_time_seconds = None
             lesson.video_reference.end_time_seconds = None
             self.session.add(self._draft(teacher_id, lesson.id, snapshot))
@@ -219,6 +223,8 @@ class CourseVersionApplicationService:
                 lesson_id=lesson.id,
                 platform=snapshot["video_platform"],
                 platform_video_id=snapshot["video_platform_id"],
+                page=snapshot["video_page"],
+                cid=snapshot["video_cid"],
             )
             self.session.add(lesson)
             drafts.append(self._draft(teacher_id, lesson.id, snapshot))

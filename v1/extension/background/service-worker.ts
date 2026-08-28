@@ -60,8 +60,12 @@ async function handle(message: unknown): Promise<Reply> {
     }
 
     case 'candidates': {
-      if (typeof m.videoId !== 'string') return err('BAD_MESSAGE', '缺少视频号。');
-      return ok(findCandidates(await library.read(), m.videoId));
+      if (
+        typeof m.videoRef !== 'object' ||
+        m.videoRef === null ||
+        (m.videoRef as any).platform !== 'bilibili'
+      ) return err('BAD_MESSAGE', '缺少完整视频引用。');
+      return ok(findCandidates(await library.read(), m.videoRef as any));
     }
 
     case 'lesson': {

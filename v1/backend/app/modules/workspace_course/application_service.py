@@ -90,7 +90,14 @@ class WorkspaceCourseApplicationService:
         return course
 
     def create_lesson(
-        self, teacher_id: str, course_id: str, title: str, platform: str, video_id: str
+        self,
+        teacher_id: str,
+        course_id: str,
+        title: str,
+        platform: str,
+        video_id: str,
+        page: int = 1,
+        cid: str | None = None,
     ) -> Lesson:
         course = self.get_course(teacher_id, course_id)
         lesson = Lesson(
@@ -103,6 +110,8 @@ class WorkspaceCourseApplicationService:
             id=str(uuid4()),
             platform=platform,
             platform_video_id=video_id,
+            page=page,
+            cid=cid,
         )
         self.session.add(lesson)
         course.revision += 1
@@ -138,6 +147,8 @@ class WorkspaceCourseApplicationService:
                 lesson_id=lesson.id,
                 platform=item["videoRef"]["platform"],
                 platform_video_id=item["videoRef"]["videoId"],
+                page=item["videoRef"].get("page", 1),
+                cid=item["videoRef"].get("cid"),
             )
             self.session.add(lesson)
             created.append(lesson)
@@ -158,6 +169,8 @@ class WorkspaceCourseApplicationService:
         title: str | None,
         platform: str | None,
         video_id: str | None,
+        page: int | None,
+        cid: str | None,
     ) -> Lesson:
         lesson = self.get_lesson(teacher_id, lesson_id)
         if lesson.revision != revision:
@@ -167,6 +180,8 @@ class WorkspaceCourseApplicationService:
         if platform is not None and video_id is not None:
             lesson.video_reference.platform = platform
             lesson.video_reference.platform_video_id = video_id
+            lesson.video_reference.page = page or 1
+            lesson.video_reference.cid = cid
         lesson.revision += 1
         self.session.commit()
         return lesson

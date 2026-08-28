@@ -148,7 +148,7 @@ class VideoReference(Base):
     """v1 VideoReference - value object owned by lesson.
 
     - Immutable after lesson creation (edit by creating new lesson)
-    - Platform + platform_video_id uniquely identify the source
+    - Platform + platform_video_id + page/cid identify the source
     - Optional segment/start_time for partial video support
     """
 
@@ -158,6 +158,8 @@ class VideoReference(Base):
     lesson_id = Column(String(36), ForeignKey("v1_lessons.id"), unique=True, nullable=False)
     platform = Column(String(50), nullable=False)  # bilibili, youtube, local_file
     platform_video_id = Column(String(255), nullable=False)  # BVID, video ID, or SHA256
+    page = Column(Integer, nullable=False, default=1, server_default="1")  # B 站分 P，从 1 开始
+    cid = Column(String(64), nullable=True)  # B 站 UGC 内容 ID
     start_time_seconds = Column(Integer, nullable=True)  # Optional: start offset
     end_time_seconds = Column(Integer, nullable=True)  # Optional: end offset
     created_at = Column(
@@ -170,4 +172,11 @@ class VideoReference(Base):
     __table_args__ = (
         Index("ix_video_references_lesson_id", "lesson_id"),
         Index("ix_video_references_platform_id", "platform", "platform_video_id"),
+        Index(
+            "ix_video_references_platform_page_cid",
+            "platform",
+            "platform_video_id",
+            "page",
+            "cid",
+        ),
     )

@@ -15,6 +15,8 @@ const PLAYER_SELECTORS = [
   '.player-wrap video',
 ];
 
+import type { BilibiliVideoRef } from '../../shared/video-reference';
+
 export interface PlayerHandle {
   currentTime(): number;
   isPlaying(): boolean;
@@ -27,8 +29,34 @@ export interface PlayerHandle {
 
 /** 从地址栏取 BVID。非视频页返回 null，此时不应显示任何课程 UI */
 export function currentVideoId(pathname = location.pathname): string | null {
-  const m = pathname.match(/^\/video\/(BV[a-zA-Z0-9]+)(?:\/|$)/i);
+  const m = pathname.match(/^\/video\/(BV[a-zA-Z0-9]{10})(?:\/|$)/i);
   return m ? m[1] : null;
+}
+
+/** 从完整 B 站地址规范化课程匹配对象。 */
+export function currentVideoRef(href = location.href): BilibiliVideoRef | null {
+  let url: URL;
+  try {
+    url = new URL(href, 'https://www.bilibili.com');
+  } catch {
+    return null;
+  }
+  if (!['www.bilibili.com', 'bilibili.com', 'm.bilibili.com'].includes(url.hostname)) {
+    return null;
+  }
+
+  const videoId = currentVideoId(url.pathname);
+  if (!videoId) return null;
+
+  const rawPage = url.searchParams.get('p');
+  if (rawPage !== null && !/^\d+$/.test(rawPage)) return null;
+  const page = rawPage === null ? 1 : Number(rawPage);
+  if (!Number.isSafeInteger(page) || page < 1) return null;
+
+  const rawCid = url.searchParams.get('cid');
+  if (rawCid !== null && !/^\d+$/.test(rawCid)) return null;
+
+  return { platform: 'bilibili', videoId, page, cid: rawCid };
 }
 
 /**
@@ -93,14 +121,14 @@ export function attachPlayer(video: HTMLVideoElement): PlayerHandle {
  * 由调用方负责拆掉旧监听——离开页面后残留监听会对着已销毁的元素触发。
  */
 export function watchNavigation(
-  onChange: (videoId: string | null) => void,
+  onChange: (videoRef: BilibiliVideoRef | null) => void,
   win: Window = window
 ): () => void {
-  let last = currentVideoId(win.location.pathname);
+  let last = currentVideoRef(win.location.href);
 
   const check = () => {
-    const now = currentVideoId(win.location.pathname);
-    if (now !== last) {
+    const now = currentVideoRef(win.location.href);
+    if (JSON.stringify(now) !== JSON.stringify(last)) {
       last = now;
       onChange(now);
     }

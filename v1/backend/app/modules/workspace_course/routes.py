@@ -60,6 +60,8 @@ def _lesson(lesson: Lesson, has_draft: bool = False) -> LessonPublic:
         video_ref=VideoRef(
             platform=lesson.video_reference.platform,
             video_id=lesson.video_reference.platform_video_id,
+            page=lesson.video_reference.page,
+            cid=lesson.video_reference.cid,
         ),
         has_draft=has_draft,
         status="draft",
@@ -188,6 +190,8 @@ def create_lesson(
                 payload.title,
                 payload.video_ref.platform,
                 payload.video_ref.video_id,
+                payload.video_ref.page,
+                payload.video_ref.cid,
             )
         )
     except WorkspaceCourseError as error:
@@ -225,6 +229,8 @@ def update_lesson(
             payload.title,
             payload.video_ref.platform if payload.video_ref else None,
             payload.video_ref.video_id if payload.video_ref else None,
+            payload.video_ref.page if payload.video_ref else None,
+            payload.video_ref.cid if payload.video_ref else None,
         )
         draft_ids = AuthoringReleaseApplicationService(db).draft_lesson_ids([lesson.id])
         return _lesson(lesson, lesson.id in draft_ids)

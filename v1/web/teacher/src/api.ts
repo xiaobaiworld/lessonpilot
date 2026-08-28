@@ -49,11 +49,18 @@ export interface Lesson {
   title: string;
   /** 后端字段是 sort_order，不是 sequence */
   sort_order: number;
-  video_ref: { platform: 'bilibili'; video_id: string };
+  video_ref: BilibiliVideoRef;
   has_draft: boolean;
   status: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface BilibiliVideoRef {
+  platform: 'bilibili';
+  video_id: string;
+  page: number;
+  cid: string | null;
 }
 
 export interface CourseDetail extends CourseSummary {
@@ -221,11 +228,10 @@ export class TeacherAPI {
     return this.http.get<CourseDetail>(`/api/v1/teacher/courses/${courseId}`);
   }
 
-  /** BVID 形如 BV1Ac41187Lm，后端按 ^BV[a-zA-Z0-9]+$ 校验 */
-  createLesson(courseId: string, title: string, bvid: string): Promise<Lesson> {
+  createLesson(courseId: string, title: string, videoRef: BilibiliVideoRef): Promise<Lesson> {
     return this.http.post<Lesson>(`/api/v1/teacher/courses/${courseId}/lessons`, {
       title,
-      video_ref: { platform: 'bilibili', video_id: bvid },
+      video_ref: videoRef,
     });
   }
 

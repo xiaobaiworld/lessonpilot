@@ -1,4 +1,5 @@
 import { StorageRoot, InstalledCourse } from '../storage/types';
+import { sameBilibiliVideoRef, BilibiliVideoRef } from './video-reference';
 
 /**
  * 课程库视图模型。
@@ -12,6 +13,8 @@ export interface LessonView {
   lessonId: string;
   title: string;
   videoId: string;
+  page: number;
+  cid: string | null;
   nodeCount: number;
   doneCount: number;
   /** 全部节点都作答过 */
@@ -62,6 +65,8 @@ function lessonView(
     lessonId: lesson.lessonId,
     title: lesson.title,
     videoId: lesson.videoId,
+    page: lesson.page ?? 1,
+    cid: lesson.cid ?? null,
     nodeCount,
     doneCount,
     finished: nodeCount > 0 && doneCount >= nodeCount,
@@ -118,19 +123,26 @@ export interface RuntimeCandidate {
   lessonTitle: string;
 }
 
-export function findCandidates(root: StorageRoot, videoId: string): RuntimeCandidate[] {
+export function findCandidates(
+  root: StorageRoot,
+  videoRef: BilibiliVideoRef | string
+): RuntimeCandidate[] {
+  const current: BilibiliVideoRef =
+    typeof videoRef === 'string'
+      ? { platform: 'bilibili', videoId: videoRef, page: 1, cid: null }
+      : videoRef;
   const out: RuntimeCandidate[] = [];
   const courses = Object.values(root.installedCourses);
   const hasAuthorizedMatch = courses.some(
     (course) =>
-      !course.readOnly && course.lessons.some((lesson) => lesson.videoId === videoId)
+      !course.readOnly && course.lessons.some((lesson) => sameBilibiliVideoRef({ ...lesson, page: lesson.page ?? 1, cid: lesson.cid ?? null }, current))
   );
 
   for (const course of courses) {
     // 示例课只用于开箱体验；真实授权课程存在时不让它抢占候选。
     if (course.readOnly && hasAuthorizedMatch) continue;
     for (const lesson of course.lessons) {
-      if (lesson.videoId === videoId) {
+      if (sameBilibiliVideoRef({ ...lesson, page: lesson.page ?? 1, cid: lesson.cid ?? null }, current)) {
         out.push({
           courseId: course.courseId,
           courseTitle: course.title,

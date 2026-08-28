@@ -129,7 +129,12 @@ function checkAsset(raw: unknown): raw is AssetRecord {
 function checkLesson(raw: unknown, at: string, packageAssets: Map<string, AssetRecord>): Checked<InstalledLesson> {
   if (!isObject(raw) || !onlyKeys(raw, ['lessonId', 'title', 'videoRef', 'nodes']) || !UUID.test(String(raw.lessonId)) || !nonBlank(raw.title)) return { ok: false, reason: `${at} 基础字段无效` };
   const video = raw.videoRef;
-  if (!isObject(video) || !onlyKeys(video, ['platform', 'videoId']) || video.platform !== 'bilibili' || !BVID.test(String(video.videoId))) return { ok: false, reason: `${at} 的 videoRef 必须是 B 站播放引用` };
+  if (!isObject(video) || !onlyKeys(video, ['platform', 'videoId'], ['page', 'cid']) || video.platform !== 'bilibili' || !BVID.test(String(video.videoId))) return { ok: false, reason: `${at} 的 videoRef 必须是 B 站播放引用` };
+  const page = video.page === undefined ? 1 : video.page;
+  if (!Number.isSafeInteger(page) || Number(page) < 1) return { ok: false, reason: `${at} 的分 P 必须是正整数` };
+  const cid = video.cid === undefined || video.cid === null ? null : video.cid;
+  if (cid !== null && typeof cid !== 'string') return { ok: false, reason: `${at} 的 cid 无效` };
+  if (cid !== null && !/^\d+$/.test(cid)) return { ok: false, reason: `${at} 的 cid 无效` };
   if (!Array.isArray(raw.nodes) || !raw.nodes.length) return { ok: false, reason: `${at} 没有互动节点` };
   const seen = new Set<string>();
   for (const [i, node] of raw.nodes.entries()) {
@@ -138,7 +143,7 @@ function checkLesson(raw: unknown, at: string, packageAssets: Map<string, AssetR
     const error = checkNode(node, `${at} 第 ${i + 1} 个节点`, packageAssets);
     if (error) return { ok: false, reason: error };
   }
-  return { ok: true, value: { lessonId: String(raw.lessonId), title: String(raw.title).trim(), videoId: String(video.videoId), nodes: raw.nodes as InstalledLesson['nodes'] } };
+  return { ok: true, value: { lessonId: String(raw.lessonId), title: String(raw.title).trim(), videoId: String(video.videoId), page: Number(page), cid, nodes: raw.nodes as InstalledLesson['nodes'] } };
 }
 
 export function checkCoursePackage(raw: unknown, sourceId: string): Checked<InstalledCourse> {
@@ -151,14 +156,15 @@ export function checkCoursePackage(raw: unknown, sourceId: string): Checked<Inst
   }
   const lessons: InstalledLesson[] = [];
   const lessonIds = new Set<string>();
-  const videoIds = new Set<string>();
+  const videoRefs = new Set<string>();
   for (const [i, lesson] of raw.lessons.entries()) {
     const checked = checkLesson(lesson, `第 ${i + 1} 个课节`, assetMap);
     if (!checked.ok) return checked;
     if (lessonIds.has(checked.value.lessonId)) return { ok: false, reason: '课节 id 重复' };
-    if (videoIds.has(checked.value.videoId)) return { ok: false, reason: 'BVID 重复' };
+    const refKey = `${checked.value.videoId}\u0000${checked.value.cid ?? `page:${checked.value.page}`}`;
+    if (videoRefs.has(refKey)) return { ok: false, reason: 'BVID 重复或分 P 重复' };
     lessonIds.add(checked.value.lessonId); lessons.push(checked.value);
-    videoIds.add(checked.value.videoId);
+    videoRefs.add(refKey);
   }
   return { ok: true, value: { courseId: String(raw.courseId), title: String(raw.title).trim(), lessons, assets, publishedAt: String(raw.updatedAt), installedAt: new Date().toISOString(), source: 'authorized', readOnly: false, sourceId } };
 }

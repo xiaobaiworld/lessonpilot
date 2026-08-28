@@ -1,5 +1,5 @@
 import {
-  currentVideoId,
+  currentVideoRef,
   findVideo,
   waitForVideo,
   attachPlayer,
@@ -41,7 +41,7 @@ async function send<T>(message: unknown): Promise<T | null> {
 }
 
 const messenger: Messenger = {
-  candidates: (videoId) => send<RuntimeCandidate[]>({ type: 'candidates', videoId }),
+  candidates: (videoRef) => send<RuntimeCandidate[]>({ type: 'candidates', videoRef }),
   lesson: (courseId, lessonId) => send({ type: 'lesson', courseId, lessonId }),
   attempt: async (courseId, lessonId, nodeId, at, answer, correct) => {
     await send({ type: 'attempt', courseId, lessonId, nodeId, at, answer, correct });
@@ -75,7 +75,15 @@ const companion = new StudentCompanion({
     return 'paused';
   },
 });
-companion.mount();
+
+let visibilityRequest = 0;
+const syncCompanionVisibility = async (videoRef: ReturnType<typeof currentVideoRef>) => {
+  const request = ++visibilityRequest;
+  companion.hide();
+  if (!videoRef) return;
+  const candidates = await messenger.candidates(videoRef);
+  if (request === visibilityRequest && candidates && candidates.length > 0) companion.mount();
+};
 
 const syncCompanionState = () => {
   const video = findVideo();
@@ -110,8 +118,13 @@ const controller = new PageController(
     })
 );
 
-void controller.navigate(currentVideoId());
-const stopNavigation = watchNavigation((videoId) => void controller.navigate(videoId));
+const initialVideoRef = currentVideoRef();
+void syncCompanionVisibility(initialVideoRef);
+void controller.navigate(initialVideoRef);
+const stopNavigation = watchNavigation((videoRef) => {
+  void syncCompanionVisibility(videoRef);
+  void controller.navigate(videoRef);
+});
 window.addEventListener(
   'pagehide',
   () => {

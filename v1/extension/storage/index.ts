@@ -220,6 +220,8 @@ function isInstalledCourse(value: unknown): value is InstalledCourse {
       lesson.title.trim().length > 0 &&
       typeof lesson.videoId === 'string' &&
       BVID.test(lesson.videoId) &&
+      (lesson.page === undefined || (typeof lesson.page === 'number' && Number.isSafeInteger(lesson.page) && lesson.page >= 1)) &&
+      (lesson.cid === undefined || lesson.cid === null || (typeof lesson.cid === 'string' && /^\d+$/.test(lesson.cid))) &&
       Array.isArray(lesson.nodes) &&
       lesson.nodes.length > 0 &&
       lesson.nodes.every((node) => isPortableNode(node, assets))
@@ -304,6 +306,11 @@ export class CourseLibrary {
           const source = course.source === 'example' ? 'example' : 'authorized';
           root.installedCourses[courseId] = {
             ...course,
+            lessons: course.lessons.map((lesson) => ({
+              ...lesson,
+              page: lesson.page ?? 1,
+              cid: lesson.cid ?? null,
+            })),
             source,
             readOnly: source === 'example' || course.readOnly === true,
           };

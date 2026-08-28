@@ -48,6 +48,15 @@ def test_empty_database_upgrades_to_single_v1_head(tmp_path: Path, monkeypatch) 
             row[1] for row in connection.execute(text("PRAGMA table_info(v1_operation_audit)"))
         }
         assert "idempotency_key" in audit_columns
+        video_columns = {
+            row[1] for row in connection.execute(text("PRAGMA table_info(v1_video_references)"))
+        }
+        snapshot_columns = {
+            row[1]
+            for row in connection.execute(text("PRAGMA table_info(v1_release_lesson_snapshots)"))
+        }
+        assert {"page", "cid"} <= video_columns
+        assert {"video_page", "video_cid"} <= snapshot_columns
 
     command.upgrade(config, "head")
     command.check(config)

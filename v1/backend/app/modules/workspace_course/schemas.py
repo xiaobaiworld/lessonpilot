@@ -7,6 +7,8 @@ from pydantic import BaseModel, Field
 class VideoRef(BaseModel):
     platform: Literal["bilibili"]
     video_id: str = Field(pattern=r"^BV[a-zA-Z0-9]{10}$")
+    page: int = Field(default=1, ge=1)
+    cid: str | None = Field(default=None, pattern=r"^[0-9]+$")
 
 
 class CourseCreate(BaseModel):

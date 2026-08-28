@@ -47,6 +47,10 @@ export interface InstalledLesson {
   lessonId: string;
   title: string;
   videoId: string;
+  /** 旧本机课程可能没有此字段，CourseLibrary 读取时规范化为 1。 */
+  page?: number;
+  /** 旧本机课程可能没有此字段，CourseLibrary 读取时规范化为 null。 */
+  cid?: string | null;
   nodes: PortableNode[];
 }
 

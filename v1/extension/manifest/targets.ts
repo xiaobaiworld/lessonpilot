@@ -26,7 +26,8 @@ export interface BuildTarget {
    *
    * 注意模式里不能写端口：Chrome 匹配模式不支持锁定端口，带端口的模式
    * 非法，整条内容脚本会被拒绝注入且没有报错。所以只能匹配到主机，
-   * 由 currentVideoId() 的路径判断把范围收窄回 /video/BV...。
+   * 由 currentVideoRef() 的路径判断把范围收窄回 /video/BV...；是否显示 UI
+   * 还要经过 page/cid 的完整课程引用匹配。
    */
   harnessMatches: string[];
 }

@@ -69,7 +69,10 @@ function courseCard(course: CourseView, onRefresh: () => void): HTMLElement {
     const li = el('li', lesson.finished ? 'lesson done' : 'lesson');
     const open = el('a', 'lesson-link', lesson.title);
     // 直接打开 B 站原页面，运行时在那里接管
-    open.href = `https://www.bilibili.com/video/${lesson.videoId}`;
+    const query = new URLSearchParams();
+    if (lesson.page && lesson.page !== 1) query.set('p', String(lesson.page));
+    if (lesson.cid) query.set('cid', lesson.cid);
+    open.href = `https://www.bilibili.com/video/${lesson.videoId}/${query.toString() ? `?${query}` : ''}`;
     open.target = '_blank';
     open.rel = 'noreferrer';
     li.append(open, el('span', 'lesson-count', `${lesson.doneCount}/${lesson.nodeCount}`));

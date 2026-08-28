@@ -90,11 +90,22 @@ def validate_teacher_course_file(value: object) -> dict[str, Any]:
         video = lesson.get("videoRef")
         if (
             not isinstance(video, dict)
-            or set(video) != {"platform", "videoId"}
+            or set(video)
+            not in (
+                {"platform", "videoId"},
+                {"platform", "videoId", "page"},
+                {"platform", "videoId", "page", "cid"},
+            )
             or video.get("platform") != "bilibili"
             or not isinstance(video.get("videoId"), str)
             or not video["videoId"].strip()
             or not re.fullmatch(r"BV[a-zA-Z0-9]{10}", video["videoId"])
+            or ("page" in video and (not isinstance(video.get("page"), int) or video["page"] < 1))
+            or (
+                "cid" in video
+                and video["cid"] is not None
+                and (not isinstance(video["cid"], str) or not re.fullmatch(r"[0-9]+", video["cid"]))
+            )
         ):
             _invalid()
         if not isinstance(lesson["nodes"], list) or not isinstance(lesson["assets"], list):
@@ -137,6 +148,8 @@ def from_drafts(course: Any, lessons: list[Any], drafts: dict[str, Any]) -> dict
                     "videoRef": {
                         "platform": lesson.video_reference.platform,
                         "videoId": lesson.video_reference.platform_video_id,
+                        "page": lesson.video_reference.page or 1,
+                        "cid": lesson.video_reference.cid,
                     },
                     "nodes": drafts[lesson.id].content["nodes"],
                     "assets": drafts[lesson.id].content.get("assets", []),
@@ -169,6 +182,8 @@ def from_release(release: Any) -> dict[str, Any]:
                     "videoRef": {
                         "platform": snapshot.video_platform,
                         "videoId": snapshot.video_platform_id,
+                        "page": snapshot.video_page or 1,
+                        "cid": snapshot.video_cid,
                     },
                     "nodes": snapshot.nodes,
                     "assets": snapshot.assets,

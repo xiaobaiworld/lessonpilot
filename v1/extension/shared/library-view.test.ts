@@ -26,7 +26,7 @@ function root(patch: Partial<StorageRoot> = {}): StorageRoot {
 const course = (
   id: string,
   opts: {
-    lessons?: { id: string; video: string; nodes: string[] }[];
+    lessons?: { id: string; video: string; page?: number; cid?: string | null; nodes: string[] }[];
     installedAt?: string;
     sourceId?: string;
     readOnly?: boolean;
@@ -36,12 +36,12 @@ const course = (
   title: `课程 ${id}`,
   assets: [],
   lessons: (opts.lessons ?? [{ id: `${id}-l1`, video: 'BV1Ac41187Lm', nodes: ['n1', 'n2'] }]).map(
-    (l) => ({
+    (l) => Object.assign({
       lessonId: l.id,
       title: `课节 ${l.id}`,
       videoId: l.video,
       nodes: l.nodes.map(testNode),
-    })
+    }, { page: l.page ?? 1, cid: l.cid ?? null })
   ),
   publishedAt: '2026-08-23T00:00:00.000Z',
   installedAt: opts.installedAt ?? '2026-08-23T00:00:00.000Z',
@@ -187,6 +187,35 @@ describe('findCandidates', () => {
 
   it('前缀相同但不等的 BVID 不算命中', () => {
     expect(findCandidates(two, 'BV1Ac41187L')).toHaveLength(0);
+  });
+
+  it('同一 BVID 的不同分 P 必须精确区分', () => {
+    const split = root({
+      installedCourses: {
+        first: course('first', {
+          lessons: [{ id: 'first-l1', video: 'BV1Ac41187Lm', page: 1, nodes: ['n1'] }],
+        }),
+        fourth: course('fourth', {
+          lessons: [{ id: 'fourth-l1', video: 'BV1Ac41187Lm', page: 4, nodes: ['n1'] }],
+        }),
+      },
+    });
+
+    expect(findCandidates(split, { platform: 'bilibili', videoId: 'BV1Ac41187Lm', page: 4, cid: null })).toMatchObject([
+      { courseId: 'fourth' },
+    ]);
+  });
+
+  it('课程有 CID 时不因页面缺少 CID 而降级到 page 匹配', () => {
+    const withCid = root({
+      installedCourses: {
+        c: course('c', {
+          lessons: [{ id: 'c-l1', video: 'BV1Ac41187Lm', page: 4, cid: '987654321', nodes: ['n1'] }],
+        }),
+      },
+    });
+
+    expect(findCandidates(withCid, { platform: 'bilibili', videoId: 'BV1Ac41187Lm', page: 4, cid: null })).toEqual([]);
   });
 });
 

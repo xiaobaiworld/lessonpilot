@@ -1,6 +1,18 @@
 # KnownMap 当前下一步
 
-更新时间：2026-08-27
+更新时间：2026-08-28
+
+## 当前执行切片：B 站课程视频引用与分 P 精确匹配
+
+本轮已接受 `D-V1-021`：课程绑定对象从单独 BVID 改为 `platform + video_id + page + cid?`。
+`p` 是从 1 开始的分 P，`cid` 已知时是更强身份；`vd_source` 及其它来源追踪参数不参与匹配。
+设计记录见 `docs/superpowers/specs/2026-08-28-bilibili-video-reference-design.md`，执行计划见
+`docs/superpowers/plans/2026-08-28-bilibili-video-reference-plan.md`。
+
+本轮交付顺序：先用失败测试锁定 URL 规范化和精确匹配，再修改后端、课程包、插件存储与运行时，最后运行跨层门禁。
+无精确候选时，插件不得显示陪伴 UI；同 BVID 不同分 P、CID 不完整和 SPA 切换都必须有负向证据。
+
+本轮本地代码与测试已完成；云端尚未切换到这次新迁移和新课程包，待提交并按发布流程部署后再做线上验证。
 
 ## 当前阶段
 

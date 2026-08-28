@@ -6,7 +6,7 @@ import {
   AuthField,
   errorMessage,
 } from '@v1/web/shared';
-import { TeacherAPI, Teacher, CourseDetail } from '../api';
+import { TeacherAPI, Teacher, CourseDetail, BilibiliVideoRef } from '../api';
 
 interface Props {
   api: TeacherAPI;
@@ -46,11 +46,11 @@ export const CoursePage: React.FC<Props> = ({
   }, [load]);
 
 
-  const addLesson = async (title: string, bvid: string) => {
+  const addLesson = async (title: string, videoRef: BilibiliVideoRef) => {
     setBusy(true);
     setError(null);
     try {
-      await api.createLesson(courseId, title, bvid);
+      await api.createLesson(courseId, title, videoRef);
       setAddingLesson(false);
       await load();
     } catch (err) {
@@ -192,7 +192,10 @@ export const CoursePage: React.FC<Props> = ({
                       <tr key={lesson.id}>
                         <td className="num">{lesson.sort_order}</td>
                         <td>{lesson.title}</td>
-                        <td>{lesson.video_ref.video_id}</td>
+                        <td>
+                          {lesson.video_ref.video_id} · 第 {lesson.video_ref.page} P
+                          {lesson.video_ref.cid ? ` · CID ${lesson.video_ref.cid}` : ''}
+                        </td>
                         <td>{lesson.has_draft ? '有' : '—'}</td>
                         <td>
                           <button
@@ -232,20 +235,40 @@ export const CoursePage: React.FC<Props> = ({
   );
 };
 
-/** 从 B 站链接或裸 BVID 里取出 BVID，取不到就原样返回让后端校验报错 */
-function extractBvid(input: string): string {
-  const m = input.match(/BV[a-zA-Z0-9]+/);
-  return m ? m[0] : input.trim();
+/** 只接受直接 B 站视频页或裸 BVID，并规范化课程匹配字段。 */
+export function parseBilibiliVideoRef(input: string): BilibiliVideoRef | null {
+  const value = input.trim();
+  if (/^BV[a-zA-Z0-9]{10}$/.test(value)) {
+    return { platform: 'bilibili', video_id: value, page: 1, cid: null };
+  }
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    return null;
+  }
+  if (!['http:', 'https:'].includes(url.protocol)) return null;
+  if (!['www.bilibili.com', 'bilibili.com', 'm.bilibili.com'].includes(url.hostname)) return null;
+  const match = url.pathname.match(/^\/video\/(BV[a-zA-Z0-9]{10})(?:\/|$)/i);
+  if (!match) return null;
+  const rawPage = url.searchParams.get('p');
+  if (rawPage !== null && !/^\d+$/.test(rawPage)) return null;
+  const page = rawPage === null ? 1 : Number(rawPage);
+  if (!Number.isSafeInteger(page) || page < 1) return null;
+  const cid = url.searchParams.get('cid');
+  if (cid !== null && !/^\d+$/.test(cid)) return null;
+  return { platform: 'bilibili', video_id: match[1], page, cid };
 }
 
 const AddLessonDialog: React.FC<{
   busy: boolean;
   onCancel: () => void;
-  onSubmit: (title: string, bvid: string) => void;
+  onSubmit: (title: string, videoRef: BilibiliVideoRef) => void;
 }> = ({ busy, onCancel, onSubmit }) => {
   const [title, setTitle] = useState('');
   const [video, setVideo] = useState('');
-  const bvid = extractBvid(video);
+  const [videoError, setVideoError] = useState<string | null>(null);
+  const videoRef = parseBilibiliVideoRef(video);
 
   return (
     <div className="modal-backdrop" role="dialog" aria-modal="true">
@@ -254,7 +277,12 @@ const AddLessonDialog: React.FC<{
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            onSubmit(title, bvid);
+            if (!videoRef) {
+              setVideoError('请输入直接 B 站视频链接或合法 BV 号。');
+              return;
+            }
+            setVideoError(null);
+            onSubmit(title, videoRef);
           }}
         >
           <AuthField
@@ -278,9 +306,9 @@ const AddLessonDialog: React.FC<{
               required
             />
             <small>
-              {video && bvid !== video.trim()
-                ? `将使用 ${bvid}`
-                : '粘贴整条链接也可以，会自动取出 BV 号'}
+              {videoError ?? (videoRef
+                ? `将使用 ${videoRef.video_id} · 第 ${videoRef.page} P`
+                : '粘贴直接 B 站视频链接或裸 BV 号')}
             </small>
           </label>
           <div className="modal-actions">

@@ -149,11 +149,13 @@
     "installedLesson": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["lessonId", "title", "videoId", "nodes"],
+      "required": ["lessonId", "title", "videoId", "page", "nodes"],
       "properties": {
         "lessonId": { "type": "string", "minLength": 1 },
         "title": { "type": "string", "minLength": 1 },
         "videoId": { "type": "string", "pattern": "^BV[0-9A-Za-z]{10}$" },
+        "page": { "type": "integer", "minimum": 1 },
+        "cid": { "anyOf": [{ "type": "string", "pattern": "^[0-9]+$" }, { "type": "null" }] },
         "nodes": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/node" } }
       }
     },

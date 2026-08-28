@@ -28,7 +28,7 @@ const validRoot = {
     '00000002-0000-4000-8000-000000000000': {
       courseId: '00000002-0000-4000-8000-000000000000',
       title: '课程',
-      lessons: [{ lessonId: '00000003-0000-4000-8000-000000000000', title: '第一节', videoId: 'BV1Ac41187Lm', nodes: [node] }],
+      lessons: [{ lessonId: '00000003-0000-4000-8000-000000000000', title: '第一节', videoId: 'BV1Ac41187Lm', page: 1, cid: null, nodes: [node] }],
       assets: [],
       publishedAt: '2026-08-26T00:00:00.000Z',
       installedAt: '2026-08-26T00:00:00.000Z',

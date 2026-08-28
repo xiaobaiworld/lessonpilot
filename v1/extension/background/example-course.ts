@@ -26,7 +26,7 @@ export const EXAMPLE_COURSE_PACKAGE = {
   lessons: [{
     lessonId: 'a9a6f97e-475f-47e0-8412-993cc0f14ad8',
     title: '第一课 · 用具体经历回答',
-    videoRef: { platform: 'bilibili', videoId: EXAMPLE_VIDEO_ID },
+    videoRef: { platform: 'bilibili', videoId: EXAMPLE_VIDEO_ID, page: 1, cid: null },
     nodes: [
       { ...base('example-overview', 1, '重点提示', 'notice', text('把答案说得具体：用情境、行动和结果说明自己的经历。')), interactionData: null },
       { ...base('example-notice', 10, '重点提醒', 'notice', text('只说“我很努力”还不够，还要说清楚具体经历、采取的行动和最后的结果。')), interactionData: null },

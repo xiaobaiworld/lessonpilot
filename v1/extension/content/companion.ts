@@ -187,6 +187,11 @@ export class StudentCompanion {
     if (!this.host.isConnected) (document.fullscreenElement ?? document.body).append(this.host);
   }
 
+  hide(): void {
+    this.bookbag.hidden = true;
+    this.host.remove();
+  }
+
   setState(state: CompanionPlaybackState): void {
     this.state = state;
     this.shell.dataset.state = state;
