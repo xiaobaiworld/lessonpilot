@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { TARGETS, buildManifest, BUILD_ARTIFACTS, EXTENSION_VERSION } from './targets';
 
 describe('构建目标', () => {
-  it('V1.0.11 恢复旧版入口所需的目标配置', () => {
-    expect(EXTENSION_VERSION).toBe('1.0.11');
+  it('V1.0.12 恢复旧版入口所需的目标配置', () => {
+    expect(EXTENSION_VERSION).toBe('1.0.12');
     expect(TARGETS.local.teacherOrigin).toBe('http://localhost:5174');
     expect(TARGETS.production.teacherOrigin).toBe('https://knownmap.com');
     for (const target of Object.values(TARGETS)) {
