@@ -54,6 +54,43 @@ class RedemptionWrite(StudentBase):
     client: dict = Field(default_factory=dict)
 
 
+class InstalledCourseVersionWrite(BaseModel):
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    course_id: str = Field(alias="courseId", min_length=1, max_length=100)
+    release_id: str | None = Field(default=None, alias="releaseId", max_length=100)
+    release_number: int | None = Field(default=None, alias="releaseNumber", ge=1)
+
+
+class StudentIdentityWrite(BaseModel):
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    schema_version: int = Field(alias="schemaVersion")
+    local_identity_id: str = Field(alias="localIdentityId", min_length=8, max_length=200)
+    local_proof: str = Field(alias="localProof", min_length=16, max_length=300)
+    client: dict = Field(default_factory=dict)
+
+
+class CourseUpdateCheckWrite(StudentIdentityWrite):
+    installed_courses: list[InstalledCourseVersionWrite] = Field(
+        alias="installedCourses", default_factory=list, max_length=1000
+    )
+    course_ids: list[str] = Field(alias="courseIds", default_factory=list, max_length=1000)
+
+
+class CourseUpdateApplyWrite(StudentIdentityWrite):
+    course_id: str = Field(alias="courseId", min_length=1, max_length=100)
+    expected_release_id: str = Field(
+        alias="expectedReleaseId", min_length=1, max_length=100
+    )
+
+
+class KnownReleaseWrite(BaseModel):
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    course_id: str = Field(alias="courseId", min_length=1, max_length=100)
+    release_id: str = Field(alias="releaseId", min_length=1, max_length=100)
+
+
 class UpdateWrite(StudentBase):
     course_ids: list[str] = Field(alias="courseIds", default_factory=list)
-    known_releases: list[dict] = Field(alias="knownReleases", default_factory=list)
+    known_releases: list[KnownReleaseWrite] = Field(
+        alias="knownReleases", default_factory=list
+    )

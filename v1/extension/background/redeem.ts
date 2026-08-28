@@ -40,7 +40,7 @@ export interface CourseUpdateDeps {
 
 export interface CourseUpdateSummary {
   courseId: string;
-  title: string;
+  title: string | null;
   releaseId: string | null;
   releaseNumber: number | null;
   status: 'unchanged' | 'update' | 'unauthorized';
@@ -199,22 +199,29 @@ function parseUpdateSummary(value: unknown): CourseUpdateSummary | null {
     !onlyKeys(value, ['courseId', 'title', 'releaseId', 'releaseNumber', 'status']) ||
     typeof value.courseId !== 'string' ||
     value.courseId.trim().length === 0 ||
-    typeof value.title !== 'string' ||
-    value.title.trim().length === 0 ||
     !['unchanged', 'update', 'unauthorized'].includes(String(value.status))
   ) {
     return null;
   }
   const status = value.status as CourseUpdateSummary['status'];
   if (status === 'unauthorized') {
-    if (value.releaseId !== null || value.releaseNumber !== null) return null;
+    if (
+      value.title !== null ||
+      value.releaseId !== null ||
+      value.releaseNumber !== null
+    ) {
+      return null;
+    }
     return {
       courseId: value.courseId,
-      title: value.title,
+      title: null,
       releaseId: null,
       releaseNumber: null,
       status,
     };
+  }
+  if (typeof value.title !== 'string' || value.title.trim().length === 0) {
+    return null;
   }
   if (
     !validReleaseId(value.releaseId) ||

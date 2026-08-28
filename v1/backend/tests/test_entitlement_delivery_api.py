@@ -153,6 +153,71 @@ def test_empty_database_full_delivery_flow() -> None:
         == "LOCAL_PROOF_INVALID"
     )
 
+    check_payload = {
+        "schemaVersion": 1,
+        "installedCourses": [
+            {
+                "courseId": course["id"],
+                "releaseId": release["id"],
+                "releaseNumber": release["release_number"],
+            }
+        ],
+        "localIdentityId": "local-identity-0001",
+        "localProof": "a-high-entropy-local-proof",
+    }
+    checked = client.post("/api/v1/student/course-updates/check", json=check_payload)
+    assert checked.status_code == 200
+    assert checked.json()["data"]["courses"] == [
+        {
+            "courseId": course["id"],
+            "title": "课程",
+            "releaseId": release["id"],
+            "releaseNumber": release["release_number"],
+            "status": "unchanged",
+        }
+    ]
+    assert "package" not in str(checked.json())
+    no_installed_courses = client.post(
+        "/api/v1/student/course-updates/check",
+        json={
+            **check_payload,
+            "installedCourses": [],
+        },
+    )
+    assert no_installed_courses.status_code == 200
+    assert no_installed_courses.json()["data"]["courses"] == []
+
+    unauthorized = client.post(
+        "/api/v1/student/course-updates/check",
+        json={
+            **check_payload,
+            "installedCourses": [
+                {
+                    "courseId": "00000000-0000-4000-8000-000000000001",
+                    "releaseId": None,
+                    "releaseNumber": None,
+                }
+            ],
+        },
+    )
+    assert unauthorized.status_code == 200
+    assert unauthorized.json()["data"]["courses"] == [
+        {
+            "courseId": "00000000-0000-4000-8000-000000000001",
+            "title": None,
+            "releaseId": None,
+            "releaseNumber": None,
+            "status": "unauthorized",
+        }
+    ]
+    assert "课程" not in str(unauthorized.json())
+
+    unknown_field = client.post(
+        "/api/v1/student/course-updates/check",
+        json={**check_payload, "unexpected": True},
+    )
+    assert unknown_field.status_code == 422
+
     second_node = {**NODE, "id": "node-2", "title": "新版重点"}
     saved = client.put(
         f"/api/v1/teacher/lessons/{lesson['id']}/draft",
@@ -184,6 +249,42 @@ def test_empty_database_full_delivery_flow() -> None:
     assert latest.status_code == 200
     assert latest.json()["data"]["courses"][0]["releaseId"] == second_release["id"]
     assert latest.json()["data"]["courses"][0]["package"]["lessons"][0]["nodes"] == [second_node]
+
+    changed_check = client.post(
+        "/api/v1/student/course-updates/check",
+        json=check_payload,
+    )
+    assert changed_check.status_code == 200
+    assert changed_check.json()["data"]["courses"][0]["status"] == "update"
+    assert changed_check.json()["data"]["courses"][0]["releaseId"] == second_release["id"]
+
+    stale_apply = client.post(
+        "/api/v1/student/course-updates/apply",
+        json={
+            "schemaVersion": 1,
+            "courseId": course["id"],
+            "expectedReleaseId": release["id"],
+            "localIdentityId": "local-identity-0001",
+            "localProof": "a-high-entropy-local-proof",
+        },
+    )
+    assert stale_apply.status_code == 409
+    assert stale_apply.json()["error"]["code"] == "RELEASE_STALE"
+
+    applied = client.post(
+        "/api/v1/student/course-updates/apply",
+        json={
+            "schemaVersion": 1,
+            "courseId": course["id"],
+            "expectedReleaseId": second_release["id"],
+            "localIdentityId": "local-identity-0001",
+            "localProof": "a-high-entropy-local-proof",
+        },
+    )
+    assert applied.status_code == 200
+    assert applied.json()["data"]["package"]["releaseId"] == second_release["id"]
+    assert applied.json()["data"]["package"]["lessons"][0]["nodes"] == [second_node]
+    assert "courses" not in applied.json()["data"]
 
     client.post(f"/api/v1/teacher/access-codes/{code_id}/terminate")
     updates = client.post(

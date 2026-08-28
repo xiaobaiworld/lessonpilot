@@ -21,6 +21,9 @@ from app.modules.entitlement_delivery.schemas import (
     AccessCodeBatchWrite,
     AccessCodeRecipientWrite,
     AccessCodeWrite,
+    CourseUpdateApplyWrite,
+    CourseUpdateCheckWrite,
+    InstalledCourseVersionWrite,
     RedemptionWrite,
     UpdateWrite,
 )
@@ -144,7 +147,7 @@ def _validated_grants(
 
 def _error(error: Exception) -> ApiError:
     code = getattr(error, "code", "VALIDATION_FAILED")
-    status = 404 if code.endswith("NOT_FOUND") else 422
+    status = 409 if code == "RELEASE_STALE" else 404 if code.endswith("NOT_FOUND") else 422
     return ApiError(status, code, "授权请求无效或当前不可用")
 
 
@@ -483,9 +486,8 @@ def course_updates(
     try:
         grants = entitlements.effective_grants(payload.local_identity_id, payload.local_proof)
         known = {
-            str(item.get("courseId")): str(item.get("releaseId"))
+            item.course_id: item.release_id
             for item in payload.known_releases
-            if isinstance(item, dict) and item.get("courseId") and item.get("releaseId")
         }
         return {
             "schemaVersion": 1,
@@ -498,6 +500,109 @@ def course_updates(
                     set(payload.course_ids),
                     known,
                 )
+            },
+        }
+    except (EntitlementError, AuthoringReleaseError) as error:
+        raise _error(error) from error
+
+
+def _student_update_summary(
+    item: InstalledCourseVersionWrite,
+    grants: dict[str, dict],
+    authoring: AuthoringReleaseApplicationService,
+) -> dict:
+    course_id = item.course_id
+    scope = grants.get(course_id)
+    # 没有在线资格时不读取课程标题或版本，避免把未授权课程元数据泄露给客户端。
+    if not scope:
+        return {
+            "courseId": course_id,
+            "title": None,
+            "releaseId": None,
+            "releaseNumber": None,
+            "status": "unauthorized",
+        }
+    release = authoring.latest_deliverable_release(course_id)
+    if not release:
+        return {
+            "courseId": course_id,
+            "title": None,
+            "releaseId": None,
+            "releaseNumber": None,
+            "status": "unauthorized",
+        }
+    return {
+        "courseId": course_id,
+        "title": release.course_title,
+        "releaseId": release.id,
+        "releaseNumber": release.release_number,
+        "status": "unchanged"
+        if item.release_id is not None and item.release_id == release.id
+        else "update",
+    }
+
+
+@student_router.post("/course-updates/check")
+def check_course_updates(
+    payload: CourseUpdateCheckWrite,
+    request: Request,
+    db: Session = Depends(get_db),
+) -> dict:
+    entitlements = _service(request, db)
+    course_ids = {item.course_id for item in payload.installed_courses}
+    if len(course_ids) != len(payload.installed_courses):
+        raise ApiError(422, "DUPLICATE_COURSE", "课程检查列表包含重复课程")
+    if payload.course_ids:
+        requested = set(payload.course_ids)
+        items = [item for item in payload.installed_courses if item.course_id in requested]
+    else:
+        items = payload.installed_courses
+    try:
+        grants = entitlements.effective_grants(
+            payload.local_identity_id, payload.local_proof
+        )
+        authoring = AuthoringReleaseApplicationService(db)
+        courses = [_student_update_summary(item, grants, authoring) for item in items]
+        return {
+            "schemaVersion": 1,
+            "requestId": request.state.request_id,
+            "data": {"courses": courses},
+        }
+    except (EntitlementError, AuthoringReleaseError) as error:
+        raise _error(error) from error
+
+
+@student_router.post("/course-updates/apply")
+def apply_course_update(
+    payload: CourseUpdateApplyWrite,
+    request: Request,
+    db: Session = Depends(get_db),
+) -> dict:
+    entitlements = _service(request, db)
+    try:
+        grants = entitlements.effective_grants(
+            payload.local_identity_id, payload.local_proof
+        )
+        scope = grants.get(payload.course_id)
+        if not scope:
+            raise EntitlementError("GRANT_NOT_FOUND")
+        authoring = AuthoringReleaseApplicationService(db)
+        release = authoring.latest_deliverable_release(payload.course_id)
+        if not release:
+            raise EntitlementError("RELEASE_NOT_DELIVERABLE")
+        if release.id != payload.expected_release_id:
+            raise EntitlementError("RELEASE_STALE")
+        package = entitlements.crop_package(authoring.package(release), scope)
+        if not package.get("lessons"):
+            raise EntitlementError("RELEASE_NOT_DELIVERABLE")
+        return {
+            "schemaVersion": 1,
+            "requestId": request.state.request_id,
+            "data": {
+                "courseId": payload.course_id,
+                "releaseId": release.id,
+                "releaseNumber": release.release_number,
+                "package": package,
             },
         }
     except (EntitlementError, AuthoringReleaseError) as error:

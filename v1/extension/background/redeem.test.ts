@@ -194,6 +194,33 @@ describe('课程升级消息链路', () => {
     expect(result).toMatchObject({ ok: false, code: 'MALFORMED' });
   });
 
+  it('未授权摘要不携带课程标题或版本元数据', async () => {
+    await redeemAccessCode('KM-FIRST', withFetch(async () => json({ courses: [pkg()] })));
+    const result = await checkCourseUpdates({
+      library: deps.library,
+      apiOrigin: deps.apiOrigin,
+      fetch: async () =>
+        updateJson({
+          data: {
+            courses: [
+              {
+                courseId: uuid(1),
+                title: null,
+                releaseId: null,
+                releaseNumber: null,
+                status: 'unauthorized',
+              },
+            ],
+          },
+        }),
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      courses: [{ courseId: uuid(1), title: null, status: 'unauthorized' }],
+    });
+  });
+
   it('升级重新校验课程包并迁移本机学习状态', async () => {
     await redeemAccessCode('KM-FIRST', withFetch(async () => json({ courses: [pkg()] })));
     await deps.library.recordAttempt(uuid(1), uuid(2), 'n1', {
