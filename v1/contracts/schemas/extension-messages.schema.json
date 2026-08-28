@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://knownmap.local/schema/v2/extension-messages.schema.json",
-  "title": "KnownMap Extension Messages v2.1.0",
+  "title": "KnownMap Extension Messages v2.2.0",
   "description": "插件内部消息契约。background 是唯一的网络与持久化边界，content script 与 popup 只发请求、收响应；没有页面到插件的方向——教师预览已降级为静态示意图，老师改用插件在 B 站原页面查看（doc/lessons.md 2026-08-14）。",
   "type": "object",
   "oneOf": [
@@ -28,6 +28,10 @@
             "removalImpact",
             "removeCourse",
             "resetProgress"
+            ,"upgradeTasks"
+            ,"pauseUpgrade"
+            ,"resumeUpgrade"
+            ,"cancelUpgrade"
           ],
           "description": "未列出的类型必须被明确拒绝，不得静默返回成功"
         },
@@ -52,6 +56,11 @@
           "type": "string",
           "minLength": 1,
           "description": "asset：本机课程资源的稳定标识"
+        },
+        "taskKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "升级队列操作使用的稳定任务键"
         },
         "courseIds": {
           "type": "array",

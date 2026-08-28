@@ -133,7 +133,7 @@ B 站 content script 解析当前 URL
 
 - 修改 `v1/contracts/schemas/extension-storage.schema.json`：增加课程版本元数据和本地设置的兼容字段。
 - 不修改 `v1/contracts/schemas/course-package.schema.json` 的字幕边界：课程包继续为 v3.1.0，资源清单仍是引用/校验元数据，不承载媒体二进制。
-- 修改 `v1/contracts/versions.json`、`v1/contracts/version-manifest.ts` 及相关契约测试：登记 HTTP API、插件消息和插件存储的 2.1.0 兼容版本，课程包保持 3.1.0。
+- 修改 `v1/contracts/versions.json`、`v1/contracts/version-manifest.ts` 及相关契约测试：登记 HTTP API 2.1.0、插件消息和插件存储 2.2.0 的兼容版本，课程包保持 3.1.0。
 - 修改 `v1/extension/storage/types.ts`、`v1/extension/storage/index.ts`：保存/读取版本元数据、设置默认值、原子迁移学习状态。
 - 新建 `v1/extension/storage/assets.ts`：定义 IndexedDB/Cache Storage 资源仓库、按哈希复用、引用记录、配额检查和无引用清理。
 - 新建 `v1/extension/storage/settings.ts`：定义 `StudentSettings`、默认值和受限设置更新函数。
@@ -166,7 +166,7 @@ B 站 content script 解析当前 URL
 - Create: `v1/extension/storage/settings.ts`
 - Test: `v1/extension/storage/contract.test.ts`
 
-- [ ] 明确存储兼容决策：`extension_storage` 主版本仍为 2，契约版本升为 2.1.0；读取器接受受支持的 2.x 根版本，未知主版本仍整根隔离，不因新增可选字段隔离旧课程库。
+- [x] 明确存储兼容决策：`extension_storage` 主版本仍为 2，课程元数据与设置使用 2.1.0；读取器接受受支持的 2.x 根版本，未知主版本仍整根隔离，不因新增可选字段隔离旧课程库。
 - [ ] 为 `InstalledCourse` 增加可选 `releaseId` 和 `releaseNumber`，旧课程读取时规范化为 `null`。
 - [ ] 为 root 增加可选 `settings`，缺失时填入：`showRedeemEntry: true`、`showRecommendations: true`、`syncMode: 'prompt'`、默认快捷键 `Alt+K`、标准 mascot；不增加会屏蔽必要检查的开关。
 - [ ] 保持课程包 Schema v3.1.0 和现有字幕边界：不添加字幕字段，不把 `ReleaseLessonSnapshot.subtitle` 下发到学生插件；课程包资源仍只传清单与哈希。
@@ -289,14 +289,14 @@ B 站 content script 解析当前 URL
 - Test: `v1/extension/storage/storage.test.ts`
 - Test: `v1/extension/background/messages.test.ts`
 
-- [ ] 持久化升级任务：`queued`、`downloading`、`verifying`、`ready_to_commit`、`committed`、`paused`、`failed`、`cancelled`，记录课程、旧/目标版本、资源检查点、重试次数和错误。
-- [ ] 明确任务键为 `courseId + targetReleaseId`；同一课程同一目标版本重复点击只保留一个任务，发现更高版本时更新目标，不创建同课程第二个任务。
-- [ ] 队列写入与课程库写入复用同一串行存储边界，popup 关闭、重复消息和存储失败不覆盖最近有效队列。
-- [ ] 同步插件消息契约版本为 2.1.0，增加任务查询、暂停、继续、取消和进度消息的白名单字段。
-- [ ] 增加回归：重复点击、同课程高版本替换目标、多课程顺序、暂停/继续/取消，以及未知消息字段拒绝。
-- [ ] 运行 `npm --prefix v1 test -- extension/storage/storage.test.ts extension/background/messages.test.ts`，预期队列持久化和消息契约通过。
-- [ ] 更新 `doc/traceability/v1-requirements.tsv` 的设计/实现/自动化证据列。
-- [ ] Commit: `feat: persist and deduplicate course upgrade queue`
+- [x] 持久化升级任务：`queued`、`downloading`、`verifying`、`ready_to_commit`、`committed`、`paused`、`failed`、`cancelled`，记录课程、旧/目标版本、资源检查点、重试次数和错误。
+- [x] 明确任务键为 `courseId + targetReleaseId`；同一课程同一目标版本重复点击只保留一个任务，发现更高版本时更新目标，不创建同课程第二个任务。
+- [x] 队列写入与课程库写入复用同一串行存储边界，popup 关闭、重复消息和存储失败不覆盖最近有效队列。
+- [x] 同步插件消息契约版本为 2.2.0，增加任务查询、暂停、继续、取消消息的白名单字段；HTTP API 保持 2.1.0。
+- [x] 增加回归：重复点击、同课程高版本替换目标、多课程顺序、暂停/继续/取消，以及未知消息字段拒绝。
+- [x] 运行 `npm --prefix v1 test -- extension/storage/storage.test.ts extension/background/messages.test.ts`，预期队列持久化和消息契约通过。
+- [x] 更新 `doc/traceability/v1-requirements.tsv` 的设计/实现/自动化证据列。
+- [x] Commit: `feat: persist and deduplicate course upgrade queue`
 
 ### Task 5D: 实现升级调度、恢复和原子提交
 

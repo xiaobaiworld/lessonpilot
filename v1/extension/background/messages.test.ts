@@ -78,4 +78,16 @@ describe('消息契约与实现一致', () => {
     expect(workerSource).toContain('assetStore.get');
     expect(workerSource).toContain('ASSET_MISSING');
   });
+
+  it('升级队列控制消息有明确的契约白名单', () => {
+    expect(declaredTypes).toEqual(
+      expect.arrayContaining([
+        'upgradeTasks',
+        'pauseUpgrade',
+        'resumeUpgrade',
+        'cancelUpgrade',
+      ])
+    );
+    expect(schema.definitions.Request.properties.taskKey).toBeDefined();
+  });
 });

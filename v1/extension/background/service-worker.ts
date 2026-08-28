@@ -103,6 +103,37 @@ async function handle(message: unknown): Promise<Reply> {
       }
     }
 
+    case 'upgradeTasks': {
+      try {
+        return ok({ tasks: await library.listUpgradeTasks() });
+      } catch {
+        return err('STORAGE', '升级任务读取失败。');
+      }
+    }
+
+    case 'pauseUpgrade':
+    case 'resumeUpgrade':
+    case 'cancelUpgrade': {
+      if (typeof m.taskKey !== 'string' || !m.taskKey) {
+        return err('BAD_MESSAGE', '缺少升级任务。');
+      }
+      const status =
+        m.type === 'pauseUpgrade'
+          ? 'paused'
+          : m.type === 'resumeUpgrade'
+            ? 'queued'
+            : 'cancelled';
+      try {
+        const task = await library.updateUpgradeTask(m.taskKey, { status });
+        return ok({ task });
+      } catch {
+        return err(
+          m.type === 'cancelUpgrade' ? 'NOT_FOUND' : 'STORAGE',
+          m.type === 'cancelUpgrade' ? '升级任务不存在。' : '升级任务状态更新失败。'
+        );
+      }
+    }
+
     case 'checkCourseUpdates': {
       if (
         m.courseIds !== undefined &&

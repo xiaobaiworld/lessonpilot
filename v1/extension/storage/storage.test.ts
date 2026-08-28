@@ -5,6 +5,7 @@ import {
   STORAGE_SCHEMA_VERSION,
   InstalledCourse,
   AuthorizationSource,
+  UpgradeTask,
 } from './types';
 import { PortableNode } from '../../web/shared/src';
 
@@ -351,6 +352,55 @@ describe('损坏隔离', () => {
     area.data[STORAGE_ROOT_KEY] = { storage_schema_version: 'x', junk: 'y'.repeat(5000) };
     const root = await lib.read();
     expect(root.quarantine.entries[0].sample.length).toBeLessThanOrEqual(200);
+  });
+});
+
+describe('升级队列持久化与去重', () => {
+  it('同一课程同一目标版本只保留一个任务', async () => {
+    const first = await lib.enqueueUpgradeTask('course-1', 'release-2', 2);
+    const repeated = await lib.enqueueUpgradeTask('course-1', 'release-2', 2);
+
+    expect(repeated).toEqual(first);
+    expect(await lib.listUpgradeTasks()).toHaveLength(1);
+    expect(first.taskKey).toBe('course-1\u0000release-2');
+    expect(first.status).toBe('queued');
+  });
+
+  it('同一课程发现更高版本时更新目标，不创建第二个任务', async () => {
+    await lib.enqueueUpgradeTask('course-1', 'release-2', 2);
+    const higher = await lib.enqueueUpgradeTask('course-1', 'release-3', 3);
+
+    expect(higher.targetReleaseId).toBe('release-3');
+    expect(higher.targetReleaseNumber).toBe(3);
+    expect(await lib.listUpgradeTasks()).toEqual([higher]);
+  });
+
+  it('任务检查点和失败原因写入根存储，读取时保持稳定', async () => {
+    const task = await lib.enqueueUpgradeTask('course-1', 'release-2', 2);
+    const updated = await lib.updateUpgradeTask(task.taskKey, {
+      status: 'failed',
+      currentAssetId: 'asset-1',
+      completedAssetHashes: { 'asset-1': 'a'.repeat(64) },
+      retryCount: 1,
+      lastError: '下载中断',
+    });
+
+    expect(updated.status).toBe('failed');
+    expect((await lib.read()).upgradeQueue.tasks).toEqual([updated]);
+  });
+
+  it('队列字段损坏只隔离队列，不影响课程库', async () => {
+    await lib.installCourse(course('course-1'), source('course-1', ['course-1']));
+    area.data[STORAGE_ROOT_KEY] = {
+      ...area.root(),
+      upgradeQueue: { tasks: [{ taskKey: 'bad', status: 'unknown' }] },
+    };
+
+    const root = await lib.read();
+
+    expect(root.installedCourses['course-1']).toBeDefined();
+    expect(root.upgradeQueue.tasks).toEqual([]);
+    expect(root.quarantine.entries.at(-1)?.reason).toContain('升级队列');
   });
 });
 

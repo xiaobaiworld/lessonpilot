@@ -10,6 +10,8 @@ import {
   LessonProgress,
   NodeAttempt,
   QuarantineEntry,
+  UpgradeTask,
+  UpgradeTaskStatus,
   emptyRoot,
 } from './types';
 import {
@@ -39,6 +41,16 @@ function isPlainObject(v: unknown): v is Record<string, unknown> {
 const BVID = /^BV[0-9A-Za-z]{10}$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SHA256 = /^[0-9a-f]{64}$/i;
+const UPGRADE_TASK_STATUSES = new Set<UpgradeTaskStatus>([
+  'queued',
+  'downloading',
+  'verifying',
+  'ready_to_commit',
+  'committed',
+  'paused',
+  'failed',
+  'cancelled',
+]);
 const COLOR = /^#[0-9a-f]{3,8}$/i;
 const MARKS = new Set(['strong', 'em', 'underline']);
 const ASSET_MIME_PREFIX: Record<string, string> = {
@@ -97,6 +109,53 @@ function isAssetRecord(value: unknown): boolean {
         Number.isFinite(value.durationSeconds) &&
         value.durationSeconds > 0)) &&
     (value.alt === undefined || typeof value.alt === 'string')
+  );
+}
+
+function isUpgradeTask(value: unknown): value is UpgradeTask {
+  if (
+    !isPlainObject(value) ||
+    !onlyKeys(
+      value,
+      [
+        'taskKey',
+        'courseId',
+        'previousReleaseId',
+        'targetReleaseId',
+        'targetReleaseNumber',
+        'createdAt',
+        'updatedAt',
+        'status',
+        'currentAssetId',
+        'completedAssetHashes',
+        'retryCount',
+        'lastError',
+      ]
+    )
+  ) {
+    return false;
+  }
+  const hashes = value.completedAssetHashes;
+  return (
+    nonBlank(value.taskKey) &&
+    nonBlank(value.courseId) &&
+    (value.previousReleaseId === null || nonBlank(value.previousReleaseId)) &&
+    nonBlank(value.targetReleaseId) &&
+    value.taskKey === `${value.courseId}\u0000${value.targetReleaseId}` &&
+    Number.isSafeInteger(value.targetReleaseNumber) &&
+    Number(value.targetReleaseNumber) >= 1 &&
+    isDateTime(value.createdAt) &&
+    isDateTime(value.updatedAt) &&
+    typeof value.status === 'string' &&
+    UPGRADE_TASK_STATUSES.has(value.status as UpgradeTaskStatus) &&
+    (value.currentAssetId === null || nonBlank(value.currentAssetId)) &&
+    isPlainObject(hashes) &&
+    Object.values(hashes).every(
+      (hash) => typeof hash === 'string' && SHA256.test(hash)
+    ) &&
+    Number.isSafeInteger(value.retryCount) &&
+    Number(value.retryCount) >= 0 &&
+    (value.lastError === null || typeof value.lastError === 'string')
   );
 }
 
@@ -348,6 +407,17 @@ export class CourseLibrary {
       }
     }
 
+    const upgradeQueue = value.upgradeQueue;
+    if (
+      isPlainObject(upgradeQueue) &&
+      Array.isArray(upgradeQueue.tasks) &&
+      upgradeQueue.tasks.every(isUpgradeTask)
+    ) {
+      root.upgradeQueue.tasks = upgradeQueue.tasks as UpgradeTask[];
+    } else if (upgradeQueue !== undefined) {
+      drop('升级队列结构损坏', upgradeQueue);
+    }
+
     const cache = value.authorizationSourceCache;
     if (isPlainObject(cache) && Array.isArray(cache.sources)) {
       root.authorizationSourceCache.sources = cache.sources.filter(isPlainObject) as
@@ -538,6 +608,92 @@ export class CourseLibrary {
         root.localLearningState[courseId] = {};
       }
     }).then((r) => r.root);
+  }
+
+  listUpgradeTasks(): Promise<UpgradeTask[]> {
+    return this.read().then((root) => structuredClone(root.upgradeQueue.tasks));
+  }
+
+  enqueueUpgradeTask(
+    courseId: string,
+    targetReleaseId: string,
+    targetReleaseNumber: number
+  ): Promise<UpgradeTask> {
+    return this.update((root) => {
+      const now = new Date().toISOString();
+      const current = root.installedCourses[courseId];
+      const existing = root.upgradeQueue.tasks.find(
+        (task) => task.courseId === courseId
+      );
+
+      if (existing && existing.targetReleaseNumber >= targetReleaseNumber) {
+        return structuredClone(existing);
+      }
+
+      const next: UpgradeTask = existing
+        ? {
+            ...existing,
+            taskKey: `${courseId}\u0000${targetReleaseId}`,
+            targetReleaseId,
+            targetReleaseNumber,
+            status: 'queued',
+            currentAssetId: null,
+            completedAssetHashes: {},
+            retryCount: 0,
+            lastError: null,
+            updatedAt: now,
+          }
+        : {
+            taskKey: `${courseId}\u0000${targetReleaseId}`,
+            courseId,
+            previousReleaseId: current?.releaseId ?? null,
+            targetReleaseId,
+            targetReleaseNumber,
+            createdAt: now,
+            updatedAt: now,
+            status: 'queued',
+            currentAssetId: null,
+            completedAssetHashes: {},
+            retryCount: 0,
+            lastError: null,
+          };
+
+      root.upgradeQueue.tasks = [
+        ...root.upgradeQueue.tasks.filter((task) => task.courseId !== courseId),
+        next,
+      ];
+      return structuredClone(next);
+    }).then((r) => r.result);
+  }
+
+  updateUpgradeTask(
+    taskKey: string,
+    patch: Partial<
+      Pick<
+        UpgradeTask,
+        | 'status'
+        | 'currentAssetId'
+        | 'completedAssetHashes'
+        | 'retryCount'
+        | 'lastError'
+      >
+    >
+  ): Promise<UpgradeTask> {
+    return this.update((root) => {
+      const index = root.upgradeQueue.tasks.findIndex(
+        (task) => task.taskKey === taskKey
+      );
+      if (index < 0) throw new Error('升级任务不存在');
+      const current = root.upgradeQueue.tasks[index];
+      const next: UpgradeTask = {
+        ...current,
+        ...patch,
+        updatedAt: new Date().toISOString(),
+      };
+      if (!isUpgradeTask(next)) throw new Error('升级任务字段无效');
+      root.upgradeQueue.tasks[index] = next;
+      return structuredClone(next);
+    }).then((r) => r.result);
   }
 
   /** 记一次作答。追加而不覆盖，重做过的题保留全部尝试 */

@@ -17,7 +17,7 @@ export const STORAGE_ROOT_KEY = 'knownmapV1';
  * 取值必须匹配 schema 里的 `^2\.\d+\.\d+$`。
  * 这是契约字段，不是内部版本号——改它等于要求所有已安装的插件隔离重建。
  */
-export const STORAGE_SCHEMA_VERSION = '2.1.0';
+export const STORAGE_SCHEMA_VERSION = '2.2.0';
 
 /** 旧根，明确拒绝，不迁移（D-V1-012 要求干净初始化） */
 export const LEGACY_KEYS = [
@@ -116,6 +116,31 @@ export interface QuarantineEntry {
   sample: string;
 }
 
+export type UpgradeTaskStatus =
+  | 'queued'
+  | 'downloading'
+  | 'verifying'
+  | 'ready_to_commit'
+  | 'committed'
+  | 'paused'
+  | 'failed'
+  | 'cancelled';
+
+export interface UpgradeTask {
+  taskKey: string;
+  courseId: string;
+  previousReleaseId: string | null;
+  targetReleaseId: string;
+  targetReleaseNumber: number;
+  createdAt: string;
+  updatedAt: string;
+  status: UpgradeTaskStatus;
+  currentAssetId: string | null;
+  completedAssetHashes: Record<string, string>;
+  retryCount: number;
+  lastError: string | null;
+}
+
 export interface StorageRoot {
   storage_schema_version: string;
   localIdentity: LocalIdentity | null;
@@ -124,6 +149,7 @@ export interface StorageRoot {
   localLearningState: LearningState;
   quarantine: { entries: QuarantineEntry[] };
   settings: StudentSettings;
+  upgradeQueue: { tasks: UpgradeTask[] };
 }
 
 export function emptyRoot(): StorageRoot {
@@ -135,5 +161,6 @@ export function emptyRoot(): StorageRoot {
     localLearningState: {},
     quarantine: { entries: [] },
     settings: { ...DEFAULT_STUDENT_SETTINGS },
+    upgradeQueue: { tasks: [] },
   };
 }

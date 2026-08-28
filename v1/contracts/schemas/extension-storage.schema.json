@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://knownmap.local/schema/v2/extension-storage.schema.json",
-  "title": "KnownMap Extension Storage Schema v2.1.0",
+  "title": "KnownMap Extension Storage Schema v2.2.0",
   "description": "The chrome.storage.local root used by the student extension.",
   "type": "object",
   "additionalProperties": false,
@@ -34,6 +34,17 @@
     },
     "settings": {
       "$ref": "#/definitions/studentSettings"
+    },
+    "upgradeQueue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tasks"],
+      "properties": {
+        "tasks": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/upgradeTask" }
+        }
+      }
     }
   },
   "definitions": {
@@ -225,6 +236,52 @@
         "syncMode": { "enum": ["auto", "prompt", "manual"] },
         "shortcut": { "enum": ["Alt+K"] },
         "mascot": { "enum": ["standard"] }
+      }
+    },
+    "upgradeTask": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "taskKey",
+        "courseId",
+        "previousReleaseId",
+        "targetReleaseId",
+        "targetReleaseNumber",
+        "createdAt",
+        "updatedAt",
+        "status",
+        "currentAssetId",
+        "completedAssetHashes",
+        "retryCount",
+        "lastError"
+      ],
+      "properties": {
+        "taskKey": { "type": "string", "minLength": 1 },
+        "courseId": { "type": "string", "minLength": 1 },
+        "previousReleaseId": { "anyOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }] },
+        "targetReleaseId": { "type": "string", "minLength": 1 },
+        "targetReleaseNumber": { "type": "integer", "minimum": 1 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "status": {
+          "enum": [
+            "queued",
+            "downloading",
+            "verifying",
+            "ready_to_commit",
+            "committed",
+            "paused",
+            "failed",
+            "cancelled"
+          ]
+        },
+        "currentAssetId": { "anyOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }] },
+        "completedAssetHashes": {
+          "type": "object",
+          "additionalProperties": { "type": "string", "pattern": "^[0-9a-fA-F]{64}$" }
+        },
+        "retryCount": { "type": "integer", "minimum": 0 },
+        "lastError": { "anyOf": [{ "type": "string" }, { "type": "null" }] }
       }
     }
   }
