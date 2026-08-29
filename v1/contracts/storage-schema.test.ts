@@ -70,6 +70,16 @@ describe('extension storage contract', () => {
     expect(validator()(value)).toBe(true);
   });
 
+  it('accepts continuous window size and position values', () => {
+    const value = structuredClone(validRoot) as any;
+    value.installedCourses['00000002-0000-4000-8000-000000000000'].lessons[0].nodes[0].presentationHints = {
+      windowSize: { widthPercent: 42.5, heightPercent: 31.2 },
+      windowPosition: { xPercent: 63.4, yPercent: 28.7 },
+      windowStyle: 'document',
+    };
+    expect(validator()(value)).toBe(true);
+  });
+
   it('rejects unknown settings fields and values', () => {
     const value = structuredClone(validRoot) as any;
     value.settings = { ...currentSettings, remoteScript: 'https://example.com/x.js' };

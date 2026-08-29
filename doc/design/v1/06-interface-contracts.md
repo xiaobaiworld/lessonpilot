@@ -279,6 +279,7 @@
 | POST | `/api/v1/teacher/subtitles/repair` | 新建 | `D-V1-017`；上传 SRT/VTT，临时检查并自动修复可确定的时间重叠，不写入草稿 |
 | GET | `/api/v1/teacher/lessons/{lesson_id}/draft` | 已有 | `FR-AUTHOR-*` |
 | PUT | `/api/v1/teacher/lessons/{lesson_id}/draft` | 已有 | 整份聚合替换，带 `revision` |
+| PUT | `/api/v1/teacher/lessons/{lesson_id}/draft/nodes/{node_id}/presentation` | 新建 | `D-V1-024`；只更新一个互动节点的展示配置，带 `revision`，不新增配置表 |
 | GET | `/api/v1/teacher/courses/{course_id}/course-file` | 新建 | `FR-PORT-001`、`FR-PORT-005`；导出已保存草稿或指定发布版本 |
 | POST | `/api/v1/teacher/course-files/import/preview` | 新建 | `FR-PORT-003`、`FR-PORT-004`；只校验并返回摘要，不写入 |
 | POST | `/api/v1/teacher/course-files/import` | 新建 | `FR-PORT-003`、`FR-PORT-004`；确认后原子建立新课程草稿 |

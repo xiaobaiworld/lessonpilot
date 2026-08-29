@@ -4,17 +4,17 @@
   "description": "v1 契约与构建版本清单。占位符已按阶段 3-5 的实际实现替换。",
   "contracts": {
     "http_api": {
-      "version": "2.1.0",
+      "version": "2.2.0",
       "spec_file": "schemas/openapi.schema.json",
       "status": "implemented",
       "stage": "1A",
       "note": "后端实际路由前缀为 /api/v1/*；前端契约由 web/*/src/api.ts 对齐 v1/backend/app/modules/*/schemas.py",
-      "endpoints": 41,
+      "endpoints": 42,
       "checkTool": "node tools/endpoint-check.mjs",
       "implementedBy": "v1/backend/app/modules/*/routes.py + v1/web/{admin,teacher}/src/api.ts"
     },
     "course_package": {
-      "version": "3.1.0",
+      "version": "3.2.0",
       "schema_file": "schemas/course-package.schema.json",
       "status": "implemented",
       "stage": "0C",
@@ -35,7 +35,7 @@
       "implementedBy": "v1/extension/background/service-worker.ts"
     },
     "extension_storage": {
-      "version": "2.2.0",
+      "version": "2.3.0",
       "schema_file": "schemas/extension-storage.schema.json",
       "status": "implemented",
       "stage": "0B",
@@ -95,10 +95,10 @@
       "release": "v1.0.0",
       "status": "development",
       "releaseTarget": "stage 7",
-      "httpApi": "2.1.0",
-      "coursePackage": "3.1.0",
+      "httpApi": "2.2.0",
+      "coursePackage": "3.2.0",
       "extensionMessages": "2.2.0",
-      "extensionStorage": "2.2.0",
+      "extensionStorage": "2.3.0",
       "webBuild": "1.0.0",
       "extensionBuild": "1.0.0",
       "backendMigration": "20260826_rich_node_assets",

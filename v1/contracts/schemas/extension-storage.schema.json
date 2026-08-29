@@ -89,9 +89,17 @@
         "title": { "type": "string", "minLength": 1 },
         "content": { "$ref": "#/definitions/document" },
         "interactionData": { "type": ["object", "null"] },
-        "presentationHints": { "type": "object", "additionalProperties": false, "properties": { "windowSize": { "enum": ["s", "m", "l", "overlay"] }, "windowStyle": { "enum": ["card", "document"] }, "windowPosition": { "enum": ["bottom-left", "bottom-right", "center"] } } },
+        "presentationHints": { "type": "object", "additionalProperties": false, "properties": { "windowSize": { "anyOf": [{ "enum": ["s", "m", "l", "overlay"] }, { "$ref": "#/definitions/windowSizeConfig" }] }, "windowStyle": { "enum": ["card", "document"] }, "windowPosition": { "anyOf": [{ "enum": ["bottom-left", "bottom-right", "center"] }, { "$ref": "#/definitions/windowPositionConfig" }] } } },
         "effects": { "type": "object", "additionalProperties": false, "required": ["pause"], "properties": { "pause": { "const": true } } }
       }
+    },
+    "windowSizeConfig": {
+      "type": "object", "additionalProperties": false, "required": ["widthPercent", "heightPercent"],
+      "properties": { "widthPercent": { "type": "number", "minimum": 10, "maximum": 66 }, "heightPercent": { "type": "number", "minimum": 10, "maximum": 66 } }
+    },
+    "windowPositionConfig": {
+      "type": "object", "additionalProperties": false, "required": ["xPercent", "yPercent"],
+      "properties": { "xPercent": { "type": "number", "minimum": 0, "maximum": 100 }, "yPercent": { "type": "number", "minimum": 0, "maximum": 100 } }
     },
     "inline": {
       "type": "object",
