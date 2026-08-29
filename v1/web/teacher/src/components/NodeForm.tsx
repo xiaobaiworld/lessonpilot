@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   AssetRecord,
   InlineContent,
+  PRESENTATION_LIMITS,
   PresentationHints,
   RichPageBlock,
   RichPageDocument,
@@ -28,6 +29,16 @@ const WINDOW_STYLE_OPTIONS = [
   { value: 'card' as WindowStyle, label: '卡片' },
   { value: 'document' as WindowStyle, label: '文档' },
 ] as const;
+
+function clampPositionPercent(value: number, fallback: number): number {
+  if (!Number.isFinite(value)) return fallback;
+  return Math.round(
+    Math.min(
+      Math.max(value, PRESENTATION_LIMITS.positionMinPercent),
+      PRESENTATION_LIMITS.positionMaxPercent,
+    ) * 10,
+  ) / 10;
+}
 
 /** 各字段名由后端校验固定，见 v1/backend/app/modules/authoring_release/application_service.py */
 export const NodeForm: React.FC<Props> = ({ node, disabled, onChange, onUploadAsset, onImportAsset, assetUrlForId, onAssetCreated }) => {
@@ -232,8 +243,44 @@ const StudentNodePreview: React.FC<{
             onChange({ windowStyle: value });
           }}
         />
-        <div className="preview-position-summary">
-          位置 X {presentation.position.xPercent.toFixed(1)}% · Y {presentation.position.yPercent.toFixed(1)}%
+        <div className="preview-position-editor">
+          <div className="preview-position-heading">
+            <strong>窗口中心坐标</strong>
+            <span>范围 0%–100%</span>
+          </div>
+          <p className="preview-position-hint">
+            可以在上方预览中拖动窗口来改变位置，也可以直接修改 X、Y 坐标。
+          </p>
+          <div className="preview-position-inputs">
+            <PositionInput
+              axis="X"
+              value={presentation.position.xPercent}
+              disabled={disabled}
+              onChange={(value) => {
+                setPreviewConfirmed(false);
+                onChange({
+                  windowPosition: {
+                    ...presentation.position,
+                    xPercent: clampPositionPercent(value, presentation.position.xPercent),
+                  },
+                });
+              }}
+            />
+            <PositionInput
+              axis="Y"
+              value={presentation.position.yPercent}
+              disabled={disabled}
+              onChange={(value) => {
+                setPreviewConfirmed(false);
+                onChange({
+                  windowPosition: {
+                    ...presentation.position,
+                    yPercent: clampPositionPercent(value, presentation.position.yPercent),
+                  },
+                });
+              }}
+            />
+          </div>
           <button
             className="preview-reset-button"
             type="button"
@@ -259,12 +306,35 @@ const StudentNodePreview: React.FC<{
         </button>
       </div>
       <footer className="student-node-preview-foot">
-        <span>{presentation.size.widthPercent.toFixed(1)}% × {presentation.size.heightPercent.toFixed(1)}% · X {presentation.position.xPercent.toFixed(1)}% · Y {presentation.position.yPercent.toFixed(1)}% · {presentation.style === 'card' ? '卡片' : '文档'}</span>
+        <span>{presentation.size.widthPercent.toFixed(1)}% × {presentation.size.heightPercent.toFixed(1)}% · 中心坐标 X {presentation.position.xPercent.toFixed(1)}% · Y {presentation.position.yPercent.toFixed(1)}% · {presentation.style === 'card' ? '卡片' : '文档'}</span>
         <span>示意预览</span>
       </footer>
     </section>
   );
 };
+
+const PositionInput: React.FC<{
+  axis: 'X' | 'Y';
+  value: number;
+  disabled: boolean;
+  onChange: (value: number) => void;
+}> = ({ axis, value, disabled, onChange }) => (
+  <label className="preview-position-input">
+    <span>{axis} 坐标</span>
+    <input
+      name={`position-${axis.toLowerCase()}`}
+      type="number"
+      min="0"
+      max="100"
+      step="0.1"
+      value={value}
+      onChange={(event) => onChange(Number(event.currentTarget.value))}
+      disabled={disabled}
+      aria-label={`窗口中心 ${axis} 坐标`}
+    />
+    <span>%</span>
+  </label>
+);
 
 const RangeField: React.FC<{
   label: string;
