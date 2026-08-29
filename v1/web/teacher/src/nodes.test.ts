@@ -10,9 +10,9 @@ describe('结构化互动节点', () => {
       expect(node.anchor).toMatchObject({ kind: 'time_cross', timeSeconds: 127 });
       expect(node.content.schemaVersion).toBe(1);
       expect(node.presentationHints).toMatchObject({
-        windowSize: 'm',
+        windowSize: { widthPercent: 40, heightPercent: 30 },
         windowStyle: 'document',
-        windowPosition: 'bottom-right',
+        windowPosition: { xPercent: 50, yPercent: 50 },
       });
       expect(node).not.toHaveProperty('display');
       expect(node).not.toHaveProperty('evaluation');

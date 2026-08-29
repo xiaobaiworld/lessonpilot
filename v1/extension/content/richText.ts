@@ -3,6 +3,9 @@ import {
   WINDOW_SIZES,
   WINDOW_STYLES,
   resolvePresentationHints,
+  type WindowPosition,
+  type WindowSize,
+  type WindowStyle,
   type ResolvedPresentationHints,
 } from '../../web/shared/src';
 

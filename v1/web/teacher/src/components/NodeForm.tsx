@@ -2,10 +2,9 @@ import React, { useState } from 'react';
 import {
   AssetRecord,
   InlineContent,
+  PresentationHints,
   RichPageBlock,
   RichPageDocument,
-  WindowPosition,
-  WindowSize,
   WindowStyle,
   richDocumentFromHtml,
   richDocumentToHtml,
@@ -13,6 +12,7 @@ import {
 } from '@v1/web/shared';
 import { ScriptNode } from '../api';
 import { RichTextEditor } from './RichTextEditor';
+import { PresentationPreview } from './PresentationPreview';
 
 interface Props {
   node: ScriptNode;
@@ -24,28 +24,24 @@ interface Props {
   onAssetCreated?: (asset: AssetRecord) => void;
 }
 
-const WINDOW_SIZE_OPTIONS = [
-  { value: 's' as WindowSize, label: '小卡片' },
-  { value: 'm' as WindowSize, label: '中等' },
-  { value: 'l' as WindowSize, label: '大文档' },
-  { value: 'overlay' as WindowSize, label: '铺开' },
-] as const;
-
 const WINDOW_STYLE_OPTIONS = [
   { value: 'card' as WindowStyle, label: '卡片' },
   { value: 'document' as WindowStyle, label: '文档' },
 ] as const;
 
-const WINDOW_POSITION_OPTIONS = [
-  { value: 'bottom-left' as WindowPosition, label: '左下' },
-  { value: 'bottom-right' as WindowPosition, label: '右下' },
-  { value: 'center' as WindowPosition, label: '居中' },
-] as const;
-
 /** 各字段名由后端校验固定，见 v1/backend/app/modules/authoring_release/application_service.py */
 export const NodeForm: React.FC<Props> = ({ node, disabled, onChange, onUploadAsset, onImportAsset, assetUrlForId, onAssetCreated }) => {
-  const setHints = (patch: Record<string, unknown>) =>
-    onChange({ ...node, presentationHints: { ...node.presentationHints, ...patch } });
+  const setHints = (patch: Partial<PresentationHints>) => {
+    const resolved = resolvePresentationHints(node.presentationHints ?? {});
+    onChange({
+      ...node,
+      presentationHints: {
+        windowSize: patch.windowSize ?? resolved.size,
+        windowPosition: patch.windowPosition ?? resolved.position,
+        windowStyle: patch.windowStyle ?? resolved.style,
+      },
+    });
+  };
 
   const setInteractionData = (patch: Record<string, unknown>) =>
     onChange({
@@ -146,11 +142,16 @@ export const NodeForm: React.FC<Props> = ({ node, disabled, onChange, onUploadAs
 const StudentNodePreview: React.FC<{
   node: ScriptNode;
   disabled: boolean;
-  onChange: (patch: Record<string, unknown>) => void;
+  onChange: (patch: Partial<PresentationHints>) => void;
   assetUrlForId?: (assetId: string) => string;
 }> = ({ node, disabled, onChange, assetUrlForId }) => {
   const [previewConfirmed, setPreviewConfirmed] = useState(false);
-  const { size: windowSize, style: windowStyle, position: windowPosition } = resolvePresentationHints(node.presentationHints ?? {});
+  const presentation = resolvePresentationHints(node.presentationHints ?? {});
+  const previewHints: PresentationHints = {
+    windowSize: presentation.size,
+    windowPosition: presentation.position,
+    windowStyle: presentation.style,
+  };
   const data = (node.interactionData ?? {}) as Record<string, any>;
   const options = Array.isArray(data.options) ? data.options : [];
   const interactionLabel =
@@ -164,7 +165,7 @@ const StudentNodePreview: React.FC<{
 
   return (
     <section
-      className={`student-node-preview student-node-preview-${node.interaction} student-node-preview-${windowSize} student-node-preview-${windowStyle} student-node-preview-${windowPosition}${previewConfirmed ? ' is-confirmed' : ''}`}
+      className={`student-node-preview student-node-preview-${node.interaction} student-node-preview-${presentation.style}${previewConfirmed ? ' is-confirmed' : ''}`}
       aria-label="学生端预览"
     >
       <header className="student-node-preview-head">
@@ -174,10 +175,14 @@ const StudentNodePreview: React.FC<{
         </div>
         <span>正在播放 · {formatPreviewTime(node.anchor.timeSeconds)}</span>
       </header>
-      <div className="student-node-preview-stage">
-        <span className="student-node-preview-video-label">课程视频 · 预览画面</span>
-        <span className="student-node-preview-play" aria-hidden="true">▶</span>
-        <article className="student-node-card">
+      <PresentationPreview
+        hints={previewHints}
+        disabled={disabled}
+        onChange={(patch) => {
+          setPreviewConfirmed(false);
+          onChange(patch);
+        }}
+      >
           <span className="student-node-card-badge">{interactionLabel}</span>
           <h4>{node.title || '未命名节点'}</h4>
           <PreviewRichContent document={node.content} assetUrlForId={assetUrlForId} />
@@ -190,8 +195,7 @@ const StudentNodePreview: React.FC<{
           )}
           {node.interaction === 'blank' && <div className="student-node-card-input">输入你的答案</div>}
           {node.interaction === 'free_text' && <div className="student-node-card-input">写下你的想法……</div>}
-        </article>
-      </div>
+      </PresentationPreview>
       <div className="preview-settings">
         <div className="preview-settings-heading">
           <div>
@@ -200,29 +204,27 @@ const StudentNodePreview: React.FC<{
           </div>
           <span>调整后确认预览</span>
         </div>
-        <ChoiceGroup
-          label="大小"
-          value={windowSize}
-          options={WINDOW_SIZE_OPTIONS}
+        <RangeField
+          label={`宽度 ${presentation.size.widthPercent.toFixed(1)}%`}
+          value={presentation.size.widthPercent}
           disabled={disabled}
           onChange={(value) => {
             setPreviewConfirmed(false);
-            onChange({ windowSize: value });
+            onChange({ windowSize: { ...presentation.size, widthPercent: value } });
           }}
         />
-        <ChoiceGroup
-          label="位置"
-          value={windowPosition}
-          options={WINDOW_POSITION_OPTIONS}
+        <RangeField
+          label={`高度 ${presentation.size.heightPercent.toFixed(1)}%`}
+          value={presentation.size.heightPercent}
           disabled={disabled}
           onChange={(value) => {
             setPreviewConfirmed(false);
-            onChange({ windowPosition: value });
+            onChange({ windowSize: { ...presentation.size, heightPercent: value } });
           }}
         />
         <ChoiceGroup
           label="样式"
-          value={windowStyle}
+          value={presentation.style}
           options={WINDOW_STYLE_OPTIONS}
           disabled={disabled}
           onChange={(value) => {
@@ -230,6 +232,23 @@ const StudentNodePreview: React.FC<{
             onChange({ windowStyle: value });
           }}
         />
+        <div className="preview-position-summary">
+          位置 X {presentation.position.xPercent.toFixed(1)}% · Y {presentation.position.yPercent.toFixed(1)}%
+          <button
+            className="preview-reset-button"
+            type="button"
+            onClick={() => {
+              setPreviewConfirmed(false);
+              onChange({
+                windowSize: { widthPercent: 40, heightPercent: 30 },
+                windowPosition: { xPercent: 50, yPercent: 50 },
+              });
+            }}
+            disabled={disabled}
+          >
+            重置位置和大小
+          </button>
+        </div>
         <button
           className="preview-confirm-button"
           type="button"
@@ -240,19 +259,40 @@ const StudentNodePreview: React.FC<{
         </button>
       </div>
       <footer className="student-node-preview-foot">
-        <span>{windowSizeLabel(windowSize)} · {windowPositionLabel(windowPosition)} · {windowStyle === 'card' ? '卡片' : '文档'}</span>
+        <span>{presentation.size.widthPercent.toFixed(1)}% × {presentation.size.heightPercent.toFixed(1)}% · X {presentation.position.xPercent.toFixed(1)}% · Y {presentation.position.yPercent.toFixed(1)}% · {presentation.style === 'card' ? '卡片' : '文档'}</span>
         <span>示意预览</span>
       </footer>
     </section>
   );
 };
 
+const RangeField: React.FC<{
+  label: string;
+  value: number;
+  disabled: boolean;
+  onChange: (value: number) => void;
+}> = ({ label, value, disabled, onChange }) => (
+  <label className="preview-range-row">
+    <span>{label}</span>
+    <input
+      type="range"
+      min="10"
+      max="66"
+      step="0.1"
+      value={value}
+      onChange={(event) => onChange(Number(event.currentTarget.value))}
+      disabled={disabled}
+      aria-label={label}
+    />
+  </label>
+);
+
 const ChoiceGroup: React.FC<{
   label: string;
-  value: string;
-  options: readonly { value: string; label: string }[];
+  value: WindowStyle;
+  options: readonly { value: WindowStyle; label: string }[];
   disabled: boolean;
-  onChange: (value: string) => void;
+  onChange: (value: WindowStyle) => void;
 }> = ({ label, value, options, disabled, onChange }) => (
   <div className="preview-setting-row">
     <span>{label}</span>
@@ -272,10 +312,6 @@ const ChoiceGroup: React.FC<{
     </div>
   </div>
 );
-
-function windowSizeLabel(value: string): string {
-  return WINDOW_SIZE_OPTIONS.find((option) => option.value === value)?.label ?? '中等';
-}
 
 const PreviewRichContent: React.FC<{
   document: RichPageDocument;
@@ -380,10 +416,6 @@ function isSafePreviewHref(value: string): boolean {
   } catch {
     return false;
   }
-}
-
-function windowPositionLabel(value: string): string {
-  return WINDOW_POSITION_OPTIONS.find((option) => option.value === value)?.label ?? '右下';
 }
 
 function formatPreviewTime(seconds: number): string {

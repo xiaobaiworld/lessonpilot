@@ -100,6 +100,46 @@ describe('TeacherAPI authentication paths', () => {
     );
   });
 
+  it('updates one node presentation with its draft revision', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        lessonId: 'lesson-1',
+        nodeId: 'node-1',
+        revision: 2,
+        presentationHints: {
+          windowSize: { widthPercent: 42.5, heightPercent: 31.2 },
+          windowPosition: { xPercent: 63.4, yPercent: 28.7 },
+          windowStyle: 'document',
+        },
+      }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const presentationHints = {
+      windowSize: { widthPercent: 42.5, heightPercent: 31.2 },
+      windowPosition: { xPercent: 63.4, yPercent: 28.7 },
+      windowStyle: 'document' as const,
+    };
+
+    await expect(
+      new TeacherAPI(new APIClient('http://127.0.0.1:8001')).updateNodePresentation(
+        'lesson-1',
+        'node-1',
+        1,
+        presentationHints,
+      )
+    ).resolves.toMatchObject({ revision: 2, nodeId: 'node-1' });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://127.0.0.1:8001/api/v1/teacher/lessons/lesson-1/draft/nodes/node-1/presentation',
+      expect.objectContaining({
+        method: 'PUT',
+        body: JSON.stringify({ revision: 1, presentationHints }),
+      }),
+    );
+  });
+
   it('读取课程列表时保留课程总览指标', async () => {
     const item = {
       id: 'course-1',

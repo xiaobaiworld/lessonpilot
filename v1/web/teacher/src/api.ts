@@ -1,4 +1,4 @@
-import { APIClient, AssetRecord, PortableNode, SubtitleDocument } from '@v1/web/shared';
+import { APIClient, AssetRecord, PortableNode, PresentationHints, SubtitleDocument } from '@v1/web/shared';
 
 /**
  * 与后端 schema 对齐：
@@ -81,6 +81,13 @@ export interface ScriptDraft {
   lesson_id: string;
   node_count: number;
   updated_at: string;
+}
+
+export interface NodePresentationPublic {
+  lessonId: string;
+  nodeId: string;
+  revision: number;
+  presentationHints: PresentationHints;
 }
 
 export interface SubtitleRepairResult {
@@ -260,6 +267,18 @@ export class TeacherAPI {
       revision,
       config: { nodes, assets, subtitle },
     });
+  }
+
+  updateNodePresentation(
+    lessonId: string,
+    nodeId: string,
+    revision: number,
+    presentationHints: PresentationHints,
+  ): Promise<NodePresentationPublic> {
+    return this.http.put<NodePresentationPublic>(
+      `/api/v1/teacher/lessons/${lessonId}/draft/nodes/${nodeId}/presentation`,
+      { revision, presentationHints },
+    );
   }
 
   exportCourseFile(courseId: string, releaseId?: string): Promise<TeacherCourseFile> {

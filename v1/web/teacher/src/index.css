@@ -1042,6 +1042,7 @@
   min-height: 244px;
   padding: 17px;
   overflow: hidden;
+  touch-action: none;
   background: linear-gradient(135deg, #354b45, #172b2a 58%, #263c37);
 }
 
@@ -1079,11 +1080,11 @@
 .student-node-card {
   position: absolute;
   z-index: 2;
-  right: 17px;
-  bottom: 17px;
-  left: auto;
+  top: var(--preview-top);
+  left: var(--preview-left);
   box-sizing: border-box;
-  width: min(380px, calc(100% - 34px));
+  width: var(--preview-width);
+  min-height: var(--preview-height);
   max-width: calc(100% - 34px);
   max-height: calc(100% - 34px);
   overflow: auto;
@@ -1092,50 +1093,12 @@
   border-radius: 11px;
   background: rgba(255,254,250,.97);
   box-shadow: 0 12px 26px rgba(0,0,0,.22);
+  cursor: grab;
 }
 
-/* 教师预览与插件 LearningWindow 使用同一组尺寸、位置和样式语义。 */
-.student-node-preview-s .student-node-card {
-  width: min(380px, calc(100% - 34px));
-}
-
-.student-node-preview-m .student-node-card {
-  width: min(560px, calc(100% - 34px));
-}
-
-.student-node-preview-l .student-node-card {
-  width: min(720px, calc(100% - 34px));
-}
-
-.student-node-preview-overlay .student-node-preview-stage::after {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  background: rgba(20, 32, 51, .38);
-  content: '';
-}
-
-.student-node-preview-overlay .student-node-card {
-  width: min(860px, calc(100% - 34px));
-  max-height: calc(100% - 34px);
-}
-
-.student-node-preview-bottom-left .student-node-card {
-  right: auto;
-  left: 17px;
-}
-
-.student-node-preview-bottom-right .student-node-card {
-  right: 17px;
-  left: auto;
-}
-
-.student-node-preview-center .student-node-card {
-  top: 50%;
-  right: auto;
-  bottom: auto;
-  left: 50%;
-  transform: translate(-50%, -50%);
+.student-node-card.is-dragging {
+  cursor: grabbing;
+  user-select: none;
 }
 
 .student-node-preview-card .student-node-card {
@@ -1324,6 +1287,46 @@
   color: var(--ink-soft);
   font-size: 10px;
   font-weight: 800;
+}
+
+.preview-range-row {
+  display: grid;
+  grid-template-columns: 75px minmax(0, 1fr);
+  gap: 7px;
+  align-items: center;
+  color: var(--ink-soft);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.preview-range-row input {
+  width: 100%;
+  accent-color: var(--green);
+}
+
+.preview-position-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.preview-reset-button {
+  padding: 4px 7px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  color: var(--ink-soft);
+  background: #fff;
+  font: inherit;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.preview-reset-button:hover:not(:disabled) {
+  border-color: var(--green);
+  color: var(--green);
 }
 
 .preview-choice-group {

@@ -53,9 +53,9 @@ function newId(): string {
 }
 
 export const WINDOW_DEFAULTS = {
-  windowSize: 'm' as const,
+  windowSize: { widthPercent: 40, heightPercent: 30 },
   windowStyle: 'document' as const,
-  windowPosition: 'bottom-right' as const,
+  windowPosition: { xPercent: 50, yPercent: 50 },
 };
 
 /** 建一个字段已填到最小可通过校验的节点 */
