@@ -65,8 +65,8 @@
   "overlays": {
     "fishTreat": {
       "image": "fish-treat.png",
-      "recommendedDisplayPx": 64,
-      "imageSha256": "a13fb9b1f21c24eec15f0f3719c3aad84fd9ebda518cd3d5ab225a751fde8e8e"
+      "recommendedDisplayPx": 32,
+      "imageSha256": "1c42d37ae55ae49729614cf5a8e28217ecccc21788cbc27856d79e819df1295f"
     }
   },
   "delivery": {
