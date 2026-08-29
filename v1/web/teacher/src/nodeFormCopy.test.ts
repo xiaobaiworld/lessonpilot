@@ -27,4 +27,30 @@ describe('节点课程化填写文案', () => {
       feedbackLabel: '学生作答后的解释',
     });
   });
+
+  it('重点提示文案明确课程重点', () => {
+    expect(nodeFormCopy('notice')).toMatchObject({
+      titleLabel: '重点主题',
+      contentLabel: '重点内容',
+      previewBadge: '本节重点',
+    });
+  });
+
+  it('填空题文案明确答案和反馈', () => {
+    expect(nodeFormCopy('blank')).toMatchObject({
+      contentLabel: '题目主干',
+      answerLabel: '标准答案 / 可接受说法',
+      feedbackLabel: '学生提交后的解释',
+      previewBadge: '补全关键词',
+    });
+  });
+
+  it('问答题文案明确问题和参考反馈', () => {
+    expect(nodeFormCopy('free_text')).toMatchObject({
+      contentLabel: '问题',
+      feedbackLabel: '学生提交后的参考反馈',
+      feedbackHint: '学生提交后展示；不自动判分。',
+      previewBadge: '说说你的理解',
+    });
+  });
 });
