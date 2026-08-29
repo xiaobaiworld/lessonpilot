@@ -7,6 +7,8 @@ import { createNode } from '../nodes';
 import { nodeFormCopy } from '../nodeFormCopy';
 import { NodeForm } from './NodeForm';
 
+type TestNode = ReturnType<typeof createNode>;
+
 describe('NodeForm 课程化填写引导', () => {
   let root: ReturnType<typeof createRoot> | null = null;
 
@@ -16,7 +18,10 @@ describe('NodeForm 课程化填写引导', () => {
     document.body.innerHTML = '';
   });
 
-  async function renderNode(node: ReturnType<typeof createNode>) {
+  async function renderNode(
+    node: TestNode,
+    onChange: (nextNode: TestNode) => void = () => undefined
+  ) {
     root?.unmount();
     document.body.innerHTML = '';
     const container = document.createElement('div');
@@ -29,7 +34,7 @@ describe('NodeForm 课程化填写引导', () => {
         <NodeForm
           node={node}
           disabled={false}
-          onChange={() => undefined}
+          onChange={onChange}
         />
       );
     });
@@ -106,5 +111,97 @@ describe('NodeForm 课程化填写引导', () => {
         expect(control.value).not.toBe(control.placeholder);
       }
     }
+  });
+
+  it('删除当前正确答案时一次更新就移除选项并迁移答案', async () => {
+    const node = createNode('choice', 39);
+    node.interactionData = {
+      options: [
+        { id: 'a', label: '选项一' },
+        { id: 'b', label: '选项二' },
+        { id: 'c', label: '选项三' },
+      ],
+      answer: 'b',
+      explanation: '说明',
+    };
+    const changes: TestNode[] = [];
+    const container = await renderNode(node, (nextNode) => changes.push(nextNode));
+
+    const checkedRadio = container.querySelector<HTMLInputElement>('input[type="radio"]:checked');
+    const removeButton = checkedRadio?.closest('.choice-row')?.querySelector<HTMLButtonElement>('button');
+    expect(removeButton).not.toBeNull();
+
+    await act(async () => {
+      removeButton?.click();
+    });
+
+    expect(changes).toHaveLength(1);
+    const interactionData = changes[0].interactionData as {
+      options: { id: string; label: string }[];
+      answer: string;
+    };
+    expect(interactionData.options).toEqual([
+      { id: 'a', label: '选项一' },
+      { id: 'c', label: '选项三' },
+    ]);
+    expect(interactionData.answer).toBe('a');
+  });
+
+  it('删除中间选项后新增选项使用 a-f 中首个未占用的 ID', async () => {
+    const node = createNode('choice', 39);
+    node.interactionData = {
+      options: [
+        { id: 'a', label: '选项一' },
+        { id: 'b', label: '选项二' },
+        { id: 'c', label: '选项三' },
+      ],
+      answer: 'a',
+      explanation: '说明',
+    };
+    const changes: TestNode[] = [];
+    const container = await renderNode(node, (nextNode) => changes.push(nextNode));
+
+    const rows = Array.from(container.querySelectorAll<HTMLElement>('.choice-row'));
+    const removeButton = rows[1]?.querySelector<HTMLButtonElement>('button');
+    expect(removeButton).not.toBeNull();
+
+    await act(async () => {
+      removeButton?.click();
+    });
+
+    const afterRemoval = changes.find((nextNode) => {
+      const options = (nextNode.interactionData as { options: { id: string }[] }).options;
+      return options.map((option) => option.id).join(',') === 'a,c';
+    });
+    expect(afterRemoval).toBeDefined();
+    const remainingOptions = (
+      afterRemoval?.interactionData as { options: { id: string; label: string }[] }
+    ).options;
+    expect(remainingOptions.map((option) => option.id)).toEqual(['a', 'c']);
+
+    const firstUnusedId = ['a', 'b', 'c', 'd', 'e', 'f'].find(
+      (id) => !remainingOptions.some((option) => option.id === id)
+    );
+    expect(firstUnusedId).toBeDefined();
+
+    const additions: TestNode[] = [];
+    const afterRemovalContainer = await renderNode(afterRemoval!, (nextNode) => additions.push(nextNode));
+    const addButton = Array.from(afterRemovalContainer.querySelectorAll<HTMLButtonElement>('button')).find((button) =>
+      button.textContent?.includes('增加选项')
+    );
+    expect(addButton).not.toBeNull();
+
+    await act(async () => {
+      addButton?.click();
+    });
+
+    const afterAddition = additions[0];
+    expect(afterAddition).toBeDefined();
+    const options = (
+      afterAddition?.interactionData as { options: { id: string; label: string }[] }
+    ).options;
+    const ids = options.map((option) => option.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(ids.at(-1)).toBe(firstUnusedId);
   });
 });

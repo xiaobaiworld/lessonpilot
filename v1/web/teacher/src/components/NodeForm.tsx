@@ -102,6 +102,7 @@ export const NodeForm: React.FC<Props> = ({ node, disabled, onChange, onUploadAs
                 disabled={disabled}
                 onOptions={(options) => setInteractionData({ options })}
                 onAnswer={(answer) => setInteractionData({ answer })}
+                onInteractionData={(patch) => setInteractionData(patch)}
                 onExplanation={(explanation) => setInteractionData({ explanation })}
               />
             </DetailSection>
@@ -459,6 +460,7 @@ const ChoiceFields: React.FC<{
   disabled: boolean;
   onOptions: (o: { id: string; label: string }[]) => void;
   onAnswer: (a: string) => void;
+  onInteractionData: (patch: Record<string, unknown>) => void;
   onExplanation: (s: string) => void;
 }> = ({
   copy,
@@ -468,10 +470,12 @@ const ChoiceFields: React.FC<{
   disabled,
   onOptions,
   onAnswer,
+  onInteractionData,
   onExplanation,
 }) => {
+  const optionIds = ['a', 'b', 'c', 'd', 'e', 'f'];
   const nextId = () =>
-    String.fromCharCode(97 + options.length); // a, b, c...
+    optionIds.find((id) => !options.some((option) => option.id === id)) ?? '';
 
   return (
     <>
@@ -513,8 +517,11 @@ const ChoiceFields: React.FC<{
                   type="button"
                   onClick={() => {
                     const kept = options.filter((_, j) => j !== i);
-                    onOptions(kept);
-                    if (answer === opt.id) onAnswer(kept[0]?.id ?? '');
+                    if (answer === opt.id) {
+                      onInteractionData({ options: kept, answer: kept[0]?.id ?? '' });
+                    } else {
+                      onOptions(kept);
+                    }
                   }}
                   disabled={disabled}
                 >
