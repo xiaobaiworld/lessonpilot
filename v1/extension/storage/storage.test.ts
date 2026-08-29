@@ -244,6 +244,42 @@ describe('损坏隔离', () => {
     expect(root.quarantine.entries).toEqual([]);
   });
 
+  it('接受互动节点连续尺寸和位置配置', async () => {
+    area.data[STORAGE_ROOT_KEY] = {
+      storage_schema_version: STORAGE_SCHEMA_VERSION,
+      installedCourses: {
+        continuous: {
+          ...course('continuous'),
+          lessons: [{
+            ...course('continuous').lessons[0],
+            nodes: [
+              {
+                ...testNode('n1'),
+                presentationHints: {
+                  windowSize: { widthPercent: 42.5, heightPercent: 31.2 },
+                  windowStyle: 'document',
+                  windowPosition: { xPercent: 63.4, yPercent: 28.7 },
+                },
+              },
+            ],
+          }],
+        },
+      },
+      localLearningState: {},
+      authorizationSourceCache: { sources: [] },
+      quarantine: { entries: [] },
+    };
+
+    const root = await lib.read();
+
+    expect(root.installedCourses.continuous.lessons[0].nodes[0].presentationHints).toEqual({
+      windowSize: { widthPercent: 42.5, heightPercent: 31.2 },
+      windowStyle: 'document',
+      windowPosition: { xPercent: 63.4, yPercent: 28.7 },
+    });
+    expect(root.quarantine.entries).toEqual([]);
+  });
+
   it('设置字段损坏时只回退设置并记录隔离原因', async () => {
     area.data[STORAGE_ROOT_KEY] = {
       storage_schema_version: STORAGE_SCHEMA_VERSION,

@@ -1,6 +1,10 @@
 import { RuntimeNode, WindowState, NodeOutcome } from '../runtime/session';
 import { VideoMode } from './runtime';
-import { richDocumentToHtml } from '../../web/shared/src';
+import {
+  richDocumentToHtml,
+  resolvePresentationGeometry,
+  type PresentationViewport,
+} from '../../web/shared/src';
 import {
   appendRichText,
   resolveRichTextAssets,
@@ -37,6 +41,8 @@ export class LearningWindow {
   private host: HTMLElement | null = null;
   private root: ShadowRoot | null = null;
   private detachFullscreen: (() => void) | null = null;
+  private detachLayoutObserver: (() => void) | null = null;
+  private updatePanelLayout: (() => void) | null = null;
   private releaseAssetUrls: (() => void) | null = null;
   private renderGeneration = 0;
 
@@ -47,6 +53,9 @@ export class LearningWindow {
   ) {}
 
   render(state: WindowState): void {
+    this.detachLayoutObserver?.();
+    this.detachLayoutObserver = null;
+    this.updatePanelLayout = null;
     this.releaseAssetUrls?.();
     this.releaseAssetUrls = null;
     const generation = ++this.renderGeneration;
@@ -63,10 +72,12 @@ export class LearningWindow {
       (state.node.presentationHints ?? {}) as Record<string, unknown>
     );
     const panel = document.createElement('div');
-    panel.className = `km-panel km-size-${presentation.size} km-style-${presentation.style} km-position-${presentation.position}`;
+    panel.className = `km-panel km-learning-panel km-style-${presentation.style}`;
     panel.setAttribute('role', 'dialog');
     panel.setAttribute('aria-modal', 'false');
-    if (presentation.size === 'overlay') {
+    // overlay 是旧版本的兼容行为，新格式只控制尺寸，不再把 66% 误当成遮罩。
+    const rawHints = (state.node.presentationHints ?? {}) as Record<string, unknown>;
+    if (rawHints.windowSize === 'overlay') {
       const backdrop = document.createElement('div');
       backdrop.className = 'km-backdrop';
       root.append(backdrop);
@@ -85,6 +96,7 @@ export class LearningWindow {
     }
 
     root.append(panel);
+    this.setupPanelLayout(panel, presentation, generation);
     // 焦点移进窗口，键盘用户不必先 Tab 穿过整个 B 站页面
     panel.querySelector<HTMLElement>('textarea, input, button')?.focus();
   }
@@ -105,6 +117,7 @@ export class LearningWindow {
       void resolveRichTextAssets(page, this.loadAsset).then((release) => {
         if (generation === this.renderGeneration) {
           this.releaseAssetUrls = release;
+          this.updatePanelLayout?.();
         } else {
           release();
         }
@@ -153,6 +166,49 @@ export class LearningWindow {
         this.button('提交', 'primary', this.callbacks.onSubmit),
       ])
     );
+  }
+
+  private setupPanelLayout(
+    panel: HTMLElement,
+    presentation: ReturnType<typeof resolveWindowPresentation>,
+    generation: number,
+  ): void {
+    const viewport = this.getViewport();
+    const applyLayout = () => {
+      if (generation !== this.renderGeneration) return;
+      const content = panel.querySelector<HTMLElement>('.km-rich-text');
+      const geometry = resolvePresentationGeometry(
+        presentation,
+        viewport,
+        16,
+        content
+          ? { width: content.scrollWidth, height: content.scrollHeight }
+          : undefined,
+      );
+      panel.style.setProperty('--km-width-percent', String(presentation.size.widthPercent));
+      panel.style.setProperty('--km-height-percent', String(presentation.size.heightPercent));
+      panel.style.setProperty('--km-x-percent', String(presentation.position.xPercent));
+      panel.style.setProperty('--km-y-percent', String(presentation.position.yPercent));
+      panel.style.setProperty('--km-left', `${geometry.left}px`);
+      panel.style.setProperty('--km-top', `${geometry.top}px`);
+      panel.style.setProperty('--km-width', `${geometry.width}px`);
+      panel.style.setProperty('--km-min-height', `${geometry.height}px`);
+    };
+
+    applyLayout();
+    this.updatePanelLayout = applyLayout;
+    if (typeof ResizeObserver === 'undefined') return;
+    const observed = panel.querySelector<HTMLElement>('.km-rich-text') ?? panel;
+    const observer = new ResizeObserver(applyLayout);
+    observer.observe(observed);
+    this.detachLayoutObserver = () => observer.disconnect();
+  }
+
+  private getViewport(): PresentationViewport {
+    return {
+      width: window.innerWidth || document.documentElement.clientWidth || 1024,
+      height: window.innerHeight || document.documentElement.clientHeight || 768,
+    };
   }
 
   private renderOutcome(
@@ -215,6 +271,9 @@ export class LearningWindow {
   /** 移除窗口与宿主节点。离开页面时必须调用，否则 SPA 切走后残留 DOM */
   destroy(): void {
     this.renderGeneration += 1;
+    this.detachLayoutObserver?.();
+    this.detachLayoutObserver = null;
+    this.updatePanelLayout = null;
     this.releaseAssetUrls?.();
     this.releaseAssetUrls = null;
     this.detachFullscreen?.();

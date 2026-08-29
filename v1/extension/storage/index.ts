@@ -1,6 +1,5 @@
 import {
   STORAGE_ROOT_KEY,
-  STORAGE_SCHEMA_VERSION,
   LEGACY_KEYS,
   StorageRoot,
   AssetRecord,
@@ -18,7 +17,10 @@ import {
   isStudentSettings,
   normalizeStudentSettings,
 } from './settings';
-import type { PortableNode } from '../../web/shared/src/portableContent';
+import {
+  PRESENTATION_LIMITS,
+  type PortableNode,
+} from '../../web/shared/src/portableContent';
 
 /** chrome.storage.local 的最小接口，便于在测试里替换 */
 export interface StorageArea {
@@ -221,6 +223,28 @@ function isInteractionData(interaction: string, value: unknown): boolean {
   return onlyKeys(value, ['referenceFeedback']) && nonBlank(value.referenceFeedback);
 }
 
+function isPercent(value: unknown, min: number, max: number): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= min && value <= max;
+}
+
+function isWindowSizeHint(value: unknown): boolean {
+  if (typeof value === 'string') return ['s', 'm', 'l', 'overlay'].includes(value);
+  if (!isPlainObject(value) || !onlyKeys(value, ['widthPercent', 'heightPercent'])) return false;
+  return (
+    isPercent(value.widthPercent, PRESENTATION_LIMITS.minPercent, PRESENTATION_LIMITS.maxPercent) &&
+    isPercent(value.heightPercent, PRESENTATION_LIMITS.minPercent, PRESENTATION_LIMITS.maxPercent)
+  );
+}
+
+function isWindowPositionHint(value: unknown): boolean {
+  if (typeof value === 'string') return ['bottom-left', 'bottom-right', 'center'].includes(value);
+  if (!isPlainObject(value) || !onlyKeys(value, ['xPercent', 'yPercent'])) return false;
+  return (
+    isPercent(value.xPercent, PRESENTATION_LIMITS.positionMinPercent, PRESENTATION_LIMITS.positionMaxPercent) &&
+    isPercent(value.yPercent, PRESENTATION_LIMITS.positionMinPercent, PRESENTATION_LIMITS.positionMaxPercent)
+  );
+}
+
 function isPortableNode(value: unknown, assets: Map<string, AssetRecord>): value is PortableNode {
   if (!isPlainObject(value) || !onlyKeys(value, ['id', 'enabled', 'family', 'interaction', 'anchor', 'title', 'content', 'interactionData', 'effects'], ['presentationHints'])) return false;
   const anchor = value.anchor;
@@ -246,9 +270,9 @@ function isPortableNode(value: unknown, assets: Map<string, AssetRecord>): value
     (hints === undefined ||
       (isPlainObject(hints) &&
         onlyKeys(hints, [], ['windowSize', 'windowStyle', 'windowPosition']) &&
-        (hints.windowSize === undefined || ['s', 'm', 'l', 'overlay'].includes(String(hints.windowSize))) &&
+        (hints.windowSize === undefined || isWindowSizeHint(hints.windowSize)) &&
         (hints.windowStyle === undefined || ['card', 'document'].includes(String(hints.windowStyle))) &&
-        (hints.windowPosition === undefined || ['bottom-left', 'bottom-right', 'center'].includes(String(hints.windowPosition))))) &&
+        (hints.windowPosition === undefined || isWindowPositionHint(hints.windowPosition)))) &&
     isPlainObject(effects) &&
     onlyKeys(effects, ['pause']) &&
     effects.pause === true

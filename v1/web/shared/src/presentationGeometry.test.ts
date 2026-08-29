@@ -23,4 +23,28 @@ describe('互动窗口几何计算', () => {
       { width: 320, height: 240 },
     )).toEqual({ left: 16, top: 66, width: 211, height: 158 });
   });
+
+  it('内容变大时从基础尺寸增长但不超过视口上限', () => {
+    expect(resolvePresentationGeometry(
+      {
+        size: { widthPercent: 40, heightPercent: 30 },
+        position: { xPercent: 50, yPercent: 50 },
+        style: 'document',
+      },
+      { width: 1000, height: 800 },
+      16,
+      { width: 600, height: 700 },
+    )).toEqual({ left: 200, top: 50, width: 600, height: 700 });
+
+    expect(resolvePresentationGeometry(
+      {
+        size: { widthPercent: 40, heightPercent: 30 },
+        position: { xPercent: 50, yPercent: 50 },
+        style: 'document',
+      },
+      { width: 1000, height: 800 },
+      16,
+        { width: 1200, height: 900 },
+    )).toEqual({ left: 16, top: 16, width: 968, height: 768 });
+  });
 });

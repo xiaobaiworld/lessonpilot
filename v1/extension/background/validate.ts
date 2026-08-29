@@ -1,4 +1,5 @@
 import { AssetRecord, InstalledCourse, InstalledLesson } from '../storage/types';
+import { PRESENTATION_LIMITS } from '../../web/shared/src/portableContent';
 
 export type Invalid = { ok: false; reason: string };
 export type Valid<T> = { ok: true; value: T };
@@ -24,6 +25,28 @@ function nonBlank(v: unknown): v is string {
 function onlyKeys(raw: Record<string, unknown>, required: string[], optional: string[] = []): boolean {
   const allowed = new Set([...required, ...optional]);
   return required.every((key) => key in raw) && Object.keys(raw).every((key) => allowed.has(key));
+}
+
+function isPercent(value: unknown, min: number, max: number): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= min && value <= max;
+}
+
+function isWindowSizeHint(value: unknown): boolean {
+  if (typeof value === 'string') return ['s', 'm', 'l', 'overlay'].includes(value);
+  if (!isObject(value) || !onlyKeys(value, ['widthPercent', 'heightPercent'])) return false;
+  return (
+    isPercent(value.widthPercent, PRESENTATION_LIMITS.minPercent, PRESENTATION_LIMITS.maxPercent) &&
+    isPercent(value.heightPercent, PRESENTATION_LIMITS.minPercent, PRESENTATION_LIMITS.maxPercent)
+  );
+}
+
+function isWindowPositionHint(value: unknown): boolean {
+  if (typeof value === 'string') return ['bottom-left', 'bottom-right', 'center'].includes(value);
+  if (!isObject(value) || !onlyKeys(value, ['xPercent', 'yPercent'])) return false;
+  return (
+    isPercent(value.xPercent, PRESENTATION_LIMITS.positionMinPercent, PRESENTATION_LIMITS.positionMaxPercent) &&
+    isPercent(value.yPercent, PRESENTATION_LIMITS.positionMinPercent, PRESENTATION_LIMITS.positionMaxPercent)
+  );
 }
 
 function safeHref(value: unknown): value is string {
@@ -113,7 +136,7 @@ function checkNode(raw: unknown, at: string, packageAssets: Map<string, AssetRec
   const referenced = new Set<string>();
   const documentError = checkDocument(raw.content, referenced, packageAssets, `${at}.content`);
   if (documentError) return documentError;
-  if (raw.presentationHints !== undefined && (!isObject(raw.presentationHints) || !onlyKeys(raw.presentationHints, [], ['windowSize', 'windowStyle', 'windowPosition']) || (raw.presentationHints.windowSize !== undefined && !['s', 'm', 'l', 'overlay'].includes(raw.presentationHints.windowSize)) || (raw.presentationHints.windowStyle !== undefined && !['card', 'document'].includes(raw.presentationHints.windowStyle)) || (raw.presentationHints.windowPosition !== undefined && !['bottom-left', 'bottom-right', 'center'].includes(raw.presentationHints.windowPosition)))) return `${at} 展示提示无效`;
+  if (raw.presentationHints !== undefined && (!isObject(raw.presentationHints) || !onlyKeys(raw.presentationHints, [], ['windowSize', 'windowStyle', 'windowPosition']) || (raw.presentationHints.windowSize !== undefined && !isWindowSizeHint(raw.presentationHints.windowSize)) || (raw.presentationHints.windowStyle !== undefined && !['card', 'document'].includes(raw.presentationHints.windowStyle)) || (raw.presentationHints.windowPosition !== undefined && !isWindowPositionHint(raw.presentationHints.windowPosition)))) return `${at} 展示提示无效`;
   if (!checkInteractionData(raw)) return `${at} 交互数据无效`;
   return [...referenced].some((assetId) => !packageAssets.has(assetId)) ? `${at} 引用了缺失资源` : null;
 }

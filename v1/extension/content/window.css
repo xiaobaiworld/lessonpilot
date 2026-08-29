@@ -32,51 +32,15 @@
   line-height: 1.6;
 }
 
-.km-size-s {
-  width: min(380px, calc(100vw - 48px));
-}
-
-.km-size-m {
-  width: min(560px, calc(100vw - 48px));
-}
-
-.km-size-l {
-  width: min(720px, calc(100vw - 48px));
-}
-
-.km-size-overlay {
-  top: 50%;
+.km-learning-panel {
   right: auto;
   bottom: auto;
-  left: 50%;
-  z-index: 2147483001;
-  width: min(860px, 92vw);
-  max-height: 80vh;
-  transform: translate(-50%, -50%);
-}
-
-.km-position-bottom-left {
-  right: auto;
-  bottom: 76px;
-  left: 24px;
-  top: auto;
-  transform: none;
-}
-
-.km-position-bottom-right {
-  right: 24px;
-  bottom: 76px;
-  left: auto;
-  top: auto;
-  transform: none;
-}
-
-.km-position-center {
-  top: 50%;
-  right: auto;
-  bottom: auto;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  left: var(--km-left);
+  top: var(--km-top);
+  width: var(--km-width);
+  min-height: var(--km-min-height);
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
 }
 
 .km-style-document {

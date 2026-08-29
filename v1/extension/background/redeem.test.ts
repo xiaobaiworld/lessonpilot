@@ -573,6 +573,22 @@ describe('课程包复验', () => {
     expect(r).toMatchObject({ ok: true });
   });
 
+  it('接受节点的连续尺寸和位置展示配置', () => {
+    const lesson = {
+      ...pkg().lessons[0],
+      nodes: [{
+        ...node(30),
+        presentationHints: {
+          windowSize: { widthPercent: 42.5, heightPercent: 31.2 },
+          windowStyle: 'document',
+          windowPosition: { xPercent: 63.4, yPercent: 28.7 },
+        },
+      }],
+    };
+
+    expect(checkCoursePackage(pkg({ lessons: [lesson] }), 'source-1')).toMatchObject({ ok: true });
+  });
+
   it('拒绝重复的课节 UUID', () => {
     const l = (video: string) => ({
       lessonId: uuid(2),

@@ -16,6 +16,11 @@ export interface PresentationRect {
   height: number;
 }
 
+export interface PresentationContentSize {
+  width: number;
+  height: number;
+}
+
 function finiteNonNegative(value: number): number {
   return Number.isFinite(value) && value >= 0 ? value : 0;
 }
@@ -32,16 +37,19 @@ export function resolvePresentationGeometry(
   hints: ResolvedPresentationHints,
   viewport: PresentationViewport,
   safeMargin = 16,
+  contentSize?: PresentationContentSize,
 ): PresentationRect {
   const viewportWidth = finiteNonNegative(viewport.width);
   const viewportHeight = finiteNonNegative(viewport.height);
   const margin = Math.min(Math.max(finiteNonNegative(safeMargin), 0), Math.min(viewportWidth, viewportHeight) / 2);
+  const baseWidth = Math.round(viewportWidth * hints.size.widthPercent / 100);
+  const baseHeight = Math.round(viewportHeight * hints.size.heightPercent / 100);
   const width = Math.min(
-    Math.round(viewportWidth * hints.size.widthPercent / 100),
+    Math.max(baseWidth, Math.round(finiteNonNegative(contentSize?.width ?? 0))),
     Math.max(0, viewportWidth - margin * 2),
   );
   const height = Math.min(
-    Math.round(viewportHeight * hints.size.heightPercent / 100),
+    Math.max(baseHeight, Math.round(finiteNonNegative(contentSize?.height ?? 0))),
     Math.max(0, viewportHeight - margin * 2),
   );
   const centerX = viewportWidth * hints.position.xPercent / 100;
