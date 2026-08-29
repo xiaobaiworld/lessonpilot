@@ -20,6 +20,7 @@
 | [`design/v1/README.md`](design/v1/README.md) | v1 设计入口：文件编号、权威顺序、审核与归档门禁 |
 | [`plans/v1-development-plan.md`](plans/v1-development-plan.md) | 阶段 0–8 目标、交付和产品门禁（`1.1.0`） |
 | [`plans/2026-08-29-student-companion-avatar-and-sound-pack.md`](plans/2026-08-29-student-companion-avatar-and-sound-pack.md) | 学生陪伴形象第一版、角色声音包、资源约束、验证和后续升级提醒 |
+| [`../docs/superpowers/plans/2026-08-29-continuous-learning-window-implementation.md`](../docs/superpowers/plans/2026-08-29-continuous-learning-window-implementation.md) | 连续可调互动学习窗口的契约、后端服务端口、教师预览、插件运行时和验收实施计划（`D-V1-024`） |
 | [`plans/v1-replacement-plan.md`](plans/v1-replacement-plan.md) | 已接受的同仓库 `v1/` 目录隔离替换决策与资产处置依据（`0.2.0`，非工作包真源） |
 | [`plans/v1-code-refactor-execution-plan.md`](plans/v1-code-refactor-execution-plan.md) | 唯一逐工作包实施真源：目录、工具、测试、切换、退役、失败模式和提交边界（`0.3.0`） |
 | [`plans/v1-test-plan.md`](plans/v1-test-plan.md) | 需求级测试矩阵、自动化/人工证据和发布门禁 |
