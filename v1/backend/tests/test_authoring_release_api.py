@@ -80,9 +80,17 @@ def test_draft_preview_atomic_release_and_immutable_snapshot() -> None:
     )
     assert legacy.status_code == 422
 
+    presentation_node = {
+        **NODE,
+        "presentationHints": {
+            "windowSize": {"widthPercent": 42.5, "heightPercent": 31.2},
+            "windowPosition": {"xPercent": 63.4, "yPercent": 28.7},
+            "windowStyle": "document",
+        },
+    }
     saved = client.put(
         f"/api/v1/teacher/lessons/{lesson['id']}/draft",
-        json={"schema_version": 1, "config": {"nodes": [NODE]}},
+        json={"schema_version": 1, "config": {"nodes": [presentation_node]}},
     )
     assert saved.status_code == 200
     assert saved.json()["revision"] == 1
@@ -109,6 +117,15 @@ def test_draft_preview_atomic_release_and_immutable_snapshot() -> None:
     )
     release = without_preview
     release_id = release.json()["id"]
+    from app.modules.authoring_release.application_service import AuthoringReleaseApplicationService
+
+    with client.app.state.session_factory() as session:
+        snapshot = session.query(models.ReleaseLessonSnapshot).one()
+        package = AuthoringReleaseApplicationService(session).package(snapshot.release)
+        assert (
+            package["lessons"][0]["nodes"][0]["presentationHints"]
+            == presentation_node["presentationHints"]
+        )
     replay = client.post(
         f"/api/v1/teacher/courses/{course['id']}/releases",
         json={"idempotency_key": "publish-before-preview"},
@@ -130,6 +147,13 @@ def test_draft_preview_atomic_release_and_immutable_snapshot() -> None:
     )
     snapshot = client.get(f"/api/v1/teacher/releases/{release_id}").json()
     assert snapshot["lessons"][0]["draft_revision"] == 1
+    with client.app.state.session_factory() as session:
+        snapshot = session.query(models.ReleaseLessonSnapshot).one()
+        package = AuthoringReleaseApplicationService(session).package(snapshot.release)
+        assert (
+            package["lessons"][0]["nodes"][0]["presentationHints"]
+            == presentation_node["presentationHints"]
+        )
 
     paused = client.post(
         f"/api/v1/teacher/releases/{release_id}/availability",

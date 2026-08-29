@@ -713,7 +713,7 @@ class AuthoringReleaseApplicationService:
             draft_revision=draft.revision,
             content_digest=draft.content_digest,
             locked_content=draft.content,
-            contract_version="3.1.0",
+            contract_version="3.2.0",
             plugin_version=plugin_version,
             expires_at=datetime.now(timezone.utc) + timedelta(hours=1),
         )

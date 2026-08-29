@@ -336,10 +336,10 @@ describe('课程升级消息链路', () => {
       releaseNumber: 2,
       lessons: [
         {
-          lessonId: uuid(2),
-          title: '第一节',
-          videoRef: { platform: 'bilibili', videoId: 'BV1Ac41187Lm' },
-          nodes: [node(30, 'n1')],
+              lessonId: uuid(2),
+              title: '第一节',
+              videoRef: { platform: 'bilibili', videoId: 'BV1Ac41187Lm' },
+              nodes: [node(30, 'n1')],
         },
       ],
     });
@@ -358,6 +358,38 @@ describe('课程升级消息链路', () => {
     expect(root.installedCourses[uuid(1)].releaseNumber).toBe(2);
     expect(root.localLearningState[uuid(1)][uuid(2)].done).toEqual(['n1']);
     expect(root.localLearningState[uuid(1)][uuid(2)].attempts.n1).toHaveLength(1);
+  });
+
+  it('课程升级后保留新的连续展示配置', async () => {
+    await redeemAccessCode('KM-FIRST', withFetch(async () => json({ courses: [pkg()] })));
+    const replacement = pkg({
+      releaseId: uuid(6),
+      releaseNumber: 2,
+      lessons: [{
+        ...pkg().lessons[0],
+        nodes: [{
+          ...node(30, 'n1'),
+          presentationHints: {
+            windowSize: { widthPercent: 42.5, heightPercent: 31.2 },
+            windowStyle: 'document',
+            windowPosition: { xPercent: 63.4, yPercent: 28.7 },
+          },
+        }],
+      }],
+    });
+
+    const result = await upgradeCourse(uuid(1), uuid(6), {
+      library: deps.library,
+      apiOrigin: deps.apiOrigin,
+      fetch: async () => updateJson({ data: { package: replacement } }),
+    });
+
+    expect(result).toMatchObject({ ok: true });
+    expect((await area.root()).installedCourses[uuid(1)].lessons[0].nodes[0].presentationHints).toEqual({
+      windowSize: { widthPercent: 42.5, heightPercent: 31.2 },
+      windowStyle: 'document',
+      windowPosition: { xPercent: 63.4, yPercent: 28.7 },
+    });
   });
 
   it('服务端拒绝过期期望版本时保留旧课程', async () => {

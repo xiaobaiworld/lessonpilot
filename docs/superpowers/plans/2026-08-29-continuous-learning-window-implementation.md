@@ -726,7 +726,7 @@ actualHeight = min(max(baseHeight, contentHeight + verticalPadding), viewportHei
 ```bash
 npm --prefix v1 test -- --run extension/content/window.test.ts extension/content/richText.test.ts extension/content/presentationGeometry.test.ts extension/storage/storage.test.ts
 npm --prefix v1 run type-check
-npm --prefix v1 run build:extension
+cd v1/extension && npm run build:local
 ```
 
 预期：新格式、旧课程、默认值、窄屏、安全边界、资源加载后尺寸更新和窗口销毁测试通过；插件构建产物生成成功。
@@ -821,6 +821,17 @@ git commit -m "docs: close continuous learning window rollout"
 ## 实施顺序和暂停点
 
 必须按 Task 1 → Task 2 → Task 3 → Task 4 → Task 5 → Task 6 执行。每个任务的测试和提交通过后再进入下一个任务。
+
+## 执行记录（2026-08-29）
+
+已完成 Task 1–5 和 Task 6 的自动化验证，主要提交为：
+
+- `8aec39f`：登记连续展示契约、版本和 Schema；
+- `675c2d4`：增加后端节点展示配置服务端口；
+- `2f1e2d6`：增加教师端连续滑块、拖动预览和 API 客户端；
+- `07e1b4e`、`953b8f3`：应用插件端动态几何、内容增长和存储/课程包校验。
+
+自动化验证已覆盖旧枚举兼容、新数值配置、revision 冲突、发布快照冻结、课程升级保留配置、窄视口安全边界、内容增长、窗口销毁和插件构建。浏览器真实页面中的普通视口、全屏和窄屏人工验收尚未执行，执行后再关闭本计划。
 
 以下情况必须暂停并重新评审，而不是用兼容分支掩盖：
 

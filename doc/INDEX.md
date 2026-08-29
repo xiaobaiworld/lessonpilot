@@ -36,7 +36,7 @@
 | [`../docs/superpowers/specs/2026-08-28-student-course-library-and-upgrade-design.md`](../docs/superpowers/specs/2026-08-28-student-course-library-and-upgrade-design.md) | 学生课程库、课程升级、资源交付、设置和升级队列设计（`D-V1-022`） |
 | [`../docs/superpowers/specs/2026-08-29-course-node-content-guidance-design.md`](../docs/superpowers/specs/2026-08-29-course-node-content-guidance-design.md) | 四种互动节点的课程化编辑引导、字段文案、预览和验收设计（`D-V1-025`，已确认方向，待实现验证） |
 | [`../docs/superpowers/plans/2026-08-29-course-node-content-guidance.md`](../docs/superpowers/plans/2026-08-29-course-node-content-guidance.md) | 四种互动节点课程化编辑引导的开发文件边界、插件约束、测试命令和真实环境验收计划（`D-V1-025`） |
-| [`../docs/superpowers/specs/2026-08-29-continuous-learning-window-design.md`](../docs/superpowers/specs/2026-08-29-continuous-learning-window-design.md) | 互动节点窗口连续尺寸、拖动位置、教师预览和节点展示配置接口设计（`D-V1-024`，待实现前评审） |
+| [`../docs/superpowers/specs/2026-08-29-continuous-learning-window-design.md`](../docs/superpowers/specs/2026-08-29-continuous-learning-window-design.md) | 互动节点窗口连续尺寸、拖动位置、教师预览和节点展示配置接口设计（`D-V1-024`，实现完成，待浏览器人工验收） |
 
 ### 后续能力备忘
 
@@ -89,7 +89,7 @@
 | `D-V1-021` | [课程绑定使用 B 站视频与分 P 的精确引用](decisions/2026-08-28-bilibili-video-reference.md) |
 | `D-V1-022` | [学生课程库升级契约边界与存储版本策略](decisions/2026-08-28-student-course-library-contract-boundaries.md) |
 | `D-V1-023` | [学生陪伴形象采用可替换角色资源包，第一版先完成单一小猫包](decisions/2026-08-29-student-companion-avatar-pack.md) |
-| `D-V1-024` | [互动学习窗口采用连续尺寸、拖动位置和节点展示配置接口](decisions/2026-08-29-continuous-learning-window.md)；设计与实现待评审 |
+| `D-V1-024` | [互动学习窗口采用连续尺寸、拖动位置和节点展示配置接口](decisions/2026-08-29-continuous-learning-window.md)；实现完成，待浏览器人工验收 |
 | `D-V1-025` | [互动节点优先采用课程化编辑引导，不新增内容字段](decisions/2026-08-29-course-node-content-guidance.md)；用户已确认设计方向，开发计划已形成，待实现验证 |
 | 当前性能决策 | [教师端首屏性能优化](decisions/2026-08-27-teacher-first-load-performance.md) |
 
