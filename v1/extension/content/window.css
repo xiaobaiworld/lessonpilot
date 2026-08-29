@@ -20,7 +20,7 @@
   box-sizing: border-box;
   width: min(380px, calc(100vw - 48px));
   max-height: calc(100vh - 48px);
-  overflow-y: auto;
+  overflow: auto;
   padding: 22px;
   border: 1px solid #16251f;
   border-radius: 6px;

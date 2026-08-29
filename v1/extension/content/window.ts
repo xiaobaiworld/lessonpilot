@@ -182,7 +182,7 @@ export class LearningWindow {
         viewport,
         16,
         content
-          ? { width: content.scrollWidth, height: content.scrollHeight }
+          ? { width: panel.scrollWidth, height: panel.scrollHeight }
           : undefined,
       );
       panel.style.setProperty('--km-width-percent', String(presentation.size.widthPercent));
