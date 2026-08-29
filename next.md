@@ -6,8 +6,8 @@
 
 依据：D-V1-025；设计：docs/superpowers/specs/2026-08-29-course-node-content-guidance-design.md；计划：docs/superpowers/plans/2026-08-29-course-node-content-guidance.md。
 
-当前步骤：锁定教师端 copy、默认标题和错误字段的失败测试。
-验证：npm --prefix v1 test -- web/teacher/src/nodeFormCopy.test.ts web/teacher/src/nodes.test.ts
+当前步骤：实现教师端 copy 注册表、默认标题和课程化错误字段。
+验证：npm --prefix v1 test -- web/teacher/src/nodeFormCopy.test.ts web/teacher/src/nodes.test.ts；npm --prefix v1 run type-check
 
 不变量：不增加节点字段，不修改课程包 schema，不修改插件行为；companion 资源不纳入本轮。
 
