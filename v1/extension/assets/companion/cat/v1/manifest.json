@@ -4,13 +4,40 @@
   "mascotId": "cat",
   "appearanceId": "cream-tabby-teal-bandana-v1",
   "displayName": "小猫·第一版",
-  "status": "visuals-approved-audio-draft-ready-runtime-not-wired",
+  "status": "visuals-approved-audio-real-cc0-runtime-wired",
   "createdAt": "2026-08-29",
   "source": {
     "images": "docs/superpowers/assets/companion/cat-v1/source/",
     "imageProduction": "原创角色图草稿，由内置图片生成能力生成；发布前仍需人工做一致性和版权确认",
-    "audioProduction": "ffmpeg 本地合成的小猫风格拟音草稿，不是真实猫叫录音",
-    "audioSource": "local-synthesis"
+    "audioProduction": "从 CC0 真实动物录音中裁剪、淡入淡出并做响度标准化；答错状态使用降低音量的自然叫声，不使用哈气声",
+    "audioSource": "freesound-cc0-real-recordings",
+    "audioSources": {
+      "focus": {
+        "source": "https://freesound.org/people/alizardguy/sounds/668632/",
+        "license": "CC0 1.0",
+        "processing": "保留开头 0.60s，短淡入淡出，单声道 48kHz WAV"
+      },
+      "prompt": {
+        "source": "https://freesound.org/people/Richard1052/sounds/585766/",
+        "license": "CC0 1.0",
+        "processing": "从原始录音尾部截取 1.10s，短淡入淡出，单声道 48kHz WAV"
+      },
+      "correct": {
+        "source": "https://freesound.org/people/alizardguy/sounds/668632/",
+        "license": "CC0 1.0",
+        "processing": "与 focus 使用同一短开心叫声，保持角色声音家族一致"
+      },
+      "wrong": {
+        "source": "https://freesound.org/people/Richard1052/sounds/585766/",
+        "license": "CC0 1.0",
+        "processing": "使用自然叫声尾部 1.10s 短片段并降低音量，避免哈气声造成惊吓"
+      },
+      "complete": {
+        "source": "https://freesound.org/people/lauramellis/sounds/263115/",
+        "license": "CC0 1.0",
+        "processing": "保留老虎录音开头 3.00s，短淡入淡出，单声道 48kHz WAV，作为完成庆祝专用声音"
+      }
+    }
   },
   "canvas": {
     "width": 512,
@@ -21,9 +48,9 @@
     "focus": {
       "image": "focus.png",
       "audio": "focus.wav",
-      "durationMs": 580,
+      "durationMs": 600,
       "imageSha256": "c7b5fa582e8c0a81ecd7fed2046a4e3e1ff49dff4b2909caf8be48844bf66ee4",
-      "audioSha256": "3eb7c37293a70d36d63a6de6503ed10f7c568c99442e3c9918cf51a2c7e8b669"
+      "audioSha256": "0019ab227384f0e0566833992af238b1c3b739685b1313a708f675eba0b5b1fe"
     },
     "idle": {
       "image": "idle.png",
@@ -34,32 +61,32 @@
     "prompt": {
       "image": "prompt.png",
       "audio": "prompt.wav",
-      "durationMs": 780,
+      "durationMs": 1100,
       "imageSha256": "d66f61a66b0cdcd43c6950788109163b0921232deddfd7852e9a78c44062891b",
-      "audioSha256": "59fb0f482b82615eb9002d32530bf62d4e1dc3d312e0aa112532ddc83c696e25"
+      "audioSha256": "9d1428e15a83abf3f81eabd2e0e95968793230582e06b8e081e3640dae65285b"
     },
     "correct": {
       "image": "correct.png",
       "audio": "correct.wav",
-      "durationMs": 920,
+      "durationMs": 600,
       "imageSha256": "599ee25627b93480fb81797c5f1cd848634813ab09f91eab95388fe91016d9eb",
-      "audioSha256": "cde588b0ca79893f3b0ad68788533b427107f24e8b6eafa0388be2162019fcff"
+      "audioSha256": "0019ab227384f0e0566833992af238b1c3b739685b1313a708f675eba0b5b1fe"
     },
     "wrong": {
       "image": "wrong.png",
       "audio": "wrong.wav",
-      "durationMs": 720,
+      "durationMs": 1100,
       "imageSha256": "bea18bbe84b918d36a075c4cf14a73f5f51e7d2486f783975fdb6c4db3477c64",
-      "audioSha256": "75895a2e1914b2ba2f73b628ae2ab20244f9d543b4f7fb116f8749344d293f66"
+      "audioSha256": "2ee1eb01f70cecf792053ab124ba068be3c7469920f6324511cdc2587e9879ff"
     },
     "complete": {
       "image": "complete.png",
       "audio": "complete.wav",
-      "durationMs": 1150,
+      "durationMs": 3000,
       "message": "感谢你让我又吃到了一条小鱼。",
       "overlay": "fishTreat",
       "imageSha256": "80da72286864b5f95c1cef6f49a446b775e0d7e38a019494267930afaa37ea06",
-      "audioSha256": "a5fdee7d6958b2c8ec522a06c95855e04c5954080830c49bafd8256bb52281d0"
+      "audioSha256": "f6c9cc182e67d7ccc745a70a97fdc855330a01fb48858cd4514e66d75a211c02"
     }
   },
   "overlays": {
@@ -71,9 +98,9 @@
   },
   "delivery": {
     "runtimeDirectory": "v1/extension/assets/companion/cat/v1/",
-    "bundledWithExtension": false,
+    "bundledWithExtension": true,
     "plannedBundledWithExtension": true,
-    "contentAccess": "待实现：通过明确的 background 资源接口读取；不直接复用课程媒体索引",
+    "contentAccess": "通过 background 的 companionAsset 白名单接口读取；不直接复用课程媒体索引",
     "customUploadStorage": "用户自定义头像进入本机 IndexedDB 的 companionAssets 区域，不写入插件包"
   },
   "limits": {

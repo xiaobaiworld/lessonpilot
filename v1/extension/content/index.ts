@@ -18,6 +18,7 @@ import { LibraryView, RuntimeCandidate } from '../shared/library-view';
 import styleText from './window.css?inline';
 import companionStyle from './companion.css?inline';
 import { StudentCompanion } from './companion';
+import type { CompanionStateAsset, CompanionVisualState } from './companion-assets';
 
 /**
  * 内容脚本入口。只负责把真实依赖填进 CourseRuntime。
@@ -67,6 +68,15 @@ const companion = new StudentCompanion({
     return result
       ? { ok: true }
       : { ok: false, message: '课程领取失败，请稍后重试。' };
+  },
+  loadAsset: (state: CompanionVisualState) =>
+    send<CompanionStateAsset>({ type: 'companionAsset', packId: 'cat-v1', state }),
+  loadSoundEnabled: async () => {
+    const result = await send<{ soundEnabled: boolean }>({ type: 'companionSound' });
+    return typeof result?.soundEnabled === 'boolean' ? result.soundEnabled : null;
+  },
+  saveSoundEnabled: async (enabled) => {
+    await send({ type: 'setCompanionSound', enabled });
   },
   onTogglePlayback: async () => {
     const video = findVideo();
@@ -126,6 +136,7 @@ const controller = new PageController(
       chooseCandidate: (candidates) =>
         new CandidatePicker(styleText).choose(candidates),
       now: () => new Date(),
+      companion,
     })
 );
 

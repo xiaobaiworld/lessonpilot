@@ -4,10 +4,16 @@ import {
   readFileSync,
   mkdirSync,
   copyFileSync,
+  cpSync,
   existsSync,
 } from 'node:fs';
 import { resolve } from 'node:path';
-import { TARGETS, TargetName, buildManifest } from './manifest/targets';
+import {
+  TARGETS,
+  TargetName,
+  buildManifest,
+  BUILD_ARTIFACTS,
+} from './manifest/targets';
 
 /**
  * MV3 打包。
@@ -60,6 +66,11 @@ export default defineConfig({
         mkdirSync(resolve(outDir, 'content'), { recursive: true });
         mkdirSync(resolve(outDir, 'popup'), { recursive: true });
         mkdirSync(resolve(outDir, 'assets'), { recursive: true });
+        cpSync(
+          resolve(__dirname, 'assets/companion'),
+          resolve(outDir, 'assets/companion'),
+          { recursive: true }
+        );
 
         writeFileSync(
           resolve(outDir, 'manifest.json'),
@@ -112,6 +123,7 @@ export default defineConfig({
           manifest.action.default_popup,
           ...Object.values(manifest.action.default_icon),
           ...Object.values(manifest.icons),
+          ...BUILD_ARTIFACTS.filter((path) => path.startsWith('assets/companion/')),
           // HTML 自己引用的资源
           ...[...popupHtml.matchAll(/(?:src|href)="\.\/([^"]+)"/g)].map(
             (m) => `popup/${m[1]}`

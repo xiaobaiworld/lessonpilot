@@ -5,6 +5,7 @@ import {
   CompanionCourseRecord,
   normalizeAccessCode,
 } from './companion-model';
+import type { CompanionStateAsset, CompanionVisualState } from './companion-assets';
 
 export type CompanionPlaybackState = 'idle' | 'playing' | 'paused';
 
@@ -12,6 +13,9 @@ export interface StudentCompanionDeps {
   styleText: string;
   loadLibrary(): Promise<LibraryView | null>;
   redeem(code: string): Promise<{ ok: boolean; message?: string }>;
+  loadAsset(state: CompanionVisualState): Promise<CompanionStateAsset | null>;
+  loadSoundEnabled?(): Promise<boolean | null>;
+  saveSoundEnabled?(enabled: boolean): Promise<void>;
   onTogglePlayback(): Promise<CompanionPlaybackState>;
 }
 
@@ -20,114 +24,38 @@ export interface CompanionModeControl {
   destroy(): void;
 }
 
-function drawMascot(
-  ctx: CanvasRenderingContext2D,
-  state: CompanionPlaybackState,
-  frame: number
-): void {
-  ctx.clearRect(0, 0, 72, 96);
-  const bounce = state === 'playing' ? Math.sin(frame * 0.25) * 2 : 0;
-  const armSwing = state === 'playing' ? Math.sin(frame * 0.3) * 8 : 0;
-  const blink = frame % 120 < 4;
-
-  ctx.save();
-  ctx.translate(0, bounce);
-  ctx.fillStyle = 'rgba(0,0,0,0.15)';
-  ctx.beginPath();
-  ctx.ellipse(36, 90, 18, 5, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.fillStyle = '#2f3542';
-  ctx.fillRect(26, 62, 8, 18);
-  ctx.fillRect(38, 62, 8, 18);
-  ctx.fillStyle = '#00a1d6';
-  ctx.fillRect(24, 42, 24, 22);
-
-  ctx.save();
-  ctx.translate(24, 48);
-  ctx.rotate(((-10 + armSwing) * Math.PI) / 180);
-  ctx.fillStyle = '#00a1d6';
-  ctx.fillRect(-6, 0, 6, 16);
-  ctx.fillStyle = '#f4c99a';
-  ctx.fillRect(-7, 14, 8, 8);
-  ctx.restore();
-
-  ctx.save();
-  ctx.translate(48, 48);
-  ctx.rotate(((10 - armSwing) * Math.PI) / 180);
-  ctx.fillStyle = '#00a1d6';
-  ctx.fillRect(0, 0, 6, 16);
-  ctx.fillStyle = '#f4c99a';
-  ctx.fillRect(-1, 14, 8, 8);
-  ctx.restore();
-
-  ctx.fillStyle = '#f4c99a';
-  ctx.fillRect(22, 16, 28, 26);
-  ctx.fillStyle = '#3d2b1f';
-  ctx.fillRect(20, 12, 32, 10);
-  ctx.fillRect(20, 12, 6, 18);
-  ctx.fillRect(46, 12, 6, 18);
-  ctx.fillStyle = '#f08a8a';
-  ctx.fillRect(24, 30, 4, 3);
-  ctx.fillRect(44, 30, 4, 3);
-  ctx.fillStyle = '#1a1a1a';
-  if (blink) {
-    ctx.fillRect(28, 26, 6, 1);
-    ctx.fillRect(38, 26, 6, 1);
-  } else {
-    ctx.fillRect(28, 24, 4, 4);
-    ctx.fillRect(40, 24, 4, 4);
-  }
-
-  ctx.strokeStyle = '#1a1a1a';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  if (state === 'playing') {
-    ctx.arc(36, 34, 4, 0, Math.PI);
-  } else if (state === 'paused') {
-    ctx.moveTo(32, 34);
-    ctx.lineTo(40, 34);
-  } else {
-    ctx.arc(36, 34, 3, 0.1 * Math.PI, 0.9 * Math.PI);
-  }
-  ctx.stroke();
-
-  ctx.fillStyle = state === 'paused' ? '#fb7299' : '#00a1d6';
-  ctx.beginPath();
-  ctx.arc(58, 20, 8, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = '#fff';
-  if (state === 'paused') {
-    ctx.fillRect(55, 16, 2, 8);
-    ctx.fillRect(59, 16, 2, 8);
-  } else {
-    ctx.beginPath();
-    ctx.moveTo(56, 16);
-    ctx.lineTo(56, 24);
-    ctx.lineTo(63, 20);
-    ctx.closePath();
-    ctx.fill();
-  }
-  ctx.restore();
-}
+const VISUAL_HINTS: Record<CompanionVisualState, string> = {
+  focus: '准备开始学习',
+  idle: '等待视频…',
+  prompt: '有新的提示',
+  correct: '答对了',
+  wrong: '再想想',
+  complete: '完成啦',
+};
 
 export class StudentCompanion {
   private readonly host: HTMLDivElement;
   private readonly root: ShadowRoot;
   private readonly shell: HTMLDivElement;
-  private readonly canvas: HTMLCanvasElement;
-  private readonly context: CanvasRenderingContext2D | null;
+  private readonly image: HTMLImageElement;
+  private readonly fish: HTMLImageElement;
+  private readonly message: HTMLParagraphElement;
   private readonly stateHint: HTMLSpanElement;
   private readonly modeButton: HTMLButtonElement;
+  private readonly soundButton: HTMLButtonElement;
   private readonly bookbag: HTMLDivElement;
   private readonly courseList: HTMLDivElement;
   private readonly status: HTMLParagraphElement;
   private readonly codeInput: HTMLInputElement;
-  private animationId = 0;
-  private frame = 0;
-  private state: CompanionPlaybackState = 'idle';
+  private playbackState: CompanionPlaybackState = 'idle';
+  private visualState: CompanionVisualState = 'idle';
+  private visualEventKey: string | undefined;
+  private loadGeneration = 0;
   private mode: VideoMode = 'course';
   private modeToggle: (() => void) | null = null;
+  private soundEnabled = true;
+  private audio: HTMLAudioElement | null = null;
+  private completeTimer = 0;
 
   constructor(private readonly deps: StudentCompanionDeps) {
     this.host = document.createElement('div');
@@ -140,7 +68,8 @@ export class StudentCompanion {
 
     this.shell = document.createElement('div');
     this.shell.className = 'km-companion';
-    this.shell.dataset.state = this.state;
+    this.shell.dataset.state = this.playbackState;
+    this.shell.dataset.visualState = this.visualState;
 
     const controls = document.createElement('div');
     controls.className = 'km-companion-controls';
@@ -154,21 +83,31 @@ export class StudentCompanion {
     this.modeButton.disabled = true;
     this.modeButton.addEventListener('click', () => this.modeToggle?.());
 
+    this.soundButton = this.control('声音开');
+    this.soundButton.setAttribute('aria-pressed', 'true');
+    this.soundButton.addEventListener('click', () => void this.toggleSound());
+
     const bookbagButton = this.control('书包');
     bookbagButton.addEventListener('click', () => void this.openBookbag());
-    controls.append(pause, this.modeButton, bookbagButton);
+    controls.append(pause, this.modeButton, this.soundButton, bookbagButton);
 
     const mascot = document.createElement('button');
     mascot.type = 'button';
     mascot.className = 'km-companion-mascot';
     mascot.setAttribute('aria-label', 'KnownMap 学习助手，点击控制视频播放');
-    this.canvas = document.createElement('canvas');
-    this.canvas.width = 72;
-    this.canvas.height = 96;
-    this.context = this.canvas.getContext('2d');
+    this.image = document.createElement('img');
+    this.image.className = 'km-companion-image';
+    this.image.alt = 'KnownMap 学习助手';
+    this.fish = document.createElement('img');
+    this.fish.className = 'km-companion-fish';
+    this.fish.alt = '';
+    this.fish.hidden = true;
+    this.message = document.createElement('p');
+    this.message.className = 'km-companion-message';
+    this.message.hidden = true;
     this.stateHint = document.createElement('span');
     this.stateHint.className = 'km-companion-hint';
-    mascot.append(this.canvas, this.stateHint);
+    mascot.append(this.image, this.fish, this.message, this.stateHint);
     mascot.addEventListener('click', () => {
       void this.deps.onTogglePlayback().then((state) => this.setState(state));
     });
@@ -180,7 +119,8 @@ export class StudentCompanion {
 
     this.shell.append(controls, mascot);
     this.root.append(this.shell, this.bookbag);
-    this.renderFrame();
+    void this.loadSoundPreference();
+    void this.applyVisualState('idle');
   }
 
   mount(): void {
@@ -192,11 +132,21 @@ export class StudentCompanion {
     this.host.remove();
   }
 
+  /** 视频播放状态与角色表现状态分开，保留旧调用方的播放控制 API。 */
   setState(state: CompanionPlaybackState): void {
-    this.state = state;
+    this.playbackState = state;
     this.shell.dataset.state = state;
-    this.stateHint.textContent =
-      state === 'playing' ? '点击暂停' : state === 'paused' ? '点击继续' : '等待视频…';
+    if (state === 'playing') this.stateHint.textContent = '点击暂停';
+    else if (this.visualState === 'idle') this.stateHint.textContent = '等待视频…';
+  }
+
+  setVisualState(state: CompanionVisualState, eventKey?: string): void {
+    if (state === this.visualState && eventKey === this.visualEventKey) return;
+    this.visualState = state;
+    this.visualEventKey = eventKey;
+    this.shell.dataset.visualState = state;
+    this.stateHint.textContent = VISUAL_HINTS[state];
+    void this.applyVisualState(state);
   }
 
   setMode(mode: VideoMode): void {
@@ -219,7 +169,9 @@ export class StudentCompanion {
   }
 
   destroy(): void {
-    window.cancelAnimationFrame(this.animationId);
+    this.loadGeneration++;
+    window.clearTimeout(this.completeTimer);
+    this.stopAudio();
     this.host.remove();
   }
 
@@ -229,6 +181,89 @@ export class StudentCompanion {
     button.className = 'km-companion-control';
     button.textContent = label;
     return button;
+  }
+
+  private async loadSoundPreference(): Promise<void> {
+    try {
+      const enabled = await this.deps.loadSoundEnabled?.();
+      if (typeof enabled === 'boolean') this.setSoundEnabled(enabled);
+    } catch {
+      // 偏好读取失败时保留默认开启，不影响学习。
+    }
+  }
+
+  private async toggleSound(): Promise<void> {
+    this.setSoundEnabled(!this.soundEnabled);
+    try {
+      await this.deps.saveSoundEnabled?.(this.soundEnabled);
+    } catch {
+      // 声音偏好保存失败只影响本次页面，不影响角色状态。
+    }
+    if (!this.soundEnabled) this.stopAudio();
+  }
+
+  private setSoundEnabled(enabled: boolean): void {
+    this.soundEnabled = enabled;
+    this.soundButton.textContent = enabled ? '声音开' : '声音关';
+    this.soundButton.setAttribute('aria-pressed', String(enabled));
+  }
+
+  private async applyVisualState(state: CompanionVisualState): Promise<void> {
+    const generation = ++this.loadGeneration;
+    window.clearTimeout(this.completeTimer);
+    this.message.hidden = true;
+    this.fish.hidden = true;
+    this.stopAudio();
+
+    let asset: CompanionStateAsset | null = null;
+    try {
+      asset = await this.deps.loadAsset(state);
+    } catch {
+      asset = null;
+    }
+    if (generation !== this.loadGeneration) return;
+
+    if (!asset && state !== 'idle') {
+      try {
+        asset = await this.deps.loadAsset('idle');
+      } catch {
+        asset = null;
+      }
+    }
+    if (generation !== this.loadGeneration || !asset) return;
+
+    this.image.src = asset.image;
+    this.image.hidden = false;
+    if (state === 'complete' && asset.overlay) {
+      this.fish.src = asset.overlay;
+      this.fish.hidden = false;
+      if (asset.message) {
+        this.message.textContent = asset.message;
+        this.message.hidden = false;
+      }
+      this.completeTimer = window.setTimeout(() => {
+        if (generation === this.loadGeneration && this.visualState === 'complete') {
+          this.setVisualState('idle');
+        }
+      }, asset.durationMs ?? 1600);
+    }
+    if (this.soundEnabled && asset.audio) this.playAudio(asset.audio);
+  }
+
+  private playAudio(src: string): void {
+    if (typeof Audio === 'undefined') return;
+    const audio = new Audio(src);
+    audio.preload = 'auto';
+    this.audio = audio;
+    const result = audio.play();
+    if (result && typeof result.catch === 'function') result.catch(() => undefined);
+  }
+
+  private stopAudio(): void {
+    if (!this.audio) return;
+    this.audio.pause();
+    this.audio.src = '';
+    this.audio = null;
   }
 
   private createBookbag(): HTMLDivElement {
@@ -325,11 +360,5 @@ export class StudentCompanion {
     } finally {
       if (submit) submit.disabled = false;
     }
-  }
-
-  private renderFrame(): void {
-    this.frame += 1;
-    if (this.context) drawMascot(this.context, this.state, this.frame);
-    this.animationId = window.requestAnimationFrame(() => this.renderFrame());
   }
 }

@@ -96,6 +96,7 @@ interface Harness {
   positions: number[];
   modeChanges: string[];
   deps: RuntimeDeps;
+  companionStates: string[];
 }
 
 function harness(overrides: Partial<RuntimeDeps> = {}, lessonNodes = [node('n1', 30)]): Harness {
@@ -104,6 +105,7 @@ function harness(overrides: Partial<RuntimeDeps> = {}, lessonNodes = [node('n1',
   const attempts: unknown[] = [];
   const positions: number[] = [];
   const modeChanges: string[] = [];
+  const companionStates: string[] = [];
   let destroys = 0;
   let modeControlDestroys = 0;
 
@@ -148,6 +150,9 @@ function harness(overrides: Partial<RuntimeDeps> = {}, lessonNodes = [node('n1',
     },
     chooseCandidate: async (list) => list[0],
     now: () => new Date('2026-08-23T12:00:00.000Z'),
+    companion: {
+      setVisualState: (state) => companionStates.push(state),
+    },
     ...overrides,
   };
 
@@ -166,9 +171,36 @@ function harness(overrides: Partial<RuntimeDeps> = {}, lessonNodes = [node('n1',
       return modeControlDestroys;
     },
     deps,
+    companionStates,
   } as Harness;
   return h;
 }
+
+describe('陪伴形象状态映射', () => {
+  it('按节点生命周期切换 focus、prompt、correct 和 complete', async () => {
+    const h = harness({}, [{ ...node('n1', 10, 'choice'), interactionData: { answer: 'a' } }]);
+    await h.runtime.start('BV1Ac41187Lm');
+    expect(h.companionStates).toEqual(['focus']);
+
+    h.player.advanceTo(10);
+    expect(h.companionStates).toEqual(['focus', 'prompt']);
+    callbacksOf(h).onDraft('a');
+    callbacksOf(h).onSubmit();
+    expect(h.companionStates).toEqual(['focus', 'prompt', 'correct']);
+    callbacksOf(h).onClose();
+    expect(h.companionStates).toEqual(['focus', 'prompt', 'correct', 'complete']);
+  });
+
+  it('答错只进入 wrong，不播放完成庆祝', async () => {
+    const h = harness({}, [node('n1', 10, 'choice')]);
+    await h.runtime.start('BV1Ac41187Lm');
+    h.player.advanceTo(10);
+    callbacksOf(h).onDraft('wrong');
+    callbacksOf(h).onSubmit();
+    callbacksOf(h).onClose();
+    expect(h.companionStates).toEqual(['focus', 'prompt', 'wrong', 'idle']);
+  });
+});
 
 const callbacksOf = (h: Harness) => (h.deps as any).callbacks;
 const toggleModeOf = (h: Harness) => (h.deps as any).toggleMode();

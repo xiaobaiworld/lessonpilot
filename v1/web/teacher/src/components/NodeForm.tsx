@@ -6,7 +6,6 @@ import {
   PresentationHints,
   RichPageBlock,
   RichPageDocument,
-  WindowStyle,
   richDocumentFromHtml,
   richDocumentToHtml,
   resolvePresentationHints,
@@ -24,11 +23,6 @@ interface Props {
   assetUrlForId?: (assetId: string) => string;
   onAssetCreated?: (asset: AssetRecord) => void;
 }
-
-const WINDOW_STYLE_OPTIONS = [
-  { value: 'card' as WindowStyle, label: '卡片' },
-  { value: 'document' as WindowStyle, label: '文档' },
-] as const;
 
 function clampPositionPercent(value: number, fallback: number): number {
   if (!Number.isFinite(value)) return fallback;
@@ -213,43 +207,52 @@ const StudentNodePreview: React.FC<{
             <span className="node-section-eyebrow">预览设置</span>
             <strong>窗口显示</strong>
           </div>
-          <span>调整后确认预览</span>
+          <span>修改后查看上方预览</span>
         </div>
-        <RangeField
-          label={`宽度 ${presentation.size.widthPercent.toFixed(1)}%`}
-          value={presentation.size.widthPercent}
-          disabled={disabled}
-          onChange={(value) => {
-            setPreviewConfirmed(false);
-            onChange({ windowSize: { ...presentation.size, widthPercent: value } });
-          }}
-        />
-        <RangeField
-          label={`高度 ${presentation.size.heightPercent.toFixed(1)}%`}
-          value={presentation.size.heightPercent}
-          disabled={disabled}
-          onChange={(value) => {
-            setPreviewConfirmed(false);
-            onChange({ windowSize: { ...presentation.size, heightPercent: value } });
-          }}
-        />
-        <ChoiceGroup
-          label="样式"
-          value={presentation.style}
-          options={WINDOW_STYLE_OPTIONS}
-          disabled={disabled}
-          onChange={(value) => {
-            setPreviewConfirmed(false);
-            onChange({ windowStyle: value });
-          }}
-        />
-        <div className="preview-position-editor">
-          <div className="preview-position-heading">
-            <strong>窗口中心坐标</strong>
-            <span>范围 0%–100%</span>
+        <div className="preview-settings-group">
+          <div className="preview-settings-group-heading">
+            <strong>窗口大小</strong>
+            <span>拖动滑块调整</span>
+          </div>
+          <RangeField
+            label="宽度"
+            value={presentation.size.widthPercent}
+            disabled={disabled}
+            onChange={(value) => {
+              setPreviewConfirmed(false);
+              onChange({ windowSize: { ...presentation.size, widthPercent: value } });
+            }}
+          />
+          <RangeField
+            label="高度"
+            value={presentation.size.heightPercent}
+            disabled={disabled}
+            onChange={(value) => {
+              setPreviewConfirmed(false);
+              onChange({ windowSize: { ...presentation.size, heightPercent: value } });
+            }}
+          />
+        </div>
+        <div className="preview-settings-group">
+          <div className="preview-settings-group-heading">
+            <strong>窗口位置</strong>
+            <button
+              className="preview-reset-button"
+              type="button"
+              onClick={() => {
+                setPreviewConfirmed(false);
+                onChange({
+                  windowSize: { widthPercent: 40, heightPercent: 30 },
+                  windowPosition: { xPercent: 50, yPercent: 50 },
+                });
+              }}
+              disabled={disabled}
+            >
+              恢复默认
+            </button>
           </div>
           <p className="preview-position-hint">
-            可以在上方预览中拖动窗口来改变位置，也可以直接修改 X、Y 坐标。
+            拖动上方窗口，或直接输入中心点坐标。范围 0%–100%。
           </p>
           <div className="preview-position-inputs">
             <PositionInput
@@ -281,20 +284,6 @@ const StudentNodePreview: React.FC<{
               }}
             />
           </div>
-          <button
-            className="preview-reset-button"
-            type="button"
-            onClick={() => {
-              setPreviewConfirmed(false);
-              onChange({
-                windowSize: { widthPercent: 40, heightPercent: 30 },
-                windowPosition: { xPercent: 50, yPercent: 50 },
-              });
-            }}
-            disabled={disabled}
-          >
-            重置位置和大小
-          </button>
         </div>
         <button
           className="preview-confirm-button"
@@ -302,13 +291,9 @@ const StudentNodePreview: React.FC<{
           onClick={() => setPreviewConfirmed(true)}
           disabled={disabled}
         >
-          {previewConfirmed ? '已确认预览' : '预览确认'}
+          {previewConfirmed ? '已确认预览' : '确认预览'}
         </button>
       </div>
-      <footer className="student-node-preview-foot">
-        <span>{presentation.size.widthPercent.toFixed(1)}% × {presentation.size.heightPercent.toFixed(1)}% · 中心坐标 X {presentation.position.xPercent.toFixed(1)}% · Y {presentation.position.yPercent.toFixed(1)}% · {presentation.style === 'card' ? '卡片' : '文档'}</span>
-        <span>示意预览</span>
-      </footer>
     </section>
   );
 };
@@ -343,7 +328,10 @@ const RangeField: React.FC<{
   onChange: (value: number) => void;
 }> = ({ label, value, disabled, onChange }) => (
   <label className="preview-range-row">
-    <span>{label}</span>
+    <span className="preview-range-label">
+      <span>{label}</span>
+      <strong>{value.toFixed(1)}%</strong>
+    </span>
     <input
       type="range"
       min="10"
@@ -355,32 +343,6 @@ const RangeField: React.FC<{
       aria-label={label}
     />
   </label>
-);
-
-const ChoiceGroup: React.FC<{
-  label: string;
-  value: WindowStyle;
-  options: readonly { value: WindowStyle; label: string }[];
-  disabled: boolean;
-  onChange: (value: WindowStyle) => void;
-}> = ({ label, value, options, disabled, onChange }) => (
-  <div className="preview-setting-row">
-    <span>{label}</span>
-    <div className="preview-choice-group" role="group" aria-label={label}>
-      {options.map((option) => (
-        <button
-          key={option.value}
-          type="button"
-          className={option.value === value ? 'is-active' : ''}
-          aria-pressed={option.value === value}
-          onClick={() => onChange(option.value)}
-          disabled={disabled}
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
-  </div>
 );
 
 const PreviewRichContent: React.FC<{

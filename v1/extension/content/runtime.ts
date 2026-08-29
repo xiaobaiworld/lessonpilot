@@ -3,6 +3,7 @@ import { RuntimeCandidate } from '../shared/library-view';
 import { PlayerHandle } from '../host/bilibili';
 import type { BilibiliVideoRef } from '../shared/video-reference';
 import type { PortableNode } from '../../web/shared/src/portableContent';
+import type { CompanionVisualState } from './companion-assets';
 
 /**
  * B 站页面上的课程运行时。
@@ -58,6 +59,10 @@ export interface ModeControl {
   destroy(): void;
 }
 
+export interface CompanionStateSink {
+  setVisualState(state: CompanionVisualState, eventKey?: string): void;
+}
+
 const VIDEO_MODE_STORAGE_KEY = 'lessonpilot.video-mode';
 
 export function createVideoModeStore(
@@ -101,6 +106,7 @@ export interface RuntimeDeps {
   /** 多候选时让学生选。返回 null 表示学生选择先不学 */
   chooseCandidate(candidates: RuntimeCandidate[]): Promise<RuntimeCandidate | null>;
   now(): Date;
+  companion?: CompanionStateSink;
 }
 
 export class CourseRuntime {
@@ -112,6 +118,8 @@ export class CourseRuntime {
   private teardown: (() => void)[] = [];
   private lastSavedSecond = -1;
   private pausedByRuntime = false;
+  private companionState: CompanionVisualState | null = null;
+  private companionEventKey: string | undefined;
 
   /*
    * start() 里有多个 await（取候选、等学生选、等播放器出现）。
@@ -170,6 +178,7 @@ export class CourseRuntime {
     });
     this.modeControl = this.deps.createModeControl(() => this.toggleVideoMode());
     this.modeControl.setMode(this.videoMode);
+    this.setCompanionState('focus', `focus:${this.session.courseId}:${this.session.lessonId}`);
 
     this.teardown.push(
       player.onTimeUpdate((seconds) => this.tick(seconds)),
@@ -194,6 +203,8 @@ export class CourseRuntime {
       if (action.type !== 'none' || state.kind !== 'idle') {
         this.view?.render(state);
       }
+      if (state.kind === 'open') this.setCompanionState('prompt', `prompt:${state.node.id}`);
+      else if (state.kind === 'idle') this.setCompanionState('idle');
     }
 
     // 位置节流到整秒：timeupdate 每秒触发多次
@@ -218,7 +229,15 @@ export class CourseRuntime {
     const record =
       kind === 'submit' ? this.session.submit(at) : this.session.skip(at);
 
-    this.view?.render(this.session.snapshot().window);
+    const window = this.session.snapshot().window;
+    this.view?.render(window);
+    if (window.kind === 'answered') {
+      if (window.outcome.result === 'correct' || window.outcome.result === 'acknowledged') {
+        this.setCompanionState('correct', `correct:${window.node.id}`);
+      } else if (window.outcome.result === 'incorrect') {
+        this.setCompanionState('wrong', `wrong:${window.node.id}`);
+      }
+    }
 
     if (record) {
       // 同上：上报失败不能变成页面上的未处理 rejection。
@@ -238,10 +257,19 @@ export class CourseRuntime {
 
   private close(): void {
     if (!this.session) return;
+    const beforeClose = this.session.snapshot().window;
     const action = this.session.close();
     const shouldResume = this.pausedByRuntime;
     this.pausedByRuntime = false;
     this.view?.render(this.session.snapshot().window);
+    if (
+      beforeClose.kind === 'answered' &&
+      (beforeClose.outcome.result === 'correct' || beforeClose.outcome.result === 'acknowledged')
+    ) {
+      this.setCompanionState('complete', `complete:${beforeClose.node.id}`);
+    } else {
+      this.setCompanionState('idle');
+    }
     if (action.type === 'resume' && shouldResume) this.player?.play();
   }
 
@@ -258,6 +286,7 @@ export class CourseRuntime {
       const shouldResume = this.pausedByRuntime;
       this.pausedByRuntime = false;
       this.view?.render(this.session.snapshot().window);
+      this.setCompanionState('idle');
       if (action.type === 'resume' && shouldResume) this.player.play();
       return;
     }
@@ -279,6 +308,16 @@ export class CourseRuntime {
     this.lastSavedSecond = -1;
     this.pausedByRuntime = false;
     this.videoMode = 'course';
+    this.companionState = null;
+    this.companionEventKey = undefined;
+  }
+
+  private setCompanionState(state: CompanionVisualState, eventKey?: string): void {
+    if (!this.deps.companion) return;
+    if (state === this.companionState && eventKey === this.companionEventKey) return;
+    this.companionState = state;
+    this.companionEventKey = eventKey;
+    this.deps.companion.setVisualState(state, eventKey);
   }
 
   /** 供测试与诊断读取当前状态，不用于业务判断 */

@@ -82,6 +82,17 @@ describe('构建目标', () => {
     }
   });
 
+  it('manifest 暴露第一版小猫角色资源并纳入构建产物清单', () => {
+    const m = buildManifest(TARGETS.production) as any;
+    expect(m.web_accessible_resources).toEqual([
+      {
+        resources: ['assets/companion/**'],
+        matches: ['https://www.bilibili.com/*'],
+      },
+    ]);
+    expect(BUILD_ARTIFACTS).toContain('assets/companion/cat/v1/manifest.json');
+  });
+
   it('manifest 里引用的脚本都在产物清单里', () => {
     const m = buildManifest(TARGETS.production) as any;
     const referenced = [

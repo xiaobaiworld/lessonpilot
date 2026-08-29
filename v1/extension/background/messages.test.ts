@@ -79,6 +79,12 @@ describe('消息契约与实现一致', () => {
     expect(workerSource).toContain('ASSET_MISSING');
   });
 
+  it('角色资源消息只能解析内置白名单，不接受任意路径', () => {
+    expect(declaredTypes).toContain('companionAsset');
+    expect(workerSource).toContain("case 'companionAsset'");
+    expect(workerSource).toContain('COMPANION_ASSET');
+  });
+
   it('升级队列控制消息有明确的契约白名单', () => {
     expect(declaredTypes).toEqual(
       expect.arrayContaining([

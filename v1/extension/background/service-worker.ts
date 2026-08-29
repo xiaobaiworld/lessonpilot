@@ -13,6 +13,11 @@ import { buildLibraryView, findCandidates, removalImpact } from '../shared/libra
 import { API_ORIGIN } from './config';
 import { createExampleCourse } from './example-course';
 import { isBilibiliVideoRef } from '../shared/video-reference';
+import {
+  COMPANION_PACK_ID,
+  getCompanionStateAsset,
+  resolveCompanionState,
+} from '../content/companion-assets';
 
 /**
  * background 是唯一的网络与持久化边界。
@@ -32,6 +37,8 @@ const exampleCourse = (() => {
     return null;
   }
 })();
+
+const COMPANION_SOUND_KEY = 'knownmap.companion.sound-enabled';
 
 /** 统一响应形状。调用方靠 ok 判断，不靠字段是否存在猜 */
 type Reply = { ok: true; data?: unknown } | { ok: false; code: string; message: string };
@@ -101,6 +108,45 @@ async function handle(message: unknown): Promise<Reply> {
           );
         }
         return err('STORAGE', '本机资源读取失败。');
+      }
+    }
+
+    case 'companionAsset': {
+      if (m.packId !== COMPANION_PACK_ID || typeof m.state !== 'string') {
+        return err('COMPANION_ASSET_INVALID', '角色资源请求不正确。');
+      }
+      const state = resolveCompanionState(m.state);
+      if (state !== m.state) return err('COMPANION_ASSET_INVALID', '角色状态不存在。');
+      const asset = getCompanionStateAsset(state);
+      return ok({
+        ...asset,
+        image: chrome.runtime.getURL(asset.image),
+        audio: asset.audio ? chrome.runtime.getURL(asset.audio) : null,
+        overlay: asset.overlay ? chrome.runtime.getURL(asset.overlay) : undefined,
+      });
+    }
+
+    case 'companionSound': {
+      try {
+        const stored = await chrome.storage.local.get(COMPANION_SOUND_KEY);
+        return ok({
+          soundEnabled:
+            typeof stored?.[COMPANION_SOUND_KEY] === 'boolean'
+              ? stored[COMPANION_SOUND_KEY]
+              : true,
+        });
+      } catch {
+        return err('STORAGE', '声音设置读取失败。');
+      }
+    }
+
+    case 'setCompanionSound': {
+      if (typeof m.enabled !== 'boolean') return err('BAD_MESSAGE', '声音设置不正确。');
+      try {
+        await chrome.storage.local.set({ [COMPANION_SOUND_KEY]: m.enabled });
+        return ok({ soundEnabled: m.enabled });
+      } catch {
+        return err('STORAGE', '声音设置保存失败。');
       }
     }
 

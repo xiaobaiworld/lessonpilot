@@ -35,6 +35,8 @@
 | [`../docs/superpowers/specs/2026-08-28-bilibili-video-reference-design.md`](../docs/superpowers/specs/2026-08-28-bilibili-video-reference-design.md) | B 站 URL 参数分类、匹配规则和跨层数据结构设计 |
 | [`../docs/superpowers/specs/2026-08-28-student-course-library-and-upgrade-design.md`](../docs/superpowers/specs/2026-08-28-student-course-library-and-upgrade-design.md) | 学生课程库、课程升级、资源交付、设置和升级队列设计（`D-V1-022`） |
 | [`../docs/superpowers/specs/2026-08-29-course-node-content-guidance-design.md`](../docs/superpowers/specs/2026-08-29-course-node-content-guidance-design.md) | 四种互动节点的课程化编辑引导、字段文案、预览和验收设计（`D-V1-025`，已确认方向，待实现验证） |
+| [`../docs/superpowers/specs/2026-08-29-student-companion-plugin-integration-design.md`](../docs/superpowers/specs/2026-08-29-student-companion-plugin-integration-design.md) | 第一版小猫图片/声音如何进入插件、状态事件、资源边界和失败策略 |
+| [`../docs/superpowers/plans/2026-08-29-student-companion-plugin-integration.md`](../docs/superpowers/plans/2026-08-29-student-companion-plugin-integration.md) | 第一版小猫包插件接入的开发任务、测试顺序和验收清单 |
 | [`../docs/superpowers/plans/2026-08-29-course-node-content-guidance.md`](../docs/superpowers/plans/2026-08-29-course-node-content-guidance.md) | 四种互动节点课程化编辑引导的开发文件边界、插件约束、测试命令和真实环境验收计划（`D-V1-025`） |
 | [`../docs/superpowers/specs/2026-08-29-continuous-learning-window-design.md`](../docs/superpowers/specs/2026-08-29-continuous-learning-window-design.md) | 互动节点窗口连续尺寸、拖动位置、教师预览和节点展示配置接口设计（`D-V1-024`，实现完成，待浏览器人工验收） |
 

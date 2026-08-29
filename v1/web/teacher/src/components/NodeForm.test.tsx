@@ -45,8 +45,10 @@ describe('节点展示位置编辑', () => {
       root.render(<NodeFormHarness />);
     });
 
-    expect(container.textContent).toContain('窗口中心坐标');
-    expect(container.textContent).toContain('可以在上方预览中拖动窗口来改变位置');
+    expect(container.textContent).toContain('窗口大小');
+    expect(container.textContent).toContain('窗口位置');
+    expect(container.textContent).not.toContain('窗口样式');
+    expect(container.textContent).toContain('拖动上方窗口，或直接输入中心点坐标');
     expect(container.querySelector<HTMLInputElement>('input[name="position-x"]')?.value).toBe('44.4');
     expect(container.querySelector<HTMLInputElement>('input[name="position-y"]')?.value).toBe('44');
     root.unmount();
@@ -73,7 +75,8 @@ describe('节点展示位置编辑', () => {
 
     expect(input.value).toBe('72.3');
     expect(preview.style.getPropertyValue('--preview-left')).not.toBe(before);
-    expect(container.textContent).toContain('中心坐标 X 72.3% · Y 44.0%');
+    expect(container.textContent).not.toContain('示意预览');
+    expect(container.textContent).not.toContain('窗口样式');
     root.unmount();
   });
 });

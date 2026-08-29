@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KnownMap · 真实动物声音候选</title>
+  <style>
+    :root { color-scheme: light; --ink:#18352d; --muted:#6f7d76; --paper:#f7f7f1; --line:#dfe7df; --mint:#e7f0e7; --accent:#2f745e; --warm:#fff7e7; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; background:linear-gradient(135deg,#f5f7f1,#edf3ed); color:var(--ink); font:15px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif; }
+    main { width:min(980px, calc(100% - 40px)); margin:0 auto; padding:56px 0 80px; }
+    .eyebrow { color:var(--accent); font-size:11px; font-weight:800; letter-spacing:.18em; text-transform:uppercase; }
+    h1 { margin:7px 0 10px; font-size:38px; letter-spacing:-.04em; }
+    .intro { max-width:700px; margin:0; color:var(--muted); }
+    .notice { display:flex; gap:12px; align-items:flex-start; margin:28px 0; padding:16px 18px; border:1px solid #d4e3d6; border-radius:16px; background:var(--mint); }
+    .notice strong { display:block; margin-bottom:2px; }
+    .notice span { color:var(--muted); font-size:13px; }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+    .card { padding:20px; border:1px solid var(--line); border-radius:18px; background:rgba(255,255,255,.78); box-shadow:0 14px 35px rgba(42,73,58,.06); }
+    .card.featured { border-color:#bdd8c2; background:#fbfffb; }
+    .meta { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:16px; }
+    .title { font-weight:800; font-size:18px; }
+    .tag { padding:4px 9px; border-radius:999px; color:var(--accent); background:var(--mint); font-size:11px; white-space:nowrap; }
+    .desc { min-height:52px; margin:0 0 18px; color:var(--muted); font-size:13px; }
+    audio { width:100%; height:38px; }
+    .source { display:inline-block; margin-top:12px; color:var(--accent); font-size:12px; text-decoration:none; }
+    .source:hover { text-decoration:underline; }
+    .footer { margin-top:28px; color:var(--muted); font-size:12px; }
+    @media (max-width:700px) { main { width:min(100% - 28px, 560px); padding-top:32px; } h1 { font-size:31px; } .grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="eyebrow">KnownMap · sound research</div>
+    <h1>真实动物声音候选</h1>
+    <p class="intro">家猫叫声、呼噜声和老虎声都已按要求截短；哈气仍保留为备用原始候选。当前完成状态使用老虎庆祝声。</p>
+    <div class="notice">
+      <div>●</div>
+      <div><strong>优先推荐：真实家猫录音 + CC0</strong><span>可以复制、修改、发布和商用。正式打包时仍会把来源页面与许可证记录一并保留。</span></div>
+    </div>
+    <section class="grid" aria-label="声音候选列表">
+      <article class="card featured">
+        <div class="meta"><div class="title">家猫 · 开心叫声</div><div class="tag">首选</div></div>
+        <p class="desc">真实录音，来自作者的猫 Tori；已截短至 0.60 秒，适合开始注意或答对鼓励。</p>
+        <audio controls preload="metadata" src="../assets/companion/cat-v1/processed/real-meow-happy-short.wav"></audio>
+        <a class="source" href="https://freesound.org/people/alizardguy/sounds/668632/" target="_blank" rel="noreferrer">来源：alizardguy · CC0</a>
+      </article>
+      <article class="card">
+        <div class="meta"><div class="title">家猫 · 自然叫声</div><div class="tag">提示</div></div>
+        <p class="desc">真实家猫自然叫声；已改为取录音尾部 1.10 秒，避开前段空白。</p>
+        <audio controls preload="metadata" src="../assets/companion/cat-v1/processed/real-meow-natural-short.wav"></audio>
+        <a class="source" href="https://freesound.org/people/Richard1052/sounds/585766/" target="_blank" rel="noreferrer">来源：Richard1052 · CC0</a>
+      </article>
+      <article class="card">
+        <div class="meta"><div class="title">家猫 · 呼噜声</div><div class="tag">备用</div></div>
+        <p class="desc">真实家猫呼噜；已从中段截取 2.80 秒，避开开头空白，作为备用声音。</p>
+        <audio controls preload="metadata" src="../assets/companion/cat-v1/processed/real-purr-middle.wav"></audio>
+        <a class="source" href="https://freesound.org/people/JamesBradford/sounds/579898/" target="_blank" rel="noreferrer">来源：JamesBradford · CC0</a>
+      </article>
+      <article class="card">
+        <div class="meta"><div class="title">家猫 · 哈气声</div><div class="tag">答错安慰</div></div>
+        <p class="desc">真实家猫哈气，情绪辨识度强；使用时会降低音量，避免让学生受到惊吓。</p>
+        <audio controls preload="metadata" src="../assets/companion/cat-v1/candidates/real-hiss.mp3"></audio>
+        <a class="source" href="https://freesound.org/people/Zabuhailo/sounds/146963/" target="_blank" rel="noreferrer">来源：Zabuhailo · CC0</a>
+      </article>
+      <article class="card">
+        <div class="meta"><div class="title">老虎 · 动物园实录</div><div class="tag">完成庆祝</div></div>
+        <p class="desc">美国 Louisville Zoo 的老虎吼声实录；已取开头 3.00 秒，作为节点完成时的庆祝声音。</p>
+        <audio controls preload="metadata" src="../assets/companion/cat-v1/processed/real-tiger-roar-first-3s.wav"></audio>
+        <a class="source" href="https://freesound.org/people/lauramellis/sounds/263115/" target="_blank" rel="noreferrer">来源：lauramellis · CC0</a>
+      </article>
+    </section>
+    <p class="footer">备注：处理后的声音已经替换到插件的小猫角色包：focus / correct 使用短开心叫声，prompt / wrong 使用短自然叫声，complete 使用老虎开头 3 秒庆祝声；idle 继续静音。呼噜声作为备用素材保留。</p>
+  </main>
+</body>
+</html>

@@ -19,6 +19,9 @@
             "library",
             "redeem",
             "asset",
+            "companionAsset",
+            "companionSound",
+            "setCompanionSound",
             "checkCourseUpdates",
             "upgradeCourse",
             "candidates",
@@ -56,6 +59,20 @@
           "type": "string",
           "minLength": 1,
           "description": "asset：本机课程资源的稳定标识"
+        },
+        "packId": {
+          "type": "string",
+          "enum": ["cat-v1"],
+          "description": "companionAsset：内置陪伴角色包标识"
+        },
+        "state": {
+          "type": "string",
+          "enum": ["focus", "idle", "prompt", "correct", "wrong", "complete"],
+          "description": "companionAsset：陪伴角色状态"
+        },
+        "enabled": {
+          "type": "boolean",
+          "description": "setCompanionSound：是否播放陪伴角色声音"
         },
         "taskKey": {
           "type": "string",

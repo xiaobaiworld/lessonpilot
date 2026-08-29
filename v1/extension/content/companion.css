@@ -61,10 +61,39 @@
   cursor: grabbing;
 }
 
-.km-companion-mascot canvas {
+.km-companion-image {
   display: block;
   width: 72px;
   height: 96px;
+  object-fit: contain;
+}
+
+.km-companion-fish {
+  position: absolute;
+  right: 2px;
+  bottom: 19px;
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.km-companion-message {
+  position: absolute;
+  right: 48px;
+  bottom: 38px;
+  width: max-content;
+  max-width: 210px;
+  margin: 0;
+  padding: 7px 9px;
+  border: 1px solid rgba(255, 174, 0, 0.28);
+  border-radius: 10px;
+  background: #fff8df;
+  color: #6b4a00;
+  font-size: 12px;
+  line-height: 1.35;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
+  pointer-events: none;
 }
 
 .km-companion-hint {
@@ -217,4 +246,11 @@
 
 .km-companion[data-state="paused"] .km-companion-mascot {
   opacity: 0.92;
+}
+
+.km-companion[data-visual-state="focus"] .km-companion-mascot,
+.km-companion[data-visual-state="prompt"] .km-companion-mascot,
+.km-companion[data-visual-state="correct"] .km-companion-mascot,
+.km-companion[data-visual-state="complete"] .km-companion-mascot {
+  animation: km-companion-bob 0.8s ease-in-out 2;
 }

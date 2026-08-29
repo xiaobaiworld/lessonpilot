@@ -101,6 +101,12 @@ export function buildManifest(target: BuildTarget): Record<string, unknown> {
         run_at: 'document_idle',
       },
     ],
+    web_accessible_resources: [
+      {
+        resources: ['assets/companion/**'],
+        matches: ['https://www.bilibili.com/*', ...target.harnessMatches],
+      },
+    ],
   };
 }
 
@@ -116,4 +122,17 @@ export const BUILD_ARTIFACTS = [
   'assets/icon-24.png',
   'assets/icon-48.png',
   'assets/icon-128.png',
+  'assets/companion/cat/v1/manifest.json',
+  'assets/companion/cat/v1/focus.png',
+  'assets/companion/cat/v1/idle.png',
+  'assets/companion/cat/v1/prompt.png',
+  'assets/companion/cat/v1/correct.png',
+  'assets/companion/cat/v1/wrong.png',
+  'assets/companion/cat/v1/complete.png',
+  'assets/companion/cat/v1/fish-treat.png',
+  'assets/companion/cat/v1/focus.wav',
+  'assets/companion/cat/v1/prompt.wav',
+  'assets/companion/cat/v1/correct.wav',
+  'assets/companion/cat/v1/wrong.wav',
+  'assets/companion/cat/v1/complete.wav',
 ] as const;
