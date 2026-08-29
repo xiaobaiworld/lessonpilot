@@ -6,17 +6,22 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { RichTextEditor } from './RichTextEditor';
 
 describe('RichTextEditor 类型化提示', () => {
+  let root: ReturnType<typeof createRoot> | null = null;
+
   afterEach(() => {
+    root?.unmount();
+    root = null;
     document.body.innerHTML = '';
   });
 
   it('显示传入的占位示例和引导，同时不把占位示例写入空内容', async () => {
     const container = document.createElement('div');
     document.body.appendChild(container);
-    const root = createRoot(container);
+    const renderedRoot = createRoot(container);
+    root = renderedRoot;
 
     await act(async () => {
-      root.render(
+      renderedRoot.render(
         <RichTextEditor
           label="题目主干"
           value=""
