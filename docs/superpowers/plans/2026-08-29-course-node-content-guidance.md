@@ -207,7 +207,7 @@ npm --prefix v1 run type-check
 
 **Files:** Modify `/Users/bai/code/lessonpilot/v1/web/teacher/src/components/NodeForm.tsx`, `/Users/bai/code/lessonpilot/v1/web/teacher/src/index.css`; Create `/Users/bai/code/lessonpilot/v1/web/teacher/src/components/NodeForm.test.tsx`
 
-- [ ] 先写 happy-dom 测试，使用 createNode(kind, 39) 渲染四种节点，断言分别包含“告诉学生这一刻要记住什么”“题目主干”“请手工填写选项”“标准答案 / 可接受说法”“学生提交后的参考反馈”。使用一个含 a/b/c/d 四项的 choice 节点，断言预览包含“选项四”。运行测试，预期因旧文案和前三项截断而 FAIL。
+- [ ] 先写 happy-dom 测试，使用 createNode(kind, 39) 渲染四种节点，断言分别包含“告诉学生这一刻要理解或记住什么”“题目主干”“请手工填写选项”“标准答案 / 可接受说法”“学生提交后的参考反馈”。使用一个含 a/b/c/d 四项的 choice 节点，断言预览包含“选项四”。运行测试，预期因旧文案和前三项截断而 FAIL。
 - [ ] 导入 nodeFormCopy，在 NodeForm 内按 node.interaction 取得 copy。核心区块使用 copy.contentHeading/contentAside、copy.titleLabel/titleHint/titlePlaceholder 和 copy.contentLabel/contentHint/contentPlaceholder。
 - [ ] 扩展 Field/Area 的 placeholder?: string，继续使用受控 value、onChange、disabled 和 rows；示例只能出现在 placeholder，不能写入 value。
 - [ ] 将 RichTextEditor 的 label、placeholder、hint 接到 copy。重点提示仍只用 title + RichPageDocument；不新增提醒字段。
