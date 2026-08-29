@@ -56,8 +56,17 @@
       "image": "complete.png",
       "audio": "complete.wav",
       "durationMs": 1150,
+      "message": "感谢你让我又吃到了一条小鱼。",
+      "overlay": "fishTreat",
       "imageSha256": "80da72286864b5f95c1cef6f49a446b775e0d7e38a019494267930afaa37ea06",
       "audioSha256": "a5fdee7d6958b2c8ec522a06c95855e04c5954080830c49bafd8256bb52281d0"
+    }
+  },
+  "overlays": {
+    "fishTreat": {
+      "image": "fish-treat.png",
+      "recommendedDisplayPx": 64,
+      "imageSha256": "a13fb9b1f21c24eec15f0f3719c3aad84fd9ebda518cd3d5ab225a751fde8e8e"
     }
   },
   "delivery": {
