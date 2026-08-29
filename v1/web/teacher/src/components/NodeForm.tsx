@@ -11,6 +11,7 @@ import {
   resolvePresentationHints,
 } from '@v1/web/shared';
 import { ScriptNode } from '../api';
+import { nodeFormCopy, type NodeFormCopy } from '../nodeFormCopy';
 import { RichTextEditor } from './RichTextEditor';
 import { PresentationPreview } from './PresentationPreview';
 
@@ -31,6 +32,8 @@ const WINDOW_STYLE_OPTIONS = [
 
 /** 各字段名由后端校验固定，见 v1/backend/app/modules/authoring_release/application_service.py */
 export const NodeForm: React.FC<Props> = ({ node, disabled, onChange, onUploadAsset, onImportAsset, assetUrlForId, onAssetCreated }) => {
+  const copy = nodeFormCopy(node.interaction);
+
   const setHints = (patch: Partial<PresentationHints>) => {
     const resolved = resolvePresentationHints(node.presentationHints ?? {});
     onChange({
@@ -62,21 +65,25 @@ export const NodeForm: React.FC<Props> = ({ node, disabled, onChange, onUploadAs
           <div className="node-section-heading">
             <div>
               <span className="node-section-eyebrow">核心内容</span>
-              <h3>页面正文</h3>
+              <h3>{copy.contentHeading}</h3>
             </div>
-            <span>学生将在视频中看到</span>
+            <span>{copy.contentAside}</span>
           </div>
           <Field
-            label="标题"
+            label={copy.titleLabel}
             value={node.title}
             onChange={(title) => onChange({ ...node, title })}
             disabled={disabled}
+            hint={copy.titleHint}
+            placeholder={copy.titlePlaceholder}
           />
           <RichTextEditor
-            label="正文内容"
+            label={copy.contentLabel}
             value={richDocumentToHtml(node.content)}
             disabled={disabled}
             onChange={setPageHtml}
+            placeholder={copy.contentPlaceholder}
+            hint={copy.contentHint}
             onUploadAsset={onUploadAsset}
             onImportAsset={onImportAsset}
             assetUrlForId={assetUrlForId}
@@ -84,23 +91,26 @@ export const NodeForm: React.FC<Props> = ({ node, disabled, onChange, onUploadAs
           />
         </section>
 
-        <div className="node-detail-fields">
+        {node.interaction !== 'notice' && <div className="node-detail-fields">
           {node.interaction === 'choice' && (
-            <ChoiceFields
-              options={data.options ?? []}
-              answer={data.answer ?? ''}
-              explanation={data.explanation ?? ''}
-              disabled={disabled}
-              onOptions={(options) => setInteractionData({ options })}
-              onAnswer={(answer) => setInteractionData({ answer })}
-              onExplanation={(explanation) => setInteractionData({ explanation })}
-            />
+            <DetailSection copy={copy}>
+              <ChoiceFields
+                copy={copy}
+                options={data.options ?? []}
+                answer={data.answer ?? ''}
+                explanation={data.explanation ?? ''}
+                disabled={disabled}
+                onOptions={(options) => setInteractionData({ options })}
+                onAnswer={(answer) => setInteractionData({ answer })}
+                onExplanation={(explanation) => setInteractionData({ explanation })}
+              />
+            </DetailSection>
           )}
 
           {node.interaction === 'blank' && (
-            <>
+            <DetailSection copy={copy}>
               <Field
-                label="可接受答案（多个用 | 分隔）"
+                label={copy.answerLabel}
                 value={(data.acceptedAnswers ?? []).join(' | ')}
                 onChange={(v) =>
                   setInteractionData({
@@ -111,33 +121,55 @@ export const NodeForm: React.FC<Props> = ({ node, disabled, onChange, onUploadAs
                   })
                 }
                 disabled={disabled}
-                hint="比对时会去空白并忽略大小写"
+                hint={copy.answerHint}
+                placeholder={copy.answerPlaceholder}
               />
               <Area
-                label="解析"
+                label={copy.feedbackLabel}
                 value={data.explanation ?? ''}
                 onChange={(v) => setInteractionData({ explanation: v })}
                 disabled={disabled}
+                hint={copy.feedbackHint}
+                placeholder={copy.feedbackPlaceholder}
               />
-            </>
+            </DetailSection>
           )}
 
           {node.interaction === 'free_text' && (
-            <Area
-              label="参考答案"
-              value={data.referenceFeedback ?? ''}
-              onChange={(v) => setInteractionData({ referenceFeedback: v })}
-              disabled={disabled}
-              hint="学生作答后展示，不做自动判分"
-            />
+            <DetailSection copy={copy}>
+              <Area
+                label={copy.feedbackLabel}
+                value={data.referenceFeedback ?? ''}
+                onChange={(v) => setInteractionData({ referenceFeedback: v })}
+                disabled={disabled}
+                hint={copy.feedbackHint}
+                placeholder={copy.feedbackPlaceholder}
+              />
+            </DetailSection>
           )}
-        </div>
+        </div>}
       </div>
 
       <StudentNodePreview node={node} disabled={disabled} onChange={setHints} assetUrlForId={assetUrlForId} />
     </div>
   );
 };
+
+const DetailSection: React.FC<{
+  copy: NodeFormCopy;
+  children: React.ReactNode;
+}> = ({ copy, children }) => (
+  <section className="node-section node-detail-section">
+    <div className="node-section-heading">
+      <div>
+        <span className="node-section-eyebrow">填写路径</span>
+        <h3>{copy.detailHeading}</h3>
+      </div>
+      <span>{copy.detailAside}</span>
+    </div>
+    {children}
+  </section>
+);
 
 const StudentNodePreview: React.FC<{
   node: ScriptNode;
@@ -154,14 +186,7 @@ const StudentNodePreview: React.FC<{
   };
   const data = (node.interactionData ?? {}) as Record<string, any>;
   const options = Array.isArray(data.options) ? data.options : [];
-  const interactionLabel =
-    node.interaction === 'notice'
-      ? '重点标注'
-      : node.interaction === 'choice'
-        ? '选择题'
-        : node.interaction === 'blank'
-          ? '填空题'
-          : '问答题';
+  const copy = nodeFormCopy(node.interaction);
 
   return (
     <section
@@ -183,18 +208,18 @@ const StudentNodePreview: React.FC<{
           onChange(patch);
         }}
       >
-          <span className="student-node-card-badge">{interactionLabel}</span>
+          <span className="student-node-card-badge">{copy.previewBadge}</span>
           <h4>{node.title || '未命名节点'}</h4>
-          <PreviewRichContent document={node.content} assetUrlForId={assetUrlForId} />
+          <PreviewRichContent document={node.content} emptyText={copy.previewEmptyText} assetUrlForId={assetUrlForId} />
           {node.interaction === 'choice' && options.length > 0 && (
             <div className="student-node-card-options">
-              {options.slice(0, 3).map((option: { id: string; label: string }) => (
+              {options.map((option: { id: string; label: string }) => (
                 <span key={option.id}>{option.label || `选项 ${option.id.toUpperCase()}`}</span>
               ))}
             </div>
           )}
-          {node.interaction === 'blank' && <div className="student-node-card-input">输入你的答案</div>}
-          {node.interaction === 'free_text' && <div className="student-node-card-input">写下你的想法……</div>}
+          {node.interaction === 'blank' && <div className="student-node-card-input">{copy.previewInputPlaceholder}</div>}
+          {node.interaction === 'free_text' && <div className="student-node-card-input">{copy.previewInputPlaceholder}</div>}
       </PresentationPreview>
       <div className="preview-settings">
         <div className="preview-settings-heading">
@@ -315,10 +340,11 @@ const ChoiceGroup: React.FC<{
 
 const PreviewRichContent: React.FC<{
   document: RichPageDocument;
+  emptyText: string;
   assetUrlForId?: (assetId: string) => string;
-}> = ({ document, assetUrlForId }) => {
+}> = ({ document, emptyText, assetUrlForId }) => {
   if (document.schemaVersion !== 1 || document.blocks.length === 0) {
-    return <p className="student-node-card-placeholder">这里会显示节点正文。</p>;
+    return <p className="student-node-card-placeholder">{emptyText}</p>;
   }
 
   return (
@@ -426,6 +452,7 @@ function formatPreviewTime(seconds: number): string {
 }
 
 const ChoiceFields: React.FC<{
+  copy: NodeFormCopy;
   options: { id: string; label: string }[];
   answer: string;
   explanation: string;
@@ -434,6 +461,7 @@ const ChoiceFields: React.FC<{
   onAnswer: (a: string) => void;
   onExplanation: (s: string) => void;
 }> = ({
+  copy,
   options,
   answer,
   explanation,
@@ -448,46 +476,54 @@ const ChoiceFields: React.FC<{
   return (
     <>
       <div className="choice-options">
-        <span className="node-field-label">选项（选中正确答案）</span>
-        {options.map((opt, i) => (
-          <label key={opt.id} className="choice-row">
-            <input
-              type="radio"
-              name={`answer-${opt.id}-${i}`}
-              checked={answer === opt.id}
-              onChange={() => onAnswer(opt.id)}
-              disabled={disabled}
-              aria-label={`选项 ${opt.id} 为正确答案`}
-            />
-            <input
-              type="text"
-              value={opt.label}
-              onChange={(ev) =>
-                onOptions(
-                  options.map((o, j) =>
-                    j === i ? { ...o, label: ev.target.value } : o
-                  )
-                )
-              }
-              placeholder={`选项 ${opt.id.toUpperCase()}`}
-              disabled={disabled}
-            />
-            {options.length > 2 && (
-              <button
-                className="text-button"
-                type="button"
-                onClick={() => {
-                  const kept = options.filter((_, j) => j !== i);
-                  onOptions(kept);
-                  if (answer === opt.id) onAnswer(kept[0]?.id ?? '');
-                }}
+        <span className="node-field-label">{copy.optionHint}</span>
+        {options.map((opt, i) => {
+          const optionLabel = `选项 ${i + 1}`;
+          return (
+            <label key={opt.id} className="choice-row">
+              <span className="choice-row-number">{optionLabel}</span>
+              <input
+                type="radio"
+                name={`answer-${opt.id}-${i}`}
+                checked={answer === opt.id}
+                onChange={() => onAnswer(opt.id)}
                 disabled={disabled}
-              >
-                移除
-              </button>
-            )}
-          </label>
-        ))}
+                aria-label={`${copy.optionHint}：${optionLabel}`}
+              />
+              <input
+                type="text"
+                value={opt.label}
+                onChange={(ev) =>
+                  onOptions(
+                    options.map((o, j) =>
+                      j === i ? { ...o, label: ev.target.value } : o
+                    )
+                  )
+                }
+                placeholder={optionLabel}
+                aria-label={optionLabel}
+                disabled={disabled}
+              />
+              {answer === opt.id && (
+                <span className="choice-row-correct">✓ {copy.optionHint}</span>
+              )}
+              {options.length > 2 && (
+                <button
+                  className="text-button"
+                  type="button"
+                  onClick={() => {
+                    const kept = options.filter((_, j) => j !== i);
+                    onOptions(kept);
+                    if (answer === opt.id) onAnswer(kept[0]?.id ?? '');
+                  }}
+                  disabled={disabled}
+                >
+                  移除
+                </button>
+              )}
+            </label>
+          );
+        })}
         {options.length < 6 && (
           <button
             className="text-button"
@@ -500,10 +536,12 @@ const ChoiceFields: React.FC<{
         )}
       </div>
       <Area
-        label="解析"
+        label={copy.feedbackLabel}
         value={explanation}
         onChange={onExplanation}
         disabled={disabled}
+        hint={copy.feedbackHint}
+        placeholder={copy.feedbackPlaceholder}
       />
     </>
   );
@@ -515,7 +553,8 @@ const Field: React.FC<{
   onChange: (v: string) => void;
   disabled: boolean;
   hint?: string;
-}> = ({ label, value, onChange, disabled, hint }) => (
+  placeholder?: string;
+}> = ({ label, value, onChange, disabled, hint, placeholder }) => (
   <label className="field-group">
     <span>{label}</span>
     <input
@@ -523,6 +562,7 @@ const Field: React.FC<{
       value={value}
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
+      placeholder={placeholder}
     />
     {hint && <small>{hint}</small>}
   </label>
@@ -534,7 +574,8 @@ const Area: React.FC<{
   onChange: (v: string) => void;
   disabled: boolean;
   hint?: string;
-}> = ({ label, value, onChange, disabled, hint }) => (
+  placeholder?: string;
+}> = ({ label, value, onChange, disabled, hint, placeholder }) => (
   <label className="field-group">
     <span>{label}</span>
     <textarea
@@ -542,6 +583,7 @@ const Area: React.FC<{
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
       rows={3}
+      placeholder={placeholder}
     />
     {hint && <small>{hint}</small>}
   </label>
