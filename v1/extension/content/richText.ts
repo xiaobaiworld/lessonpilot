@@ -3,9 +3,7 @@ import {
   WINDOW_SIZES,
   WINDOW_STYLES,
   resolvePresentationHints,
-  type WindowPosition,
-  type WindowSize,
-  type WindowStyle,
+  type ResolvedPresentationHints,
 } from '../../web/shared/src';
 
 const ALLOWED_TAGS = new Set([
@@ -201,10 +199,6 @@ export function sanitizeRichTextHtml(html: string): string {
   return wrap.innerHTML;
 }
 
-export function resolveWindowPresentation(hints: Record<string, unknown>): {
-  size: WindowSize;
-  style: WindowStyle;
-  position: WindowPosition;
-} {
+export function resolveWindowPresentation(hints: Record<string, unknown>): ResolvedPresentationHints {
   return resolvePresentationHints(hints);
 }

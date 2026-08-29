@@ -17,3 +17,4 @@ export {
 
 export * from './editor/icons';
 export * from './portableContent';
+export * from './presentationGeometry';

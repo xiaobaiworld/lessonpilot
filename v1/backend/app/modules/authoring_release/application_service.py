@@ -39,6 +39,13 @@ def _text(value: object) -> bool:
 WINDOW_SIZES = {"s", "m", "l", "overlay"}
 WINDOW_STYLES = {"card", "document"}
 WINDOW_POSITIONS = {"bottom-left", "bottom-right", "center"}
+PRESENTATION_HINT_FIELDS = {"windowSize", "windowStyle", "windowPosition"}
+WINDOW_SIZE_FIELDS = {"widthPercent", "heightPercent"}
+WINDOW_POSITION_FIELDS = {"xPercent", "yPercent"}
+WINDOW_MIN_PERCENT = 10
+WINDOW_MAX_PERCENT = 66
+POSITION_MIN_PERCENT = 0
+POSITION_MAX_PERCENT = 100
 ASSET_KINDS = {"image", "audio", "video"}
 SOURCE_TYPES = {"uploaded", "licensed"}
 CONTENT_BLOCKS = {"paragraph", "heading", "quote", "list", "image", "audio", "video"}
@@ -54,6 +61,54 @@ SUBTITLE_TIMESTAMP = re.compile(
 
 def _invalid(code: str) -> None:
     raise AuthoringReleaseError(code)
+
+
+def _valid_percent(value: object, minimum: int, maximum: int) -> bool:
+    return (
+        isinstance(value, (int, float))
+        and not isinstance(value, bool)
+        and math.isfinite(value)
+        and minimum <= value <= maximum
+    )
+
+
+def validate_presentation_hints(value: object) -> None:
+    if not isinstance(value, dict) or set(value) - PRESENTATION_HINT_FIELDS:
+        _invalid("DRAFT_NODE_PRESENTATION_INVALID")
+
+    size = value.get("windowSize")
+    if size is not None:
+        if isinstance(size, str):
+            if size not in WINDOW_SIZES:
+                _invalid("DRAFT_NODE_PRESENTATION_INVALID")
+        elif (
+            not isinstance(size, dict)
+            or set(size) != WINDOW_SIZE_FIELDS
+            or not _valid_percent(size.get("widthPercent"), WINDOW_MIN_PERCENT, WINDOW_MAX_PERCENT)
+            or not _valid_percent(size.get("heightPercent"), WINDOW_MIN_PERCENT, WINDOW_MAX_PERCENT)
+        ):
+            _invalid("DRAFT_NODE_PRESENTATION_INVALID")
+
+    position = value.get("windowPosition")
+    if position is not None:
+        if isinstance(position, str):
+            if position not in WINDOW_POSITIONS:
+                _invalid("DRAFT_NODE_PRESENTATION_INVALID")
+        elif (
+            not isinstance(position, dict)
+            or set(position) != WINDOW_POSITION_FIELDS
+            or not _valid_percent(
+                position.get("xPercent"), POSITION_MIN_PERCENT, POSITION_MAX_PERCENT
+            )
+            or not _valid_percent(
+                position.get("yPercent"), POSITION_MIN_PERCENT, POSITION_MAX_PERCENT
+            )
+        ):
+            _invalid("DRAFT_NODE_PRESENTATION_INVALID")
+
+    style = value.get("windowStyle")
+    if style is not None and style not in WINDOW_STYLES:
+        _invalid("DRAFT_NODE_PRESENTATION_INVALID")
 
 
 def _subtitle_seconds(value: str) -> float | None:
@@ -438,15 +493,7 @@ def validate_config(config: object) -> tuple[list[dict], list[dict]]:
         if not _text(node.get("title")):
             _invalid("DRAFT_NODE_CONTENT_INVALID")
         referenced = _validate_rich_document(node.get("content"), assets)
-        hints = node.get("presentationHints", {})
-        if (
-            not isinstance(hints, dict)
-            or set(hints) - {"windowSize", "windowStyle", "windowPosition"}
-            or hints.get("windowSize") not in {None, *WINDOW_SIZES}
-            or hints.get("windowStyle") not in {None, *WINDOW_STYLES}
-            or hints.get("windowPosition") not in {None, *WINDOW_POSITIONS}
-        ):
-            _invalid("DRAFT_NODE_CONTENT_INVALID")
+        validate_presentation_hints(node.get("presentationHints", {}))
         data = node.get("interactionData")
         if interaction == "notice":
             if data is not None:
@@ -566,6 +613,41 @@ class AuthoringReleaseApplicationService:
         if commit:
             self.session.commit()
         return draft
+
+    def update_node_presentation(
+        self,
+        teacher_id: str,
+        lesson_id: str,
+        node_id: str,
+        revision: int,
+        presentation_hints: dict,
+    ) -> tuple[int, dict]:
+        """按 revision 原子替换一个草稿节点的展示配置。"""
+        draft = self.get_draft(lesson_id)
+        if revision != draft.revision:
+            raise AuthoringReleaseError("REVISION_CONFLICT")
+
+        nodes = draft.content.get("nodes", [])
+        target = next((node for node in nodes if node.get("id") == node_id), None)
+        if target is None:
+            raise AuthoringReleaseError("DRAFT_NODE_NOT_FOUND")
+
+        validate_presentation_hints(presentation_hints)
+        updated_nodes = []
+        for node in nodes:
+            updated = dict(node)
+            if node.get("id") == node_id:
+                updated["presentationHints"] = dict(presentation_hints)
+            updated_nodes.append(updated)
+        updated_content = {**draft.content, "nodes": updated_nodes}
+        validate_config(updated_content)
+
+        draft.revision += 1
+        draft.content = updated_content
+        draft.content_digest = _digest(updated_content)
+        draft.saved_by_teacher_id = teacher_id
+        self.session.commit()
+        return draft.revision, dict(presentation_hints)
 
     def export_draft_file(self, course: Course, lessons: list[Lesson]) -> dict:
         from app.modules.authoring_release.portable import from_drafts

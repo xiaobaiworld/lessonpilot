@@ -21,6 +21,8 @@ from app.modules.authoring_release.schemas import (
     CourseFileWrite,
     DraftPublic,
     DraftWrite,
+    NodePresentationPublic,
+    NodePresentationWrite,
     PreviewEnd,
     PreviewPublic,
     PreviewStart,
@@ -54,6 +56,7 @@ AUTHORING_ERROR_MESSAGES = {
     "DRAFT_NODE_TYPE_INVALID": "节点类型或启用状态无效，请重新编辑节点",
     "DRAFT_LEGACY_NODE_UNSUPPORTED": "节点使用了旧版字段，请重新编辑该节点",
     "DRAFT_NODE_CONTENT_INVALID": "节点标题、正文或窗口设置无效，请检查节点内容",
+    "DRAFT_NODE_PRESENTATION_INVALID": "窗口展示配置无效，请检查尺寸、位置和样式",
     "DRAFT_NODE_TRIGGER_INVALID": "节点触发时间无效，请重新设置触发时间",
     "DRAFT_NODE_BEHAVIOR_INVALID": "节点触发行为无效，请重新编辑该节点",
     "DRAFT_NOTICE_INVALID": "重点标注不能包含题型数据，请重新编辑该节点",
@@ -324,6 +327,37 @@ def save_draft(
                 payload.config.model_dump(by_alias=True, exclude_none=True),
                 payload.revision,
             )
+        )
+    except (WorkspaceCourseError, AuthoringReleaseError) as error:
+        raise _error(error) from error
+
+
+@router.put(
+    "/lessons/{lesson_id}/draft/nodes/{node_id}/presentation",
+    response_model=NodePresentationPublic,
+)
+def update_node_presentation(
+    lesson_id: str,
+    node_id: str,
+    payload: NodePresentationWrite,
+    teacher: TeacherAccount = Depends(require_teacher),
+    db: Session = Depends(get_db),
+) -> NodePresentationPublic:
+    courses, authoring = _services(db)
+    try:
+        courses.get_lesson(teacher.id, lesson_id)
+        revision, hints = authoring.update_node_presentation(
+            teacher.id,
+            lesson_id,
+            node_id,
+            payload.revision,
+            payload.presentation_hints.model_dump(by_alias=True),
+        )
+        return NodePresentationPublic(
+            lesson_id=lesson_id,
+            node_id=node_id,
+            revision=revision,
+            presentation_hints=hints,
         )
     except (WorkspaceCourseError, AuthoringReleaseError) as error:
         raise _error(error) from error

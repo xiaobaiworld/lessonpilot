@@ -30,10 +30,33 @@ export type WindowSize = (typeof WINDOW_SIZES)[number];
 export type WindowStyle = (typeof WINDOW_STYLES)[number];
 export type WindowPosition = (typeof WINDOW_POSITIONS)[number];
 
+export interface WindowSizeConfig {
+  widthPercent: number;
+  heightPercent: number;
+}
+
+export interface WindowPositionConfig {
+  xPercent: number;
+  yPercent: number;
+}
+
+export const PRESENTATION_LIMITS = {
+  minPercent: 10,
+  maxPercent: 66,
+  positionMinPercent: 0,
+  positionMaxPercent: 100,
+} as const;
+
+export const DEFAULT_PRESENTATION_HINTS = {
+  size: { widthPercent: 40, heightPercent: 30 },
+  style: 'document' as WindowStyle,
+  position: { xPercent: 50, yPercent: 50 },
+} as const;
+
 export interface PresentationHints {
-  windowSize?: 's' | 'm' | 'l' | 'overlay';
-  windowStyle?: 'card' | 'document';
-  windowPosition?: WindowPosition;
+  windowSize?: WindowSizeConfig | WindowSize;
+  windowStyle?: WindowStyle;
+  windowPosition?: WindowPositionConfig | WindowPosition;
 }
 
 export interface AssetRecord {
@@ -50,9 +73,84 @@ export interface AssetRecord {
 }
 
 export interface ResolvedPresentationHints {
-  size: WindowSize;
+  size: WindowSizeConfig;
   style: WindowStyle;
-  position: WindowPosition;
+  position: WindowPositionConfig;
+}
+
+const LEGACY_SIZE_CONFIG: Record<WindowSize, WindowSizeConfig> = {
+  s: { widthPercent: 30, heightPercent: 20 },
+  m: { widthPercent: 40, heightPercent: 30 },
+  l: { widthPercent: 55, heightPercent: 42 },
+  overlay: { widthPercent: 66, heightPercent: 66 },
+};
+
+const LEGACY_POSITION_CONFIG: Record<WindowPosition, WindowPositionConfig> = {
+  'bottom-left': { xPercent: 20, yPercent: 78 },
+  'bottom-right': { xPercent: 80, yPercent: 78 },
+  center: { xPercent: 50, yPercent: 50 },
+};
+
+function roundedPercent(value: number): number {
+  return Math.round(value * 10) / 10;
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+function isWindowSizeConfig(value: unknown): value is WindowSizeConfig {
+  if (!value || typeof value !== 'object') return false;
+  const config = value as Record<string, unknown>;
+  return (
+    Object.keys(config).length === 2 &&
+    isFiniteNumber(config.widthPercent) &&
+    isFiniteNumber(config.heightPercent) &&
+    config.widthPercent >= PRESENTATION_LIMITS.minPercent &&
+    config.widthPercent <= PRESENTATION_LIMITS.maxPercent &&
+    config.heightPercent >= PRESENTATION_LIMITS.minPercent &&
+    config.heightPercent <= PRESENTATION_LIMITS.maxPercent
+  );
+}
+
+function isWindowPositionConfig(value: unknown): value is WindowPositionConfig {
+  if (!value || typeof value !== 'object') return false;
+  const config = value as Record<string, unknown>;
+  return (
+    Object.keys(config).length === 2 &&
+    isFiniteNumber(config.xPercent) &&
+    isFiniteNumber(config.yPercent) &&
+    config.xPercent >= PRESENTATION_LIMITS.positionMinPercent &&
+    config.xPercent <= PRESENTATION_LIMITS.positionMaxPercent &&
+    config.yPercent >= PRESENTATION_LIMITS.positionMinPercent &&
+    config.yPercent <= PRESENTATION_LIMITS.positionMaxPercent
+  );
+}
+
+function normalizeSize(value: unknown, fallback: WindowSizeConfig): WindowSizeConfig {
+  if (isWindowSizeConfig(value)) {
+    return {
+      widthPercent: roundedPercent(value.widthPercent),
+      heightPercent: roundedPercent(value.heightPercent),
+    };
+  }
+  if (typeof value === 'string' && WINDOW_SIZES.includes(value as WindowSize)) {
+    return { ...LEGACY_SIZE_CONFIG[value as WindowSize] };
+  }
+  return { ...fallback };
+}
+
+function normalizePosition(value: unknown, fallback: WindowPositionConfig): WindowPositionConfig {
+  if (isWindowPositionConfig(value)) {
+    return {
+      xPercent: roundedPercent(value.xPercent),
+      yPercent: roundedPercent(value.yPercent),
+    };
+  }
+  if (typeof value === 'string' && WINDOW_POSITIONS.includes(value as WindowPosition)) {
+    return { ...LEGACY_POSITION_CONFIG[value as WindowPosition] };
+  }
+  return { ...fallback };
 }
 
 /**
@@ -62,17 +160,24 @@ export interface ResolvedPresentationHints {
 export function resolvePresentationHints(
   hints: Partial<PresentationHints> | Record<string, unknown>
 ): ResolvedPresentationHints {
-  const size = WINDOW_SIZES.includes(hints.windowSize as WindowSize)
-    ? (hints.windowSize as WindowSize)
-    : 's';
+  const hasLegacySize = typeof hints.windowSize === 'string' && WINDOW_SIZES.includes(hints.windowSize as WindowSize);
+  const hasLegacyPosition = typeof hints.windowPosition === 'string' && WINDOW_POSITIONS.includes(hints.windowPosition as WindowPosition);
+  const hasLegacyValue =
+    hasLegacySize || hasLegacyPosition;
+  const legacySize = hints.windowSize as WindowSize | undefined;
+  const defaultSize = hasLegacyValue ? LEGACY_SIZE_CONFIG.s : DEFAULT_PRESENTATION_HINTS.size;
+  const size = normalizeSize(hints.windowSize, defaultSize);
+  const defaultPosition = hasLegacyValue
+    ? legacySize === 'overlay'
+      ? LEGACY_POSITION_CONFIG.center
+      : LEGACY_POSITION_CONFIG['bottom-right']
+    : DEFAULT_PRESENTATION_HINTS.position;
+  const position = normalizePosition(hints.windowPosition, defaultPosition);
   const style = WINDOW_STYLES.includes(hints.windowStyle as WindowStyle)
     ? (hints.windowStyle as WindowStyle)
-    : 'card';
-  const position = WINDOW_POSITIONS.includes(hints.windowPosition as WindowPosition)
-    ? (hints.windowPosition as WindowPosition)
-    : size === 'overlay'
-      ? 'center'
-      : 'bottom-right';
+    : hasLegacyValue
+      ? 'card'
+      : DEFAULT_PRESENTATION_HINTS.style;
   return { size, style, position };
 }
 

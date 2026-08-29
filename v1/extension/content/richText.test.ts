@@ -71,21 +71,25 @@ describe('重点标注富文本安全渲染', () => {
 });
 
 describe('学习窗口外观预设', () => {
-  it('合法枚举原样使用', () => {
+  it('合法旧枚举转换为连续展示配置', () => {
     expect(
       resolveWindowPresentation({
         windowSize: 'overlay',
         windowStyle: 'document',
         windowPosition: 'center',
       })
-    ).toEqual({ size: 'overlay', style: 'document', position: 'center' });
+    ).toEqual({
+      size: { widthPercent: 66, heightPercent: 66 },
+      style: 'document',
+      position: { xPercent: 50, yPercent: 50 },
+    });
   });
 
-  it('缺失或非法值回退到小卡片右下角', () => {
+  it('缺失或非法值回退到默认居中普通窗口', () => {
     expect(resolveWindowPresentation({})).toEqual({
-      size: 's',
-      style: 'card',
-      position: 'bottom-right',
+      size: { widthPercent: 40, heightPercent: 30 },
+      style: 'document',
+      position: { xPercent: 50, yPercent: 50 },
     });
     expect(
       resolveWindowPresentation({
@@ -93,7 +97,11 @@ describe('学习窗口外观预设', () => {
         windowStyle: 'neon',
         windowPosition: 'top-right',
       })
-    ).toEqual({ size: 's', style: 'card', position: 'bottom-right' });
+    ).toEqual({
+      size: { widthPercent: 40, heightPercent: 30 },
+      style: 'document',
+      position: { xPercent: 50, yPercent: 50 },
+    });
   });
 });
 

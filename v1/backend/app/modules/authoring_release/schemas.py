@@ -36,6 +36,44 @@ class DraftWrite(BaseModel):
     config: DraftConfig
 
 
+class WindowSizeWrite(BaseModel):
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+
+    width_percent: float = Field(alias="widthPercent")
+    height_percent: float = Field(alias="heightPercent")
+
+
+class WindowPositionWrite(BaseModel):
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+
+    x_percent: float = Field(alias="xPercent")
+    y_percent: float = Field(alias="yPercent")
+
+
+class PresentationHintsWrite(BaseModel):
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+
+    window_size: WindowSizeWrite = Field(alias="windowSize")
+    window_position: WindowPositionWrite = Field(alias="windowPosition")
+    window_style: Literal["card", "document"] = Field(alias="windowStyle")
+
+
+class NodePresentationWrite(BaseModel):
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+
+    revision: int = Field(ge=0)
+    presentation_hints: PresentationHintsWrite = Field(alias="presentationHints")
+
+
+class NodePresentationPublic(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    lesson_id: str = Field(alias="lessonId")
+    node_id: str = Field(alias="nodeId")
+    revision: int
+    presentation_hints: dict = Field(alias="presentationHints")
+
+
 class DraftPublic(BaseModel):
     schema_version: int
     revision: int

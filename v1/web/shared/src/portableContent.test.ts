@@ -59,24 +59,52 @@ describe('RichPageDocument', () => {
 
   it('教师预览和插件对缺失展示参数使用同一套默认值', () => {
     expect(resolvePresentationHints({})).toEqual({
-      size: 's',
-      style: 'card',
-      position: 'bottom-right',
+      size: { widthPercent: 40, heightPercent: 30 },
+      style: 'document',
+      position: { xPercent: 50, yPercent: 50 },
     });
     expect(resolvePresentationHints({ windowSize: 'overlay' })).toEqual({
-      size: 'overlay',
+      size: { widthPercent: 66, heightPercent: 66 },
       style: 'card',
-      position: 'center',
+      position: { xPercent: 50, yPercent: 50 },
     });
     expect(resolvePresentationHints({
       windowSize: 'l',
       windowStyle: 'document',
       windowPosition: 'bottom-left',
-    })).toEqual({ size: 'l', style: 'document', position: 'bottom-left' });
+    })).toEqual({
+      size: { widthPercent: 55, heightPercent: 42 },
+      style: 'document',
+      position: { xPercent: 20, yPercent: 78 },
+    });
     expect(resolvePresentationHints({ windowSize: 'unknown', windowPosition: 'unknown' })).toEqual({
-      size: 's',
-      style: 'card',
-      position: 'bottom-right',
+      size: { widthPercent: 40, heightPercent: 30 },
+      style: 'document',
+      position: { xPercent: 50, yPercent: 50 },
+    });
+  });
+
+  it('解析新数值展示配置并保留一位小数', () => {
+    expect(resolvePresentationHints({
+      windowSize: { widthPercent: 42.56, heightPercent: 31.24 },
+      windowPosition: { xPercent: 63.44, yPercent: 28.74 },
+      windowStyle: 'document',
+    })).toEqual({
+      size: { widthPercent: 42.6, heightPercent: 31.2 },
+      style: 'document',
+      position: { xPercent: 63.4, yPercent: 28.7 },
+    });
+  });
+
+  it('数值展示配置越界时整组回退到默认值', () => {
+    expect(resolvePresentationHints({
+      windowSize: { widthPercent: 99, heightPercent: 5 },
+      windowPosition: { xPercent: -1, yPercent: 101 },
+      windowStyle: 'document',
+    })).toEqual({
+      size: { widthPercent: 40, heightPercent: 30 },
+      style: 'document',
+      position: { xPercent: 50, yPercent: 50 },
     });
   });
 });

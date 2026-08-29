@@ -60,12 +60,49 @@ def test_window_position_is_optional_and_accepts_supported_values():
     assert nodes[0]["presentationHints"] == {}
 
 
+def test_continuous_window_size_and_position_are_validated():
+    nodes, _ = validate_config(
+        {
+            "nodes": [
+                node(
+                    presentationHints={
+                        "windowSize": {"widthPercent": 42.5, "heightPercent": 31.2},
+                        "windowPosition": {"xPercent": 63.4, "yPercent": 28.7},
+                        "windowStyle": "document",
+                    }
+                )
+            ],
+            "assets": [],
+        }
+    )
+    assert nodes[0]["presentationHints"]["windowSize"]["widthPercent"] == 42.5
+
+
+def test_continuous_window_values_outside_range_have_a_stable_error():
+    with pytest.raises(AuthoringReleaseError) as error:
+        validate_config(
+            {
+                "nodes": [
+                    node(
+                        presentationHints={
+                            "windowSize": {"widthPercent": 66.1, "heightPercent": 31.2},
+                            "windowPosition": {"xPercent": 50, "yPercent": 50},
+                            "windowStyle": "document",
+                        }
+                    )
+                ],
+                "assets": [],
+            }
+        )
+    assert error.value.code == "DRAFT_NODE_PRESENTATION_INVALID"
+
+
 def test_unknown_window_position_is_rejected():
     with pytest.raises(AuthoringReleaseError) as error:
         validate_config(
             {"nodes": [node(presentationHints={"windowPosition": "top-right"})], "assets": []}
         )
-    assert error.value.code == "DRAFT_NODE_CONTENT_INVALID"
+    assert error.value.code == "DRAFT_NODE_PRESENTATION_INVALID"
 
 
 def test_old_display_body_and_evaluation_are_rejected():
