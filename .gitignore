@@ -32,6 +32,7 @@ logs/
 .gstack/
 .playwright-cli/
 output/playwright/
+.worktrees/
 
 
 # Pages 发布产物，由 workflow 现场组装，不入库
