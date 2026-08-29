@@ -49,7 +49,7 @@ describe('结构化互动节点', () => {
 
   it('本地保存前检查结构化正文和题型数据', () => {
     const node = createNode('notice', 0);
-    expect(findEmptyField(node)).toBe('正文');
+    expect(findEmptyField(node)).toBe('重点内容');
     node.content = richDocumentFromText('提示');
     expect(findEmptyField(node)).toBeNull();
     const choice = createNode('choice', 0);
@@ -58,9 +58,6 @@ describe('结构化互动节点', () => {
   });
 
   it('按课程化字段名称提示各题型的缺失内容', () => {
-    const notice = createNode('notice', 0);
-    expect(findEmptyField(notice)).toBe('重点内容');
-
     const choice = createNode('choice', 0);
     choice.content = richDocumentFromText('题目');
     choice.interactionData = {
