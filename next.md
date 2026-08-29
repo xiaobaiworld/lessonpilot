@@ -2,6 +2,21 @@
 
 更新时间：2026-08-28
 
+## 当前执行切片：课程互动节点课程化编辑引导
+
+依据：D-V1-025；设计：docs/superpowers/specs/2026-08-29-course-node-content-guidance-design.md；计划：docs/superpowers/plans/2026-08-29-course-node-content-guidance.md。
+
+当前步骤：锁定教师端 copy、默认标题和错误字段的失败测试。
+验证：npm --prefix v1 test -- web/teacher/src/nodeFormCopy.test.ts web/teacher/src/nodes.test.ts
+
+不变量：不增加节点字段，不修改课程包 schema，不修改插件行为；companion 资源不纳入本轮。
+
+然后检查：
+git status --short --branch
+git diff --name-only
+
+预期：只看到既有用户修改；不得覆盖任何 v1/web/teacher 计划外修改，也不得加入、移动或删除 companion 资源。
+
 ## 当前执行切片：学生插件课程库、课程升级与设置
 
 本轮依据 `D-V1-022` 和已确认设计
