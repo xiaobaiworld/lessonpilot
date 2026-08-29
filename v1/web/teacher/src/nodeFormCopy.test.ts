@@ -3,19 +3,38 @@ import { NODE_FORM_COPY, nodeFormCopy } from './nodeFormCopy';
 
 describe('节点课程化填写文案', () => {
   const kinds = ['notice', 'choice', 'blank', 'free_text'] as const;
+  const copyFields = [
+    'contentHeading',
+    'contentAside',
+    'titleLabel',
+    'titleHint',
+    'titlePlaceholder',
+    'contentLabel',
+    'contentHint',
+    'contentPlaceholder',
+    'detailHeading',
+    'detailAside',
+    'optionHint',
+    'optionPlaceholder',
+    'answerLabel',
+    'answerHint',
+    'answerPlaceholder',
+    'feedbackLabel',
+    'feedbackHint',
+    'feedbackPlaceholder',
+    'previewBadge',
+    'previewEmptyText',
+    'previewInputPlaceholder',
+  ] as const;
 
   it('四种节点都有完整课程任务 copy', () => {
     expect(Object.keys(NODE_FORM_COPY).sort()).toEqual([...kinds].sort());
     for (const kind of kinds) {
       const copy = nodeFormCopy(kind);
-      expect(copy.contentHeading).toBeTruthy();
-      expect(copy.contentLabel).toBeTruthy();
-      expect(copy.contentHint).toBeTruthy();
-      expect(copy.contentPlaceholder).toBeTruthy();
-      expect(copy.titleLabel).toBeTruthy();
-      expect(copy.titlePlaceholder).toBeTruthy();
-      expect(copy.previewBadge).toBeTruthy();
-      expect(copy.previewEmptyText).toBeTruthy();
+      for (const field of copyFields) {
+        expect(copy[field]).toEqual(expect.any(String));
+        expect(copy[field].trim()).not.toBe('');
+      }
     }
   });
 
@@ -32,6 +51,7 @@ describe('节点课程化填写文案', () => {
     expect(nodeFormCopy('notice')).toMatchObject({
       titleLabel: '重点主题',
       contentLabel: '重点内容',
+      contentAside: '告诉学生这一刻要理解或记住什么',
       previewBadge: '本节重点',
     });
   });
