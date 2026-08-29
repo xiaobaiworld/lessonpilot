@@ -1,8 +1,8 @@
 # KnownMap 系统总说明
 
-版本：1.1
+版本：1.2
 
-更新时间：2026-08-27
+更新时间：2026-08-29
 
 这份文件回答「这个系统是什么、由哪些部分组成、它们怎么连起来」。
 读完它应当能定位到任何一块代码，并知道它为什么在那里。
@@ -180,6 +180,14 @@ nodes[].presentationHints    -> windowSize / windowStyle / windowPosition
 删掉其它课程的学习记录。只有存储版本号不认识时才整根隔离，因为结构未知时
 读任何字段都是猜测。
 
+### 学生陪伴形象先完成单一小猫包，升级前必须回看扩展构想
+
+当前插件实际只有一个由 Canvas 绘制的 `standard` 学习助手，还没有角色选择、状态图片、角色声音或自定义头像上传能力。已确认的第一版方向是 A1：右下角浮动陪伴形象；先完成当前样式的一只原创小猫，提供 `focus`、`idle`、`prompt`、`correct`、`wrong`、`complete` 六个状态，其中 `complete` 是节点完成后的庆祝，声音按小猫声音家族绑定，`idle` 默认静音。
+
+这不是把课程媒体资源直接当成陪伴形象。默认角色资源属于插件运行时资源；课程节点媒体继续按课程 `assetId` 管理。未来可以把当前小猫整体替换为波斯猫、黑猫、英短等不同猫包，也可以增加毛色/肤色/发色等外观变体，但第一版不提前实现多猫种目录。
+
+以后启动相关升级时，必须回看 [`D-V1-023`](decisions/2026-08-29-student-companion-avatar-pack.md) 和 [`学生陪伴形象与角色声音包开发计划`](plans/2026-08-29-student-companion-avatar-and-sound-pack.md)，逐项确认多猫种、外观变体、状态数量、声音来源、资源分发和自定义声音是否仍要纳入本次升级；不能因为构想已写入历史文档，就默认它已经进入升级范围。
+
 ---
 
 ## 6. 目录
@@ -287,8 +295,7 @@ KNOWNMAP_SSH_HOST=aliyun-us \
 
 进度表与剩余项见 [`next.md`](../next.md)。
 
-一句话：阶段 0–6 的代码与自动化门禁完成，学生端已在真实 Chrome 验收，
-生产切换尚未执行。
+一句话：阶段 0–6 的代码与自动化门禁完成，学生端已在真实 Chrome 验收；陪伴形象与角色声音包目前处于文档设计阶段，代码和二进制资源尚未实施。
 
 ---
 
@@ -300,8 +307,9 @@ KNOWNMAP_SSH_HOST=aliyun-us \
 | 文档怎么分类、哪些是权威 | [`doc/INDEX.md`](INDEX.md) |
 | 为什么这样设计 | [`doc/design/v1/`](design/v1/) |
 | 要做到什么 | [`doc/requirements/v1/`](requirements/v1/) |
+| 陪伴形象第一版怎么做 | [`doc/plans/2026-08-29-student-companion-avatar-and-sound-pack.md`](plans/2026-08-29-student-companion-avatar-and-sound-pack.md) |
 | 踩过什么坑 | [`doc/lessons.md`](lessons.md) |
-| 已接受的决策 | [`doc/decisions/`](decisions/)（`D-V1-001` 至 `D-V1-013`） |
+| 已接受的决策 | [`doc/decisions/`](decisions/)（`D-V1-001` 至 `D-V1-023`） |
 | 重构分几步走 | [`doc/plans/v1-code-refactor-execution-plan.md`](plans/v1-code-refactor-execution-plan.md) |
 
 **改代码前先读 `doc/lessons.md`**。它记的都是已经付过代价的事，其中好几条

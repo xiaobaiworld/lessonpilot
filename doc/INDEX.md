@@ -1,9 +1,9 @@
 # KnownMap 文档索引
 
-最近审计：2026-08-28；2026-08-25 增补插件本机资源管理备忘；2026-08-27 增补 `D-V1-017` 字幕上传修复流程、`D-V1-018` 教师工作台课程版本方向和 `D-V1-019` 当前课程级授权规则，并完成相关后端端点可组合性审计；2026-08-28 增补 `D-V1-020` 授权码创建与管理设计、`D-V1-021` B 站视频与分 P 精确引用、`D-V1-022` 学生课程库升级契约边界
+最近审计：2026-08-29；2026-08-25 增补插件本机资源管理备忘；2026-08-27 增补 `D-V1-017` 字幕上传修复流程、`D-V1-018` 教师工作台课程版本方向和 `D-V1-019` 当前课程级授权规则，并完成相关后端端点可组合性审计；2026-08-28 增补 `D-V1-020` 授权码创建与管理设计、`D-V1-021` B 站视频与分 P 精确引用、`D-V1-022` 学生课程库升级契约边界；2026-08-29 增补 `D-V1-023` 学生课程陪伴形象角色资源包和升级前提醒
 
 当前阶段：v1 已完成生产切换并进入新功能开发；当前授权码按 `course_id` 自动解析最新可交付版本，可复用现有后端端点；独立课程版本、草稿消费、版本操作和版本级授权仍等待后续端点/业务服务变更批准；v1 需求现为 `1.1.0`，功能需求新增学生学习陪伴形象和其他教师课程推荐两个后续候选；设计 04–07 已同步互动节点结构化内容、展示提示保存、教师预览和课程版本方向；设计 07 已按
-`FR-LIB-014` 增补学生插件使用说明页。插件大资源本机方案见 [`插件文件资源管理.md`](插件文件资源管理.md)；教师端媒体资源输入决策见
+`FR-LIB-014` 增补学生插件使用说明页。学生陪伴形象与声音包第一版计划见 [`plans/2026-08-29-student-companion-avatar-and-sound-pack.md`](plans/2026-08-29-student-companion-avatar-and-sound-pack.md)，插件大资源本机方案见 [`插件文件资源管理.md`](插件文件资源管理.md)；教师端媒体资源输入决策见
 [`D-V1-016`](decisions/2026-08-27-teacher-media-assets.md)。
 
 其它 Agent 开始工作时先读本文件，再按「当前权威」顺序阅读。**只有「当前权威」段的文档指导开发。**
@@ -19,6 +19,7 @@
 | [`requirements/v1/README.md`](requirements/v1/README.md) | v1 需求入口：文件索引、编号规则、审核状态 |
 | [`design/v1/README.md`](design/v1/README.md) | v1 设计入口：文件编号、权威顺序、审核与归档门禁 |
 | [`plans/v1-development-plan.md`](plans/v1-development-plan.md) | 阶段 0–8 目标、交付和产品门禁（`1.1.0`） |
+| [`plans/2026-08-29-student-companion-avatar-and-sound-pack.md`](plans/2026-08-29-student-companion-avatar-and-sound-pack.md) | 学生陪伴形象第一版、角色声音包、资源约束、验证和后续升级提醒 |
 | [`plans/v1-replacement-plan.md`](plans/v1-replacement-plan.md) | 已接受的同仓库 `v1/` 目录隔离替换决策与资产处置依据（`0.2.0`，非工作包真源） |
 | [`plans/v1-code-refactor-execution-plan.md`](plans/v1-code-refactor-execution-plan.md) | 唯一逐工作包实施真源：目录、工具、测试、切换、退役、失败模式和提交边界（`0.3.0`） |
 | [`plans/v1-test-plan.md`](plans/v1-test-plan.md) | 需求级测试矩阵、自动化/人工证据和发布门禁 |
@@ -83,6 +84,7 @@
 | `D-V1-020` | [授权码记录与教师侧管理状态](decisions/2026-08-28-access-code-management.md)；设计与实现待评审 |
 | `D-V1-021` | [课程绑定使用 B 站视频与分 P 的精确引用](decisions/2026-08-28-bilibili-video-reference.md) |
 | `D-V1-022` | [学生课程库升级契约边界与存储版本策略](decisions/2026-08-28-student-course-library-contract-boundaries.md) |
+| `D-V1-023` | [学生陪伴形象采用可替换角色资源包，第一版先完成单一小猫包](decisions/2026-08-29-student-companion-avatar-pack.md) |
 | 当前性能决策 | [教师端首屏性能优化](decisions/2026-08-27-teacher-first-load-performance.md) |
 
 ### 经验与状态
