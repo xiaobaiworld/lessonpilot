@@ -54,7 +54,7 @@ export const TARGETS: Record<TargetName, BuildTarget> = {
   },
 };
 
-export const EXTENSION_VERSION = '1.0.13';
+export const EXTENSION_VERSION = '1.1.1';
 
 export function buildManifest(target: BuildTarget): Record<string, unknown> {
   return {
@@ -79,6 +79,7 @@ export function buildManifest(target: BuildTarget): Record<string, unknown> {
         '128': 'assets/icon-128.png',
       },
     },
+    options_page: 'settings/index.html',
     icons: {
       '16': 'assets/icon-16.png',
       '24': 'assets/icon-24.png',
@@ -118,6 +119,9 @@ export const BUILD_ARTIFACTS = [
   'content/window.css',
   'popup/index.html',
   'popup/index.js',
+  'settings/index.html',
+  'settings/index.js',
+  'settings/settings.css',
   'assets/icon-16.png',
   'assets/icon-24.png',
   'assets/icon-48.png',

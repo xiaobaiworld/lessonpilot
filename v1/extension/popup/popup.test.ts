@@ -6,7 +6,7 @@ const source = readFileSync(resolve(__dirname, 'index.ts'), 'utf8');
 const updateSource = readFileSync(resolve(__dirname, 'update.ts'), 'utf8');
 const stylesheet = readFileSync(resolve(__dirname, 'popup.css'), 'utf8');
 
-describe('V1.0.5 弹窗保留旧版入口并保留 V1 能力', () => {
+describe('V1.1.1 弹窗保留旧版入口并接入头像设置', () => {
   it('恢复 0.9.2 的品牌、教师登录和在线更新入口', () => {
     expect(source).toMatch(/课程助手/);
     expect(source).toMatch(/chrome\.runtime\.getManifest\(\)\.version/);
@@ -15,6 +15,12 @@ describe('V1.0.5 弹窗保留旧版入口并保留 V1 能力', () => {
     expect(updateSource).toMatch(/knownmapplugin\.zip/);
     expect(source).not.toMatch(/试用课程/);
     expect(source).not.toMatch(/role-badge/);
+  });
+
+  it('品牌栏提供独立的头像设置入口', () => {
+    expect(source).toMatch(/avatar-settings-button/);
+    expect(source).toMatch(/头像设置/);
+    expect(source).toMatch(/chrome\.runtime\.openOptionsPage\(\)/);
   });
 
   it('KnownMap 的 K 与 M 对应 Logo 折线起点金和终点陶土', () => {

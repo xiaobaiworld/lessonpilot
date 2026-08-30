@@ -47,6 +47,7 @@ export default defineConfig({
         'background/service-worker': resolve(__dirname, 'background/service-worker.ts'),
         'content/index': resolve(__dirname, 'content/index.ts'),
         'popup/index': resolve(__dirname, 'popup/index.ts'),
+        'settings/index': resolve(__dirname, 'settings/index.ts'),
       },
       output: {
         entryFileNames: '[name].js',
@@ -65,6 +66,7 @@ export default defineConfig({
       closeBundle() {
         mkdirSync(resolve(outDir, 'content'), { recursive: true });
         mkdirSync(resolve(outDir, 'popup'), { recursive: true });
+        mkdirSync(resolve(outDir, 'settings'), { recursive: true });
         mkdirSync(resolve(outDir, 'assets'), { recursive: true });
         cpSync(
           resolve(__dirname, 'assets/companion'),
@@ -93,6 +95,15 @@ export default defineConfig({
         copyFileSync(
           resolve(__dirname, 'popup/popup.css'),
           resolve(outDir, 'popup/popup.css')
+        );
+        const settingsHtml = readFileSync(
+          resolve(__dirname, 'settings/index.html'),
+          'utf8'
+        ).replace('./index.ts', './index.js');
+        writeFileSync(resolve(outDir, 'settings/index.html'), settingsHtml);
+        copyFileSync(
+          resolve(__dirname, 'settings/settings.css'),
+          resolve(outDir, 'settings/settings.css')
         );
         for (const size of [16, 24, 48, 128]) {
           copyFileSync(
@@ -127,6 +138,9 @@ export default defineConfig({
           // HTML 自己引用的资源
           ...[...popupHtml.matchAll(/(?:src|href)="\.\/([^"]+)"/g)].map(
             (m) => `popup/${m[1]}`
+          ),
+          ...[...settingsHtml.matchAll(/(?:src|href)="\.\/([^"]+)"/g)].map(
+            (m) => `settings/${m[1]}`
           ),
         ];
 

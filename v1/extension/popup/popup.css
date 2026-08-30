@@ -56,6 +56,30 @@ body {
   font-size: 12px;
 }
 
+.avatar-settings-button {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid #e3e5e7;
+  border-radius: 50%;
+  color: #61666d;
+  background: #fff;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.avatar-settings-button:hover,
+.avatar-settings-button:focus-visible {
+  border-color: #00aeec;
+  color: #008ac5;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 174, 236, 0.14);
+}
+
 .course-title-row {
   display: flex;
   align-items: center;

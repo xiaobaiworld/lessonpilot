@@ -211,7 +211,15 @@ function brandHeader(): HTMLElement {
     wordmark(),
     el('span', undefined, `课程助手 · v${chrome.runtime.getManifest().version}`)
   );
-  head.append(mark, copy);
+  const settings = el('button', 'avatar-settings-button');
+  settings.type = 'button';
+  settings.textContent = '⚙';
+  settings.title = '头像设置';
+  settings.setAttribute('aria-label', '打开头像设置');
+  settings.addEventListener('click', () => {
+    void chrome.runtime.openOptionsPage();
+  });
+  head.append(mark, copy, settings);
   return head;
 }
 

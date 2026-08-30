@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>KnownMap · 学习伙伴设置</title>
+    <link rel="stylesheet" href="./settings.css" />
+  </head>
+  <body>
+    <main class="settings-shell">
+      <header class="topbar">
+        <div class="brand">
+          <img src="../assets/icon-48.png" alt="" />
+          <div><strong>KnownMap · 学习助手</strong><small>插件设置 · <span id="version">v—</span></small></div>
+        </div>
+        <button class="close-button" type="button" aria-label="关闭设置页" onclick="window.close()">×</button>
+      </header>
+
+      <section class="content" aria-labelledby="page-title">
+        <p class="eyebrow">MY COMPANION</p>
+        <h1 id="page-title">选择你的学习伙伴</h1>
+        <p class="subtitle">选一个喜欢的伙伴就可以了。它已经准备好了一整套学习中的表情、动作和声音，会在合适的时候陪着你。</p>
+
+        <section class="selected-card" aria-labelledby="selected-title">
+          <div class="selected-avatar"><img id="selected-avatar" alt="当前学习伙伴" /></div>
+          <div class="selected-copy">
+            <h2 id="selected-title">神秘猫精灵 <span>猫咪角色包</span></h2>
+            <p>能够给你温柔陪伴，并带来特殊力量，让你的学习效率倍增。</p>
+            <div class="state-strip" aria-label="神秘猫精灵状态预览">
+              <button type="button" class="state-thumb" data-state-preview="idle" aria-label="等待状态">
+                <img alt="等待状态缩略图" />
+                <span class="state-popover"><img alt="等待状态大图" /></span>
+              </button>
+              <button type="button" class="state-thumb" data-state-preview="focus" aria-label="开始注意状态">
+                <img alt="开始注意状态缩略图" />
+                <span class="state-popover"><img alt="开始注意状态大图" /></span>
+              </button>
+              <button type="button" class="state-thumb" data-state-preview="prompt" aria-label="提示状态">
+                <img alt="提示状态缩略图" />
+                <span class="state-popover"><img alt="提示状态大图" /></span>
+              </button>
+              <button type="button" class="state-thumb" data-state-preview="correct" aria-label="答对状态">
+                <img alt="答对状态缩略图" />
+                <span class="state-popover"><img alt="答对状态大图" /></span>
+              </button>
+              <button type="button" class="state-thumb" data-state-preview="wrong" aria-label="答错状态">
+                <img alt="答错状态缩略图" />
+                <span class="state-popover"><img alt="答错状态大图" /></span>
+              </button>
+              <button type="button" class="state-thumb" data-state-preview="complete" aria-label="完成庆祝状态">
+                <img alt="完成庆祝状态缩略图" />
+                <span class="state-popover"><img alt="完成庆祝状态大图" /></span>
+              </button>
+              <small>共 6 个独立状态</small>
+            </div>
+          </div>
+          <span class="selected-badge">已选择</span>
+        </section>
+
+        <div class="section-heading"><h2>选择角色</h2></div>
+        <section class="categories" aria-label="角色类别">
+          <button class="category active" type="button" data-pack-id="cat-v1" aria-pressed="true">
+            <span class="category-avatar"><img src="../assets/companion/cat/v1/idle.png" alt="" /></span>
+            <strong>神秘猫精灵</strong><small>温柔陪伴 · 特殊力量</small>
+            <span class="category-copy">能够给你温柔陪伴，并带来特殊力量，让学习效率倍增。</span>
+            <span class="category-check">✓</span>
+          </button>
+          <div class="category disabled" aria-disabled="true">
+            <span class="category-avatar"><span aria-hidden="true">🐶</span></span>
+            <strong>元气狗狗伙伴</strong><small>热情鼓励 · 持续动力</small>
+            <span class="category-copy">用热情和鼓励陪你坚持，让每一次尝试都更有动力。</span>
+            <span class="future">下一版本完成</span>
+          </div>
+          <div class="category disabled" aria-disabled="true">
+            <span class="category-avatar"><span aria-hidden="true">🦊</span></span>
+            <strong>奇趣森林伙伴</strong><small>轻松陪伴 · 保持好奇</small>
+            <span class="category-copy">带来轻松新鲜的陪伴，帮助你保持好奇与专注。</span>
+            <span class="future">下一版本完成</span>
+          </div>
+          <div class="category disabled" aria-disabled="true">
+            <span class="category-avatar"><span aria-hidden="true">🧑‍🚀</span></span>
+            <strong>未知世界伙伴</strong><small>空灵相遇 · 专属陪伴</small>
+            <span class="category-copy">来自未知世界的特别伙伴，更多能力正在准备中。</span>
+            <span class="future">下一版本完成</span>
+            <span class="future-list"><span>个性设定</span><span>自己上传</span></span>
+          </div>
+        </section>
+
+        <div class="tip"><span aria-hidden="true">✦</span><span>选对伙伴，让你的学习事半功倍。</span></div>
+        <button class="save-button" type="button" disabled>当前角色已保存</button>
+        <p class="error" id="error" hidden></p>
+      </section>
+    </main>
+    <script type="module" src="./index.ts"></script>
+  </body>
+</html>

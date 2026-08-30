@@ -2,9 +2,9 @@ import { describe, it, expect } from 'vitest';
 import { TARGETS, buildManifest, BUILD_ARTIFACTS, EXTENSION_VERSION } from './targets';
 
 describe('构建目标', () => {
-  it('V1.0.13 恢复旧版入口所需的目标配置', () => {
-    expect(EXTENSION_VERSION).toBe('1.0.13');
-    expect(TARGETS.local.teacherOrigin).toBe('http://localhost:5174');
+	it('V1.1.1 恢复旧版入口并接入头像设置页', () => {
+		expect(EXTENSION_VERSION).toBe('1.1.1');
+		expect(TARGETS.local.teacherOrigin).toBe('http://localhost:5174');
     expect(TARGETS.production.teacherOrigin).toBe('https://knownmap.com');
     for (const target of Object.values(TARGETS)) {
       expect(target.studentPluginDownloadUrl).toBe(
@@ -61,12 +61,21 @@ describe('构建目标', () => {
     expect(buildManifest(TARGETS.production).manifest_version).toBe(3);
   });
 
-  it('产物清单包含 manifest 与三个入口', () => {
+	it('产物清单包含 manifest 与三个入口', () => {
     expect(BUILD_ARTIFACTS).toContain('manifest.json');
     expect(BUILD_ARTIFACTS).toContain('background/service-worker.js');
     expect(BUILD_ARTIFACTS).toContain('content/index.js');
-    expect(BUILD_ARTIFACTS).toContain('popup/index.js');
-  });
+		expect(BUILD_ARTIFACTS).toContain('popup/index.js');
+		expect(BUILD_ARTIFACTS).toContain('settings/index.html');
+		expect(BUILD_ARTIFACTS).toContain('settings/index.js');
+		expect(BUILD_ARTIFACTS).toContain('settings/settings.css');
+	});
+
+	it('manifest 把头像编辑页声明为独立设置页', () => {
+		expect(buildManifest(TARGETS.production)).toMatchObject({
+		options_page: 'settings/index.html',
+	});
+	});
 
   it('manifest 使用 V1 自有的完整图标组', () => {
     const m = buildManifest(TARGETS.production) as any;
@@ -93,7 +102,7 @@ describe('构建目标', () => {
     expect(BUILD_ARTIFACTS).toContain('assets/companion/cat/v1/manifest.json');
   });
 
-  it('manifest 里引用的脚本都在产物清单里', () => {
+	it('manifest 里引用的脚本都在产物清单里', () => {
     const m = buildManifest(TARGETS.production) as any;
     const referenced = [
       m.background.service_worker,
@@ -101,7 +110,8 @@ describe('构建目标', () => {
       m.action.default_popup,
     ];
     for (const path of referenced) {
-      expect(BUILD_ARTIFACTS).toContain(path);
-    }
-  });
+		expect(BUILD_ARTIFACTS).toContain(path);
+		}
+		expect(BUILD_ARTIFACTS).toContain(buildManifest(TARGETS.production).options_page);
+	});
 });
