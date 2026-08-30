@@ -1,6 +1,15 @@
 # KnownMap 当前下一步
 
-更新时间：2026-08-28
+更新时间：2026-08-30
+
+## 当前执行切片：学习伙伴弹窗与猫咪资源压缩
+
+依据：`D-V1-023`、`D-V1-026`；设计：`docs/superpowers/specs/2026-08-30-student-companion-package-settings-design.md`；计划：`docs/superpowers/plans/2026-08-30-companion-popup-and-asset-compression.md`。
+
+当前步骤：先用失败测试冻结 cat-v1 的 WebP/Ogg 资源路径、同一 popup 内的学习伙伴页面和五段声音试听。
+验证：`npm --prefix v1 test -- extension/content/companion-assets.test.ts extension/manifest/targets.test.ts extension/popup/popup.test.ts extension/settings/settings.test.ts`
+
+不变量：不改课程包 schema、不改后端或教师节点文件、不混入当前工作树已有的教师端修改和数据库备份；本轮不实现任何远程角色包下载。
 
 ## 当前执行切片：课程互动节点课程化编辑引导
 
