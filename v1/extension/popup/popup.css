@@ -10,9 +10,11 @@
 body {
   width: 380px;
   min-height: 560px;
+  max-height: 600px;
   margin: 0;
   color: #18191c;
   background: #f6f7f8;
+  overflow-y: auto;
 }
 
 .shell {
@@ -151,6 +153,41 @@ body {
 .toggle.active { background: #00aeec; }
 .future { flex: none; padding: 4px 6px; border-radius: 99px; color: #6b4f04; background: #f5e7b0; font-size: 9px; }
 .settings-footnote { color: #9499a0; font-size: 10px; line-height: 1.5; }
+
+.companion-shell { min-height: auto; }
+.companion-hero { position: relative; display: grid; grid-template-columns: 86px 1fr; gap: 10px; align-items: center; margin-top: 12px; padding: 10px; border: 1px solid #cfeaf5; border-radius: 13px; background: linear-gradient(135deg, #f0fbff, #fff9ec); }
+.companion-hero-image { width: 82px; height: 82px; object-fit: contain; border-radius: 18px; background: #fff; }
+.companion-hero-copy h2 { margin: 1px 0 4px; font-size: 15px; }
+.companion-hero-copy p { margin: 0; color: #61666d; font-size: 10px; line-height: 1.55; }
+.companion-selected { position: absolute; top: 8px; right: 8px; padding: 3px 6px; border-radius: 99px; color: #087ca7; background: #d8f4ff; font-size: 9px; font-weight: 800; }
+.companion-section { margin-top: 13px; }
+.companion-state-grid { display: flex; gap: 6px; padding: 8px; border: 1px solid #e3e5e7; border-radius: 10px; background: #fff; }
+.companion-thumb { display: grid; flex: 1; place-items: center; width: 34px; height: 34px; padding: 2px; border: 1px solid #dfe8ec; border-radius: 8px; background: #f8fcfe; cursor: pointer; }
+.companion-thumb:hover, .companion-thumb:focus-visible { border-color: #00aeec; outline: none; box-shadow: 0 0 0 2px rgba(0,174,236,.14); transform: translateY(-1px); }
+.companion-thumb img { width: 28px; height: 28px; object-fit: contain; }
+.sound-row { display: flex; align-items: center; gap: 8px; padding: 8px 9px; border: 1px solid #e3e5e7; border-radius: 9px; background: #fff; }
+.sound-row + .sound-row { margin-top: 5px; }
+.sound-copy { min-width: 0; flex: 1; }
+.sound-copy strong, .sound-copy span { display: block; }
+.sound-copy strong { font-size: 11px; }
+.sound-copy span { margin-top: 2px; color: #9499a0; font-size: 9px; }
+.sound-preview, .sound-switch { border: 0; cursor: pointer; font: 700 10px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+.sound-preview { flex: none; padding: 6px 8px; border-radius: 7px; color: #008ac5; background: #e5f7fd; }
+.sound-switch { width: 100%; margin-top: 7px; padding: 9px; border-radius: 9px; color: #61666d; background: #e9ecef; }
+.sound-switch.active { color: #fff; background: #00aeec; }
+.companion-categories { display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px; }
+.companion-category { position: relative; min-height: 132px; padding: 9px; border: 1px solid #e3e5e7; border-radius: 11px; color: #18191c; background: #fff; text-align: left; }
+.companion-category.selected { border: 2px solid #00aeec; background: #f2fbff; cursor: default; }
+.companion-category.unavailable { opacity: .68; cursor: not-allowed; }
+.companion-category-image { display: block; width: 43px; height: 43px; margin-bottom: 5px; object-fit: contain; border-radius: 12px; background: #fff9ec; }
+.companion-category-emoji { display: grid; width: 43px; height: 43px; place-items: center; margin-bottom: 5px; border-radius: 12px; background: #f7f8fa; font-size: 24px; }
+.companion-category strong, .companion-category-subtitle, .companion-category-copy { display: block; }
+.companion-category strong { font-size: 11px; }
+.companion-category-subtitle { margin-top: 2px; color: #008ac5; font-size: 8px; }
+.companion-category-copy { margin-top: 5px; color: #61666d; font-size: 8px; line-height: 1.4; }
+.companion-category .future { position: absolute; right: 7px; bottom: 7px; }
+.companion-category-check { position: absolute; top: 7px; right: 7px; display: grid; width: 17px; height: 17px; place-items: center; border-radius: 50%; color: #fff; background: #00aeec; font-size: 10px; }
+.companion-tip { margin: 12px 0 0; padding: 8px 10px; border-radius: 9px; color: #6b4f04; background: #fff7d9; font-size: 10px; line-height: 1.45; }
 
 .brand {
   display: flex;
