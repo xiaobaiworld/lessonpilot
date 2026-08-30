@@ -21,10 +21,10 @@
 - Test: `v1/extension/storage/storage.test.ts`
 - Test: `v1/extension/background/messages.test.ts`
 
-- [ ] **Step 1: Write failing tests** for settings read/write and course release fields exposed to the popup.
-- [ ] **Step 2: Run the focused tests** and confirm they fail because no settings messages/release view contract exists.
-- [ ] **Step 3: Implement minimal message and storage APIs**: add `getStudentSettings`, `setStudentSettings`, expose installed release metadata, and preserve the existing serialized write queue.
-- [ ] **Step 4: Run focused tests** and confirm they pass.
+- [x] **Step 1: Write failing tests** for settings read/write and course release fields exposed to the popup.
+- [x] **Step 2: Run the focused tests** and confirm they fail because no settings messages/release view contract exists.
+- [x] **Step 3: Implement minimal message and storage APIs**: add `getStudentSettings`, `setStudentSettings`, expose installed release metadata, and preserve the existing serialized write queue.
+- [x] **Step 4: Run focused tests** and confirm they pass.
 
 ### Task 2: Implement the popup V1 home view
 
@@ -33,27 +33,24 @@
 - Modify: `v1/extension/popup/popup.css`
 - Modify: `v1/extension/popup/popup.test.ts`
 
-- [ ] **Step 1: Write failing source-contract tests** for the account row, upgrade notice, “领取新课程”, “需要升级”, “全部课程”, “为你推荐”, and settings navigation.
-- [ ] **Step 2: Run the popup tests** and confirm the V1 sections are absent.
-- [ ] **Step 3: Implement the compact home view** using real library/settings/update responses, with empty states for unavailable account/recommendation data and working course upgrade actions.
-- [ ] **Step 4: Replace the old gear behavior** so it opens the in-popup settings view and can return to home without losing state.
-- [ ] **Step 5: Run popup tests and the extension type-check.**
+- [x] **Step 1: Write failing source-contract tests** for the account row, upgrade notice, “领取新课程”, “需要升级”, “全部课程”, “为你推荐”, and settings navigation.
+- [x] **Step 2: Run the popup tests** and confirm the V1 sections are absent.
+- [x] **Step 3: Implement the compact home view** using real library/settings/update responses, with empty states for unavailable account/recommendation data and working course upgrade actions.
+- [x] **Step 4: Replace the old gear behavior** so it opens the in-popup settings view and can return to home without losing state.
+- [x] **Step 5: Run popup tests and the extension type-check.**
 
 ### Task 3: Implement the popup V1 settings view
 
 **Files:**
 - Modify: `v1/extension/popup/index.ts`
 - Modify: `v1/extension/popup/popup.css`
-- Modify: `v1/extension/settings/index.html`
-- Modify: `v1/extension/settings/index.ts`
-- Modify: `v1/extension/settings/settings.css`
-- Modify: `v1/extension/settings/settings.test.ts`
+- The existing `v1/extension/settings/` companion editor remains unchanged and is opened from the new popup settings hub.
 
-- [ ] **Step 1: Write failing tests** for settings navigation, persisted homepage toggles, upgrade check action, companion entry, sound switch, maintenance version, and future-feature labels.
-- [ ] **Step 2: Run settings tests** and confirm the current companion-only page cannot satisfy them.
-- [ ] **Step 3: Implement the compact settings hub** and wire its controls to background storage/messages; retain the existing companion editor as the selected companion subpage.
-- [ ] **Step 4: Ensure close/back controls return to the previous popup view where the browser permits it, and safely fall back to closing the options page.**
-- [ ] **Step 5: Run all extension tests and build local/production packages.**
+- [x] **Step 1: Write failing tests** for settings navigation, persisted homepage toggles, upgrade check action, companion entry, sound switch, maintenance version, and future-feature labels.
+- [x] **Step 2: Run settings tests** and confirm the current companion-only page cannot satisfy them.
+- [x] **Step 3: Implement the compact settings hub** in the popup and wire its controls to background storage/messages; retain the existing companion editor as the selected companion subpage.
+- [x] **Step 4: Ensure close/back controls return to the previous popup view where the browser permits it, and safely fall back to opening the companion editor in a tab.**
+- [x] **Step 5: Run all extension tests and build local/production packages.**
 
 ### Task 4: Release only the actual plugin implementation
 
@@ -63,10 +60,10 @@
 - Modify: `doc/SYSTEM-OVERVIEW.md`
 - Modify: `doc/插件文件资源管理.md`
 
-- [ ] **Step 1: Bump `EXTENSION_VERSION` from `1.1.1` to `1.2.0` only after Tasks 1–3 change the plugin package.**
-- [ ] **Step 2: Document the actual delivered V1 scope and explicitly list student auth/recommendations as backend-blocked, not completed.**
-- [ ] **Step 3: Build both targets and verify manifest, artifact list, ZIP contents, and no localhost permission in production.**
-- [ ] **Step 4: Commit plugin code/docs together, push, publish using the existing release workflow, and verify the remote package reports `1.2.0`.**
+- [x] **Step 1: Bump `EXTENSION_VERSION` from `1.1.1` to `1.2.0` only after Tasks 1–3 change the plugin package.**
+- [x] **Step 2: Document the actual delivered V1 scope and explicitly list student auth/recommendations as backend-blocked, not completed.**
+- [x] **Step 3: Build both targets and verify manifest, artifact list, ZIP contents, and no localhost permission in production.**
+- [x] **Step 4: Commit plugin code/docs together, push, publish using the existing release workflow, and verify the remote package reports `1.2.0`.**
 
 ### Scope gap recorded for the next backend plan
 
