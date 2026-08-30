@@ -19,7 +19,7 @@ git diff --name-only
 
 ### D-V1-025 已完成：课程互动节点课程化编辑引导（2026-08-30）
 
-已在隔离 worktree `codex/course-node-content-guidance` 完成方案 A：只改教师端字段引导、占位、提示、默认标题和预览文案，保留 `title`、`content`、`interactionData`、`presentationHints` 以及 `保存节点` / `保存草稿` 两步边界；`v1/contracts/`、`v1/extension/`、后端 schema、API 和学生端行为均未修改。
+已在隔离 worktree `codex/course-node-content-guidance` 完成方案 A：只改教师端字段引导、占位、提示、默认标题和预览文案，保留 `title`、`content`、`interactionData`、`presentationHints` 以及 `保存节点` / `保存草稿` 两步边界；以本轮实现基线 `e533417..9d454be` 核对，`v1/contracts/`、`v1/extension/`、后端 schema、API 和学生端行为均未修改（更早的 D-V1-024 插件测试变更不属于本轮）。
 
 自动化证据：`npm test` 通过（根测试 130 项 + v1 测试 310 项）；`npm run check`、secret scan、dependency check、契约检查通过；插件 type-check 与 `build:all` 通过；v1 type-check/build 通过；后端 `ruff check .` 通过、pytest 42 项通过。后端 `ruff format --check .` 仍报告 3 个未被本功能修改的既有文件，未为本功能顺带格式化。
 

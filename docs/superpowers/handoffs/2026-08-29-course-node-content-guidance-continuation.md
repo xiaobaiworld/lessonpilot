@@ -75,7 +75,7 @@
 - `npm --prefix v1 run type-check` 通过。
 - `npm --prefix v1 run build` 通过。
 - 插件 type-check 与 `npm --prefix v1/extension run build:all` 通过；local/production 均成功。
-- `npm run check:contract` 通过；契约和 `v1/extension` 范围无差异。
+- `npm run check:contract` 通过；以本轮实现基线 `e533417..9d454be` 核对，契约和 `v1/extension` 范围无差异；更早的 D-V1-024 插件测试变更不属于本轮。
 - 根 `npm test` 通过（130 根测试 + 310 个 v1 测试）；`npm run check`、secret scan、dependency check 通过。
 - 后端 pytest 42 项、`ruff check .` 通过。
 - `git diff --check` 通过。
