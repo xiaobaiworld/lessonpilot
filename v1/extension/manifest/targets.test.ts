@@ -100,6 +100,14 @@ describe('构建目标', () => {
       },
     ]);
     expect(BUILD_ARTIFACTS).toContain('assets/companion/cat/v1/manifest.json');
+    expect(BUILD_ARTIFACTS).toEqual(
+      expect.arrayContaining([
+        'assets/companion/cat/v1/idle.webp',
+        'assets/companion/cat/v1/fish-treat.webp',
+        'assets/companion/cat/v1/complete.ogg',
+      ])
+    );
+    expect(BUILD_ARTIFACTS.some((path) => /assets\/companion\/.*\.(png|wav)$/.test(path))).toBe(false);
   });
 
 	it('manifest 里引用的脚本都在产物清单里', () => {
