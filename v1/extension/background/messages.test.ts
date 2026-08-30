@@ -96,4 +96,12 @@ describe('消息契约与实现一致', () => {
     );
     expect(schema.definitions.Request.properties.taskKey).toBeDefined();
   });
+
+  it('设置读写消息有明确的契约白名单', () => {
+    expect(declaredTypes).toEqual(
+      expect.arrayContaining(['getStudentSettings', 'setStudentSettings'])
+    );
+    expect(workerSource).toContain("case 'getStudentSettings'");
+    expect(workerSource).toContain("case 'setStudentSettings'");
+  });
 });

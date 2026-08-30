@@ -114,6 +114,20 @@ describe('初始状态', () => {
     expect(again?.clientId).toBe(first?.clientId);
   });
 
+  it('学生设置可以原子保存并在下一次读取时返回', async () => {
+    await lib.updateSettings({ showRedeemEntry: false, syncMode: 'manual' });
+
+    await expect(lib.read()).resolves.toMatchObject({
+      settings: {
+        showRedeemEntry: false,
+        showRecommendations: true,
+        syncMode: 'manual',
+        shortcut: 'Alt+K',
+        mascot: 'standard',
+      },
+    });
+  });
+
   it('重复初始化示例课程会更新内容但不创建授权来源', async () => {
     const example = { ...course('example'), source: 'example' as const, readOnly: true };
     await lib.ensureExampleCourse(example);

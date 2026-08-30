@@ -25,6 +25,8 @@ export interface LessonView {
 export interface CourseView {
   courseId: string;
   title: string;
+  releaseId?: string | null;
+  releaseNumber?: number | null;
   lessons: LessonView[];
   nodeCount: number;
   doneCount: number;
@@ -89,6 +91,8 @@ export function buildLibraryView(root: StorageRoot): LibraryView {
       return {
         courseId: course.courseId,
         title: course.title,
+        releaseId: course.releaseId ?? null,
+        releaseNumber: course.releaseNumber ?? null,
         lessons,
         nodeCount,
         doneCount,

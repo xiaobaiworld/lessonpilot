@@ -17,6 +17,8 @@
         "type": {
           "enum": [
             "library",
+            "getStudentSettings",
+            "setStudentSettings",
             "redeem",
             "asset",
             "companionAsset",
@@ -73,6 +75,18 @@
         "enabled": {
           "type": "boolean",
           "description": "setCompanionSound：是否播放陪伴角色声音"
+        },
+        "settings": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "showRedeemEntry": { "type": "boolean" },
+            "showRecommendations": { "type": "boolean" },
+            "syncMode": { "enum": ["auto", "prompt", "manual"] },
+            "shortcut": { "const": "Alt+K" },
+            "mascot": { "const": "standard" }
+          },
+          "description": "setStudentSettings：要合并保存的本机学生偏好"
         },
         "taskKey": {
           "type": "string",

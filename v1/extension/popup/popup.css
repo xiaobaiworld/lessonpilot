@@ -20,6 +20,138 @@ body {
   padding: 18px;
 }
 
+/* 功能总览 V1：保持工具栏弹窗的紧凑密度，不把设置拉成全屏后台页。 */
+.back-button {
+  flex: none;
+  width: 26px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  color: #61666d;
+  background: transparent;
+  cursor: pointer;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.account-panel,
+.upgrade-notice,
+.recommendations,
+.setting-group,
+.settings-footnote {
+  margin-top: 12px;
+}
+
+.account-panel {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 10px;
+  border: 1px solid #c9dfcf;
+  border-radius: 11px;
+  background: #f3faf3;
+}
+
+.account-mark {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: #c56e52;
+  font-size: 14px;
+}
+
+.account-copy,
+.setting-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.account-copy strong,
+.account-copy span,
+.redeem-heading strong,
+.redeem-heading span,
+.setting-copy strong,
+.setting-copy span {
+  display: block;
+}
+
+.account-copy strong { font-size: 12px; }
+.account-copy span { margin-top: 2px; color: #61666d; font-size: 10px; }
+
+.secondary-button,
+.update-course-button,
+.setting-select {
+  flex: none;
+  padding: 7px 9px;
+  border: 1px solid #c9ccd0;
+  border-radius: 8px;
+  color: #008ac5;
+  background: #fff;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.secondary-button:disabled { color: #9499a0; cursor: not-allowed; }
+
+.upgrade-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 10px;
+  border: 1px solid #efc9be;
+  border-radius: 9px;
+  color: #805d61;
+  background: #fffafa;
+  font-size: 11px;
+}
+
+.redeem-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.redeem-heading strong { font-size: 13px; }
+.redeem-heading span { color: #9499a0; font-size: 10px; }
+.redeem-row { display: flex; gap: 7px; }
+.redeem-row .redeem-input { flex: 1; min-width: 0; }
+.redeem-row .primary { width: 54px; padding: 0; }
+
+.course-update {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 8px;
+  border-radius: 8px;
+  color: #805d61;
+  background: #fff6f2;
+  font-size: 11px;
+}
+
+.update-course-button { padding: 5px 7px; color: #fff; border-color: #c56e52; background: #c56e52; }
+.update-course-button:disabled { opacity: .6; cursor: wait; }
+.settings-shell .brand { margin-bottom: 14px; }
+.settings-title h1 { margin: 0; font-size: 20px; }
+.settings-title p { margin: 5px 0 0; color: #61666d; font-size: 11px; line-height: 1.5; }
+.setting-group-title { margin: 0 0 6px; color: #008ac5; font-size: 11px; }
+.setting-item { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border: 1px solid #e3e5e7; border-radius: 9px; background: #fff; }
+.setting-item + .setting-item { margin-top: 6px; }
+.setting-copy strong { font-size: 12px; }
+.setting-copy span { margin-top: 3px; overflow: hidden; color: #61666d; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.setting-value, .version-badge { flex: none; color: #9499a0; font-size: 10px; }
+.setting-select { min-width: 90px; }
+.toggle { min-width: 38px; padding: 5px 7px; border: 0; border-radius: 99px; color: #fff; background: #9499a0; cursor: pointer; font-size: 10px; }
+.toggle.active { background: #00aeec; }
+.future { flex: none; padding: 4px 6px; border-radius: 99px; color: #6b4f04; background: #f5e7b0; font-size: 9px; }
+.settings-footnote { color: #9499a0; font-size: 10px; line-height: 1.5; }
+
 .brand {
   display: flex;
   align-items: center;

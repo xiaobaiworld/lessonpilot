@@ -16,6 +16,7 @@ import {
 import {
   isStudentSettings,
   normalizeStudentSettings,
+  StudentSettings,
 } from './settings';
 import {
   PRESENTATION_LIMITS,
@@ -495,6 +496,13 @@ export class CourseLibrary {
 
   read(): Promise<StorageRoot> {
     return this.serialize(() => this.rawRead());
+  }
+
+  /** 保存学生端偏好，只接受已定义字段并与现有值合并。 */
+  updateSettings(patch: Partial<StudentSettings>): Promise<StorageRoot> {
+    return this.update((root) => {
+      root.settings = normalizeStudentSettings({ ...root.settings, ...patch });
+    }).then((r) => r.root);
   }
 
   /** 读-改-写整体排在队列里，避免两次修改互相覆盖 */

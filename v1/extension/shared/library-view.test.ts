@@ -133,6 +133,13 @@ describe('buildLibraryView', () => {
     expect(byId.b).toBeNull();
   });
 
+  it('带出当前课程发布版本，供首页显示升级目标', () => {
+    const v = buildLibraryView(
+      root({ installedCourses: { a: { ...course('a'), releaseId: 'release-a', releaseNumber: 3 } } })
+    );
+    expect(v.courses[0]).toMatchObject({ releaseId: 'release-a', releaseNumber: 3 });
+  });
+
   it('隔离区非空时对外可见', () => {
     const v = buildLibraryView(
       root({ quarantine: { entries: [{ at: 'x', reason: 'r', sample: 's' }] } })

@@ -65,6 +65,21 @@ async function handle(message: unknown): Promise<Reply> {
       return ok(buildLibraryView(await library.read()));
     }
 
+    case 'getStudentSettings': {
+      return ok((await library.read()).settings);
+    }
+
+    case 'setStudentSettings': {
+      if (typeof m.settings !== 'object' || m.settings === null || Array.isArray(m.settings)) {
+        return err('BAD_MESSAGE', '设置格式不正确。');
+      }
+      try {
+        return ok((await library.updateSettings(m.settings as Record<string, unknown>)).settings);
+      } catch {
+        return err('STORAGE', '设置保存失败。');
+      }
+    }
+
     case 'redeem': {
       if (typeof m.code !== 'string') return err('BAD_MESSAGE', '缺少授权码。');
       const result = await redeemAccessCode(m.code, {

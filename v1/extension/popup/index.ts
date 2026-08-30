@@ -1,74 +1,169 @@
-import { LibraryView, CourseView } from '../shared/library-view';
+import { CourseUpdateSummary } from '../background/redeem';
+import { StudentSettings } from '../storage/settings';
+import { CourseView, LibraryView } from '../shared/library-view';
 import { requestPluginDownload } from './update';
 
 declare const __TEACHER_URL__: string;
 declare const __STUDENT_PLUGIN_DOWNLOAD_URL__: string;
 
-/**
- * 工具栏首页。
- *
- * 只渲染，不做判断——课程列表规则和进度算法在 shared/library-view.ts，
- * 与 B 站页面里的书包共用同一份，两处不会给出不同结论。
- * 所有存储访问经 background，popup 自己不碰 chrome.storage。
- */
+type Reply<T> = { ok: true; data: T } | { ok: false; message: string };
+type View = 'home' | 'settings';
 
 const root = document.getElementById('root')!;
+let view: View = 'home';
+let settings: StudentSettings = {
+  showRedeemEntry: true,
+  showRecommendations: true,
+  syncMode: 'prompt',
+  shortcut: 'Alt+K',
+  mascot: 'standard',
+};
+let soundEnabled = true;
+let updates: CourseUpdateSummary[] = [];
 
-async function ask<T>(message: unknown): Promise<{ ok: true; data: T } | { ok: false; message: string }> {
+async function ask<T>(message: unknown): Promise<Reply<T>> {
   try {
     const reply = await chrome.runtime.sendMessage(message);
-    // 扩展刚更新时 sendMessage 可能返回 undefined 而不抛错
-    if (!reply || typeof reply !== 'object') {
-      return { ok: false, message: '扩展需要重新加载，请在扩展页面点刷新。' };
-    }
+    if (!reply || typeof reply !== 'object') return { ok: false, message: '扩展需要重新加载，请在扩展页面点刷新。' };
     return (reply as any).ok
-      ? { ok: true, data: (reply as any).data }
+      ? { ok: true, data: (reply as any).data as T }
       : { ok: false, message: (reply as any).message ?? '操作失败。' };
   } catch {
     return { ok: false, message: '扩展未响应，请重新加载扩展。' };
   }
 }
 
-function el<K extends keyof HTMLElementTagNameMap>(
-  tag: K,
-  className?: string,
-  text?: string
-): HTMLElementTagNameMap[K] {
+function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);
   if (className) node.className = className;
   if (text !== undefined) node.textContent = text;
   return node;
 }
 
+function showError(message: string): void {
+  root.querySelector('.error')?.remove();
+  root.prepend(el('p', 'error', message));
+}
+
+function wordmark(): HTMLElement {
+  const title = el('strong', 'wordmark');
+  title.append(el('span', 'brand-letter-k', 'K'), document.createTextNode('nown'), el('span', 'brand-letter-m', 'M'), document.createTextNode('ap'));
+  return title;
+}
+
+function brandHeader(onSettings: () => void, onBack?: () => void): HTMLElement {
+  const head = el('header', 'brand');
+  if (onBack) {
+    const back = el('button', 'back-button', '‹');
+    back.type = 'button';
+    back.title = '返回首页';
+    back.setAttribute('aria-label', '返回首页');
+    back.addEventListener('click', onBack);
+    head.append(back);
+  }
+  const mark = el('img');
+  mark.src = '../assets/icon-48.png';
+  mark.alt = '';
+  const copy = el('div');
+  copy.append(wordmark(), el('span', undefined, `课程助手 · v${chrome.runtime.getManifest().version}`));
+  const button = el('button', 'avatar-settings-button');
+  button.type = 'button';
+  button.textContent = onBack ? '×' : '⚙';
+  button.title = onBack ? '关闭设置' : '打开插件设置';
+  button.setAttribute('aria-label', onBack ? '关闭设置' : '打开插件设置');
+  button.addEventListener('click', onSettings);
+  head.append(mark, copy, button);
+  return head;
+}
+
+function accountPanel(): HTMLElement {
+  const section = el('section', 'account-panel');
+  const copy = el('div', 'account-copy');
+  copy.append(el('strong', undefined, '学生账号'), el('span', undefined, '未登录 · 本机课程仍可正常使用'));
+  const button = el('button', 'secondary-button', '登录 / 注册');
+  button.type = 'button';
+  button.disabled = true;
+  button.title = '学生账号服务将在后端接口完成后开放';
+  section.append(el('span', 'account-mark', '◎'), copy, button);
+  return section;
+}
+
+function introPanel(): HTMLElement {
+  const intro = el('section', 'intro');
+  intro.append(el('p', 'eyebrow', '学生入口'), el('h1', undefined, '把课程放进你的学习路径'), el('p', undefined, '领取课程、继续学习和查看升级，都从这里开始。'));
+  return intro;
+}
+
+function redeemForm(onDone: (message: string) => void): HTMLElement {
+  const form = el('form', 'redeem');
+  const heading = el('div', 'redeem-heading');
+  heading.append(el('strong', undefined, '领取新课程'), el('span', undefined, '使用老师发来的授权码'));
+  const row = el('div', 'redeem-row');
+  const input = el('input', 'redeem-input');
+  input.id = 'redeem-code';
+  input.name = 'access-code';
+  input.autocomplete = 'off';
+  input.spellcheck = false;
+  input.maxLength = 28;
+  input.placeholder = 'KM-XXXXX-XXXXX-XXXXX-XXXXX';
+  input.required = true;
+  const submit = el('button', 'primary', '领取');
+  submit.type = 'submit';
+  row.append(input, submit);
+  form.append(heading, row);
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    submit.disabled = true;
+    submit.textContent = '领取中…';
+    const reply = await ask<{ installed: { title: string }[] }>({ type: 'redeem', code: input.value });
+    submit.disabled = false;
+    submit.textContent = '领取';
+    if (reply.ok) { input.value = ''; onDone('课程已保存，可以开始学习。'); } else showError(reply.message);
+  });
+  return form;
+}
+
+function updateFor(courseId: string): CourseUpdateSummary | undefined {
+  return updates.find((item) => item.courseId === courseId && item.status === 'update');
+}
+
 function courseCard(course: CourseView, onRefresh: () => void): HTMLElement {
   const card = el('article', 'course course-card');
-
   const heading = el('div', 'course-title-row');
   heading.append(el('strong', 'course-title', course.title));
   if (course.readOnly) heading.append(el('span', 'demo-tag', '示例课'));
   card.append(heading);
-
   const meta = el('div', 'course-meta');
-  meta.append(
-    el('span', undefined, `${course.lessons.length} 课节`),
-    el('span', undefined, `${course.doneCount}/${course.nodeCount} 个互动`)
-  );
-  if (course.codeHint) {
-    meta.append(el('span', 'course-code', `码尾 ${course.codeHint}`));
-  }
+  meta.append(el('span', undefined, `${course.lessons.length} 课节`), el('span', undefined, `${course.doneCount}/${course.nodeCount} 个互动`));
+  if (course.codeHint) meta.append(el('span', 'course-code', `码尾 ${course.codeHint}`));
   card.append(meta);
-
   const bar = el('div', 'bar');
   const fill = el('div', 'bar-fill');
   fill.style.width = `${course.percent}%`;
   bar.append(fill);
   card.append(bar);
 
+  const action = updateFor(course.courseId);
+  if (action) {
+    const update = el('div', 'course-update');
+    update.append(el('span', undefined, `有新版本 v${action.releaseNumber}`));
+    const button = el('button', 'update-course-button', '需要升级');
+    button.type = 'button';
+    button.addEventListener('click', async () => {
+      button.disabled = true;
+      button.textContent = '升级中…';
+      const reply = await ask({ type: 'upgradeCourse', courseId: course.courseId, expectedReleaseId: action.releaseId });
+      if (reply.ok) onRefresh();
+      else { button.disabled = false; button.textContent = '需要升级'; showError(reply.message); }
+    });
+    update.append(button);
+    card.append(update);
+  }
+
   const lessons = el('ul', 'lessons');
   for (const lesson of course.lessons) {
     const li = el('li', lesson.finished ? 'lesson done' : 'lesson');
     const open = el('a', 'lesson-link', lesson.title);
-    // 直接打开 B 站原页面，运行时在那里接管
     const query = new URLSearchParams();
     if (lesson.page && lesson.page !== 1) query.set('p', String(lesson.page));
     if (lesson.cid) query.set('cid', lesson.cid);
@@ -81,184 +176,65 @@ function courseCard(course: CourseView, onRefresh: () => void): HTMLElement {
   card.append(lessons);
 
   const actions = el('div', 'course-actions');
-
   const reset = el('button', 'link-button', '重置进度');
+  reset.type = 'button';
   reset.addEventListener('click', async () => {
-    const r = await ask({ type: 'resetProgress', courseId: course.courseId });
-    if (r.ok) onRefresh();
-    else showError(r.message);
+    const reply = await ask({ type: 'resetProgress', courseId: course.courseId });
+    if (reply.ok) onRefresh(); else showError(reply.message);
   });
-
-  const remove = el('button', 'link-button danger', '删除课程');
-  remove.addEventListener('click', async () => {
-    const impact = await ask<{ lessonCount: number; attemptCount: number }>({
-      type: 'removalImpact',
-      courseId: course.courseId,
+  actions.append(reset);
+  if (!course.readOnly) {
+    const remove = el('button', 'link-button danger', '删除课程');
+    remove.type = 'button';
+    remove.addEventListener('click', async () => {
+      const impact = await ask<{ lessonCount: number; attemptCount: number }>({ type: 'removalImpact', courseId: course.courseId });
+      const detail = impact.ok ? `将删除 ${impact.data.lessonCount} 个课节和 ${impact.data.attemptCount} 条作答记录。` : '';
+      if (!confirm(`删除《${course.title}》？${detail}此操作无法撤销。`)) return;
+      const reply = await ask({ type: 'removeCourse', courseId: course.courseId });
+      if (reply.ok) onRefresh(); else showError(reply.message);
     });
-    // 先说明会失去什么，再确认，而不是删完才知道
-    const detail = impact.ok
-      ? `将删除 ${impact.data.lessonCount} 个课节和 ${impact.data.attemptCount} 条作答记录。`
-      : '';
-    if (!confirm(`删除《${course.title}》？${detail}此操作无法撤销。`)) return;
-    const r = await ask({ type: 'removeCourse', courseId: course.courseId });
-    if (r.ok) onRefresh();
-    else showError(r.message);
-  });
-
-  if (!course.readOnly) actions.append(remove);
-  actions.prepend(reset);
+    actions.append(remove);
+  }
   card.append(actions);
   return card;
-}
-
-function showError(message: string): void {
-  root.querySelector('.error')?.remove();
-  root.prepend(el('p', 'error', message));
-}
-
-function redeemForm(onDone: (message: string) => void): HTMLElement {
-  const form = el('form', 'redeem');
-  const label = el('label', 'redeem-label', '课程授权码');
-  label.htmlFor = 'redeem-code';
-  const input = el('input', 'redeem-input');
-  input.id = 'redeem-code';
-  input.name = 'access-code';
-  input.autocomplete = 'off';
-  input.spellcheck = false;
-  input.maxLength = 28;
-  input.placeholder = 'KM-XXXXX-XXXXX-XXXXX-XXXXX';
-  input.required = true;
-
-  const submit = el('button', 'primary', '领取课程');
-  submit.type = 'submit';
-
-  form.append(label, input, submit);
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    submit.disabled = true;
-    submit.textContent = '领取中…';
-    const status = root.querySelector<HTMLElement>('.status');
-    if (status) status.textContent = '正在下载并校验课程…';
-    const r = await ask<{ installed: { title: string }[] }>({
-      type: 'redeem',
-      code: input.value,
-    });
-    submit.disabled = false;
-    submit.textContent = '领取课程';
-    if (r.ok) {
-      input.value = '';
-      onDone('课程已保存，可以开始学习。');
-    } else {
-      if (status) status.textContent = r.message;
-    }
-  });
-
-  return form;
-}
-
-function pluginUpdatePanel(): HTMLElement {
-  const section = el('section', 'plugin-update');
-  const copy = el('div');
-  copy.append(
-    el('p', 'eyebrow', '插件维护'),
-    el('h2', undefined, '在线更新学生插件')
-  );
-
-  const button = el('button', 'update-button', '在线更新');
-  button.type = 'button';
-  const status = el('p', 'update-status');
-  status.setAttribute('role', 'status');
-
-  button.addEventListener('click', async () => {
-    button.disabled = true;
-    status.textContent = '正在下载最新插件…';
-    try {
-      await requestPluginDownload(
-        chrome.downloads.download.bind(chrome.downloads),
-        () => chrome.runtime.lastError?.message,
-        __STUDENT_PLUGIN_DOWNLOAD_URL__
-      );
-      status.textContent = '更新包已下载，请替换插件目录后刷新 KnownMap。';
-    } catch {
-      status.textContent = '更新包下载失败，请稍后重试。';
-    } finally {
-      button.disabled = false;
-    }
-  });
-
-  section.append(copy, button, status);
-  return section;
-}
-
-function wordmark(): HTMLElement {
-  const title = el('strong', 'wordmark');
-  title.append(
-    el('span', 'brand-letter-k', 'K'),
-    document.createTextNode('nown'),
-    el('span', 'brand-letter-m', 'M'),
-    document.createTextNode('ap')
-  );
-  return title;
-}
-
-function brandHeader(): HTMLElement {
-  const head = el('header', 'brand');
-  const mark = el('img');
-  mark.src = '../assets/icon-48.png';
-  mark.alt = '';
-  const copy = el('div');
-  copy.append(
-    wordmark(),
-    el('span', undefined, `课程助手 · v${chrome.runtime.getManifest().version}`)
-  );
-  const settings = el('button', 'avatar-settings-button');
-  settings.type = 'button';
-  settings.textContent = '⚙';
-  settings.title = '头像设置';
-  settings.setAttribute('aria-label', '打开头像设置');
-  settings.addEventListener('click', () => {
-    void chrome.runtime.openOptionsPage();
-  });
-  head.append(mark, copy, settings);
-  return head;
-}
-
-function introPanel(): HTMLElement {
-  const intro = el('section', 'intro');
-  intro.append(
-    el('p', 'eyebrow', '学生入口'),
-    el('h1', undefined, '使用授权码，无需注册'),
-    el('p', undefined, '输入老师发来的课程授权码，课程会保存到这台浏览器。')
-  );
-  return intro;
 }
 
 function coursesPanel(courses: CourseView[], onRefresh: () => void): HTMLElement {
   const section = el('section', 'courses');
   const heading = el('div', 'section-heading');
-  heading.append(
-    el('h2', undefined, '我的课程'),
-    el('span', undefined, `当前 ${courses.length} 门`)
-  );
+  heading.append(el('h2', undefined, '全部课程'), el('span', undefined, `当前 ${courses.length} 门`));
   section.append(heading);
-
   const list = el('div', 'course-list');
   for (const course of courses) list.append(courseCard(course, onRefresh));
   section.append(list);
+  if (courses.length === 0) section.append(el('p', 'empty', '还没有课程，领取新课程后会显示在这里。'));
+  return section;
+}
 
-  if (courses.length === 0) {
-    section.append(el('p', 'empty', '还没有课程，输入授权码后会显示在这里。'));
-  }
+function upgradeNotice(): HTMLElement | null {
+  const count = updates.filter((item) => item.status === 'update').length;
+  if (!count) return null;
+  const section = el('section', 'upgrade-notice');
+  section.append(el('span', undefined, `${count} 门课程可以升级，当前学习不会被打断`));
+  const button = el('button', 'link-button', '查看');
+  button.type = 'button';
+  button.addEventListener('click', () => root.querySelector('.course-update')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+  section.append(button);
+  return section;
+}
+
+function recommendationsPanel(): HTMLElement {
+  const section = el('section', 'recommendations');
+  const heading = el('div', 'section-heading');
+  heading.append(el('h2', undefined, '为你推荐'), el('span', undefined, '登录后更准确'));
+  section.append(heading, el('p', 'empty', '学生账号和推荐目录尚未接入，暂不展示虚构课程。'));
   return section;
 }
 
 function teacherEntry(): HTMLElement {
   const section = el('section', 'teacher-entry');
   const copy = el('div');
-  copy.append(
-    el('p', 'eyebrow', '老师使用'),
-    el('h2', undefined, '创建和发布课程')
-  );
+  copy.append(el('p', 'eyebrow', '老师使用'), el('h2', undefined, '创建和发布课程'));
   const link = el('a', undefined, '教师登录');
   link.href = __TEACHER_URL__;
   link.target = '_blank';
@@ -267,33 +243,160 @@ function teacherEntry(): HTMLElement {
   return section;
 }
 
-async function render(statusMessage = ''): Promise<void> {
-  const r = await ask<LibraryView>({ type: 'library' });
+function pluginUpdatePanel(): HTMLElement {
+  const section = el('section', 'plugin-update');
+  const copy = el('div');
+  copy.append(el('p', 'eyebrow', '插件维护'), el('h2', undefined, '在线更新学生插件'));
+  const button = el('button', 'update-button', '在线更新');
+  button.type = 'button';
+  const status = el('p', 'update-status');
+  button.addEventListener('click', async () => {
+    button.disabled = true;
+    status.textContent = '正在下载最新插件…';
+    try {
+      await requestPluginDownload(chrome.downloads.download.bind(chrome.downloads), () => chrome.runtime.lastError?.message, __STUDENT_PLUGIN_DOWNLOAD_URL__);
+      status.textContent = '更新包已下载，请替换插件目录后刷新。';
+    } catch { status.textContent = '更新包下载失败，请稍后重试。'; }
+    finally { button.disabled = false; }
+  });
+  section.append(copy, button, status);
+  return section;
+}
+
+async function refreshData(): Promise<LibraryView | null> {
+  const [libraryReply, settingsReply, soundReply] = await Promise.all([
+    ask<LibraryView>({ type: 'library' }),
+    ask<StudentSettings>({ type: 'getStudentSettings' }),
+    ask<{ soundEnabled: boolean }>({ type: 'companionSound' }),
+  ]);
+  if (!libraryReply.ok) { showError(libraryReply.message); return null; }
+  if (settingsReply.ok) settings = settingsReply.data;
+  if (soundReply.ok) soundEnabled = soundReply.data.soundEnabled;
+  const updateReply = await ask<{ courses: CourseUpdateSummary[] }>({ type: 'checkCourseUpdates' });
+  updates = updateReply.ok ? updateReply.data.courses : [];
+  return libraryReply.data;
+}
+
+async function saveSetting(patch: Partial<StudentSettings>): Promise<void> {
+  const reply = await ask<StudentSettings>({ type: 'setStudentSettings', settings: patch });
+  if (!reply.ok) { showError(reply.message); return; }
+  settings = reply.data;
+  renderSettings();
+}
+
+function settingRow(title: string, description: string, action: HTMLElement): HTMLElement {
+  const row = el('div', 'setting-item');
+  const copy = el('div', 'setting-copy');
+  copy.append(el('strong', undefined, title), el('span', undefined, description));
+  row.append(copy, action);
+  return row;
+}
+
+function toggle(title: string, description: string, enabled: boolean, onChange: (next: boolean) => void): HTMLElement {
+  const button = el('button', enabled ? 'toggle active' : 'toggle', enabled ? '开' : '关');
+  button.type = 'button';
+  button.setAttribute('aria-pressed', String(enabled));
+  button.addEventListener('click', () => onChange(!enabled));
+  return settingRow(title, description, button);
+}
+
+function renderSettings(): void {
+  view = 'settings';
   root.replaceChildren();
+  const shell = el('main', 'shell settings-shell');
+  shell.append(brandHeader(() => { view = 'home'; void renderHome(); }, () => { view = 'home'; void renderHome(); }));
+  const title = el('div', 'settings-title');
+  title.append(el('h1', undefined, '插件设置'), el('p', undefined, '课程领取和继续学习留在首页，这里集中管理账号、升级和学习偏好。'));
+  shell.append(title);
 
-  const shell = el('main', 'shell');
-  shell.append(brandHeader(), introPanel());
+  const account = el('section', 'setting-group');
+  account.append(el('h2', 'setting-group-title', '学生账号'));
+  const login = el('button', 'secondary-button', '登录 / 注册');
+  login.type = 'button';
+  login.disabled = true;
+  login.title = '学生账号服务将在后端接口完成后开放';
+  account.append(settingRow('未登录', '登录后可同步课程；当前本机授权码课程不受影响。', login));
+  shell.append(account);
 
-  if (!r.ok) {
-    shell.append(redeemForm(render), el('p', 'status', r.message));
-    root.append(shell);
-    return;
+  const home = el('section', 'setting-group');
+  home.append(el('h2', 'setting-group-title', '首页显示'));
+  home.append(toggle('显示领取新课程', '在首页保留课程授权码入口。', settings.showRedeemEntry, (next) => void saveSetting({ showRedeemEntry: next })));
+  home.append(toggle('显示为你推荐', '没有真实推荐数据时显示清晰的空状态。', settings.showRecommendations, (next) => void saveSetting({ showRecommendations: next })));
+  shell.append(home);
+
+  const upgrade = el('section', 'setting-group');
+  upgrade.append(el('h2', 'setting-group-title', '课程升级'));
+  const mode = document.createElement('select');
+  mode.className = 'setting-select';
+  for (const option of [['auto', '自动升级'], ['prompt', '提示升级'], ['manual', '手动检查']] as const) {
+    const item = document.createElement('option');
+    item.value = option[0];
+    item.textContent = option[1];
+    item.selected = settings.syncMode === option[0];
+    mode.append(item);
   }
+  mode.addEventListener('change', () => void saveSetting({ syncMode: mode.value as StudentSettings['syncMode'] }));
+  upgrade.append(settingRow('升级方式', '默认提示升级，确认后才替换本机课程。', mode));
+  const check = el('button', 'secondary-button', '检查');
+  check.type = 'button';
+  check.addEventListener('click', async () => {
+    check.disabled = true;
+    check.textContent = '检查中…';
+    const reply = await ask<{ courses: CourseUpdateSummary[] }>({ type: 'checkCourseUpdates' });
+    if (reply.ok) updates = reply.data.courses; else showError(reply.message);
+    check.disabled = false;
+    check.textContent = '检查';
+  });
+  upgrade.append(settingRow('检查课程更新', '只检查本机已经安装的课程。', check));
+  shell.append(upgrade);
 
-  shell.append(
-    redeemForm(render),
-    el('p', 'status', statusMessage),
-    coursesPanel(r.data.courses, render),
-    teacherEntry(),
-    pluginUpdatePanel()
-  );
+  const companion = el('section', 'setting-group');
+  companion.append(el('h2', 'setting-group-title', '学习伙伴'));
+  const companionButton = el('button', 'secondary-button', '设置');
+  companionButton.type = 'button';
+  companionButton.addEventListener('click', () => void chrome.tabs.create({ url: chrome.runtime.getURL('settings/index.html') }));
+  companion.append(settingRow('神秘猫精灵', '6 种状态 · 角色声音 · 完成时增加小鱼。', companionButton));
+  shell.append(companion);
 
-  if (r.data.hasQuarantine) {
-    shell.append(
-      el('p', 'notice', '有一份本机数据无法识别，已隔离。它不影响其它课程。')
-    );
-  }
+  const playback = el('section', 'setting-group');
+  playback.append(el('h2', 'setting-group-title', '播放与声音'));
+  playback.append(settingRow('快捷键', '默认 Alt+K，可修改。', el('span', 'setting-value', settings.shortcut)));
+  playback.append(toggle('学习伙伴声音', '提示、答题反馈和完成庆祝声音。', soundEnabled, async (next) => {
+    const reply = await ask({ type: 'setCompanionSound', enabled: next });
+    if (!reply.ok) showError(reply.message); else { soundEnabled = next; renderSettings(); }
+  }));
+  playback.append(settingRow('视频模式', '课程模式 / 原视频模式。', el('span', 'setting-value', '课程页可切换')));
+  shell.append(playback);
+
+  const maintenance = el('section', 'setting-group');
+  maintenance.append(el('h2', 'setting-group-title', '插件维护'));
+  maintenance.append(settingRow('KnownMap 学生插件', `当前版本 v${chrome.runtime.getManifest().version} · 在线更新`, el('span', 'version-badge', '当前')));
+  shell.append(maintenance);
+
+  const future = el('section', 'setting-group');
+  future.append(el('h2', 'setting-group-title', '后续功能'));
+  future.append(settingRow('更多角色包与外观变体', '波斯猫、黑猫、英短、毛色等。', el('span', 'future', '下一版本完成')));
+  future.append(settingRow('自定义头像与个性设定', '上传图片、头像编辑和自定义声音。', el('span', 'future', '下一版本完成')));
+  shell.append(future);
+  shell.append(el('p', 'settings-footnote', '设置保存在本机偏好中；学生账号和推荐服务接入后可继续扩展。'));
   root.append(shell);
 }
 
-void render();
+async function renderHome(): Promise<void> {
+  view = 'home';
+  const library = await refreshData();
+  if (!library) return;
+  root.replaceChildren();
+  const shell = el('main', 'shell');
+  shell.append(brandHeader(() => renderSettings()), accountPanel(), introPanel());
+  const notice = upgradeNotice();
+  if (notice) shell.append(notice);
+  if (settings.showRedeemEntry) shell.append(redeemForm(() => void renderHome()));
+  shell.append(coursesPanel(library.courses, () => void renderHome()));
+  if (settings.showRecommendations) shell.append(recommendationsPanel());
+  shell.append(teacherEntry(), pluginUpdatePanel());
+  if (library.hasQuarantine) shell.append(el('p', 'notice', '有一份本机数据无法识别，已隔离。它不影响其它课程。'));
+  root.append(shell);
+}
+
+void renderHome();
