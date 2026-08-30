@@ -1,6 +1,6 @@
 # 课程互动节点课程化编辑引导：续做说明
 
-更新日期：2026-08-29
+更新日期：2026-08-30
 
 ## 目标
 
@@ -22,7 +22,7 @@
 
 - 已完成并确认设计：[课程互动节点课程化编辑引导设计](../specs/2026-08-29-course-node-content-guidance-design.md)。方案 A：只改善教师端编辑引导，保留现有数据结构。
 - 已完成开发计划：[课程互动节点课程化编辑引导 Implementation Plan](../plans/2026-08-29-course-node-content-guidance.md)。
-- `doc/INDEX.md` 已登记设计和开发计划；设计状态已更新为“设计已确认，待实现验证”。
+- `doc/INDEX.md` 已登记设计、开发计划和本轮 v1 人工验收记录；设计与 D-V1-025 状态已更新为实现与人工验收完成。
 - 当前 worktree 的文案基准已与设计统一：重点提示说明为“告诉学生这一刻要理解或记住什么”。
 
 ### 已实现代码
@@ -60,31 +60,42 @@
 4. `dbe3e75`、`d016dfa`、`39e6682`：RichTextEditor 提示、tsx 测试收集、React root 清理。
 5. `0252b16`：同步开发计划的重点提示文案基准。
 6. `d9a6601`：NodeForm、NodeForm 测试和最小 CSS 接入。
+7. `9d454be`：修复选择题选项删除时的状态覆盖和选项 ID 复用。
+8. `e372a26`：补充本轮续做交接说明。
+9. 文档收口：更新 `next.md`、`changelog.md`、`doc/INDEX.md`、设计/决策状态，并新增 `tests/manual/v1/course-node-content-guidance-20260830.md`。
 
-当前 HEAD：`d9a6601`。
+当前 HEAD：`9d454be` 加上本次文档收口提交。
 
 ## 已验证结果
 
-在 Task 5 实现完成时：
+在 Task 6 收口时：
 
-- NodeForm/RichTextEditor/nodes/copy 相关测试：14/14 通过。
-- v1 全量 Vitest：38 个文件、308 个测试通过。
+- NodeForm/RichTextEditor/nodes/copy 相关测试：16/16 通过。
+- v1 全量 Vitest：38 个文件、310 个测试通过。
 - `npm --prefix v1 run type-check` 通过。
 - `npm --prefix v1 run build` 通过。
+- 插件 type-check 与 `npm --prefix v1/extension run build:all` 通过；local/production 均成功。
+- `npm run check:contract` 通过；契约和 `v1/extension` 范围无差异。
+- 根 `npm test` 通过（130 根测试 + 310 个 v1 测试）；`npm run check`、secret scan、dependency check 通过。
+- 后端 pytest 42 项、`ruff check .` 通过。
 - `git diff --check` 通过。
-- worktree 在最后一次实现提交后干净。
+- worktree 在文档收口后干净。
 
 根目录基线在开始实现前已通过：根测试 130 个、v1 测试 295 个；依赖环境已安装。
 
+### 浏览器人工验收（2026-08-30）
+
+- 在隔离端口启动本分支 Vite 教师端和本分支 FastAPI 临时 SQLite 数据库，未触碰主工作区 8000/5173/5174 服务。
+- 四种节点均打开并检查课程化字段、提示、占位和学生端预览；选择题增加到 4 项，四项均完整显示。
+- 四种节点均先“保存节点”，再“保存草稿”；保存后刷新页面，4 个节点和字幕定位状态恢复。
+- 375px × 900px 页面检查 `scrollWidth === innerWidth`，未发现页面级横向溢出。
+- 详细记录：`tests/manual/v1/course-node-content-guidance-20260830.md`。
+
 ## 当前停在什么位置
 
-Task 5 的实现已完成，但 Task 5 的规格符合性审查在本次对话中被用户中断，尚未得到最终结论。上一次审查调用使用了 `functions.wait`，不是代码失败；实现代码没有因此回滚或产生未提交修改。
+功能实现、Task 5 规格/质量双审查、Task 6 自动化门禁和隔离浏览器人工验收均已完成。Task 5 审查发现的两个问题（删除正确答案后的旧状态覆盖、删除中间选项后 ID 复用）已由修复提交 `9d454be` 解决并重新通过审查。
 
-Task 5 后续还必须完成：
-
-1. 对 `0252b16..d9a6601` 做规格符合性审查。
-2. 规格有问题时，让 Task 5 原实现子代理修复，再重新审查。
-3. 规格通过后做代码质量审查；若发现问题，修复并重新审查。
+Task 6 的全库 Ruff 格式门禁仍不能宣称全绿：`uv run ruff format --check .` 报告 `app/modules/authoring_release/asset_storage.py`、`app/modules/entitlement_delivery/routes.py`、`app/modules/entitlement_delivery/schemas.py` 需要格式化。这 3 个文件在本功能分支没有变更，属于已有基线问题；pytest 已单独执行并通过 42 项。若要消除该阻塞，应另立独立维护提交，不要把无关格式化混入本功能。
 
 ## 建议的下一步命令与顺序
 
@@ -114,9 +125,9 @@ Task 5 规格审查重点：
 
 Task 5 质量审查正确范围同样是 `0252b16..d9a6601`。不要用更早的 `a6633ca` 作为基线，否则会把 Task 3 文件误算到 Task 5。
 
-## 尚未执行的 Task 6
+## Task 6 收口结果
 
-规格/质量双审查通过后，继续按开发计划执行：
+已完成以下检查：
 
 ```bash
 cd /Users/bai/code/lessonpilot/.worktrees/course-node-content-guidance
@@ -131,32 +142,24 @@ npm --prefix v1 run build
 
 注意：如果审查修复增加了提交数量，不要机械使用 `HEAD~2`；应以 Task 3/4/5 实现开始前的准确基线计算范围。核心验收是本功能没有变更 `v1/contracts` 和 `v1/extension`。
 
-然后启动真实本地栈：
+人工验收使用隔离端口和临时数据库完成，记录见 `tests/manual/v1/course-node-content-guidance-20260830.md`。主工作区已有服务未被重启或停止。
 
-```bash
-./dev-up.sh
-```
+已更新 `next.md`、`changelog.md`、人工验收记录、`doc/INDEX.md`、设计状态和决策状态。
 
-在 `http://localhost:5174` 的真实课节中人工验证：四种节点字段、placeholder、实时预览、保存节点/保存草稿两步边界、旧节点标题不被静默改写、4–6 个选项全部预览、窄屏 375px 不横向溢出。结束后：
-
-```bash
-./dev-up.sh --stop
-```
-
-不要在日志或截图中记录密码、授权码、字幕正文、课程正文或学生回答。
-
-最后更新 `next.md`、`changelog.md`、必要的人工验收记录和 `doc/INDEX.md`，运行：
+最终复核命令：
 
 ```bash
 npm test
 npm run check
 node tools/secret-scan.mjs
 node tools/dependency-check.mjs
-cd v1/backend && uv run ruff check . && uv run ruff format --check . && uv run pytest
+cd v1/backend && uv run ruff check . && uv run pytest
 node tools/doc-check.mjs
 git diff --check
 git status --short --branch
 ```
+
+结果：文档检查、差异检查和工作树检查通过；companion 资源仍未跟踪且未进入提交。唯一未全绿的是上述 3 个既有 Ruff 格式文件。
 
 ## 重要约束
 

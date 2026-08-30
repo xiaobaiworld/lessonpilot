@@ -1,13 +1,13 @@
 # KnownMap 当前下一步
 
-更新时间：2026-08-28
+更新时间：2026-08-30
 
 ## 当前执行切片：课程互动节点课程化编辑引导
 
 依据：D-V1-025；设计：docs/superpowers/specs/2026-08-29-course-node-content-guidance-design.md；计划：docs/superpowers/plans/2026-08-29-course-node-content-guidance.md。
 
-当前步骤：实现教师端 copy 注册表、默认标题和课程化错误字段。
-验证：npm --prefix v1 test -- web/teacher/src/nodeFormCopy.test.ts web/teacher/src/nodes.test.ts；npm --prefix v1 run type-check
+当前步骤：D-V1-025 实现与验收已完成；后端全库格式门禁仍有 3 个既有未格式化文件，待作为独立维护项处理。
+验证：教师端 38 个测试文件 / 310 项通过；v1 类型检查与构建、插件类型检查与 local/production 构建、契约检查、根测试与工程门禁通过；后端 pytest 42 项通过，`ruff format --check .` 仅报告 `asset_storage.py`、`routes.py`、`schemas.py`。
 
 不变量：不增加节点字段，不修改课程包 schema，不修改插件行为；companion 资源不纳入本轮。
 
@@ -16,6 +16,16 @@ git status --short --branch
 git diff --name-only
 
 预期：只看到既有用户修改；不得覆盖任何 v1/web/teacher 计划外修改，也不得加入、移动或删除 companion 资源。
+
+### D-V1-025 已完成：课程互动节点课程化编辑引导（2026-08-30）
+
+已在隔离 worktree `codex/course-node-content-guidance` 完成方案 A：只改教师端字段引导、占位、提示、默认标题和预览文案，保留 `title`、`content`、`interactionData`、`presentationHints` 以及 `保存节点` / `保存草稿` 两步边界；`v1/contracts/`、`v1/extension/`、后端 schema、API 和学生端行为均未修改。
+
+自动化证据：`npm test` 通过（根测试 130 项 + v1 测试 310 项）；`npm run check`、secret scan、dependency check、契约检查通过；插件 type-check 与 `build:all` 通过；v1 type-check/build 通过；后端 `ruff check .` 通过、pytest 42 项通过。后端 `ruff format --check .` 仍报告 3 个未被本功能修改的既有文件，未为本功能顺带格式化。
+
+实际页面证据见 `tests/manual/v1/course-node-content-guidance-20260830.md`：隔离 QA 环境中四种节点均可填写和预览，选择题 4 项完整展示，保存后刷新可恢复，375px 页面无横向溢出。
+
+下一步：如需仓库所有门禁全绿，另立维护提交处理后端上述 3 个 Ruff 格式问题；继续开发本功能时从 `docs/superpowers/handoffs/2026-08-29-course-node-content-guidance-continuation.md` 的收口记录开始，不要重做已通过的教师端实现和测试。
 
 ## 当前执行切片：学生插件课程库、课程升级与设置
 
