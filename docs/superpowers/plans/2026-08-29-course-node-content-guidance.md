@@ -8,6 +8,8 @@
 
 **Tech Stack:** React 18、TypeScript、Vite、Vitest、happy-dom、RichPageDocument、现有课程包与插件校验。
 
+> **执行状态（2026-08-30）：** Task 1–5 已完成并通过规格/质量审查；Task 6 的契约、插件、v1、根目录、后端 pytest 和隔离浏览器人工验收已完成。后端 `ruff format --check .` 仍报告 3 个未被本功能修改的既有文件，未混入本功能提交；详情见 `next.md` 与 `tests/manual/v1/course-node-content-guidance-20260830.md`。
+
 ---
 
 ## 1. 当前事实、环境和不变量

@@ -1,6 +1,6 @@
 # KnownMap 文档索引
 
-最近审计：2026-08-29；2026-08-25 增补插件本机资源管理备忘；2026-08-27 增补 `D-V1-017` 字幕上传修复流程、`D-V1-018` 教师工作台课程版本方向和 `D-V1-019` 当前课程级授权规则，并完成相关后端端点可组合性审计；2026-08-28 增补 `D-V1-020` 授权码创建与管理设计、`D-V1-021` B 站视频与分 P 精确引用、`D-V1-022` 学生课程库升级契约边界；2026-08-29 增补 `D-V1-023` 学生课程陪伴形象角色资源包和升级前提醒、`D-V1-024` 连续可调互动学习窗口设计
+最近审计：2026-08-30；2026-08-25 增补插件本机资源管理备忘；2026-08-27 增补 `D-V1-017` 字幕上传修复流程、`D-V1-018` 教师工作台课程版本方向和 `D-V1-019` 当前课程级授权规则，并完成相关后端端点可组合性审计；2026-08-28 增补 `D-V1-020` 授权码创建与管理设计、`D-V1-021` B 站视频与分 P 精确引用、`D-V1-022` 学生课程库升级契约边界；2026-08-29 增补 `D-V1-023` 学生课程陪伴形象角色资源包和升级前提醒、`D-V1-024` 连续可调互动学习窗口设计；2026-08-30 收口 `D-V1-025` 课程互动节点课程化编辑引导及人工验收
 
 当前阶段：v1 已完成生产切换并进入新功能开发；当前授权码按 `course_id` 自动解析最新可交付版本，可复用现有后端端点；独立课程版本、草稿消费、版本操作和版本级授权仍等待后续端点/业务服务变更批准；v1 需求现为 `1.1.0`，功能需求新增学生学习陪伴形象和其他教师课程推荐两个后续候选；设计 04–07 已同步互动节点结构化内容、展示提示保存、教师预览和课程版本方向；设计 07 已按
 `FR-LIB-014` 增补学生插件使用说明页。学生陪伴形象与声音包第一版计划见 [`plans/2026-08-29-student-companion-avatar-and-sound-pack.md`](plans/2026-08-29-student-companion-avatar-and-sound-pack.md)，插件大资源本机方案见 [`插件文件资源管理.md`](插件文件资源管理.md)；教师端媒体资源输入决策见
@@ -34,10 +34,10 @@
 | [`../docs/superpowers/specs/2026-08-28-access-code-management-design.md`](../docs/superpowers/specs/2026-08-28-access-code-management-design.md) | 授权码创建、接收人记录、冻结/恢复/作废和批量管理设计（`D-V1-020`，待实现前评审） |
 | [`../docs/superpowers/specs/2026-08-28-bilibili-video-reference-design.md`](../docs/superpowers/specs/2026-08-28-bilibili-video-reference-design.md) | B 站 URL 参数分类、匹配规则和跨层数据结构设计 |
 | [`../docs/superpowers/specs/2026-08-28-student-course-library-and-upgrade-design.md`](../docs/superpowers/specs/2026-08-28-student-course-library-and-upgrade-design.md) | 学生课程库、课程升级、资源交付、设置和升级队列设计（`D-V1-022`） |
-| [`../docs/superpowers/specs/2026-08-29-course-node-content-guidance-design.md`](../docs/superpowers/specs/2026-08-29-course-node-content-guidance-design.md) | 四种互动节点的课程化编辑引导、字段文案、预览和验收设计（`D-V1-025`，已确认方向，待实现验证） |
 | [`../docs/superpowers/specs/2026-08-29-student-companion-plugin-integration-design.md`](../docs/superpowers/specs/2026-08-29-student-companion-plugin-integration-design.md) | 第一版小猫图片/声音如何进入插件、状态事件、资源边界和失败策略 |
 | [`../docs/superpowers/plans/2026-08-29-student-companion-plugin-integration.md`](../docs/superpowers/plans/2026-08-29-student-companion-plugin-integration.md) | 第一版小猫包插件接入的开发任务、测试顺序和验收清单 |
-| [`../docs/superpowers/plans/2026-08-29-course-node-content-guidance.md`](../docs/superpowers/plans/2026-08-29-course-node-content-guidance.md) | 四种互动节点课程化编辑引导的开发文件边界、插件约束、测试命令和真实环境验收计划（`D-V1-025`） |
+| [`../docs/superpowers/specs/2026-08-29-course-node-content-guidance-design.md`](../docs/superpowers/specs/2026-08-29-course-node-content-guidance-design.md) | 四种互动节点的课程化编辑引导、字段文案、预览和验收设计（`D-V1-025`，实现与人工验收完成） |
+| [`../docs/superpowers/plans/2026-08-29-course-node-content-guidance.md`](../docs/superpowers/plans/2026-08-29-course-node-content-guidance.md) | 四种互动节点课程化编辑引导的开发文件边界、插件约束、测试命令和真实环境验收计划（`D-V1-025`，实现完成；后端既有格式基线待独立处理） |
 | [`../docs/superpowers/specs/2026-08-29-continuous-learning-window-design.md`](../docs/superpowers/specs/2026-08-29-continuous-learning-window-design.md) | 互动节点窗口连续尺寸、拖动位置、教师预览和节点展示配置接口设计（`D-V1-024`，实现完成，待浏览器人工验收） |
 
 ### 后续能力备忘
@@ -92,7 +92,7 @@
 | `D-V1-022` | [学生课程库升级契约边界与存储版本策略](decisions/2026-08-28-student-course-library-contract-boundaries.md) |
 | `D-V1-023` | [学生陪伴形象采用可替换角色资源包，第一版先完成单一小猫包](decisions/2026-08-29-student-companion-avatar-pack.md) |
 | `D-V1-024` | [互动学习窗口采用连续尺寸、拖动位置和节点展示配置接口](decisions/2026-08-29-continuous-learning-window.md)；实现完成，待浏览器人工验收 |
-| `D-V1-025` | [互动节点优先采用课程化编辑引导，不新增内容字段](decisions/2026-08-29-course-node-content-guidance.md)；用户已确认设计方向，开发计划已形成，待实现验证 |
+| `D-V1-025` | [互动节点优先采用课程化编辑引导，不新增内容字段](decisions/2026-08-29-course-node-content-guidance.md)；实现与人工验收完成，后端既有格式基线另行处理 |
 | 当前性能决策 | [教师端首屏性能优化](decisions/2026-08-27-teacher-first-load-performance.md) |
 
 ### 经验与状态
@@ -161,7 +161,8 @@
 `stage-1a-bridge/`、`teacher-editor-completion/`、`teacher-platform-experience-polish/`、
 `teacher-platform-local/`、`teacher-visual-node-editor/`。
 
-这些记录属于 v0.9.1 原型，不能冒充 v1 验收证据。v1 人工验收写入 `tests/manual/v1/`。
+这些记录属于 v0.9.1 原型，不能冒充 v1 验收证据。v1 人工验收写入 `tests/manual/v1/`，本轮记录见
+[`../tests/manual/v1/course-node-content-guidance-20260830.md`](../tests/manual/v1/course-node-content-guidance-20260830.md)。
 
 ### 受限素材
 

@@ -7,6 +7,8 @@ interface Props {
   value: string;
   disabled: boolean;
   onChange: (html: string) => void;
+  placeholder?: string;
+  hint?: string;
   onUploadAsset?: (file: File) => Promise<AssetRecord>;
   onImportAsset?: (url: string) => Promise<AssetRecord>;
   assetUrlForId?: (assetId: string) => string;
@@ -15,7 +17,7 @@ interface Props {
 
 const COLORS = ['#1d5c43', '#927008', '#a9654e', '#35516a'];
 
-export const RichTextEditor: React.FC<Props> = ({ label, value, disabled, onChange, onUploadAsset, onImportAsset, assetUrlForId, onAssetCreated }) => {
+export const RichTextEditor: React.FC<Props> = ({ label, value, disabled, onChange, placeholder, hint, onUploadAsset, onImportAsset, assetUrlForId, onAssetCreated }) => {
   const [tab, setTab] = useState<'visual' | 'html'>('visual');
   const [htmlDraft, setHtmlDraft] = useState(value);
   const [assetBusy, setAssetBusy] = useState(false);
@@ -160,13 +162,14 @@ export const RichTextEditor: React.FC<Props> = ({ label, value, disabled, onChan
           </div>
         )}
         {tab === 'visual' ? (
-          <div ref={hostRef} className="rich-text-visual"><div ref={editorRef} className="rich-text-content" contentEditable={!disabled} suppressContentEditableWarning data-placeholder="在这里编辑重点内容" onInput={(event) => emit(event.currentTarget.innerHTML)} role="textbox" aria-multiline="true" /></div>
+          <div ref={hostRef} className="rich-text-visual"><div ref={editorRef} className="rich-text-content" contentEditable={!disabled} suppressContentEditableWarning data-placeholder={placeholder ?? '在这里编辑内容'} onInput={(event) => emit(event.currentTarget.innerHTML)} role="textbox" aria-label={label} aria-multiline="true" /></div>
         ) : (
           <textarea className="rich-text-html" aria-label={`${label} HTML`} value={htmlDraft} disabled={disabled} rows={10} onChange={(event) => setHtmlDraft(event.target.value)} onBlur={() => setHtmlDraft(emit(htmlDraft))} />
         )}
       </div>
       {assetBusy && <small>正在导入媒体并生成资源 ID…</small>}
       {assetError && <p className="field-error">{assetError}</p>}
+      {hint && <small>{hint}</small>}
       <small>可视化与 HTML 两种编辑方式；保存前会去掉脚本、危险链接和未允许的标签。</small>
     </div>
   );

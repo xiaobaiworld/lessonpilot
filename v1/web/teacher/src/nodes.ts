@@ -16,32 +16,37 @@ export interface NodeMeta {
   family: 'attention' | 'practice';
   label: string;
   hint: string;
+  defaultTitle: string;
 }
 
 export const NODE_KINDS: NodeMeta[] = [
   {
     kind: 'notice',
     family: 'attention',
-    label: '重点标注',
-    hint: '到点暂停并显示一段提示，学生读完继续',
+    label: '重点提示',
+    hint: '暂停视频，提醒学生记住一个关键点',
+    defaultTitle: '本节重点',
   },
   {
     kind: 'choice',
     family: 'practice',
     label: '选择题',
-    hint: '给出选项，学生选中正确答案后继续',
+    hint: '提出一个问题，让学生通过选项判断依据',
+    defaultTitle: '想一想',
   },
   {
     kind: 'blank',
     family: 'practice',
     label: '填空题',
-    hint: '学生输入答案，与可接受答案比对',
+    hint: '让学生补出课程中的关键表达',
+    defaultTitle: '补全关键词',
   },
   {
     kind: 'free_text',
     family: 'practice',
     label: '问答题',
-    hint: '学生自由作答，随后看参考答案',
+    hint: '让学生结合课程内容说出自己的理解',
+    defaultTitle: '说说你的理解',
   },
 ];
 
@@ -74,7 +79,7 @@ export function createNode(kind: NodeKind, timeSeconds: number): ScriptNode {
     case 'notice':
       return {
         ...base,
-        title: '重点',
+        title: meta.defaultTitle,
         content: emptyRichPageDocument(),
         interactionData: null,
         presentationHints: WINDOW_DEFAULTS,
@@ -82,7 +87,7 @@ export function createNode(kind: NodeKind, timeSeconds: number): ScriptNode {
     case 'choice':
       return {
         ...base,
-        title: '选择题',
+        title: meta.defaultTitle,
         content: emptyRichPageDocument(),
         interactionData: {
           options: [
@@ -95,7 +100,7 @@ export function createNode(kind: NodeKind, timeSeconds: number): ScriptNode {
     case 'blank':
       return {
         ...base,
-        title: '填空题',
+        title: meta.defaultTitle,
         content: emptyRichPageDocument(),
         interactionData: {
           acceptedAnswers: [''],
@@ -108,7 +113,7 @@ export function createNode(kind: NodeKind, timeSeconds: number): ScriptNode {
     case 'free_text':
       return {
         ...base,
-        title: '问答题',
+        title: meta.defaultTitle,
         content: emptyRichPageDocument(),
         interactionData: { referenceFeedback: '' },
         presentationHints: WINDOW_DEFAULTS,
@@ -146,9 +151,12 @@ export function findEmptyField(node: ScriptNode): string | null {
   const e = (node.interactionData ?? {}) as Record<string, any>;
   const blank = (v: unknown) => typeof v !== 'string' || !v.trim();
 
-  if (blank(node.title)) return '标题';
+  if (blank(node.title)) return '节点标题';
 
-  if (blank(richDocumentToPlainText(node.content))) return node.interaction === 'notice' ? '正文' : '题目';
+  if (blank(richDocumentToPlainText(node.content))) {
+    if (node.interaction === 'notice') return '重点内容';
+    return node.interaction === 'free_text' ? '问题' : '题目主干';
+  }
   if (node.interaction === 'notice') return null;
 
   switch (node.interaction) {
@@ -156,15 +164,15 @@ export function findEmptyField(node: ScriptNode): string | null {
       const options = (e.options ?? []) as { id: string; label: string }[];
       if (options.some((o) => blank(o.label))) return '选项文字';
       if (!options.some((o) => o.id === e.answer)) return '正确答案';
-      return blank(e.explanation) ? '解析' : null;
+      return blank(e.explanation) ? '学生作答后的解释' : null;
     }
     case 'blank': {
       const answers = (e.acceptedAnswers ?? []) as unknown[];
-      if (answers.length === 0 || answers.some(blank)) return '可接受答案';
-      return blank(e.explanation) ? '解析' : null;
+      if (answers.length === 0 || answers.some(blank)) return '标准答案 / 可接受说法';
+      return blank(e.explanation) ? '学生提交后的解释' : null;
     }
     case 'free_text':
-      return blank(e.referenceFeedback) ? '参考答案' : null;
+      return blank(e.referenceFeedback) ? '学生提交后的参考反馈' : null;
   }
 }
 

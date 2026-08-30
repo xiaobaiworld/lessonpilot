@@ -938,6 +938,28 @@
   text-transform: uppercase;
 }
 
+.choice-row {
+  min-width: 0;
+}
+
+.choice-row-number,
+.choice-row-correct {
+  flex: none;
+  white-space: nowrap;
+}
+
+.choice-row-number {
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.choice-row-correct {
+  color: var(--green);
+  font-size: 10px;
+  font-weight: 700;
+}
+
 .node-content-section {
   gap: 14px;
 }
