@@ -33,7 +33,7 @@ done
 
 image_states=(idle focus prompt correct wrong complete)
 for state in "${image_states[@]}"; do
-  cwebp -quiet -q 70 "$source_dir/${state}-master.png" -o "$runtime_dir/${state}.webp"
+  cwebp -quiet -q 70 -resize 512 512 "$source_dir/${state}-master.png" -o "$runtime_dir/${state}.webp"
 done
 cwebp -quiet -q 70 -resize 64 64 "$source_dir/fish-treat-master.png" -o "$runtime_dir/fish-treat.webp"
 

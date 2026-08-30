@@ -49,34 +49,34 @@
       "image": "focus.webp",
       "audio": "focus.ogg",
       "durationMs": 600,
-      "imageSha256": "fff192c12ae99e708a97f3228218744e15a08c8496d2bb749e8fd4e9fa9c70a0",
+      "imageSha256": "f6aee8910af526976bfb63234b0d0419c9b4268566f7331fdccaaa8ea0612d61",
       "audioSha256": "a912de64e7b14d206cb717ee115c415778c5e10d52ca4abc6e81409b455b7ec1"
     },
     "idle": {
       "image": "idle.webp",
       "audio": null,
       "durationMs": null,
-      "imageSha256": "12df953392ad4b19d1482a73fcfaa6beac83ddf9de4c2ff53b1d509aac5fd9e8"
+      "imageSha256": "a6411335738ae0f77f35da183c3d83bcbb9fc2634dbd98132b26c660e401ab27"
     },
     "prompt": {
       "image": "prompt.webp",
       "audio": "prompt.ogg",
       "durationMs": 1100,
-      "imageSha256": "08b1c72a540c45a9e598848613124dcd91c4fb397fc041ef2a12b766f17c5e90",
+      "imageSha256": "8a3297ffd4a294649db2ff864f418a25349764548ed62060524a0f2df43f23f8",
       "audioSha256": "3dc784799f6df43b79e4664b03276af5d6132b9a5fe015f4a70c40f8700776ac"
     },
     "correct": {
       "image": "correct.webp",
       "audio": "correct.ogg",
       "durationMs": 600,
-      "imageSha256": "11f25348b1ed9be4190610edd28f19aa18da0a87e3e375f6996f00f9751d2797",
+      "imageSha256": "2528af569a1b9e5bb48ee7d2d094d2f7487f1a998a7818d7be28cb667ffd3e28",
       "audioSha256": "fe97cb32701c4b28c44451deda9467156f10357cdcb5322e195fdc7eabb759d6"
     },
     "wrong": {
       "image": "wrong.webp",
       "audio": "wrong.ogg",
       "durationMs": 1100,
-      "imageSha256": "ad408620aad259f65c053a65b00a6798fae94f111725bfc47f81465d07416ad8",
+      "imageSha256": "db7944f7bdaeb8ed9f835ab4337cf57337e8b34435ef3e36e26a6c081566ab23",
       "audioSha256": "ef78672c08b268d402797f5387e76ddfac61de5eda73e9992a69d268769ba376"
     },
     "complete": {
@@ -85,7 +85,7 @@
       "durationMs": 3000,
       "message": "感谢你让我又吃到了一条小鱼。",
       "overlay": "fishTreat",
-      "imageSha256": "59635aad7e09ad2c2a5480e7b168382390b62badafc5060226cf6fe1e2ace3d8",
+      "imageSha256": "3c333ab7a1069e26e12777a8fd2fdf1e4963143061ccda1f543ad20c123f2a8e",
       "audioSha256": "853ec0c60296b091cbd7d1405f114b9fb350d8c43fcd1372ea562c14c3374413"
     }
   },
