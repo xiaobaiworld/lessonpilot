@@ -85,14 +85,14 @@
 | 层级 | 本地位置 | 内容 | 是否随插件发布 |
 | --- | --- | --- | --- |
 | 设计源文件 | `docs/superpowers/assets/companion/cat-v1/source/` | 6 张原始生成稿，供人工审稿、后续换猫种和重新导出 | 否 |
-| 运行时资源 | `v1/extension/assets/companion/cat/v1/` | 6 张 512×512 RGBA PNG、1 张 64×64 RGBA 小鱼干、5 个单声道 48kHz WAV、`manifest.json` | 已由 Vite 复制到 local/production 插件产物 |
+| 运行时资源 | `v1/extension/assets/companion/cat/v1/` | 6 张 512×512 RGBA WebP、1 张 64×64 RGBA 小鱼干 WebP、5 个单声道 48kHz Ogg/Opus、`manifest.json` | 已由 Vite 复制到 local/production 插件产物 |
 | 构建产物 | `v1/extension/dist/local/` 或 `v1/extension/dist/production/` | 下一步由构建脚本复制后的本地/生产插件包 | 接入后是，取决于构建目标 |
 | 用户自定义头像 | 插件本机 IndexedDB 的 `companionAssets` 区域 | 经过校验、裁剪和缩放后的用户文件 | 否，不回写仓库 |
 
 资源生成与交付流程固定为：
 
 1. 先生成或制作源文件，记录生成方式、来源和人工审核结果；禁止直接把网络 URL 当作运行资源。
-2. 统一导出为插件可用尺寸和格式：默认状态图为透明 512×512 PNG，小鱼干奖励图为透明 64×64 PNG，建议实际显示约 32px；音频为短时长、单声道 48kHz WAV。每个文件进入 `manifest.json`，记录状态、时长和 SHA-256。
+2. 统一导出为插件可用尺寸和格式：默认状态图为透明 512×512 WebP，小鱼干奖励图为透明 64×64 WebP，建议实际显示约 32px；音频为短时长、单声道 48kHz Ogg/Opus。每个文件进入 `manifest.json`，记录状态、时长和 SHA-256。
 3. 构建插件时只复制“运行时资源”目录到 `dist/local` 和 `dist/production`；安装或加载本地插件时这些文件随扩展包落到浏览器扩展自己的本地资源空间，不需要用户另行下载。Vite 已接入复制和引用完整性自检。
 4. content 不直接读取课程媒体或用户 IndexedDB。运行时由 background 按内置 `packId + state` 白名单提供图片/音频资源；读取失败时回退 `idle` 图片并静音。
 5. 用户上传走独立链路：设置页选择文件 → background 校验真实 MIME、大小、可解码性和尺寸 → 必要时裁剪/缩放 → 写入本机 `companionAssets`。它不会覆盖内置包，也不会进入插件 ZIP。

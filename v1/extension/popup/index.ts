@@ -7,7 +7,28 @@ declare const __TEACHER_URL__: string;
 declare const __STUDENT_PLUGIN_DOWNLOAD_URL__: string;
 
 type Reply<T> = { ok: true; data: T } | { ok: false; message: string };
-type View = 'home' | 'settings';
+type View = 'home' | 'settings' | 'companion';
+type CompanionState = 'idle' | 'focus' | 'prompt' | 'correct' | 'wrong' | 'complete';
+type CompanionAsset = {
+  state: CompanionState;
+  image: string;
+  audio: string | null;
+  durationMs: number | null;
+  message?: string;
+};
+
+const companionStates: readonly CompanionState[] = [
+  'idle', 'focus', 'prompt', 'correct', 'wrong', 'complete',
+];
+const companionStateLabels: Record<CompanionState, string> = {
+  idle: '安静等待',
+  focus: '开始注意',
+  prompt: '提示与等待',
+  correct: '答对反馈',
+  wrong: '答错反馈',
+  complete: '完成庆祝',
+};
+const companionSounds = ['focus', 'prompt', 'correct', 'wrong', 'complete'] as const;
 
 const root = document.getElementById('root')!;
 let view: View = 'home';
@@ -20,6 +41,7 @@ let settings: StudentSettings = {
 };
 let soundEnabled = true;
 let updates: CourseUpdateSummary[] = [];
+let previewAudio: HTMLAudioElement | null = null;
 
 async function ask<T>(message: unknown): Promise<Reply<T>> {
   try {
@@ -51,13 +73,13 @@ function wordmark(): HTMLElement {
   return title;
 }
 
-function brandHeader(onSettings: () => void, onBack?: () => void): HTMLElement {
+function brandHeader(onSettings: () => void, onBack?: () => void, backLabel = '返回首页'): HTMLElement {
   const head = el('header', 'brand');
   if (onBack) {
     const back = el('button', 'back-button', '‹');
     back.type = 'button';
-    back.title = '返回首页';
-    back.setAttribute('aria-label', '返回首页');
+    back.title = backLabel;
+    back.setAttribute('aria-label', backLabel);
     back.addEventListener('click', onBack);
     head.append(back);
   }
@@ -300,6 +322,150 @@ function toggle(title: string, description: string, enabled: boolean, onChange: 
   return settingRow(title, description, button);
 }
 
+async function loadCompanionAssets(): Promise<Map<CompanionState, CompanionAsset>> {
+  const loaded = await Promise.all(companionStates.map(async (state) => {
+    const reply = await ask<CompanionAsset>({ type: 'companionAsset', packId: 'cat-v1', state });
+    return reply.ok ? [state, reply.data] as const : null;
+  }));
+  return new Map(loaded.filter((entry): entry is readonly [CompanionState, CompanionAsset] => entry !== null));
+}
+
+function stopPreviewAudio(): void {
+  if (!previewAudio) return;
+  previewAudio.pause();
+  previewAudio.currentTime = 0;
+  previewAudio = null;
+}
+
+function playPreviewAudio(url: string): void {
+  stopPreviewAudio();
+  const audio = new Audio(url);
+  previewAudio = audio;
+  audio.addEventListener('ended', () => {
+    if (previewAudio === audio) previewAudio = null;
+  });
+  void audio.play().catch(() => showError('声音暂时无法试听。'));
+}
+
+function formatDuration(durationMs: number | null): string {
+  if (!durationMs) return '—';
+  return `${durationMs % 1000 === 0 ? durationMs / 1000 : (durationMs / 1000).toFixed(1)} 秒`;
+}
+
+function companionCategory(name: string, subtitle: string, description: string, emoji: string): HTMLElement {
+  const card = el('button', 'companion-category unavailable');
+  card.type = 'button';
+  card.disabled = true;
+  card.append(
+    el('span', 'companion-category-emoji', emoji),
+    el('strong', undefined, name),
+    el('span', 'companion-category-subtitle', subtitle),
+    el('span', 'companion-category-copy', description),
+    el('span', 'future', '下一版本完成'),
+  );
+  return card;
+}
+
+async function renderCompanionSettings(): Promise<void> {
+  view = 'companion';
+  stopPreviewAudio();
+  root.replaceChildren();
+  const shell = el('main', 'shell companion-shell');
+  shell.append(brandHeader(() => window.close(), () => renderSettings(), '返回插件设置'));
+  shell.append(el('p', 'status', '正在准备学习伙伴…'));
+  root.append(shell);
+
+  const assets = await loadCompanionAssets();
+  const idle = assets.get('idle');
+  if (!idle) {
+    shell.replaceChildren(brandHeader(() => window.close(), () => renderSettings(), '返回插件设置'));
+    shell.append(el('p', 'error', '学习伙伴资源暂时无法读取，请重新加载插件。'));
+    return;
+  }
+
+  shell.replaceChildren(brandHeader(() => window.close(), () => renderSettings(), '返回插件设置'));
+  const title = el('div', 'settings-title');
+  title.append(el('h1', undefined, '学习伙伴'), el('p', undefined, '选择一位陪你学习的伙伴。它会带着自己的状态图和声音，在合适的时刻出现。'));
+  shell.append(title);
+
+  const hero = el('section', 'companion-hero');
+  const heroImage = el('img', 'companion-hero-image') as HTMLImageElement;
+  heroImage.src = idle.image;
+  heroImage.alt = '神秘猫精灵当前形象';
+  const heroCopy = el('div', 'companion-hero-copy');
+  heroCopy.append(el('span', 'eyebrow', '当前伙伴'), el('h2', undefined, '神秘猫精灵'), el('p', undefined, '能够给你温柔陪伴，并带来特殊力量，让你的学习效率倍增。'));
+  hero.append(heroImage, heroCopy, el('span', 'companion-selected', '已选择'));
+  shell.append(hero);
+
+  const stateSection = el('section', 'companion-section');
+  stateSection.append(el('h2', 'setting-group-title', '它在学习中的样子'));
+  const stateGrid = el('div', 'companion-state-grid');
+  for (const state of companionStates) {
+    const asset = assets.get(state);
+    if (!asset) continue;
+    const button = el('button', 'companion-thumb') as HTMLButtonElement;
+    button.type = 'button';
+    button.title = companionStateLabels[state];
+    button.setAttribute('aria-label', `查看${companionStateLabels[state]}`);
+    const image = el('img') as HTMLImageElement;
+    image.src = asset.image;
+    image.alt = companionStateLabels[state];
+    button.append(image);
+    button.addEventListener('mouseenter', () => { heroImage.src = asset.image; });
+    button.addEventListener('focus', () => { heroImage.src = asset.image; });
+    button.addEventListener('mouseleave', () => { heroImage.src = idle.image; });
+    button.addEventListener('blur', () => { heroImage.src = idle.image; });
+    stateGrid.append(button);
+  }
+  stateSection.append(stateGrid);
+  shell.append(stateSection);
+
+  const soundSection = el('section', 'companion-section');
+  soundSection.append(el('h2', 'setting-group-title', '神秘猫精灵声音组'));
+  for (const state of companionSounds) {
+    const asset = assets.get(state);
+    if (!asset?.audio) continue;
+    const row = el('div', 'sound-row');
+    const copy = el('div', 'sound-copy');
+    copy.append(el('strong', undefined, companionStateLabels[state]), el('span', undefined, `${formatDuration(asset.durationMs)} · 角色专属声音`));
+    const preview = el('button', 'sound-preview', '试听') as HTMLButtonElement;
+    preview.type = 'button';
+    preview.dataset.audioPreview = state;
+    preview.addEventListener('click', () => playPreviewAudio(asset.audio!));
+    row.append(copy, preview);
+    soundSection.append(row);
+  }
+  const soundSwitch = el('button', soundEnabled ? 'sound-switch active' : 'sound-switch', soundEnabled ? '学习时播放声音' : '学习时静音') as HTMLButtonElement;
+  soundSwitch.type = 'button';
+  soundSwitch.addEventListener('click', async () => {
+    const reply = await ask<{ soundEnabled: boolean }>({ type: 'setCompanionSound', enabled: !soundEnabled });
+    if (!reply.ok) { showError(reply.message); return; }
+    soundEnabled = reply.data.soundEnabled;
+    void renderCompanionSettings();
+  });
+  soundSection.append(soundSwitch);
+  shell.append(soundSection);
+
+  const categories = el('section', 'companion-section');
+  categories.append(el('h2', 'setting-group-title', '选择伙伴类别'));
+  const categoryGrid = el('div', 'companion-categories');
+  const cat = el('button', 'companion-category selected') as HTMLButtonElement;
+  cat.type = 'button';
+  cat.setAttribute('aria-pressed', 'true');
+  const catImage = el('img', 'companion-category-image') as HTMLImageElement;
+  catImage.src = idle.image;
+  catImage.alt = '';
+  cat.append(catImage, el('strong', undefined, '神秘猫精灵'), el('span', 'companion-category-subtitle', '温柔陪伴 · 特殊力量'), el('span', 'companion-category-copy', '用安静又有力量的陪伴，帮你把每一次专注变得更有收获。'), el('span', 'companion-category-check', '✓'));
+  categoryGrid.append(
+    cat,
+    companionCategory('元气伙伴', '热情鼓励 · 持续动力', '用满满的热情陪你坚持，让每一次尝试都更有动力。', '🐶'),
+    companionCategory('森林伙伴', '轻松陪伴 · 保持好奇', '带来轻松新鲜的陪伴，帮助你保持好奇与专注。', '🦊'),
+    companionCategory('未知世界伙伴', '空灵相遇 · 专属陪伴', '来自未知世界的特别伙伴，更多能力正在准备中。', '🧑‍🚀'),
+  );
+  categories.append(categoryGrid);
+  shell.append(categories, el('p', 'companion-tip', '选对伙伴，让你的学习事半功倍。'));
+}
+
 function renderSettings(): void {
   view = 'settings';
   root.replaceChildren();
@@ -354,7 +520,7 @@ function renderSettings(): void {
   companion.append(el('h2', 'setting-group-title', '学习伙伴'));
   const companionButton = el('button', 'secondary-button', '设置');
   companionButton.type = 'button';
-  companionButton.addEventListener('click', () => void chrome.tabs.create({ url: chrome.runtime.getURL('settings/index.html') }));
+  companionButton.addEventListener('click', () => void renderCompanionSettings());
   companion.append(settingRow('神秘猫精灵', '6 种状态 · 角色声音 · 完成时增加小鱼。', companionButton));
   shell.append(companion);
 

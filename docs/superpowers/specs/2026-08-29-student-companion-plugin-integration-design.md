@@ -2,7 +2,7 @@
 
 日期：2026-08-29  
 状态：第一版设计确认，进入开发  
-关联决策：[`D-V1-023`](../../../doc/decisions/2026-08-29-student-companion-avatar-pack.md)  
+关联决策：[`D-V1-023`](../../../doc/decisions/2026-08-29-student-companion-avatar-pack.md)、[`D-V1-026`](../../../doc/decisions/2026-08-30-companion-pack-online-delivery.md)
 关联产品设计：[`07-product-interaction-state.md`](../../../doc/design/v1/07-product-interaction-state.md)  
 
 ## 1. 目标与范围
@@ -24,9 +24,9 @@
 - 毛色/肤色/发色变体选择；
 - 元气狗狗伙伴、奇趣森林伙伴、未知世界伙伴、个性设定和自定义头像上传（均保留下一版本提示）；
 - 自定义声音上传；
-- 远程下载、在线更新或按课程下发角色包。
+- 远程角色包下载、账号选择同步、在线更新 UI 或按课程下发角色包。
 
-这些内容继续记录在 `D-V1-023` 和既有开发计划中，下一次升级前必须重新确认是否纳入。
+这些内容以 `D-V1-026` 记录为网站目录与按需下载方向；下一次升级前必须重新确认是否纳入。
 
 ## 2. 当前系统状态
 
@@ -50,7 +50,7 @@
 | 层级 | 路径 | 用途 |
 | --- | --- | --- |
 | 源文件 | `docs/superpowers/assets/companion/cat-v1/source/` | 人工审稿、重新导出、未来换猫种的设计资产 |
-| 插件运行资源 | `v1/extension/assets/companion/cat/v1/` | 随插件构建的 PNG、WAV 和清单 |
+| 插件运行资源 | `v1/extension/assets/companion/cat/v1/` | 随插件构建的 WebP、Ogg 和清单；首版压缩完成前仍是待迁移状态 |
 | 构建产物 | `v1/extension/dist/{local,production}/assets/companion/` | Chrome 实际加载的扩展资源 |
 | 用户自定义资源 | 未来的 IndexedDB `companionAssets` 区域 | 不覆盖内置包，不进入本次插件包 |
 
@@ -132,7 +132,7 @@
 
 自动化验收至少覆盖：
 
-- 构建产物包含 manifest 引用的全部角色 PNG、WAV 和清单；
+- 构建产物包含 manifest 引用的全部角色 WebP、Ogg 和清单；
 - manifest 暴露角色资源目录，生产包不新增无关 host permission；
 - 6 个状态可以被白名单解析，缺失状态安全回退；
 - 节点打开、答对、答错、完成时状态顺序正确；

@@ -4,11 +4,17 @@ import {
   type CompanionVisualState,
 } from '../content/companion-assets';
 
-type StateAsset = { image: string };
+type StateAsset = {
+  image: string;
+  audio: string | null;
+  durationMs: number | null;
+};
 type Reply<T> = { ok: true; data: T } | { ok: false; message?: string };
 
 const root = document;
 const assets = new Map<CompanionVisualState, StateAsset>();
+let previewAudio: HTMLAudioElement | null = null;
+let soundEnabled = true;
 
 async function ask<T>(message: unknown): Promise<Reply<T>> {
   try {
@@ -43,24 +49,86 @@ async function loadAsset(state: CompanionVisualState): Promise<StateAsset | null
   return reply.data;
 }
 
-function bindStateImage(state: CompanionVisualState, asset: StateAsset): void {
-  const preview = root.querySelector<HTMLImageElement>('#selected-avatar');
-  if (state === 'idle' && preview) preview.src = asset.image;
+function stopPreviewAudio(): void {
+  if (!previewAudio) return;
+  previewAudio.pause();
+  previewAudio.currentTime = 0;
+  previewAudio = null;
+}
 
+function playPreviewAudio(url: string): void {
+  stopPreviewAudio();
+  const audio = new Audio(url);
+  previewAudio = audio;
+  audio.addEventListener('ended', () => {
+    if (previewAudio === audio) previewAudio = null;
+  });
+  void audio.play().catch(() => showError('声音暂时无法试听。'));
+}
+
+function bindStateImage(state: CompanionVisualState, asset: StateAsset, idleImage: string): void {
+  const preview = root.querySelector<HTMLImageElement>('#selected-avatar');
   const thumb = root.querySelector<HTMLElement>(`[data-state-preview="${state}"]`);
-  const images = thumb?.querySelectorAll<HTMLImageElement>('img');
-  images?.forEach((image) => { image.src = asset.image; });
+  const image = thumb?.querySelector<HTMLImageElement>('img');
+  if (image) image.src = asset.image;
+  if (!thumb || !preview) return;
+  thumb.addEventListener('mouseenter', () => { preview.src = asset.image; });
+  thumb.addEventListener('focus', () => { preview.src = asset.image; });
+  thumb.addEventListener('mouseleave', () => { preview.src = idleImage; });
+  thumb.addEventListener('blur', () => { preview.src = idleImage; });
+}
+
+function syncSoundSwitch(): void {
+  const button = root.querySelector<HTMLButtonElement>('#sound-switch');
+  if (!button) return;
+  button.classList.toggle('active', soundEnabled);
+  button.textContent = soundEnabled ? '学习时播放声音' : '学习时静音';
+}
+
+function bindPreviewButtons(): void {
+  root.querySelectorAll<HTMLButtonElement>('[data-audio-preview]').forEach((button) => {
+    const state = button.dataset.audioPreview as CompanionVisualState;
+    const asset = assets.get(state);
+    if (!asset?.audio) {
+      button.disabled = true;
+      return;
+    }
+    button.addEventListener('click', () => playPreviewAudio(asset.audio!));
+  });
 }
 
 async function init(): Promise<void> {
   const version = root.querySelector<HTMLElement>('#version');
   if (version) version.textContent = `v${chrome.runtime.getManifest().version}`;
+  root.querySelector('#back-button')?.addEventListener('click', () => window.close());
+  root.querySelector('#close-button')?.addEventListener('click', () => window.close());
 
-  const loaded = await Promise.all(
-    COMPANION_STATES.map(async (state) => ({ state, asset: await loadAsset(state) })),
-  );
-  loaded.forEach(({ state, asset }) => {
-    if (asset) bindStateImage(state, asset);
+  const [loaded, soundReply] = await Promise.all([
+    Promise.all(COMPANION_STATES.map(async (state) => ({ state, asset: await loadAsset(state) }))),
+    ask<{ soundEnabled: boolean }>({ type: 'companionSound' }),
+  ]);
+  if (soundReply.ok) soundEnabled = soundReply.data.soundEnabled;
+
+  const idle = assets.get('idle');
+  if (idle) {
+    const selected = root.querySelector<HTMLImageElement>('#selected-avatar');
+    const category = root.querySelector<HTMLImageElement>('#category-avatar');
+    if (selected) selected.src = idle.image;
+    if (category) category.src = idle.image;
+    loaded.forEach(({ state, asset }) => {
+      if (asset) bindStateImage(state, asset, idle.image);
+    });
+  }
+  bindPreviewButtons();
+  syncSoundSwitch();
+  root.querySelector<HTMLButtonElement>('#sound-switch')?.addEventListener('click', async () => {
+    const reply = await ask<{ soundEnabled: boolean }>({ type: 'setCompanionSound', enabled: !soundEnabled });
+    if (!reply.ok) {
+      showError(reply.message ?? '声音设置保存失败。');
+      return;
+    }
+    soundEnabled = reply.data.soundEnabled;
+    syncSoundSwitch();
   });
 }
 

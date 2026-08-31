@@ -44,7 +44,7 @@
 
   ```markdown
   > 2026-08-30：本条的“后续再评估”已由
-  > [`D-V1-026`](2026-08-30-companion-pack-online-delivery.md) 具体化；
+  > [`D-V1-026`](../../../doc/decisions/2026-08-30-companion-pack-online-delivery.md) 具体化；
   > D-V1-023 其余结论不变。
   ```
 

@@ -54,7 +54,7 @@ export const TARGETS: Record<TargetName, BuildTarget> = {
   },
 };
 
-export const EXTENSION_VERSION = '1.2.0';
+export const EXTENSION_VERSION = '1.2.1';
 
 export function buildManifest(target: BuildTarget): Record<string, unknown> {
   return {
@@ -127,16 +127,16 @@ export const BUILD_ARTIFACTS = [
   'assets/icon-48.png',
   'assets/icon-128.png',
   'assets/companion/cat/v1/manifest.json',
-  'assets/companion/cat/v1/focus.png',
-  'assets/companion/cat/v1/idle.png',
-  'assets/companion/cat/v1/prompt.png',
-  'assets/companion/cat/v1/correct.png',
-  'assets/companion/cat/v1/wrong.png',
-  'assets/companion/cat/v1/complete.png',
-  'assets/companion/cat/v1/fish-treat.png',
-  'assets/companion/cat/v1/focus.wav',
-  'assets/companion/cat/v1/prompt.wav',
-  'assets/companion/cat/v1/correct.wav',
-  'assets/companion/cat/v1/wrong.wav',
-  'assets/companion/cat/v1/complete.wav',
+  'assets/companion/cat/v1/focus.webp',
+  'assets/companion/cat/v1/idle.webp',
+  'assets/companion/cat/v1/prompt.webp',
+  'assets/companion/cat/v1/correct.webp',
+  'assets/companion/cat/v1/wrong.webp',
+  'assets/companion/cat/v1/complete.webp',
+  'assets/companion/cat/v1/fish-treat.webp',
+  'assets/companion/cat/v1/focus.ogg',
+  'assets/companion/cat/v1/prompt.ogg',
+  'assets/companion/cat/v1/correct.ogg',
+  'assets/companion/cat/v1/wrong.ogg',
+  'assets/companion/cat/v1/complete.ogg',
 ] as const;

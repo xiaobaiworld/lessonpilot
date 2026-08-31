@@ -15,12 +15,12 @@
       "focus": {
         "source": "https://freesound.org/people/alizardguy/sounds/668632/",
         "license": "CC0 1.0",
-        "processing": "保留开头 0.60s，短淡入淡出，单声道 48kHz WAV"
+        "processing": "保留开头 0.60s，短淡入淡出，单声道 48kHz Ogg/Opus"
       },
       "prompt": {
         "source": "https://freesound.org/people/Richard1052/sounds/585766/",
         "license": "CC0 1.0",
-        "processing": "从原始录音尾部截取 1.10s，短淡入淡出，单声道 48kHz WAV"
+        "processing": "从原始录音尾部截取 1.10s，短淡入淡出，单声道 48kHz Ogg/Opus"
       },
       "correct": {
         "source": "https://freesound.org/people/alizardguy/sounds/668632/",
@@ -35,7 +35,7 @@
       "complete": {
         "source": "https://freesound.org/people/lauramellis/sounds/263115/",
         "license": "CC0 1.0",
-        "processing": "保留老虎录音开头 3.00s，短淡入淡出，单声道 48kHz WAV，作为完成庆祝专用声音"
+        "processing": "保留老虎录音开头 3.00s，短淡入淡出，单声道 48kHz Ogg/Opus，作为完成庆祝专用声音"
       }
     }
   },
@@ -46,54 +46,54 @@
   },
   "states": {
     "focus": {
-      "image": "focus.png",
-      "audio": "focus.wav",
+      "image": "focus.webp",
+      "audio": "focus.ogg",
       "durationMs": 600,
-      "imageSha256": "c7b5fa582e8c0a81ecd7fed2046a4e3e1ff49dff4b2909caf8be48844bf66ee4",
-      "audioSha256": "0019ab227384f0e0566833992af238b1c3b739685b1313a708f675eba0b5b1fe"
+      "imageSha256": "f6aee8910af526976bfb63234b0d0419c9b4268566f7331fdccaaa8ea0612d61",
+      "audioSha256": "a912de64e7b14d206cb717ee115c415778c5e10d52ca4abc6e81409b455b7ec1"
     },
     "idle": {
-      "image": "idle.png",
+      "image": "idle.webp",
       "audio": null,
       "durationMs": null,
-      "imageSha256": "90897e14b8d282a2fe70acaffa717b5abab2a74ea54124baddf4f806e0481e2c"
+      "imageSha256": "a6411335738ae0f77f35da183c3d83bcbb9fc2634dbd98132b26c660e401ab27"
     },
     "prompt": {
-      "image": "prompt.png",
-      "audio": "prompt.wav",
+      "image": "prompt.webp",
+      "audio": "prompt.ogg",
       "durationMs": 1100,
-      "imageSha256": "d66f61a66b0cdcd43c6950788109163b0921232deddfd7852e9a78c44062891b",
-      "audioSha256": "9d1428e15a83abf3f81eabd2e0e95968793230582e06b8e081e3640dae65285b"
+      "imageSha256": "8a3297ffd4a294649db2ff864f418a25349764548ed62060524a0f2df43f23f8",
+      "audioSha256": "3dc784799f6df43b79e4664b03276af5d6132b9a5fe015f4a70c40f8700776ac"
     },
     "correct": {
-      "image": "correct.png",
-      "audio": "correct.wav",
+      "image": "correct.webp",
+      "audio": "correct.ogg",
       "durationMs": 600,
-      "imageSha256": "599ee25627b93480fb81797c5f1cd848634813ab09f91eab95388fe91016d9eb",
-      "audioSha256": "0019ab227384f0e0566833992af238b1c3b739685b1313a708f675eba0b5b1fe"
+      "imageSha256": "2528af569a1b9e5bb48ee7d2d094d2f7487f1a998a7818d7be28cb667ffd3e28",
+      "audioSha256": "fe97cb32701c4b28c44451deda9467156f10357cdcb5322e195fdc7eabb759d6"
     },
     "wrong": {
-      "image": "wrong.png",
-      "audio": "wrong.wav",
+      "image": "wrong.webp",
+      "audio": "wrong.ogg",
       "durationMs": 1100,
-      "imageSha256": "bea18bbe84b918d36a075c4cf14a73f5f51e7d2486f783975fdb6c4db3477c64",
-      "audioSha256": "2ee1eb01f70cecf792053ab124ba068be3c7469920f6324511cdc2587e9879ff"
+      "imageSha256": "db7944f7bdaeb8ed9f835ab4337cf57337e8b34435ef3e36e26a6c081566ab23",
+      "audioSha256": "ef78672c08b268d402797f5387e76ddfac61de5eda73e9992a69d268769ba376"
     },
     "complete": {
-      "image": "complete.png",
-      "audio": "complete.wav",
+      "image": "complete.webp",
+      "audio": "complete.ogg",
       "durationMs": 3000,
       "message": "感谢你让我又吃到了一条小鱼。",
       "overlay": "fishTreat",
-      "imageSha256": "80da72286864b5f95c1cef6f49a446b775e0d7e38a019494267930afaa37ea06",
-      "audioSha256": "f6c9cc182e67d7ccc745a70a97fdc855330a01fb48858cd4514e66d75a211c02"
+      "imageSha256": "3c333ab7a1069e26e12777a8fd2fdf1e4963143061ccda1f543ad20c123f2a8e",
+      "audioSha256": "853ec0c60296b091cbd7d1405f114b9fb350d8c43fcd1372ea562c14c3374413"
     }
   },
   "overlays": {
     "fishTreat": {
-      "image": "fish-treat.png",
+      "image": "fish-treat.webp",
       "recommendedDisplayPx": 32,
-      "imageSha256": "1c42d37ae55ae49729614cf5a8e28217ecccc21788cbc27856d79e819df1295f"
+      "imageSha256": "cca72b929859c58b5aa236c71d12f6576a9e7e738f29db420a44bc18b20463fb"
     }
   },
   "delivery": {

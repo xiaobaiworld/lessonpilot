@@ -82,4 +82,17 @@ describe('V1.2.0 弹窗发布功能总览 V1', () => {
     expect(source).toMatch(/setStudentSettings/);
     expect(source).not.toMatch(/chrome\.runtime\.openOptionsPage\(\)/);
   });
+
+  it('学习伙伴设置在同一弹窗内展示角色包和试听声音', () => {
+    expect(source).toContain("type View = 'home' | 'settings' | 'companion'");
+    expect(source).toContain('renderCompanionSettings');
+    expect(source).toContain('神秘猫精灵声音组');
+    expect(source).toContain('开始注意');
+    expect(source).toContain('提示与等待');
+    expect(source).toContain('答对反馈');
+    expect(source).toContain('答错反馈');
+    expect(source).toContain('完成庆祝');
+    expect(source).toContain("type: 'setCompanionSound'");
+    expect(source).not.toContain("chrome.tabs.create({ url: chrome.runtime.getURL('settings/index.html') })");
+  });
 });
