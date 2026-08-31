@@ -199,13 +199,6 @@ const StudentNodePreview: React.FC<{
       className={`student-node-preview student-node-preview-${node.interaction} student-node-preview-${presentation.style}${previewConfirmed ? ' is-confirmed' : ''}`}
       aria-label="学生端预览"
     >
-      <header className="student-node-preview-head">
-        <div>
-          <span className="node-section-eyebrow">学生端预览</span>
-          <strong>学生看到的样子</strong>
-        </div>
-        <span>正在播放 · {formatPreviewTime(node.anchor.timeSeconds)}</span>
-      </header>
       <PresentationPreview
         hints={previewHints}
         disabled={disabled}
@@ -230,10 +223,8 @@ const StudentNodePreview: React.FC<{
       <div className="preview-settings">
         <div className="preview-settings-heading">
           <div>
-            <span className="node-section-eyebrow">预览设置</span>
-            <strong>窗口显示</strong>
+            <strong>窗口设置</strong>
           </div>
-          <span>修改后查看上方预览</span>
         </div>
         <div className="preview-settings-group">
           <div className="preview-settings-group-heading">

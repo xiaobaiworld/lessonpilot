@@ -1029,33 +1029,6 @@
   background: #f2f7f0;
 }
 
-.student-node-preview-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  padding: 12px 14px;
-}
-
-.student-node-preview-head {
-  border-bottom: 1px solid #dce7dc;
-}
-
-.student-node-preview-head > div {
-  display: grid;
-  gap: 3px;
-}
-
-.student-node-preview-head strong {
-  font-size: 12px;
-}
-
-.student-node-preview-head > span {
-  color: var(--green);
-  font-size: 10px;
-  font-weight: 800;
-}
-
 .student-node-preview-stage {
   position: relative;
   display: block;
@@ -1348,11 +1321,6 @@
 
 .preview-settings-heading strong {
   font-size: 12px;
-}
-
-.preview-settings-heading > span {
-  color: var(--muted);
-  font-size: 10px;
 }
 
 .preview-settings-group {

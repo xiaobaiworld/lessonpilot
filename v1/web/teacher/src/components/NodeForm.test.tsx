@@ -50,6 +50,15 @@ describe('节点展示位置编辑', () => {
     expect(container.textContent).toContain('窗口大小');
     expect(container.textContent).toContain('窗口位置');
     expect(container.textContent).not.toContain('窗口样式');
+    expect(container.textContent).not.toContain('学生端预览');
+    expect(container.textContent).not.toContain('学生看到的样子');
+    expect(container.textContent).toContain('窗口设置');
+    expect(container.textContent).not.toContain('预览设置');
+    expect(container.textContent).not.toContain('窗口显示');
+    expect(container.textContent).not.toContain('正在播放');
+    expect(container.textContent).not.toContain('修改后查看上方预览');
+    expect(container.textContent).not.toContain('学生将在视频中看到');
+    expect(container.querySelector('.student-node-preview-head')).toBeNull();
     expect(container.textContent).toContain('拖动上方窗口，或直接输入中心点坐标');
     expect(container.querySelector<HTMLInputElement>('input[name="position-x"]')?.value).toBe('44.4');
     expect(container.querySelector<HTMLInputElement>('input[name="position-y"]')?.value).toBe('44');
