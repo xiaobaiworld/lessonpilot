@@ -9,9 +9,11 @@
     "chrome": ">=120"
   },
   "scripts": {
-    "build": "vite build",
-    "build:local": "KNOWNMAP_TARGET=local vite build",
-    "build:production": "KNOWNMAP_TARGET=production vite build",
+    "build": "npm run build:content && npm run build:entries",
+    "build:content": "KNOWNMAP_CONTENT_BUILD=1 vite build",
+    "build:entries": "KNOWNMAP_CONTENT_BUILD=0 vite build",
+    "build:local": "KNOWNMAP_TARGET=local npm run build",
+    "build:production": "KNOWNMAP_TARGET=production npm run build",
     "build:all": "npm run build:local && npm run build:production",
     "type-check": "tsc --noEmit"
   },

@@ -14,6 +14,7 @@ import {
   buildManifest,
   BUILD_ARTIFACTS,
 } from './manifest/targets';
+import { buildEntryPlan } from './build-options';
 
 /**
  * MV3 打包。
@@ -29,6 +30,8 @@ if (!target) {
 
 const outDir = resolve(__dirname, `dist/${targetName}`);
 const teacherUrl = `${target.teacherOrigin.replace(/\/$/, '')}/teacher/`;
+const contentOnly = process.env.KNOWNMAP_CONTENT_BUILD === '1';
+const entryPlan = buildEntryPlan(contentOnly, __dirname);
 
 export default defineConfig({
   root: __dirname,
@@ -40,20 +43,17 @@ export default defineConfig({
   },
   build: {
     outDir,
-    emptyOutDir: true,
+    emptyOutDir: entryPlan.emptyOutDir,
     // MV3 的 service worker 与 content script 不能是多 chunk，各自打成一个文件
     rollupOptions: {
       input: {
-        'background/service-worker': resolve(__dirname, 'background/service-worker.ts'),
-        'content/index': resolve(__dirname, 'content/index.ts'),
-        'popup/index': resolve(__dirname, 'popup/index.ts'),
-        'settings/index': resolve(__dirname, 'settings/index.ts'),
+        ...entryPlan.input,
       },
       output: {
         entryFileNames: '[name].js',
-        // 不做 code splitting：content script 无法 import chunk
-        inlineDynamicImports: false,
-        manualChunks: () => undefined,
+        // 内容脚本单独构建时必须内联，service worker 与 HTML 入口可以分包。
+        inlineDynamicImports: entryPlan.inlineDynamicImports,
+        ...(contentOnly ? {} : { manualChunks: () => undefined }),
         chunkFileNames: '[name].js',
         assetFileNames: '[name].[ext]',
       },
@@ -64,6 +64,7 @@ export default defineConfig({
     {
       name: 'knownmap-mv3-assets',
       closeBundle() {
+        if (contentOnly) return;
         mkdirSync(resolve(outDir, 'content'), { recursive: true });
         mkdirSync(resolve(outDir, 'popup'), { recursive: true });
         mkdirSync(resolve(outDir, 'settings'), { recursive: true });

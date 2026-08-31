@@ -136,6 +136,10 @@ build_web() {
       --include='*.js' --include='manifest.json' -q; then
     fail "production extension contains localhost"
   fi
+  if head -c 64 "$source_dir/v1/extension/dist/production/content/index.js" \
+      | grep -qE '^\s*import'; then
+    fail "production content script is not a standalone classic script"
+  fi
   (cd "$source_dir/v1/extension/dist/production" &&
     zip -q -r -X "$output/public/downloads/student-plugin/knownmap-v1.zip" .)
   cp \
