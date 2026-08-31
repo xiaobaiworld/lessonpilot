@@ -70,7 +70,8 @@ npm run build:local
 然后在 `chrome://extensions/` 选择“加载已解压的扩展程序”，加载
 `v1/extension/dist/local`。
 
-当前正式版本为 `1.2.1`。重新构建后，在扩展管理页点击该本机插件的“重新加载”，
+当前学生插件版本为 `1.2.2`；产品正式版本与代码、数据库和插件的对应关系见
+[`docs/RELEASE_VERSION_AND_DATA_CONTINUITY.md`](docs/RELEASE_VERSION_AND_DATA_CONTINUITY.md)。重新构建后，在扩展管理页点击该本机插件的“重新加载”，
 再刷新 KnownMap 页面；打开插件弹窗后，品牌栏右上角的齿轮图标会打开紧凑的“插件设置”中心，学习伙伴设置在同一 popup 内展示角色类别、主头像、状态缩略图和声音试听。
 第一版只开放“神秘猫精灵”；其余角色卡显示“下一版本完成”。当前猫咪的主头像和六个状态缩略图来自角色包资源，鼠标悬停或键盘聚焦缩略图时，顶部主头像会切换为对应状态的大图。后续角色不会默认全部打进插件：已接受的方向是由 KnownMap 网站提供角色目录，学生按需下载自己选择的图片、音频和清单；插件代码与权限仍通过正式插件版本更新，详见 [`D-V1-026`](doc/decisions/2026-08-30-companion-pack-online-delivery.md)。
 
@@ -85,6 +86,9 @@ npm run build:local
 拷到阿里云切换。完整约定见
 [`doc/decisions/2026-08-26-early-stage-release-process.md`](doc/decisions/2026-08-26-early-stage-release-process.md)
 （`D-V1-013`）。发布不阻塞在 GitHub CI。
+
+正式版本、Git commit、插件版本、Alembic 数据库版本、契约版本和生产数据保留规则见
+[`正式发布版本与数据连续性说明`](docs/RELEASE_VERSION_AND_DATA_CONTINUITY.md)。
 
 ```bash
 KNOWNMAP_SSH_HOST=aliyun-us \
