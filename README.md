@@ -55,6 +55,11 @@ npm run dev:teacher  # http://localhost:5174
 本地教师验收账号不是生产账号，密码不得写入 Git、生产配置、长期日志或截图。完整规则见
 [`doc/dev-rules.md` 第 6.1 节](doc/dev-rules.md#61-本地服务启动与教师人工验收账号)。
 
+本地服务默认使用 `v1/backend/knownmap-v1.db` 持久数据库，不得每次启动都新建空的临时库。
+如果本地没有课程数据，应先备份本地库，再从阿里云创建并校验数据库副本后导入；导入后
+只在本地副本上准备 `teacher` / `teacher` 验收登录，不能修改云端数据库。具体同步边界见
+[`doc/dev-rules.md` 第 6.2 节](doc/dev-rules.md#62-本地持久数据库与云端数据同步)。
+
 插件：
 
 ```bash
