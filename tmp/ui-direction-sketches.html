@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KnownMap UI 方向示意图对比（A / B / C）</title>
+<style>
+  :root {
+    --page: #eceae4;
+    --panel: #ffffff;
+    --text: #1d1f23;
+    --text-2: #5b6068;
+    --text-3: #8a8f98;
+    --hairline: #e2e4e8;
+    --accent: #4a54e2;
+    --accent-soft: #eef0fe;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--page);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 32px 24px 64px; }
+  h1 { font-size: 24px; margin: 0 0 6px; letter-spacing: -0.01em; }
+  h2 { font-size: 17px; margin: 40px 0 12px; }
+  .sub { color: var(--text-2); margin: 0 0 4px; }
+  .meta { color: var(--text-3); font-size: 12px; margin: 0; }
+
+  .options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 24px; }
+  @media (max-width: 1080px) { .options { grid-template-columns: 1fr; } }
+
+  .opt { background: var(--panel); border: 1px solid var(--hairline); border-radius: 12px; padding: 18px; }
+  .opt.recommended { border: 2px solid var(--accent); }
+  .opt-head { display: flex; align-items: center; gap: 8px; }
+  .opt-name { font-size: 16px; font-weight: 700; }
+  .pill { font-size: 11px; font-weight: 600; background: var(--accent); color: #fff; border-radius: 999px; padding: 2px 9px; }
+  .opt-tag { color: var(--text-2); font-size: 12.5px; margin: 4px 0 12px; }
+
+  .swatches { display: flex; gap: 5px; margin-bottom: 14px; }
+  .sw { width: 22px; height: 22px; border-radius: 5px; border: 1px solid rgba(0,0,0,.12); }
+
+  .sketch-label { font-size: 12px; color: var(--text-3); margin: 14px 0 6px; }
+  .frame { border-radius: 8px; overflow: hidden; }
+
+  .note { font-size: 12.5px; margin: 6px 0 0; }
+  .note b { font-weight: 600; }
+  .note.risk { color: var(--text-2); }
+  .divider { border-top: 1px solid var(--hairline); margin: 14px 0 10px; }
+
+  table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--hairline); border-radius: 10px; overflow: hidden; font-size: 13px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--hairline); }
+  th { background: #f6f7f9; font-weight: 600; }
+  tr:last-child td { border-bottom: 0; }
+
+  .callout { background: var(--accent-soft); border: 1px solid #d5daff; border-radius: 10px; padding: 14px 16px; margin-top: 28px; }
+  .callout b { display: block; margin-bottom: 4px; }
+  .callout p { margin: 0; color: var(--text-2); font-size: 13.5px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>KnownMap UI 方向示意图对比</h1>
+  <p class="sub">同一品牌（纸 + 墨绿 + 粉笔黄）的三种处理强度。以下全部是结构色块示意，不是最终页面；选定方向后，阶段 2/3/4 才按此做真实页面。三个方案都遵守已确认的五条设计原则，区别只在气质。</p>
+  <p class="meta">方向示意图 · tmp/ui-direction-sketches.html · 看完方向定稿后可删除 · 2026-09-01</p>
+
+  <div class="options" id="options"></div>
+
+  <h2>关键分歧点：学生在 B 站页面里的那一幕</h2>
+  <p class="sub">每个方案右侧的学习窗示意里，外层是 B 站的白色页面与青蓝元素。三个方案的学生窗都是纸绿系（青蓝已确定退役），在蓝色宿主上都能跳出来；真正的差别在教师端每天面对的总览与编辑器——A 暖、B 重、C 冷。教师是付费者且每天长时间使用，建议以教师端的长时间舒适度为决定性标准。</p>
+
+  <h2>维度对比</h2>
+  <table>
+    <thead><tr><th>维度</th><th>A · 纸绿收敛</th><th>B · 深绿框景</th><th>C · 白纸淡墨</th></tr></thead>
+    <tbody>
+      <tr><td>品牌温度</td><td>暖（纸底大面积）</td><td>强（深绿框架）</td><td>弱（近白）</td></tr>
+      <tr><td>长时间使用舒适度</td><td>高</td><td>中（顶部深色有压感）</td><td>最高</td></tr>
+      <tr><td>差异化（对课程 SaaS 蓝灰后台）</td><td>高</td><td>高</td><td>中</td></tr>
+      <tr><td>与站点 hero（深绿容器）的呼应</td><td>中</td><td>最强</td><td>中</td></tr>
+      <tr><td>实施风险</td><td>低（现 token 大多已在用）</td><td>中（顶栏体系要新做）</td><td>中（纸色资产要整体减淡）</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <b>建议</b>
+    <p>选 A 作为默认，把 B 的深绿保留给「站点 hero、插件学习窗标题条、完成态」这类瞬时场景——日常界面用 A 的纸绿，关键时刻才出现深绿，品牌最强的一笔留给出场率最低但记忆最强的地方。如果你看完示意更想要 B 或 C 的整体气质，直接回复即可，方案文档相应调整。</p>
+  </div>
+</div>
+
+<script>
+// ---- 三套配色（方案差异只在处理强度，品牌色相同）----
+const PALETTES = {
+  A: {
+    canvas: "#F5F1E7", surface: "#FFFDF8", ink: "#16251F", inkSoft: "#6E9180",
+    line: "#D8D2C2", brand: "#1D5C43", brandDeep: "#103B2B", accent: "#D9A51E",
+    chrome: "#F5F1E7", chromeText: "#16251F",
+  },
+  B: {
+    canvas: "#F5F1E7", surface: "#FFFDF8", ink: "#16251F", inkSoft: "#6E9180",
+    line: "#D8D2C2", brand: "#1D5C43", brandDeep: "#103B2B", accent: "#D9A51E",
+    chrome: "#103B2B", chromeText: "#FFFDF8",
+  },
+  C: {
+    canvas: "#FBFAF6", surface: "#FFFFFF", ink: "#16251F", inkSoft: "#8A9A92",
+    line: "#E3E0D6", brand: "#1D5C43", brandDeep: "#103B2B", accent: "#D9A51E",
+    chrome: "#FBFAF6", chromeText: "#16251F",
+  },
+};
+
+const OPTIONS = [
+  {
+    key: "A", name: "A · 纸绿收敛", recommended: true,
+    tag: "纸底纸顶栏，绿只给行动，黄只做记号",
+    feel: "温暖、像备课桌面；纸色本身就是差异化，与 Linear/Notion 的冷灰拉开",
+    risk: "暖底用多了可能显旧；要靠细线和字重维持利落",
+  },
+  {
+    key: "B", name: "B · 深绿框景", recommended: false,
+    tag: "深绿顶栏与框架，内容区仍是纸底",
+    feel: "品牌存在感最强，像黑板框住讲台；站点 hero 用深绿的效果直接带到产品里",
+    risk: "深色框架长期占据屏幕顶部，备课时间一长容易压；管理后台感偏重",
+  },
+  {
+    key: "C", name: "C · 白纸淡墨", recommended: false,
+    tag: "近白底、细线为主、绿色极少",
+    feel: "最干净最现代，最接近 Linear 的冷静；长时间使用最不累",
+    risk: "丢掉纸的温度后，与小鹅通之外的效率工具趋同，差异化变弱",
+  },
+];
+
+// ---- 示意小组件 ----
+function bar(w, h, color, r = 2) {
+  return `<div style="width:${w};height:${h}px;background:${color};border-radius:${r}px;flex-shrink:0"></div>`;
+}
+
+// 教师端课程总览示意：顶栏 + PageHead + 统计条 + 草稿卡 + 表格
+function sketchOverview(p) {
+  const chromeMark = p.chrome === p.brandDeep ? p.accent : p.brand;
+  return `
+  <div class="frame" style="border:1px solid ${p.line};background:${p.canvas}">
+    <div style="background:${p.chrome};border-bottom:1px solid ${p.line};padding:6px 10px;display:flex;align-items:center;gap:6px">
+      <div style="width:11px;height:11px;border-radius:3px;background:${chromeMark}"></div>
+      ${bar("38px", 4, p.chromeText)}
+      <div style="flex:1"></div>
+      <div style="width:9px;height:9px;border-radius:5px;background:${p.line}"></div>
+    </div>
+    <div style="padding:10px;display:flex;flex-direction:column;gap:7px">
+      <div style="display:flex;align-items:center;gap:6px">
+        ${bar("64px", 8, p.ink)}
+        <div style="width:20px;height:9px;border-radius:5px;background:${p.accent};opacity:.35"></div>
+        <div style="flex:1"></div>
+        <div style="width:38px;height:11px;border-radius:6px;background:${p.brand}"></div>
+      </div>
+      <div style="display:flex;gap:5px">
+        ${[0,1,2].map(() => `
+          <div style="flex:1;background:${p.surface};border:1px solid ${p.line};border-radius:5px;padding:5px 6px">
+            ${bar("16px", 5, p.brand)}
+            <div style="margin-top:4px">${bar("26px", 3, p.inkSoft)}</div>
+          </div>`).join("")}
+      </div>
+      <div style="display:flex;align-items:center;gap:5px">
+        ${bar("34px", 5, p.ink)}
+        <div style="width:11px;height:8px;border-radius:4px;background:${p.accent}"></div>
+      </div>
+      <div style="display:flex;gap:5px">
+        ${[0,1].map(() => `
+          <div style="flex:1;background:${p.surface};border:1px solid ${p.line};border-radius:6px;padding:6px 7px">
+            ${bar("70%", 4, p.ink)}
+            <div style="margin-top:4px">${bar("45%", 3, p.inkSoft)}</div>
+            <div style="margin-top:5px;width:34px;height:8px;border-radius:4px;background:${p.brand};opacity:.85"></div>
+          </div>`).join("")}
+      </div>
+      <div style="background:${p.surface};border:1px solid ${p.line};border-radius:6px;padding:5px 7px;display:flex;flex-direction:column;gap:5px">
+        ${[0,1,2].map(i => `
+          <div style="display:flex;align-items:center;gap:5px">
+            <div style="width:5px;height:5px;border-radius:3px;background:${i === 0 ? p.accent : p.brand}"></div>
+            ${bar("55%", 3, p.ink)}
+            <div style="flex:1"></div>
+            ${bar("18px", 3, p.inkSoft)}
+          </div>`).join("")}
+      </div>
+    </div>
+  </div>`;
+}
+
+// 学生学习窗示意：B 站页面（白底 + 青蓝元素）上的浮层
+function sketchPlayer(p) {
+  return `
+  <div class="frame" style="border:1px solid #E5E7EB;background:#F6F7F8">
+    <div style="background:#FFFFFF;border-bottom:1px solid #E5E7EB;padding:5px 10px;display:flex;align-items:center;gap:6px">
+      <div style="width:13px;height:7px;border-radius:3px;background:#00AEEC"></div>
+      ${bar("34px", 3, "#C9CCD0")}
+      <div style="flex:1"></div>
+      <div style="width:22px;height:7px;border-radius:3px;background:#F2F3F5;border:1px solid #E5E7EB"></div>
+    </div>
+    <div style="position:relative;padding:7px">
+      <div style="background:#1A1B1E;border-radius:6px;height:74px;position:relative">
+        <div style="position:absolute;left:7px;bottom:6px">${bar("56px", 3, "#3A3B40")}</div>
+        <div style="position:absolute;left:7px;bottom:12px">${bar("78px", 2, "#3A3B40")}</div>
+      </div>
+      <div style="position:absolute;right:12px;top:14px;width:96px;background:${p.surface};border:1px solid ${p.line};border-radius:6px;padding:6px 7px">
+        <div style="display:flex;align-items:center;gap:3px">
+          <div style="width:5px;height:5px;border-radius:3px;background:${p.brand}"></div>
+          ${bar("34px", 3.5, p.ink)}
+        </div>
+        <div style="margin-top:4px">${bar("90%", 2.5, p.inkSoft)}</div>
+        <div style="margin-top:2px">${bar("70%", 2.5, p.inkSoft)}</div>
+        <div style="margin-top:5px;display:flex;gap:3px">
+          <div style="width:24px;height:9px;border-radius:4px;background:${p.brand}"></div>
+          <div style="width:24px;height:9px;border-radius:4px;border:1px solid ${p.line};background:${p.surface}"></div>
+        </div>
+      </div>
+      <div style="position:absolute;right:9px;bottom:11px;width:15px;height:15px;border-radius:8px;background:${p.accent};border:2px solid ${p.surface}"></div>
+    </div>
+  </div>`;
+}
+
+function render() {
+  const root = document.getElementById("options");
+  root.innerHTML = OPTIONS.map(o => {
+    const p = PALETTES[o.key];
+    const swatchList = [p.canvas, p.surface, p.ink, p.brand, p.brandDeep, p.accent]
+      .map(c => `<div class="sw" title="${c}" style="background:${c}"></div>`).join("");
+    return `
+    <div class="opt${o.recommended ? " recommended" : ""}">
+      <div class="opt-head">
+        <span class="opt-name">${o.name}</span>
+        ${o.recommended ? '<span class="pill">推荐</span>' : ""}
+      </div>
+      <p class="opt-tag">${o.tag}</p>
+      <div class="swatches">${swatchList}</div>
+
+      <div class="sketch-label">教师端 · 课程总览</div>
+      ${sketchOverview(p)}
+
+      <div class="sketch-label">学生端 · B 站页内学习窗</div>
+      ${sketchPlayer(p)}
+
+      <div class="divider"></div>
+      <p class="note"><b>感觉：</b>${o.feel}</p>
+      <p class="note risk"><b>风险：</b>${o.risk}</p>
+    </div>`;
+  }).join("");
+}
+render();
+</script>
+</body>
+</html>
