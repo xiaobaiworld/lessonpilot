@@ -108,6 +108,7 @@ build_web() {
   cp "$source_dir/v1/site/demo-captions.js" "$output/public/demo-captions.js"
   cp "$source_dir/v1/site/trial-intake.js" "$output/public/trial-intake.js"
   cp "$source_dir/v1/site/link.html" "$output/public/link.html"
+  cp "$source_dir/v1/web/shared/src/styles/tokens.css" "$output/public/tokens.css"
   cp -R "$source_dir/v1/site/assets/." "$output/public/assets/"
   printf 'User-agent: *\nDisallow: /\n' >"$output/public/robots.txt"
 

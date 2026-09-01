@@ -74,6 +74,10 @@ export default defineConfig({
           resolve(outDir, 'assets/companion'),
           { recursive: true }
         );
+        copyFileSync(
+          resolve(__dirname, '../web/shared/src/styles/tokens.css'),
+          resolve(outDir, 'assets/tokens.css')
+        );
 
         writeFileSync(
           resolve(outDir, 'manifest.json'),

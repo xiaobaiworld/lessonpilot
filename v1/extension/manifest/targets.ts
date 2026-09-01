@@ -54,7 +54,7 @@ export const TARGETS: Record<TargetName, BuildTarget> = {
   },
 };
 
-export const EXTENSION_VERSION = '1.2.2';
+export const EXTENSION_VERSION = '1.2.3';
 
 export function buildManifest(target: BuildTarget): Record<string, unknown> {
   return {
@@ -126,6 +126,7 @@ export const BUILD_ARTIFACTS = [
   'assets/icon-24.png',
   'assets/icon-48.png',
   'assets/icon-128.png',
+  'assets/tokens.css',
   'assets/companion/cat/v1/manifest.json',
   'assets/companion/cat/v1/focus.webp',
   'assets/companion/cat/v1/idle.webp',

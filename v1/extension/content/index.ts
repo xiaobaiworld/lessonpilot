@@ -17,6 +17,7 @@ import {
 import { LibraryView, RuntimeCandidate } from '../shared/library-view';
 import styleText from './window.css?inline';
 import companionStyle from './companion.css?inline';
+import tokenStyle from '../../web/shared/src/styles/tokens.css?inline';
 import { StudentCompanion } from './companion';
 import type { CompanionStateAsset, CompanionVisualState } from './companion-assets';
 
@@ -61,7 +62,7 @@ const asset = async (
 };
 
 const companion = new StudentCompanion({
-  styleText: companionStyle,
+  styleText: `${tokenStyle}\n${companionStyle}`,
   loadLibrary: () => send<LibraryView>({ type: 'library' }),
   redeem: async (code) => {
     const result = await send<{ installed: unknown[] }>({ type: 'redeem', code });
@@ -128,13 +129,13 @@ const controller = new PageController(
         return video ? attachPlayer(video) : null;
       },
       createWindow: ({ courseId, ...callbacks }) =>
-        new LearningWindow(callbacks, styleText, (assetId) =>
+        new LearningWindow(callbacks, `${tokenStyle}\n${styleText}`, (assetId) =>
           asset(courseId, assetId)
         ),
       modeStore: createVideoModeStore(modeStorage),
       createModeControl: (onToggle) => companion.createModeControl(onToggle),
       chooseCandidate: (candidates) =>
-        new CandidatePicker(styleText).choose(candidates),
+        new CandidatePicker(`${tokenStyle}\n${styleText}`).choose(candidates),
       now: () => new Date(),
       companion,
     })

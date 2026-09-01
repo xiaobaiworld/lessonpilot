@@ -4,6 +4,14 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### 建立 v1.1.0 视觉 token 地基与四端消费入口 — 2026-09-01
+
+- 新增 `tools/build-tokens.mjs`，从品牌 token 真源生成 `v1/web/shared/src/styles/tokens.css`，并校准正文、次级文字、品牌行动、危险色和深底细线的 WCAG 对比度。
+- Web、销售站点和学生插件建立共享 token 消费入口；发布脚本与插件构建产物均携带同一份生成文件，插件版本按规则升级至 `1.2.3`。
+- 新增 `tools/style-check.mjs` 与 `check:style`，阻断新裸色值；阶段 0 前已存在的 352 个文件/值组合按 `D-V1-031` 暂存，后续视觉收敛阶段逐端清零。
+
+验证：根测试 138 项、v1 测试 344 项、`npm run check`、插件 type-check 与 local/production 构建通过。
+
 ### 将独立试用页调整为自然留言板表达 — 2026-09-01
 
 - 去掉公开页面中的登录、账号创建和人工跟进提示，改用“给 KnownMap 留个言”“留言板”“提交留言”等更自然的表达。

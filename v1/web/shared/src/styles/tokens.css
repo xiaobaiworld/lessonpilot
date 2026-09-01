@@ -1,0 +1,67 @@
+/* 此文件由 tools/build-tokens.mjs 生成，请勿手工修改。 */
+/* source: v1/assets/brand/knownmap-tokens.json */
+:root {
+  --canvas: #F5F1E7; /* 视觉方案 §5.2 */
+  --surface: #FFFDF8; /* brand.pathStroke */
+  --sunken: #EDE8DA; /* 阶段 0 对比度校准后的凹陷表面 */
+  --ink: #16251F; /* brand.wordmarkInk */
+  --ink-2: #43544C; /* 阶段 0 对比度校准后的次级文字 */
+  --ink-3: #6E9180; /* brand.foldStrokeOnLight */
+  --line: #D8D2C2; /* 阶段 0 对比度校准后的浅底细线 */
+  --line-on-dark: #CFE4D8; /* brand.mapStroke */
+  --brand: #1D5C43; /* brand.brandGreen */
+  --brand-deep: #103B2B; /* brand.containerGreen */
+  --accent: #D9A51E; /* 视觉方案 §5.2 */
+  --end: #C56E52; /* brand.pathEnd */
+  --danger: #A74232; /* 阶段 0 对比度校准后的危险色 */
+  --voice: #3E8060; /* 现有节点语义色，阶段 2 再校准 */
+  --activity: #A9654E; /* 现有节点语义色，阶段 2 再校准 */
+  --ai: #5D766E; /* 现有节点语义色，阶段 2 再校准 */
+  --status: #E5B93F; /* 现有状态色，阶段 2 再校准 */
+
+  --font-family: "Avenir Next", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-size-display: 28px;
+  --font-size-title: 22px;
+  --font-size-head: 17px;
+  --font-size-body: 15px;
+  --font-size-small: 13px;
+  --font-size-micro: 11px;
+  --font-weight-regular: 400;
+  --font-weight-medium: 590;
+  --font-weight-strong: 650;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --radius-control: 6px;
+  --radius-card: 8px;
+  --radius-pill: 999px;
+  --shadow-popover: 0 18px 48px rgba(22, 37, 31, 0.12);
+  --motion-fast: 150ms ease-out;
+  --motion-standard: 200ms ease-out;
+
+  /* 旧页面分阶段迁移时使用的兼容别名；阶段 1–4 完成后逐步删除。 */
+  --paper: var(--canvas);
+  --paper-bright: var(--surface);
+  --ink-soft: var(--ink-2);
+  --green: var(--brand);
+  --green-deep: var(--brand-deep);
+  --green-pale: #D9E9DF;
+  --chalk: var(--accent);
+  --chalk-pale: #F5E7B0;
+  --line-dark: #B9BEB5;
+  --radius: var(--radius-control);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

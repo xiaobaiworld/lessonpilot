@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { TARGETS, buildManifest, BUILD_ARTIFACTS, EXTENSION_VERSION } from './targets';
 
 describe('构建目标', () => {
-	it('V1.2.2 发布学习伙伴设置和压缩资源', () => {
-		expect(EXTENSION_VERSION).toBe('1.2.2');
+	it('V1.2.3 接入共享视觉 token 资源', () => {
+		expect(EXTENSION_VERSION).toBe('1.2.3');
 		expect(TARGETS.local.teacherOrigin).toBe('http://localhost:5174');
     expect(TARGETS.production.teacherOrigin).toBe('https://knownmap.com');
     for (const target of Object.values(TARGETS)) {
@@ -69,6 +69,7 @@ describe('构建目标', () => {
 		expect(BUILD_ARTIFACTS).toContain('settings/index.html');
 		expect(BUILD_ARTIFACTS).toContain('settings/index.js');
 		expect(BUILD_ARTIFACTS).toContain('settings/settings.css');
+		expect(BUILD_ARTIFACTS).toContain('assets/tokens.css');
 	});
 
 	it('manifest 把头像编辑页声明为独立设置页', () => {
