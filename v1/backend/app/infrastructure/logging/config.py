@@ -1,4 +1,5 @@
 import logging
+import re
 import sys
 
 import structlog
@@ -17,6 +18,9 @@ REDACTED_SUBSTRINGS = (
     "proof",
 )
 REDACTED = "[已脱敏]"
+_SENSITIVE_ERROR_RE = re.compile(
+    r"(?i)(password|secret|token|cookie|access[_-]?code|authorization|proof)\s*[:=]\s*[^\s,;]+"
+)
 
 
 def _redact(value: object, depth: int = 0) -> object:
@@ -39,6 +43,17 @@ def _redact(value: object, depth: int = 0) -> object:
 
 def redact_sensitive(_logger: object, _name: str, event_dict: dict) -> dict:
     return _redact(event_dict)  # type: ignore[return-value]
+
+
+def redact_log_fields(fields: dict[str, object]) -> dict[str, object]:
+    """Apply the same recursive field redaction outside structlog processors."""
+    return _redact(fields)  # type: ignore[return-value]
+
+
+def sanitize_error_message(message: str, max_length: int = 200) -> str:
+    """Keep a useful error category without copying credentials into diagnostics."""
+    sanitized = _SENSITIVE_ERROR_RE.sub(r"\1=[已脱敏]", message)
+    return sanitized[:max_length]
 
 
 def configure_logging(settings: Settings) -> None:

@@ -15,9 +15,7 @@ class Settings(BaseSettings):
     session_ttl_seconds: int = 86400
     session_cookie_name: str = "knownmap_teacher_session"
     admin_session_cookie_name: str = "knownmap_admin_session"
-    cors_origins: str = (
-        "http://127.0.0.1:5173,http://localhost:5173,http://127.0.0.1:5174,http://localhost:5174"
-    )
+    cors_origins: str = "http://127.0.0.1:4173,http://localhost:4173,http://127.0.0.1:5173,http://localhost:5173,http://127.0.0.1:5174,http://localhost:5174"
     log_level: str | None = None
     contracts_manifest_path: Path = (
         Path(__file__).resolve().parents[2] / "contracts" / "versions.json"
@@ -25,6 +23,8 @@ class Settings(BaseSettings):
     asset_storage_dir: Path = Path("./asset-storage")
     asset_max_bytes: int = 50 * 1024 * 1024
     asset_link_timeout_seconds: int = 10
+    trial_submission_rate_limit_count: int = 3
+    trial_submission_rate_limit_window_seconds: int = 60
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -44,7 +44,10 @@ class Settings(BaseSettings):
 
     @property
     def cors_origin_list(self) -> list[str]:
-        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+        origins = [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+        if self.app_env != "production" and "null" not in origins:
+            origins.append("null")
+        return origins
 
     @property
     def effective_log_level(self) -> str:
@@ -78,6 +81,8 @@ class Settings(BaseSettings):
         ]
         if local_origins:
             problems.append(f"生产 CORS 含本机来源：{', '.join(local_origins)}")
+        if "null" in self.cors_origin_list:
+            problems.append("生产 CORS 不得包含 file 页面来源")
         if not self.cors_origin_list:
             problems.append("生产 CORS 为空")
         if self.effective_log_level == "DEBUG":

@@ -5,7 +5,6 @@ import {
   STORAGE_SCHEMA_VERSION,
   InstalledCourse,
   AuthorizationSource,
-  UpgradeTask,
 } from './types';
 import { PortableNode } from '../../web/shared/src';
 

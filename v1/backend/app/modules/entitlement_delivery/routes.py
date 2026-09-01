@@ -494,10 +494,7 @@ def course_updates(
     entitlements = _service(request, db)
     try:
         grants = entitlements.effective_grants(payload.local_identity_id, payload.local_proof)
-        known = {
-            item.course_id: item.release_id
-            for item in payload.known_releases
-        }
+        known = {item.course_id: item.release_id for item in payload.known_releases}
         return {
             "schemaVersion": 1,
             "requestId": request.state.request_id,
@@ -580,9 +577,7 @@ def authorize_course_assets(
 ) -> dict:
     entitlements = _service(request, db)
     try:
-        grants = entitlements.effective_grants(
-            payload.local_identity_id, payload.local_proof
-        )
+        grants = entitlements.effective_grants(payload.local_identity_id, payload.local_proof)
         scope = grants.get(payload.course_id)
         if not scope:
             raise AssetDeliveryError("ASSET_NOT_AUTHORIZED")
@@ -740,9 +735,7 @@ def check_course_updates(
     else:
         items = payload.installed_courses
     try:
-        grants = entitlements.effective_grants(
-            payload.local_identity_id, payload.local_proof
-        )
+        grants = entitlements.effective_grants(payload.local_identity_id, payload.local_proof)
         authoring = AuthoringReleaseApplicationService(db)
         courses = [_student_update_summary(item, grants, authoring) for item in items]
         return {
@@ -762,9 +755,7 @@ def apply_course_update(
 ) -> dict:
     entitlements = _service(request, db)
     try:
-        grants = entitlements.effective_grants(
-            payload.local_identity_id, payload.local_proof
-        )
+        grants = entitlements.effective_grants(payload.local_identity_id, payload.local_proof)
         scope = grants.get(payload.course_id)
         if not scope:
             raise EntitlementError("GRANT_NOT_FOUND")

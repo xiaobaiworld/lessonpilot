@@ -78,9 +78,7 @@ class CourseUpdateCheckWrite(StudentIdentityWrite):
 
 class CourseUpdateApplyWrite(StudentIdentityWrite):
     course_id: str = Field(alias="courseId", min_length=1, max_length=100)
-    expected_release_id: str = Field(
-        alias="expectedReleaseId", min_length=1, max_length=100
-    )
+    expected_release_id: str = Field(alias="expectedReleaseId", min_length=1, max_length=100)
 
 
 class AssetReferenceWrite(BaseModel):
@@ -103,6 +101,4 @@ class KnownReleaseWrite(BaseModel):
 
 class UpdateWrite(StudentBase):
     course_ids: list[str] = Field(alias="courseIds", default_factory=list)
-    known_releases: list[KnownReleaseWrite] = Field(
-        alias="knownReleases", default_factory=list
-    )
+    known_releases: list[KnownReleaseWrite] = Field(alias="knownReleases", default_factory=list)

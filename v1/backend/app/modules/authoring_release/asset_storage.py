@@ -159,9 +159,7 @@ class AssetStorage:
     def get(self, teacher_id: str, asset_id: str) -> tuple[dict, Path]:
         record, path = self.get_by_id(asset_id)
         try:
-            payload = json.loads(
-                (self.root / f"{asset_id}.json").read_text(encoding="utf-8")
-            )
+            payload = json.loads((self.root / f"{asset_id}.json").read_text(encoding="utf-8"))
         except (OSError, ValueError):
             raise AssetStorageError("ASSET_NOT_FOUND") from None
         if payload.get("teacherId") != teacher_id:

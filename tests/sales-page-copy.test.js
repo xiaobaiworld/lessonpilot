@@ -13,10 +13,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
-const {
-  TRIAL_INTAKE,
-  isAllowedFormUrl
-} = require('../v1/site/trial-intake.js');
+const { TRIAL_INTAKE, isBilibiliUrl } = require('../v1/site/trial-intake.js');
 
 const page = fs.readFileSync('v1/site/index.html', 'utf8');
 
@@ -110,7 +107,7 @@ test('不把插件、报告或多学生数据写成已上线能力', () => {
   }
 });
 
-test('飞书表单由独立模块提供真实 URL，页面不留占位链接', () => {
+test('销售页只提供独立申请页入口，不嵌入本地试用表单', () => {
   const links = page.match(/href="(https?:[^"]*)"/g) || [];
   for (const link of links) {
     assert.ok(
@@ -118,11 +115,14 @@ test('飞书表单由独立模块提供真实 URL，页面不留占位链接', (
       `占位链接会变成死链：${link}`
     );
   }
-  assert.match(page, /data-trial-intake/);
-  assert.match(page, /src="trial-intake\.js\?v=/);
-  assert.equal(isAllowedFormUrl(TRIAL_INTAKE.url), true, '模块必须保存已发布的飞书公开 URL');
-  assert.equal(TRIAL_INTAKE.buttonLabel, '在线填写试用申请');
-  assert.equal(TRIAL_INTAKE.note, '无需登录飞书 · 提交后由我人工联系。');
+  assert.match(page, /href="\/trial-application\.html"/);
+  assert.doesNotMatch(page, /data-trial-intake-form/);
+  assert.doesNotMatch(page, /src="trial-intake\.js\?v=/);
+  assert.match(page, /在线填写试用申请/);
+  assert.equal(TRIAL_INTAKE.endpoint, '/api/v1/public/trial-applications');
+  assert.equal(TRIAL_INTAKE.buttonLabel, '提交留言');
+  assert.equal(isBilibiliUrl('https://www.bilibili.com/video/BVexample'), true);
+  assert.ok(!page.includes('my.feishu.cn'));
 });
 
 /**

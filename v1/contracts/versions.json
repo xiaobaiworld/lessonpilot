@@ -48,6 +48,14 @@
         "QuarantineEntry"
       ],
       "implementedBy": "v1/extension/storage/types.ts"
+    },
+    "analytics_event": {
+      "version": "1.0.0",
+      "schema_file": "schemas/analytics-event.schema.json",
+      "status": "implemented",
+      "stage": "M1",
+      "note": "低基数产品分析事件信封；不承载业务真源或学生远程学习记录。",
+      "implementedBy": "v1/contracts/analytics-event.ts + v1/contracts/analytics-event-registry.ts"
     }
   },
   "builds": {

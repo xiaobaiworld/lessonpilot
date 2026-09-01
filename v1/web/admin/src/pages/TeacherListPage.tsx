@@ -6,7 +6,7 @@ import {
   AuthField,
   errorMessage,
 } from '@v1/web/shared';
-import { AdminAPI, Admin, Teacher } from '../api';
+import { AdminAPI, Admin, Teacher, TrialApplication, TrialFollowupStatus } from '../api';
 
 interface Props {
   api: AdminAPI;
@@ -26,6 +26,8 @@ export const TeacherListPage: React.FC<Props> = ({ api, admin, onSignedOut }) =>
   const [credential, setCredential] = useState<Credential | null>(null);
   const [creating, setCreating] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [applications, setApplications] = useState<TrialApplication[] | null>(null);
+  const [applicationBusy, setApplicationBusy] = useState<string | null>(null);
 
   /*
    * 请求代次：慢的旧请求返回时不能覆盖新数据。
@@ -49,6 +51,19 @@ export const TeacherListPage: React.FC<Props> = ({ api, admin, onSignedOut }) =>
   useEffect(() => {
     load();
   }, [load]);
+
+  const loadApplications = useCallback(async () => {
+    try {
+      setApplications(await api.listTrialApplications());
+    } catch (err) {
+      setError(errorMessage(err));
+      setApplications([]);
+    }
+  }, [api]);
+
+  useEffect(() => {
+    loadApplications();
+  }, [loadApplications]);
 
   const signOut = async () => {
     generation.current++; // 丢弃在途响应
@@ -93,6 +108,22 @@ export const TeacherListPage: React.FC<Props> = ({ api, admin, onSignedOut }) =>
       setError(errorMessage(err));
     } finally {
       setBusy(false);
+    }
+  };
+
+  const updateApplicationStatus = async (
+    application: TrialApplication,
+    status: TrialFollowupStatus
+  ) => {
+    setApplicationBusy(application.id);
+    setError(null);
+    try {
+      await api.updateTrialFollowup(application.followupId, status);
+      await loadApplications();
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setApplicationBusy(null);
     }
   };
 
@@ -166,6 +197,12 @@ export const TeacherListPage: React.FC<Props> = ({ api, admin, onSignedOut }) =>
             </table>
           </div>
         )}
+
+        <TrialApplicationsSection
+          applications={applications}
+          busyId={applicationBusy}
+          onStatusChange={updateApplicationStatus}
+        />
       </main>
 
       {creating && (
@@ -186,6 +223,102 @@ export const TeacherListPage: React.FC<Props> = ({ api, admin, onSignedOut }) =>
     </div>
   );
 };
+
+interface TrialApplicationsProps {
+  applications: TrialApplication[] | null;
+  busyId: string | null;
+  onStatusChange: (application: TrialApplication, status: TrialFollowupStatus) => void;
+}
+
+const FOLLOWUP_LABELS: Record<TrialFollowupStatus, string> = {
+  pending: '待联系',
+  contacted: '已联系',
+  closed: '已关闭',
+};
+
+const formatSubmittedAt = (value: string) =>
+  new Intl.DateTimeFormat('zh-CN', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(value));
+
+const TrialApplicationsSection: React.FC<TrialApplicationsProps> = ({
+  applications,
+  busyId,
+  onStatusChange,
+}) => (
+  <section className="trial-applications">
+    <SectionHead
+      title="试用申请"
+      count={applications ? `共 ${applications.length} 条` : undefined}
+    />
+    {applications === null && <p className="table-state">正在读取试用申请…</p>}
+    {applications?.length === 0 && <p className="table-state">还没有试用申请</p>}
+    {applications && applications.length > 0 && (
+      <div className="table-wrap">
+        <table className="trial-applications-table">
+          <thead>
+            <tr>
+              <th>提交时间</th>
+              <th>称呼 / 联系方式</th>
+              <th>课程类别</th>
+              <th>视频状态</th>
+              <th>B 站链接</th>
+              <th>字幕情况</th>
+              <th>教学问题</th>
+              <th>验证问题</th>
+              <th>跟进状态</th>
+            </tr>
+          </thead>
+          <tbody>
+            {applications.map((application) => (
+              <tr key={application.id}>
+                <td>{formatSubmittedAt(application.submittedAt)}</td>
+                <td>
+                  <strong>{application.name}</strong>
+                  <span className="cell-subtext">{application.contact}</span>
+                </td>
+                <td>{application.courseCategory}</td>
+                <td>{application.videoStatus}</td>
+                <td>
+                  {application.bilibiliUrl ? (
+                    <a href={application.bilibiliUrl} target="_blank" rel="noreferrer">
+                      查看链接
+                    </a>
+                  ) : (
+                    '—'
+                  )}
+                </td>
+                <td>{application.subtitleStatus}</td>
+                <td className="cell-long-text">{application.teachingProblem}</td>
+                <td className="cell-long-text">{application.validationQuestion || '—'}</td>
+                <td>
+                  <select
+                    aria-label={`${application.name} 的跟进状态`}
+                    value={application.status}
+                    disabled={busyId === application.id}
+                    onChange={(event) =>
+                      onStatusChange(
+                        application,
+                        event.target.value as TrialFollowupStatus
+                      )
+                    }
+                  >
+                    {Object.entries(FOLLOWUP_LABELS).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+  </section>
+);
 
 interface DialogProps {
   busy: boolean;

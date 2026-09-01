@@ -1,9 +1,10 @@
+from datetime import datetime, timezone
 from uuid import uuid4
 
-from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy import desc, select
+from sqlalchemy.orm import Session, joinedload
 
-from app.modules.admin_support.models import RightsAttestation, TrialFollowup
+from app.modules.admin_support.models import RightsAttestation, TrialApplication, TrialFollowup
 from app.modules.identity.application_service import IdentityApplicationService
 from app.modules.identity.models import TeacherAccount
 from app.modules.workspace_course.application_service import WorkspaceCourseApplicationService
@@ -61,9 +62,61 @@ class AdminSupportApplicationService:
             .order_by(RightsAttestation.attested_at.desc())
         )
 
+    def create_trial_application(
+        self,
+        *,
+        name: str,
+        contact: str,
+        course_category: str,
+        video_status: str,
+        bilibili_url: str | None,
+        teaching_problem: str,
+        subtitle_status: str,
+        validation_question: str | None,
+        source: str = "local_sales_page",
+    ) -> TrialApplication:
+        application = TrialApplication(
+            id=str(uuid4()),
+            name=name,
+            contact=contact,
+            course_category=course_category,
+            video_status=video_status,
+            bilibili_url=bilibili_url,
+            teaching_problem=teaching_problem,
+            subtitle_status=subtitle_status,
+            validation_question=validation_question,
+            source=source,
+            submitted_at=datetime.now(timezone.utc),
+        )
+        application.followup = TrialFollowup(
+            id=str(uuid4()),
+            status="pending",
+            updated_at=datetime.now(timezone.utc),
+        )
+        self.session.add(application)
+        try:
+            self.session.commit()
+        except Exception:
+            self.session.rollback()
+            raise
+        return application
+
+    def list_trial_applications(self) -> list[TrialApplication]:
+        return list(
+            self.session.scalars(
+                select(TrialApplication)
+                .options(joinedload(TrialApplication.followup))
+                .order_by(desc(TrialApplication.submitted_at))
+            )
+        )
+
     def list_trial_followups(self) -> list[TrialFollowup]:
         return list(
-            self.session.scalars(select(TrialFollowup).order_by(TrialFollowup.updated_at.desc()))
+            self.session.scalars(
+                select(TrialFollowup)
+                .options(joinedload(TrialFollowup.application))
+                .order_by(TrialFollowup.updated_at.desc())
+            )
         )
 
     def update_trial_followup(

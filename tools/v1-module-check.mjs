@@ -33,6 +33,7 @@ export const V1_TABLE_OWNER = {
   v1_grant_items: 'entitlement_delivery',
   v1_redemptions: 'entitlement_delivery',
   v1_rights_attestations: 'admin_support',
+  v1_trial_applications: 'admin_support',
   v1_trial_followups: 'admin_support',
   v1_operation_audit: 'runtime_audit',
 };

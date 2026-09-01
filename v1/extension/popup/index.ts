@@ -7,7 +7,6 @@ declare const __TEACHER_URL__: string;
 declare const __STUDENT_PLUGIN_DOWNLOAD_URL__: string;
 
 type Reply<T> = { ok: true; data: T } | { ok: false; message: string };
-type View = 'home' | 'settings' | 'companion';
 type CompanionState = 'idle' | 'focus' | 'prompt' | 'correct' | 'wrong' | 'complete';
 type CompanionAsset = {
   state: CompanionState;
@@ -31,7 +30,6 @@ const companionStateLabels: Record<CompanionState, string> = {
 const companionSounds = ['focus', 'prompt', 'correct', 'wrong', 'complete'] as const;
 
 const root = document.getElementById('root')!;
-let view: View = 'home';
 let settings: StudentSettings = {
   showRedeemEntry: true,
   showRecommendations: true,
@@ -367,7 +365,6 @@ function companionCategory(name: string, subtitle: string, description: string, 
 }
 
 async function renderCompanionSettings(): Promise<void> {
-  view = 'companion';
   stopPreviewAudio();
   root.replaceChildren();
   const shell = el('main', 'shell companion-shell');
@@ -467,10 +464,9 @@ async function renderCompanionSettings(): Promise<void> {
 }
 
 function renderSettings(): void {
-  view = 'settings';
   root.replaceChildren();
   const shell = el('main', 'shell settings-shell');
-  shell.append(brandHeader(() => { view = 'home'; void renderHome(); }, () => { view = 'home'; void renderHome(); }));
+  shell.append(brandHeader(() => void renderHome(), () => void renderHome()));
   const title = el('div', 'settings-title');
   title.append(el('h1', undefined, '插件设置'), el('p', undefined, '课程领取和继续学习留在首页，这里集中管理账号、升级和学习偏好。'));
   shell.append(title);
@@ -549,7 +545,6 @@ function renderSettings(): void {
 }
 
 async function renderHome(): Promise<void> {
-  view = 'home';
   const library = await refreshData();
   if (!library) return;
   root.replaceChildren();

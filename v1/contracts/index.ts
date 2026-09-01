@@ -16,3 +16,10 @@
 
 export type { VersionEntry, VersionSupport, SupportMatrixEntry } from './version-manifest';
 export { VERSIONS } from './version-manifest';
+export { ANALYTICS_EVENT_VERSION } from './analytics-event';
+export type * from './analytics-event';
+export {
+  ANALYTICS_EVENT_REGISTRY,
+  getAnalyticsEventDefinition,
+  isRegisteredAnalyticsEvent,
+} from './analytics-event-registry';

@@ -48,7 +48,14 @@ class MemoryAssetDatabase implements AssetDatabase {
     if (!reused) {
       this.blobs.set(this.blobKey(asset.sha256, asset.mimeType), asset.blob);
     }
-    const { blob: _blob, ...reference } = asset;
+    const reference = {
+      courseId: asset.courseId,
+      releaseId: asset.releaseId,
+      assetId: asset.assetId,
+      sha256: asset.sha256,
+      mimeType: asset.mimeType,
+      byteSize: asset.byteSize,
+    };
     this.references.set(
       `${asset.courseId}\u0000${asset.releaseId}\u0000${asset.assetId}`,
       reference
@@ -258,8 +265,9 @@ describe('成功路径', () => {
 describe('课程升级消息链路', () => {
   it('检查只提交本机已安装课程，并解析版本摘要', async () => {
     await redeemAccessCode('KM-FIRST', withFetch(async () => json({ courses: [pkg()] })));
-    const fetch = vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) =>
-      updateJson({
+    const fetch = vi.fn(async (...args: [RequestInfo | URL, RequestInit?]) => {
+      void args;
+      return updateJson({
         data: {
           courses: [
             {
@@ -271,8 +279,8 @@ describe('课程升级消息链路', () => {
             },
           ],
         },
-      })
-    );
+      });
+    });
 
     const result = await checkCourseUpdates({ library: deps.library, apiOrigin: deps.apiOrigin, fetch });
 

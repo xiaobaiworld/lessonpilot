@@ -25,7 +25,14 @@ class MemoryAssetDatabase implements AssetDatabase {
       this.blobWrites += 1;
       this.blobs.set(this.blobKey(asset.sha256, asset.mimeType), asset.blob);
     }
-    const { blob: _blob, ...reference } = asset;
+    const reference = {
+      courseId: asset.courseId,
+      releaseId: asset.releaseId,
+      assetId: asset.assetId,
+      sha256: asset.sha256,
+      mimeType: asset.mimeType,
+      byteSize: asset.byteSize,
+    };
     this.references.set(
       this.key(asset.courseId, asset.releaseId, asset.assetId),
       reference

@@ -24,6 +24,24 @@ export interface TeacherMutation {
   temporary_password: string;
 }
 
+export type TrialFollowupStatus = 'pending' | 'contacted' | 'closed';
+
+export interface TrialApplication {
+  id: string;
+  name: string;
+  contact: string;
+  courseCategory: string;
+  videoStatus: string;
+  bilibiliUrl: string | null;
+  teachingProblem: string;
+  subtitleStatus: string;
+  validationQuestion: string | null;
+  source: string;
+  submittedAt: string;
+  followupId: string;
+  status: TrialFollowupStatus;
+}
+
 const BASE = '/api/v1/admin';
 
 /**
@@ -67,5 +85,16 @@ export class AdminAPI {
     return this.http.post<TeacherMutation>(
       `${BASE}/teachers/${teacherId}/reset-password`
     );
+  }
+
+  listTrialApplications(): Promise<TrialApplication[]> {
+    return this.http.get<TrialApplication[]>(`${BASE}/trial-applications`);
+  }
+
+  updateTrialFollowup(
+    followupId: string,
+    status: TrialFollowupStatus
+  ): Promise<{ id: string; trial_application_id: string; status: TrialFollowupStatus }> {
+    return this.http.patch(`${BASE}/trial-followups/${followupId}`, { status });
   }
 }

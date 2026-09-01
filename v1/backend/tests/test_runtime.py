@@ -47,6 +47,25 @@ def test_production_rejects_weak_runtime_configuration() -> None:
     assert "DEBUG" in message
 
 
+def test_development_cors_allows_file_pages() -> None:
+    settings = Settings(app_env="development", cors_origins="http://localhost:4173")
+
+    assert "null" in settings.cors_origin_list
+
+
+def test_production_rejects_file_page_cors_origin() -> None:
+    settings = Settings(
+        app_env="production",
+        session_secret="s" * 48,
+        access_code_secret="a" * 48,
+        cors_origins="null",
+        log_level="INFO",
+    )
+
+    with pytest.raises(ValueError, match="file 页面来源"):
+        settings.validate_runtime()
+
+
 def test_logging_redacts_nested_secrets() -> None:
     result = redact_sensitive(
         None,
