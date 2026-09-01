@@ -62,6 +62,7 @@
 | 07 | [`design/v1/07-product-interaction-state.md`](design/v1/07-product-interaction-state.md) | 页面职责、教师/学生流程、交互状态和失败恢复 |
 | 08 | [`design/v1/08-security-operations-design.md`](design/v1/08-security-operations-design.md) | 权限、秘密、输入、隐私、发布、备份和恢复边界 |
 | 09 | [`design/v1/09-migration-cutover-design.md`](design/v1/09-migration-cutover-design.md) | 旧数据处理、干净初始化、切换、回滚和旧入口退役 |
+| 11 | [`design/v1/11-visual-design-system.md`](design/v1/11-visual-design-system.md) | 视觉真源：token 系统、四端 UI 收敛方案与防漂移门禁 |
 
 ### v1 已接受决策
 
