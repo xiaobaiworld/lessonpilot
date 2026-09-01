@@ -26,10 +26,71 @@ USER_AGENT = (
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 )
 MIXIN_KEY_ENC_TAB = [
-    46, 47, 18, 2, 53, 8, 23, 32, 15, 50, 10, 31, 58, 3, 45, 35, 27, 43, 5, 49,
-    33, 9, 42, 19, 29, 28, 14, 39, 12, 38, 41, 13, 37, 48, 7, 16, 24, 55, 40,
-    61, 26, 17, 0, 1, 60, 51, 30, 4, 22, 25, 54, 21, 56, 59, 57, 6, 11, 38, 36,
-    63, 52, 20, 44, 62, 34,
+    46,
+    47,
+    18,
+    2,
+    53,
+    8,
+    23,
+    32,
+    15,
+    50,
+    10,
+    31,
+    58,
+    3,
+    45,
+    35,
+    27,
+    43,
+    5,
+    49,
+    33,
+    9,
+    42,
+    19,
+    29,
+    28,
+    14,
+    39,
+    12,
+    38,
+    41,
+    13,
+    37,
+    48,
+    7,
+    16,
+    24,
+    55,
+    40,
+    61,
+    26,
+    17,
+    0,
+    1,
+    60,
+    51,
+    30,
+    4,
+    22,
+    25,
+    54,
+    21,
+    56,
+    59,
+    57,
+    6,
+    11,
+    38,
+    36,
+    63,
+    52,
+    20,
+    44,
+    62,
+    34,
 ]
 PREFERRED_LANGS = ("ai-zh", "zh-Hans", "zh-CN", "zh-Hant", "zh", "en-US", "en")
 
@@ -298,8 +359,12 @@ def main(argv: list[str] | None = None) -> int:
 
     parser = argparse.ArgumentParser(description="用你自己的 B 站 Cookie 拉取字幕")
     parser.add_argument("bilibili_url", help="B 站视频 URL 或 BVID")
-    parser.add_argument("--cookie-file", help="Cookie 文件路径，也可用环境变量 BILIBILI_COOKIE_FILE")
-    parser.add_argument("--page-index", type=int, default=0, help="多分 P 视频的分 P 索引，从 0 开始")
+    parser.add_argument(
+        "--cookie-file", help="Cookie 文件路径，也可用环境变量 BILIBILI_COOKIE_FILE"
+    )
+    parser.add_argument(
+        "--page-index", type=int, default=0, help="多分 P 视频的分 P 索引，从 0 开始"
+    )
     parser.add_argument("--output", type=Path, help="保存 SRT 到文件；默认打印摘要")
     args = parser.parse_args(argv)
 

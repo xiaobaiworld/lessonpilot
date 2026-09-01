@@ -92,8 +92,7 @@ def create_course(
         subtitle = load_subtitle(subtitle_path)
     else:
         subtitle = {
-            key: subtitle[key]
-            for key in ("schemaVersion", "filename", "format", "content")
+            key: subtitle[key] for key in ("schemaVersion", "filename", "format", "content")
         }
 
     video_id = parse_bvid(bilibili_url)
@@ -153,10 +152,10 @@ def course_from_entry(
     if not isinstance(bilibili_url, str) or not bilibili_url.strip():
         raise ValueError(f"课程 {title!r} 缺少 bilibili_url")
     if fetch_subtitle and subtitle_file:
-        raise ValueError(f"课程 {title!r} 不能同时设置 subtitle_file 和 fetch_subtitle_from_bilibili")
-    if not fetch_subtitle and (
-        not isinstance(subtitle_file, str) or not subtitle_file.strip()
-    ):
+        raise ValueError(
+            f"课程 {title!r} 不能同时设置 subtitle_file 和 fetch_subtitle_from_bilibili"
+        )
+    if not fetch_subtitle and (not isinstance(subtitle_file, str) or not subtitle_file.strip()):
         raise ValueError(f"课程 {title!r} 需要 subtitle_file 或 fetch_subtitle_from_bilibili")
     if fetch_subtitle and not cookie_header:
         raise ValueError("使用 fetch_subtitle_from_bilibili 时必须提供 B 站 Cookie")

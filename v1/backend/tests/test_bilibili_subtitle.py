@@ -102,16 +102,16 @@ def test_fetch_subtitle_document_prefers_ai_zh(mock_request_json) -> None:
 @patch("scripts.create_courses.bilibili_subtitle._request_json")
 def test_fetch_subtitle_document_requires_tracks(mock_request_json) -> None:
     mock_request_json.side_effect = [
-            {"code": 0, "data": {"aid": 1, "cid": 2, "title": "t"}},
-            {
-                "code": 0,
-                "data": {
-                    "wbi_img": {
-                        "img_url": "https://i0.hdslb.com/bfs/wbi/7cd084941338484aae1ad9425b84077c.png",
-                        "sub_url": "https://i0.hdslb.com/bfs/wbi/4932caff0ff746eab6f01bf08b70ac45.png",
-                    }
-                },
+        {"code": 0, "data": {"aid": 1, "cid": 2, "title": "t"}},
+        {
+            "code": 0,
+            "data": {
+                "wbi_img": {
+                    "img_url": "https://i0.hdslb.com/bfs/wbi/7cd084941338484aae1ad9425b84077c.png",
+                    "sub_url": "https://i0.hdslb.com/bfs/wbi/4932caff0ff746eab6f01bf08b70ac45.png",
+                }
             },
+        },
         {"code": 0, "data": {"subtitle": {"subtitles": []}}},
     ]
     with pytest.raises(BilibiliSubtitleError, match="未返回字幕"):
