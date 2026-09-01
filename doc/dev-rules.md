@@ -35,16 +35,25 @@
 | --- | --- |
 | 需求 | [`requirements/v1/README.md`](requirements/v1/README.md) |
 | 设计 | [`design/v1/README.md`](design/v1/README.md) |
+| UI 视觉标准 | [`design/v1/11-visual-design-system.md`](design/v1/11-visual-design-system.md)（`D-V1-032`；四端 UI 的主要参考依据） |
 | 开发计划 | [`plans/v1-development-plan.md`](plans/v1-development-plan.md) |
 | 测试计划 | [`plans/v1-test-plan.md`](plans/v1-test-plan.md) |
 | 需求追踪 | [`traceability/v1-requirements.tsv`](traceability/v1-requirements.tsv) |
-| 决策 | [`decisions/`](decisions/)，v1 段为 `D-V1-001` 至 `D-V1-013` |
+| 决策 | [`decisions/`](decisions/)，v1 段为已接受的 `D-V1-*` 记录 |
 | 初期发布流程 | [`decisions/2026-08-26-early-stage-release-process.md`](decisions/2026-08-26-early-stage-release-process.md)（`D-V1-013`，当前阶段运行约定） |
 | 文档地图 | [`INDEX.md`](INDEX.md) |
 | 插件本机资源（方向已确认，尚未实施） | [`插件文件资源管理.md`](插件文件资源管理.md) |
 
 `doc/archive/` 只用于追溯，不指导开发。标为「当前证据」的文档只证明 v0.9.1 现状，
 不定义 v1 目标。
+
+### 2.1 UI 视觉标准
+
+所有新增或修改的 Web、销售站点、管理端和学生插件 UI，必须以
+[`design/v1/11-visual-design-system.md`](design/v1/11-visual-design-system.md) 为主要参考。
+颜色、字体、间距、圆角、阴影、动效和页面层级优先使用该文档定义的角色 token 与共享消费入口，
+不得在单个端静默复制或另立视觉语言。若需求需要偏离，必须在设计或决策文档中记录原因、影响和验证方式；
+这条标准不改变已冻结的页面职责、交互状态机、数据契约、权限或失败恢复规则。
 
 ## 3. 编号规则
 

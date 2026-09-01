@@ -44,7 +44,7 @@
 | 07 | [`07-product-interaction-state.md`](07-product-interaction-state.md) | 页面职责、教师/学生流程、课程授权、交互状态和恢复 | 已接受；`D-V1-018` 后续方向、`D-V1-019` 当前授权规则与 `D-V1-020` 创建/管理交互已同步 |
 | 08 | [`08-security-operations-design.md`](08-security-operations-design.md) | 权限、秘密、输入、日志、发布、备份和恢复 | 已接受；`D-V1-020` 接收人隐私与状态操作审计已同步 |
 | 09 | [`09-migration-cutover-design.md`](09-migration-cutover-design.md) | 保留、重写、迁移、切换、回滚和旧入口退役 | 已接受 |
-| 11 | [`11-visual-design-system.md`](11-visual-design-system.md) | 视觉真源：token 系统、四端 UI 收敛方案与防漂移门禁 | 方向 A 与阶段 0 token 已实现；历史裸色值暂存规则见 `D-V1-031` |
+| 11 | [`11-visual-design-system.md`](11-visual-design-system.md) | 项目级 UI 视觉标准：token 系统、四端 UI 收敛方案与防漂移门禁 | 方向 A 与阶段 0 token 已实现；作为后续 UI 开发主要参考，标准化决策见 `D-V1-032` |
 
 项目专有开发规则固定写入 [`../../dev-rules.md`](../../dev-rules.md)，不为编号另建重复副本。
 测试计划和开发计划分别为 [`../../plans/v1-test-plan.md`](../../plans/v1-test-plan.md) 和
