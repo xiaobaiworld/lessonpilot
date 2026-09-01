@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="assets/knownmap-icon.png">
+    <meta name="robots" content="noindex,nofollow,noarchive">
+    <meta name="description" content="KnownMap 课程留言页面。">
+    <title>课程留言 · KnownMap</title>
+    <style>
+      :root{--paper:#f4f0e6;--white:#fffdf8;--ink:#16251f;--muted:#52635b;--line:#cbd3cd;--brand:#1d5c43;--dark:#103b2b;--gold:#d9a51e}
+      *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--paper)}body{color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif}.wrap{width:min(760px,calc(100% - 32px));margin:0 auto}.topbar{border-bottom:1px solid rgba(203,211,205,.9);background:rgba(255,253,248,.94)}.topbar-inner{display:flex;min-height:62px;align-items:center;justify-content:space-between}.brand{display:flex;align-items:center;gap:10px;color:var(--ink);font-weight:850;text-decoration:none}.brand-mark{display:grid;width:30px;height:30px;place-items:center;border-radius:8px;background:var(--dark);color:#fff;font-size:12px}.brand-letter-k{color:#e8b428}.brand-letter-m{color:#c56e52}.back-link{color:var(--brand);font-size:13px;font-weight:750;text-decoration:none}.page{padding:64px 0 84px}.intro{max-width:650px;margin-bottom:24px}.eyebrow{margin:0 0 10px;color:var(--brand);font-size:12px;font-weight:850;letter-spacing:.08em}.intro h1{margin:0;font-size:clamp(34px,6vw,54px);letter-spacing:-.04em;line-height:1.12}.intro p{margin:16px 0 0;color:var(--muted);font-size:16px;line-height:1.7}.trial-intake{padding:28px;border:1px solid #bdc9c1;border-radius:16px;background:var(--white);box-shadow:0 18px 42px rgba(22,37,31,.1)}.trial-intake-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}.trial-intake-head strong{font-size:20px}.trial-intake-head span{color:var(--muted);font-size:12px;white-space:nowrap}.trial-intake-intro{margin:8px 0 20px;color:var(--muted);font-size:13px;line-height:1.65}.trial-intake form{display:grid;gap:14px}.trial-intake label{display:grid;gap:6px;color:var(--ink);font-size:13px;font-weight:650}.trial-intake input,.trial-intake select,.trial-intake textarea{width:100%;padding:11px 12px;border:1px solid #9eafa5;border-radius:7px;background:#fff;color:var(--ink);font:inherit;font-size:14px}.trial-intake textarea{resize:vertical}.trial-intake input:focus,.trial-intake select:focus,.trial-intake textarea:focus{outline:2px solid #e8b428;outline-offset:1px}.trial-intake .button{min-height:46px;margin-top:2px;border:0;border-radius:7px;background:var(--brand);color:#fff;font:inherit;font-size:14px;font-weight:800;cursor:pointer}.trial-intake .button:hover{background:var(--dark)}.trial-intake .button:disabled{cursor:wait;opacity:.65}.trial-intake small{display:block;margin-top:14px;color:var(--muted);font-size:12px;line-height:1.6}.trial-intake-status{margin:12px 0 0;padding:10px 12px;border-radius:7px;background:#f7e5df;color:#843f30;font-size:13px;line-height:1.5}.trial-intake-status[data-state="busy"]{background:#fbf3d7;color:#6f5710}.trial-intake-success{display:grid;gap:6px;margin-top:14px;padding:14px;border:1px solid #83b69b;border-radius:7px;background:#e9f4ed;color:var(--brand)}.trial-intake-success strong{font-size:15px}.trial-intake-success span{font-size:13px;line-height:1.6}.trial-intake[hidden],.trial-intake form[hidden]{display:none}.trial-honeypot{position:absolute;left:-10000px;width:1px;height:1px;opacity:0;pointer-events:none}@media(max-width:600px){.page{padding-top:44px}.trial-intake{padding:20px}.trial-intake-head{display:grid;gap:4px}.trial-intake-head span{white-space:normal}}
+    </style>
+    <style>
+      :root{--paper:#f5f1e8;--white:#fffdf8;--ink:#16251f;--muted:#5b6b63;--line:#d3dbd4;--brand:#1d6a4c;--dark:#103b2b;--gold:#e1b62e;--soft-green:#e7f2eb}
+      html{background:var(--paper)}
+      body{position:relative;overflow-x:hidden;background:radial-gradient(circle at 8% 12%,rgba(225,182,46,.13),transparent 24rem),radial-gradient(circle at 94% 72%,rgba(29,106,76,.12),transparent 28rem),var(--paper)}
+      body::before{position:fixed;top:108px;left:-100px;width:260px;height:260px;border:1px solid rgba(29,106,76,.12);border-radius:50%;content:"";pointer-events:none}
+      body::after{position:fixed;right:-130px;bottom:-110px;width:330px;height:330px;border:1px solid rgba(225,182,46,.18);border-radius:50%;content:"";pointer-events:none}
+      .topbar{position:relative;z-index:1;border-bottom:1px solid rgba(203,211,205,.72);background:rgba(255,253,248,.72);backdrop-filter:blur(14px)}
+      .topbar-inner{width:min(1080px,calc(100% - 48px));min-height:70px}
+      .brand{letter-spacing:-.02em}.brand-mark{width:34px;height:34px;border-radius:10px;box-shadow:0 5px 12px rgba(16,59,43,.16)}
+      .back-link{padding:8px 0}.back-link:hover{text-decoration:underline;text-underline-offset:4px}
+      .page.application-layout{display:grid;grid-template-columns:minmax(240px,.78fr) minmax(0,1.22fr);gap:68px;width:min(1080px,calc(100% - 48px));padding:72px 0 100px;align-items:start}
+      .intro{position:sticky;top:34px;max-width:390px;margin:0;padding:20px 0 0}
+      .eyebrow{display:inline-flex;margin:0 0 17px;padding:6px 10px;border:1px solid rgba(29,106,76,.22);border-radius:999px;background:rgba(231,242,235,.7);color:var(--brand);font-size:11px;letter-spacing:.1em}
+      .intro h1{max-width:440px;margin:0;font-size:clamp(38px,5vw,62px);letter-spacing:-.065em;line-height:1.06}
+      .intro h1::after{display:block;width:58px;height:5px;margin-top:23px;border-radius:999px;background:linear-gradient(90deg,var(--gold),#f0d675);content:""}
+      .intro p{max-width:390px;margin:25px 0 0;color:var(--muted);font-size:15px;line-height:1.8}
+      .intro-points{display:grid;gap:10px;margin:30px 0 0;padding:0;list-style:none}
+      .intro-points li{display:grid;grid-template-columns:30px 1fr;gap:11px;align-items:center;color:var(--ink);font-size:13px;font-weight:700;line-height:1.4}
+      .intro-points li::before{display:grid;width:30px;height:30px;place-items:center;border-radius:10px;background:var(--dark);color:#fff;content:"✓";font-size:13px}
+      .intro-foot{margin-top:28px!important;color:#718078!important;font-size:12px!important;line-height:1.6!important}
+      .trial-intake.form-card{position:relative;overflow:hidden;padding:34px;border:1px solid rgba(144,168,153,.7);border-radius:22px;background:rgba(255,253,248,.94);box-shadow:0 24px 65px rgba(22,37,31,.13)}
+      .form-card::before{position:absolute;top:0;right:0;left:0;height:5px;background:linear-gradient(90deg,var(--brand),var(--gold));content:""}
+      .form-card::after{position:absolute;top:-105px;right:-95px;width:220px;height:220px;border:1px solid rgba(29,106,76,.1);border-radius:50%;content:"";pointer-events:none}
+      .trial-intake-head{position:relative;z-index:1;padding-bottom:18px;border-bottom:1px solid #e5e9e4}.trial-intake-head strong{font-size:22px;letter-spacing:-.03em}.trial-intake-head span{color:var(--brand);font-size:11px;font-weight:700}
+      .trial-intake-intro{position:relative;z-index:1;margin:18px 0 25px;color:var(--muted);font-size:13px;line-height:1.7}
+      .trial-intake form{position:relative;z-index:1;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 14px}
+      .trial-intake label{gap:7px;color:#30423a;font-size:12px;font-weight:750}.trial-intake input,.trial-intake select,.trial-intake textarea{padding:12px 13px;border:1px solid #b9c9be;border-radius:9px;background:#fff;color:var(--ink);font-size:14px;transition:border-color .18s,box-shadow .18s,background .18s}.trial-intake input:hover,.trial-intake select:hover,.trial-intake textarea:hover{border-color:#85a894;background:#fffefa}.trial-intake input:focus,.trial-intake select:focus,.trial-intake textarea:focus{border-color:var(--brand);outline:0;box-shadow:0 0 0 4px rgba(29,106,76,.12);background:#fff}
+      .trial-intake label:nth-of-type(n+5){grid-column:1/-1}.trial-intake .button{grid-column:1/-1;min-height:50px;margin-top:3px;border-radius:9px;background:var(--brand);box-shadow:0 8px 18px rgba(29,106,76,.2);font-size:14px;transition:transform .18s,box-shadow .18s,background .18s}.trial-intake .button::after{margin-left:9px;content:"→";font-size:17px}.trial-intake .button:hover{background:var(--dark);box-shadow:0 11px 22px rgba(16,59,43,.25);transform:translateY(-1px)}.trial-intake .button:active{transform:translateY(0)}
+      .trial-intake small{position:relative;z-index:1;margin-top:16px;color:#718078;font-size:11px}.trial-intake-status{position:relative;z-index:1;margin-top:14px}.trial-intake-success{position:relative;z-index:1;margin-top:16px;padding:15px;border-color:#8cc0a1;border-radius:9px;background:var(--soft-green);color:var(--brand)}.trial-intake-success[hidden],.trial-intake-status[hidden]{display:none}
+      @media(max-width:780px){.page.application-layout{grid-template-columns:1fr;gap:30px;padding-top:44px}.intro{position:static;max-width:none;padding-top:0}.intro h1,.intro p{max-width:650px}.intro-points{grid-template-columns:repeat(3,1fr);gap:8px}.intro-points li{grid-template-columns:1fr;gap:7px;font-size:11px}.intro-points li::before{width:27px;height:27px}.intro-foot{display:none}.trial-intake.form-card{padding:27px}}
+      @media(max-width:560px){.topbar-inner,.page.application-layout{width:min(100% - 32px,760px)}.topbar-inner{min-height:62px}.back-link{font-size:12px}.page.application-layout{padding-bottom:64px}.intro h1{font-size:clamp(37px,12vw,52px)}.intro-points{grid-template-columns:1fr;gap:8px}.intro-points li{grid-template-columns:30px 1fr;gap:10px;font-size:12px}.intro-points li::before{width:30px;height:30px}.trial-intake.form-card{padding:24px 18px;border-radius:17px}.trial-intake form{grid-template-columns:1fr}.trial-intake label:nth-of-type(n+1){grid-column:1}.trial-intake-head{display:flex}.trial-intake-head strong{font-size:20px}.trial-intake-head span{max-width:130px;text-align:right;white-space:normal}}
+    </style>
+    <style>
+      .message-board .intro h1{max-width:400px;font-size:clamp(36px,4.8vw,56px);letter-spacing:-.055em}
+      .message-board .intro h1::after{width:42px;height:3px;margin-top:20px;background:var(--brand)}
+      .message-board .intro p{max-width:360px;margin-top:21px}
+      .message-board .intro-points{gap:8px;margin-top:25px}
+      .message-board .intro-points li{grid-template-columns:12px 1fr;gap:8px;font-weight:650}
+      .message-board .intro-points li::before{width:7px;height:7px;border-radius:50%;background:var(--gold);font-size:0}
+      .message-board .intro-foot{max-width:330px;margin-top:25px!important}
+      .message-board .trial-intake.form-card{border-radius:15px;box-shadow:0 14px 38px rgba(22,37,31,.1)}
+      .message-board .form-card::before{height:3px;background:var(--brand)}
+      .message-board .form-card::after{display:none}
+      .message-board .trial-intake-head span{font-weight:600}
+      .message-board .trial-intake .button{box-shadow:0 6px 14px rgba(29,106,76,.16)}
+      .trial-intake-success-title{display:flex;align-items:center;gap:9px}
+      .thanks-icon{display:grid;width:28px;height:28px;place-items:center;border-radius:50%;background:#f5d878;color:#765707;font-size:16px;line-height:1}
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="wrap topbar-inner">
+        <a class="brand" href="/" aria-label="返回 KnownMap 销售页"><span class="brand-mark">K</span><span><span class="brand-letter-k">K</span>nown<span class="brand-letter-m">M</span>ap</span></a>
+        <a class="back-link" href="/">← 返回销售页</a>
+      </div>
+    </header>
+    <main class="wrap page application-layout message-board">
+      <section class="intro" aria-labelledby="page-title">
+        <p class="eyebrow">课程留言</p>
+        <h1 id="page-title">给 KnownMap 留个言</h1>
+        <p>简单说说你的课程，以及你现在最想解决的问题。</p>
+        <ul class="intro-points" aria-label="留言说明">
+          <li>课程情况</li>
+          <li>最想解决的问题</li>
+          <li>方便联系你的方式</li>
+        </ul>
+        <p class="intro-foot">想到哪里写到哪里，按你的方便填写就好。</p>
+      </section>
+      <section class="trial-intake form-card" data-trial-intake aria-labelledby="form-title">
+        <div class="trial-intake-head"><strong id="form-title">留言板</strong><span>说说你的课程和问题</span></div>
+        <form data-trial-intake-form>
+          <label>怎么称呼你？<input name="name" maxlength="120" autocomplete="name" required></label>
+          <label>方便怎么联系你？<input name="contact" maxlength="255" autocomplete="email" required></label>
+          <label>课程类别<input name="courseCategory" maxlength="120" placeholder="例如：英语口语、数学" required></label>
+          <label>视频现在是什么状态？<select name="videoStatus" required><option selected>还没确定</option><option>已有 B 站课程</option><option>准备上传到 B 站</option><option>还在准备</option></select></label>
+          <label>课程链接（选填）<input name="bilibiliUrl" type="url" maxlength="500" placeholder="https://www.bilibili.com/video/... 或 https://b23.tv/..." inputmode="url"></label>
+          <label>字幕情况<select name="subtitleStatus" required><option selected>还没确定</option><option>已有字幕</option><option>没有字幕</option><option>需要协助准备</option></select></label>
+          <label>你最想解决的教学问题<textarea name="teachingProblem" rows="4" maxlength="4000" required></textarea></label>
+          <label>还有什么想先聊聊的？（选填）<textarea name="validationQuestion" rows="3" maxlength="4000"></textarea></label>
+          <input class="trial-honeypot" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <button class="button" data-trial-intake-submit type="submit">提交留言</button>
+        </form>
+        <p class="trial-intake-status" data-trial-intake-status role="alert" hidden></p>
+        <div class="trial-intake-success" data-trial-intake-success role="status" hidden><div class="trial-intake-success-title"><span class="thanks-icon" aria-hidden="true">♥</span><strong>谢谢你的留言</strong></div><span>也谢谢你愿意分享课程里的真实想法。期待你的课程越来越好。</span></div>
+      </section>
+    </main>
+    <script src="trial-intake.js?v=trial-intake-20260901-4"></script>
+  </body>
+</html>

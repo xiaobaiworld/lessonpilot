@@ -1,6 +1,6 @@
 """导入全部模型，使 Alembic 和运行时共享同一份 SQLAlchemy metadata。"""
 
-from app.modules.admin_support.models import RightsAttestation, TrialFollowup
+from app.modules.admin_support.models import RightsAttestation, TrialApplication, TrialFollowup
 from app.modules.authoring_release.models import PreviewSession, ScriptDraft
 from app.modules.authoring_release.release_models import (
     CourseRelease,
@@ -34,6 +34,7 @@ __all__ = [
     "ReleaseLessonSnapshot",
     "ScriptDraft",
     "RightsAttestation",
+    "TrialApplication",
     "TeacherAccount",
     "TeacherSession",
     "TrialFollowup",

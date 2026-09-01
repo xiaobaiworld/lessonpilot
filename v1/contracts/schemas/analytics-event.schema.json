@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://knownmap.local/schema/v1/analytics-event.schema.json",
+  "title": "KnownMap Analytics Event Schema v1.0.0",
+  "description": "Low-cardinality product analytics event envelope. It is not a business or student learning record.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "event_id",
+    "event_name",
+    "event_version",
+    "occurred_at",
+    "actor_type",
+    "source",
+    "environment",
+    "session_id",
+    "request_id",
+    "course_id",
+    "lesson_id",
+    "release_id",
+    "status",
+    "duration_ms",
+    "properties",
+    "privacy_class"
+  ],
+  "properties": {
+    "event_id": { "type": "string", "format": "uuid" },
+    "event_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 50,
+      "pattern": "^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$"
+    },
+    "event_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "occurred_at": { "type": "string", "format": "date-time" },
+    "actor_type": { "enum": ["teacher", "student_local", "system", "preview"] },
+    "source": {
+      "enum": ["teacher_web", "student_extension", "admin_web", "server", "test"]
+    },
+    "environment": { "enum": ["development", "test", "staging", "production"] },
+    "session_id": { "type": ["string", "null"], "maxLength": 128 },
+    "request_id": { "type": ["string", "null"], "maxLength": 128 },
+    "course_id": { "type": ["string", "null"], "maxLength": 128 },
+    "lesson_id": { "type": ["string", "null"], "maxLength": 128 },
+    "release_id": { "type": ["string", "null"], "maxLength": 128 },
+    "status": {
+      "enum": ["started", "success", "failure", "cancelled", "skipped", "unknown"]
+    },
+    "duration_ms": { "type": ["integer", "null"], "minimum": 0 },
+    "properties": {
+      "type": "object",
+      "maxProperties": 20,
+      "additionalProperties": {
+        "anyOf": [
+          { "type": "string", "maxLength": 256 },
+          { "type": "number" },
+          { "type": "boolean" },
+          { "type": "null" }
+        ]
+      }
+    },
+    "privacy_class": { "enum": ["operational", "learning_local", "diagnostic"] }
+  }
+}

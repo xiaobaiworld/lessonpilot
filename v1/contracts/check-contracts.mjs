@@ -25,7 +25,8 @@ const manifest = JSON.parse(
 const requiredSchemas = [
   'course-package.schema.json',
   'extension-messages.schema.json',
-  'extension-storage.schema.json'
+  'extension-storage.schema.json',
+  'analytics-event.schema.json'
 ];
 
 function validateSchemas() {

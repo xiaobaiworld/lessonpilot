@@ -9,15 +9,14 @@ const page = fs.readFileSync('v1/site/link.html', 'utf8');
 
 const requiredLinks = [
   'https://knownmap.com/',
+  'https://knownmap.com/trial-application.html',
   'https://knownmap.com/admin/',
   'https://knownmap.com/teacher/',
   'https://knownmap.com/student-guide.html',
-  'https://knownmap.com/downloads/student-plugin/knownmap-v1.zip',
-  'https://my.feishu.cn/share/base/form/shrcnGpoiVzLw8v5sD5K2TV8sFb',
-  'https://my.feishu.cn/base/ZI5vbke3Ia9dpPsL4khcko09nwf?table=tblGmuYqdNDy7rSZ&amp;view=vewNhBX7cO'
+  'https://knownmap.com/downloads/student-plugin/knownmap-v1.zip'
 ];
 
-test('链接导航包含本站、飞书填写和结果查看入口', () => {
+test('链接导航包含本站、本地填写和管理员查看入口', () => {
   for (const link of requiredLinks) {
     assert.match(page, new RegExp(`href="${link.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`));
   }
@@ -27,9 +26,11 @@ test('链接导航包含本站、飞书填写和结果查看入口', () => {
 test('链接导航禁止搜索引擎收录并标明结果页权限', () => {
   assert.match(page, /name="robots" content="noindex,nofollow,noarchive"/);
   assert.match(page, /访问说明/);
-  assert.match(page, /外部填写表单可公开分享/);
-  assert.match(page, /查看收集结果/);
-  assert.match(page, /结果页和设置页仍需获授权的飞书账号登录/);
+  assert.match(page, /试用申请可直接留言/);
+  assert.match(page, /管理员端需要管理员账号登录/);
+  assert.match(page, /本地试用申请/);
+  assert.match(page, /独立本地留言页面/);
+  assert.match(page, /管理员查看申请/);
 });
 
 test('所有新窗口链接都有安全的 rel 属性', () => {

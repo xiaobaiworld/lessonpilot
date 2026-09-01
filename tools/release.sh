@@ -102,6 +102,7 @@ build_web() {
   git -C "$ROOT_DIR" archive "$commit" -- v1 | tar -x -C "$source_dir"
 
   cp "$source_dir/v1/site/index.html" "$output/public/index.html"
+  cp "$source_dir/v1/site/trial-application.html" "$output/public/trial-application.html"
   cp "$source_dir/v1/site/student-guide.html" "$output/public/student-guide.html"
   cp "$source_dir/v1/site/subtitle-context.js" "$output/public/subtitle-context.js"
   cp "$source_dir/v1/site/demo-captions.js" "$output/public/demo-captions.js"

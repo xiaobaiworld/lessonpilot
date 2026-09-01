@@ -1,8 +1,8 @@
 # 03 v1 系统架构
 
-文档版本：`1.0.2`
+文档版本：`1.1.0`
 
-状态：已于 2026-08-22 通过人工审核；第 14 节两个长期工程取舍均已采用；已同步 `D-V1-010`；按 `D-V1-018` 增补独立课程版本和版本级授权边界
+状态：已于 2026-08-22 通过人工审核；第 14 节两个长期工程取舍均已采用；已同步 `D-V1-010`；按 `D-V1-018` 增补独立课程版本和版本级授权边界；2026-09-01 按 `D-V1-027` 增补本地试用申请边界
 
 `1.0.2` 增补第 7.0 节表归属。这是**增量补充，不改变已冻结的架构结论**：
 第 7 节原本只写模块的业务职责，没有把每张表分配到模块，「不能直接查询另一模块的表」
@@ -54,7 +54,7 @@ v1 架构优先保证以下结果：
 | 学生数据 | 课程、回答和学习状态默认只在学生当前机器 | `SCOPE-06`、`SEC-PRIV-001` |
 | 字幕 | 原始字幕在教师本机解析；教师明确保存草稿后进入服务端草稿和发布快照；不进入课程包或插件 | `DATA-CONTENT-005`、`INT-FILE-003`、`D-V1-014` |
 | AI | v1 不接入 AI 制作、评分、追问或个性化路径 | `D-V1-002` |
-| 公开申请 | 销售页跳转飞书公开表单，申请与教师身份分离 | `D-V1-001`、`INT-TRIAL-*` |
+| 公开申请 | 销售页链接到独立本地公开表单页面，申请与教师身份分离；申请正文由 FastAPI + SQLite 保存 | `D-V1-001`、`D-V1-027`、`INT-TRIAL-*` |
 | 内容权利 | 接入和发布前确认，争议时暂停相关课程与授权 | `D-V1-008` |
 | 课程版本 | 当前按 `course_id` 管理发布快照，授权码自动解析该课程最新可交付版本；独立课程身份、版本级授权和升级关系属于后续能力 | `D-V1-018`、`D-V1-019` |
 
@@ -89,13 +89,14 @@ FastAPI 是一个部署单元和一个数据库事务边界，不拆成微服务
 ```mermaid
 flowchart LR
   Applicant[公开申请者] --> Sales[KnownMap 公开销售页]
-  Sales --> Feishu[飞书公开试用表单]
-  Operator[获准运营人员] --> Feishu
+  Sales --> LocalForm[KnownMap 本地公开试用表单]
+  LocalForm --> API[KnownMap FastAPI]
+  Operator[获准运营人员] --> AdminWeb
   Admin[平台管理员] --> AdminWeb[管理员 Web 应用]
   Teacher[教师] --> TeacherWeb[教师 Web 应用]
   Student[学生] --> Extension[KnownMap Chrome 插件]
 
-  AdminWeb --> API[KnownMap FastAPI]
+  AdminWeb --> API
   TeacherWeb --> API
   Extension --> API
 
@@ -107,7 +108,7 @@ flowchart LR
 
 上下文边界：
 
-- 飞书保存原始试用申请，KnownMap 不复制完整表单正文到普通业务流；
+- KnownMap FastAPI + SQLite 保存原始试用申请；申请正文只在管理员受保护的运营页面中显示，不进入普通日志、课程正文或学生数据；
 - B 站拥有视频播放与宿主页面，KnownMap 只引用视频并在获准环境执行最小互动；
 - SQLite 保存服务端业务权威，绝不保存学生个人学习状态；
 - Chrome 本机存储保存学生课程、资格缓存和学习状态，不成为服务端教师报表来源；
@@ -119,7 +120,6 @@ flowchart LR
 flowchart TB
   Browser[公开/管理员/教师浏览器]
   Chrome[学生桌面 Chrome + MV3 插件]
-  Feishu[飞书公开表单]
   Bili[B 站原页面]
 
   subgraph ECS[阿里云 ECS · 单节点]
@@ -138,7 +138,6 @@ flowchart TB
   end
 
   Browser --> Nginx
-  Browser --> Feishu
   Chrome --> Nginx
   Chrome <--> Bili
 ```
@@ -177,7 +176,7 @@ FastAPI 内部按业务责任划分为六个模块。模块是代码和事务边
 | 工作空间与课程 | `workspaces`、`courses`、`lessons` | `Workspace`、`Course`、`Lesson`、`VideoReference` |
 | 制作与发布 | `script_drafts`、`published_scripts`（v1 使用 `course_releases`、`release_lesson_snapshots`、`release_availability`、`preview_sessions`） | `ScriptDraft`、`InteractionNode`、`PreviewSession`、课程发布快照的 `CourseRelease`、`ReleaseLessonSnapshot`、`ReleaseAvailability` |
 | 授权与交付 | `access_codes`、`access_grants`（v1 增加 `redemptions`） | `AccessCode`、`GrantItem`、`Redemption` |
-| 管理与支持 | v1 增加 `trial_followups`、`rights_attestations` | `TrialFollowup`、`RightsAttestation` |
+| 管理与支持 | v1 增加 `trial_applications`、`trial_followups`、`rights_attestations` | `TrialApplication`、`TrialFollowup`、`RightsAttestation` |
 | 运行与审计 | `operation_logs` | `OperationAudit` |
 
 ### 7.0.1 授权码管理的页面与服务边界
@@ -267,8 +266,8 @@ HTTP 路由 / 中间件
 ### 8.1 公开销售入口
 
 - 公开、无需 KnownMap 登录，只展示已验收能力和试用入口；
-- 不直接接收或保存飞书表单正文；
-- 外部表单不可用时显示人工联系恢复路径，不伪造提交成功；
+- 通过本地公开表单接收申请并交给 FastAPI 保存；
+- 本地表单服务不可用时显示人工联系恢复路径，不伪造提交成功；
 - 不加载教师、管理员或插件诊断能力。
 
 ### 8.2 教师应用
@@ -289,6 +288,7 @@ HTTP 路由 / 中间件
 - 只展示接入、账号状态、必要业务摘要、操作记录和受限支持信息；
 - 需要课程正文的异常处置必须有独立授权和审计，v1 不默认开放；
 - 不把管理员页面和教师页面合并为一个靠隐藏菜单区分权限的客户端状态。
+- 管理员申请页面只读取本地申请和跟进状态；申请正文不通过公开接口或教师会话返回。
 
 教师与管理员应用可以共享无业务权限的视觉组件、HTTP 基础设施和错误展示，但不能共享登录状态、
 角色路由守卫或资源授权决定。
@@ -333,7 +333,7 @@ HTTP 路由 / 中间件
 
 | 边界 | 权威数据 | 关键保护 |
 | --- | --- | --- |
-| 飞书 | 原始试用申请 | KnownMap 只由获准运营人员人工访问，不复制普通日志 |
+| FastAPI + SQLite | 原始试用申请和跟进状态 | 申请正文只由获准管理员访问，不复制普通日志 |
 | FastAPI + SQLite | 账号、工作空间、课程、草稿、发布、授权、审计 | 服务端授权、事务、迁移、备份和恢复 |
 | 教师浏览器会话 | 原始字幕和未保存页面输入 | 未保存不上传；明确保存后进入服务端草稿/发布快照，失败不覆盖已保存草稿 |
 | Chrome 本机存储 | 学生本机标识、课程、资格缓存、回答和学习状态 | 版本校验、原子写入、局部恢复、不上传 |
@@ -353,7 +353,7 @@ v1 不引入集中日志平台、分布式追踪系统或复杂告警中心，�
 - 健康检查区分进程可达、数据库可用、版本可识别和核心只读探针；
 - 当前错误率、耗时和容量可先从结构化日志汇总，取得真实基线后再定义指标与告警阈值；
 - B 站宿主结构变化时停止受影响运行路径并显示可恢复错误，不无限观察、不猜测播放器；
-- 飞书、B 站或网络不可用只降级依赖它们的路径，不破坏教师已保存数据或学生已安装课程；
+- 本地申请服务、B 站或网络不可用只降级依赖它们的路径，不破坏教师已保存数据或学生已安装课程；
 - SQLite 写入、迁移、备份或恢复冲突时停止相关动作，不自动建立第二权威副本。
 
 ## 13. 明确不进入 v1 的架构复杂度

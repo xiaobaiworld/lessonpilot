@@ -5,6 +5,9 @@ export { errorMessage } from './api/errors';
 export * from './components/AuthPanel';
 export * from './components/AppShell';
 export * from './components/CredentialDialog';
+export * from './analytics/mock';
+export * from './analytics/sanitize';
+export * from './analytics/tracker';
 
 export {
   parseSubtitle,

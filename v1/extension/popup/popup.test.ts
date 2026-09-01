@@ -84,7 +84,7 @@ describe('V1.2.0 弹窗发布功能总览 V1', () => {
   });
 
   it('学习伙伴设置在同一弹窗内展示角色包和试听声音', () => {
-    expect(source).toContain("type View = 'home' | 'settings' | 'companion'");
+    expect(source).toContain("type CompanionState = 'idle' | 'focus' | 'prompt' | 'correct' | 'wrong' | 'complete'");
     expect(source).toContain('renderCompanionSettings');
     expect(source).toContain('神秘猫精灵声音组');
     expect(source).toContain('开始注意');

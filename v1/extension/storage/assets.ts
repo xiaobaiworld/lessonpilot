@@ -49,8 +49,14 @@ export interface AssetStoreLike {
 }
 
 function asAssetReference(asset: CachedAsset): AssetReference {
-  const { blob: _blob, ...reference } = asset;
-  return reference;
+  return {
+    courseId: asset.courseId,
+    releaseId: asset.releaseId,
+    assetId: asset.assetId,
+    sha256: asset.sha256,
+    mimeType: asset.mimeType,
+    byteSize: asset.byteSize,
+  };
 }
 
 export async function sha256Hex(value: ArrayBuffer): Promise<string> {
@@ -235,8 +241,14 @@ export class IndexedDbAssetDatabase implements AssetDatabase {
       transaction.objectStore(REFERENCES_STORE).get(referenceKey(courseId, releaseId, assetId))
     );
     if (!row) return null;
-    const { key: _key, ...reference } = row;
-    return reference;
+    return {
+      courseId: row.courseId,
+      releaseId: row.releaseId,
+      assetId: row.assetId,
+      sha256: row.sha256,
+      mimeType: row.mimeType,
+      byteSize: row.byteSize,
+    };
   }
 
   async readBlob(sha256: string, mimeType: string): Promise<Blob | null> {

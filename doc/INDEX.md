@@ -1,6 +1,6 @@
 # KnownMap 文档索引
 
-最近审计：2026-09-01；2026-08-25 增补插件本机资源管理备忘；2026-08-27 增补 `D-V1-017` 字幕上传修复流程、`D-V1-018` 教师工作台课程版本方向和 `D-V1-019` 当前课程级授权规则，并完成相关后端端点可组合性审计；2026-08-28 增补 `D-V1-020` 授权码创建与管理设计、`D-V1-021` B 站视频与分 P 精确引用、`D-V1-022` 学生课程库升级契约边界；2026-08-29 增补 `D-V1-023` 学生课程陪伴形象角色资源包和升级前提醒、`D-V1-024` 连续可调互动学习窗口设计；2026-08-30 收口 `D-V1-025` 课程互动节点课程化编辑引导及人工验收，并增补 `D-V1-026` 后续角色包网站目录与按需下载边界；2026-09-01 增加 `D-V1-027` 正式发布版本与数据连续性基线
+最近审计：2026-09-01；2026-08-25 增补插件本机资源管理备忘；2026-08-27 增补 `D-V1-017` 字幕上传修复流程、`D-V1-018` 教师工作台课程版本方向和 `D-V1-019` 当前课程级授权规则，并完成相关后端端点可组合性审计；2026-08-28 增补 `D-V1-020` 授权码创建与管理设计、`D-V1-021` B 站视频与分 P 精确引用、`D-V1-022` 学生课程库升级契约边界；2026-08-29 增补 `D-V1-023` 学生课程陪伴形象角色资源包和升级前提醒、`D-V1-024` 连续可调互动学习窗口设计；2026-08-30 收口 `D-V1-025` 课程互动节点课程化编辑引导及人工验收，并增补 `D-V1-026` 后续角色包网站目录与按需下载边界；2026-09-01 增加 `D-V1-030` 正式发布版本与数据连续性基线
 
 当前阶段：v1 已完成生产切换并进入新功能开发；当前授权码按 `course_id` 自动解析最新可交付版本，可复用现有后端端点；独立课程版本、草稿消费、版本操作和版本级授权仍等待后续端点/业务服务变更批准；v1 需求现为 `1.1.0`，功能需求新增学生学习陪伴形象和其他教师课程推荐两个后续候选；设计 04–07 已同步互动节点结构化内容、展示提示保存、教师预览和课程版本方向；设计 07 已按
 `FR-LIB-014` 增补学生插件使用说明页。学生陪伴形象与声音包第一版计划见 [`plans/2026-08-29-student-companion-avatar-and-sound-pack.md`](plans/2026-08-29-student-companion-avatar-and-sound-pack.md)，插件大资源本机方案见 [`插件文件资源管理.md`](插件文件资源管理.md)；教师端媒体资源输入决策见
@@ -29,7 +29,7 @@
 | [`traceability/v1-requirements.tsv`](traceability/v1-requirements.tsv) | 280 个稳定编号的需求级追踪矩阵 |
 | [`../next.md`](../next.md) | 当前执行切片和人工决策边界 |
 | [`../README.md`](../README.md) | 项目入口、当前状态、运行命令 |
-| [`../docs/RELEASE_VERSION_AND_DATA_CONTINUITY.md`](../docs/RELEASE_VERSION_AND_DATA_CONTINUITY.md) | 正式发布版本、代码/插件/数据库/契约版本、数据保留、备份、迁移和回滚基线（`D-V1-027`，待下一次正式发布前冻结） |
+| [`../docs/RELEASE_VERSION_AND_DATA_CONTINUITY.md`](../docs/RELEASE_VERSION_AND_DATA_CONTINUITY.md) | 正式发布版本、代码/插件/数据库/契约版本、数据保留、备份、迁移和回滚基线（`D-V1-030`，待下一次正式发布前冻结） |
 | [`decisions/2026-08-26-early-stage-release-process.md`](decisions/2026-08-26-early-stage-release-process.md) | 初期开发与运行阶段的发布流程（`D-V1-013`）；后期改流程须另写决策 |
 | [`decisions/2026-08-27-course-version-and-access-code-management.md`](decisions/2026-08-27-course-version-and-access-code-management.md) | 教师工作台独立课程版本、草稿消费、版本操作与版本级授权（`D-V1-018`） |
 | [`../docs/superpowers/specs/2026-08-28-access-code-management-design.md`](../docs/superpowers/specs/2026-08-28-access-code-management-design.md) | 授权码创建、接收人记录、冻结/恢复/作废和批量管理设计（`D-V1-020`，待实现前评审） |
@@ -95,13 +95,15 @@
 | `D-V1-024` | [互动学习窗口采用连续尺寸、拖动位置和节点展示配置接口](decisions/2026-08-29-continuous-learning-window.md)；实现完成，待浏览器人工验收 |
 | `D-V1-025` | [互动节点优先采用课程化编辑引导，不新增内容字段](decisions/2026-08-29-course-node-content-guidance.md)；实现与人工验收完成，后端既有格式基线另行处理 |
 | `D-V1-026` | [后续学习伙伴采用网站目录与按需资源下载](decisions/2026-08-30-companion-pack-online-delivery.md)；当前只记录边界，远程角色包未实现 |
+| `D-V1-028` | [埋点采用自有事件契约、Umami 老师端适配与项目日志规范](decisions/2026-09-01-analytics-umami.md)；需求/设计专项审核与实现验证待完成 |
+| `D-V1-027` | [试用申请改为 KnownMap 本地表单](decisions/2026-09-01-v1-local-trial-intake.md)；当前待实现 |
 | 当前性能决策 | [教师端首屏性能优化](decisions/2026-08-27-teacher-first-load-performance.md) |
 
 ### 提议中的决策
 
 | 编号 | 决策 |
 | --- | --- |
-| `D-V1-027` | [正式发布版本与数据连续性基线](decisions/2026-08-31-formal-release-version-and-data-continuity.md)；待下一次正式发布前冻结 |
+| `D-V1-030` | [正式发布版本与数据连续性基线](decisions/2026-08-31-formal-release-version-and-data-continuity.md)；待下一次正式发布前冻结 |
 
 ### 经验与状态
 

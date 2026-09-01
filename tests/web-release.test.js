@@ -22,6 +22,7 @@ test('web release is implemented by tools/release.sh', () => {
 test('release packages the current site, both apps and the production extension', () => {
   for (const marker of [
     'v1/site/index.html',
+    'v1/site/trial-application.html',
     'v1/site/student-guide.html',
     'v1/site/link.html',
     'npm ci',

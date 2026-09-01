@@ -1,2 +1,43 @@
 @import '../../shared/src/styles/base.css';
 @import '../../shared/src/styles/supplement.css';
+
+.trial-applications {
+  margin-top: 64px;
+  padding-bottom: 72px;
+}
+
+.trial-applications-table {
+  min-width: 1280px !important;
+}
+
+.trial-applications-table td {
+  max-width: 220px;
+}
+
+.trial-applications-table td strong,
+.cell-subtext {
+  display: block;
+}
+
+.cell-subtext {
+  margin-top: 4px;
+  color: var(--ink-soft);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.cell-long-text {
+  min-width: 180px;
+  white-space: normal;
+  line-height: 1.55;
+}
+
+.trial-applications-table select {
+  min-width: 88px;
+  padding: 6px 8px;
+  border: 1px solid var(--line-dark);
+  border-radius: 4px;
+  background: var(--paper-bright);
+  color: var(--ink);
+  font: inherit;
+}

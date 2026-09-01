@@ -11,6 +11,7 @@ const hex = (key) => tokens.colors[key].hex;
 
 const pageFiles = [
   'v1/site/index.html',
+  'v1/site/trial-application.html',
   'v1/site/student-guide.html',
   'v1/site/link.html'
 ];

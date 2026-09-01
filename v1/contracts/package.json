@@ -12,12 +12,22 @@
     "./schemas": {
       "types": "./schemas/index.ts",
       "import": "./schemas/index.ts"
+    },
+    "./analytics": {
+      "types": "./analytics-event.ts",
+      "import": "./analytics-event.ts"
+    },
+    "./analytics-registry": {
+      "types": "./analytics-event-registry.ts",
+      "import": "./analytics-event-registry.ts"
     }
   },
   "files": [
     "schemas",
     "versions.json",
-    "index.ts"
+    "index.ts",
+    "analytics-event.ts",
+    "analytics-event-registry.ts"
   ],
   "scripts": {
     "test": "node check-contracts.mjs && node check-versions.mjs",

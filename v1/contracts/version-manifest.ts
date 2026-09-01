@@ -66,6 +66,12 @@ export const VERSIONS: VersionSupport = {
       notes: 'Extension local storage schema; stage 0B task'
     },
     {
+      component: 'analyticsEvent',
+      version: '1.0.0',
+      status: 'development',
+      notes: 'Low-cardinality product analytics envelope; no student remote learning records'
+    },
+    {
       component: 'webBuild',
       version: '0.0.0',
       status: 'development',

@@ -1,0 +1,14 @@
+{
+  "teacher_login": "teacher",
+  "courses": [
+    {
+      "title": "示例课程",
+      "description": "可选说明",
+      "bilibili_url": "https://www.bilibili.com/video/BV1Ac41187Lm",
+      "subtitle_file": "./subtitles/lesson1.srt",
+      "lesson_title": "第一课",
+      "node_title": "重点提示",
+      "node_body": "请留意本节核心内容"
+    }
+  ]
+}

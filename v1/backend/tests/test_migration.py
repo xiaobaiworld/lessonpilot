@@ -34,6 +34,7 @@ def test_empty_database_upgrades_to_single_v1_head(tmp_path: Path, monkeypatch) 
         "v1_script_drafts",
         "v1_teacher_accounts",
         "v1_teacher_sessions",
+        "v1_trial_applications",
         "v1_trial_followups",
         "v1_video_references",
         "v1_workspaces",
@@ -57,6 +58,26 @@ def test_empty_database_upgrades_to_single_v1_head(tmp_path: Path, monkeypatch) 
         }
         assert {"page", "cid"} <= video_columns
         assert {"video_page", "video_cid"} <= snapshot_columns
+        application_columns = {
+            row[1] for row in connection.execute(text("PRAGMA table_info(v1_trial_applications)"))
+        }
+        assert {
+            "name",
+            "contact",
+            "course_category",
+            "video_status",
+            "bilibili_url",
+            "teaching_problem",
+            "subtitle_status",
+            "validation_question",
+            "source",
+            "submitted_at",
+        } <= application_columns
+        followup_columns = {
+            row[1] for row in connection.execute(text("PRAGMA table_info(v1_trial_followups)"))
+        }
+        assert "trial_application_id" in followup_columns
+        assert "feishu_record_ref" not in followup_columns
 
     command.upgrade(config, "head")
     command.check(config)
