@@ -36,7 +36,9 @@ test('独立申请页包含完整字段、返回入口和本地提交模块', ()
   assert.match(applicationPage, /谢谢你的留言/);
   assert.match(applicationPage, /class="thanks-icon"/);
   assert.doesNotMatch(applicationPage, /<p class="trial-intake-intro"|data-trial-intake-note|提交后我会看到你的留言/);
-  assert.match(applicationPage, /<option selected>还没确定<\/option>/);
+  assert.match(applicationPage, /<select name="videoStatus" required><option selected>已有 B 站课程<\/option>/);
+  assert.match(applicationPage, /<select name="subtitleStatus" required><option selected>还没确定<\/option>/);
+  assert.match(applicationPage, /<img class="brand-mark" src="assets\/knownmap-icon\.png" alt="">/);
   assert.doesNotMatch(applicationPage, /name="bilibiliUrl"[^>]*required/);
   assert.doesNotMatch(applicationPage, /无需登录|当前不会自动创建账号|没有自动创建账号/);
   assert.match(applicationPage, /data-trial-intake-success[^>]*hidden/);
