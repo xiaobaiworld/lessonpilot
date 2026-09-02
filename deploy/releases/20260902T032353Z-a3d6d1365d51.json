@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 1,
+  "releaseId": "20260902T032353Z-a3d6d1365d51",
+  "environment": "production",
+  "site": "https://knownmap.com",
+  "repository": "xiaobaiworld/lessonpilot",
+  "gitRemote": "https://github.com/xiaobaiworld/lessonpilot.git",
+  "gitCommit": "a3d6d1365d51587c42399fdbf7882ef9e64da7d6",
+  "gitShortCommit": "a3d6d1365d51",
+  "gitRemoteBranch": "origin/HEAD",
+  "gitCommitSubject": "fix: 确认销售页小步升级 CTA 文案",
+  "gitCommitTime": "2026-09-02T11:18:05+08:00",
+  "gitTag": "web-prod/20260902T032353Z-a3d6d1365d51",
+  "publishProfile": "v1-apps",
+  "status": "verified",
+  "builtAt": "2026-09-02T03:23:59Z",
+  "deployedAt": "2026-09-02T03:24:22Z",
+  "previousReleaseId": null,
+  "files": [
+    {
+      "path": "admin/assets/index-Be8Hg6lU.css",
+      "sha256": "5a79b79e5c72ccdcf4e4cd0207c3e59105c9adb3cfb8602f35e3bae556d27cb8",
+      "bytes": 84504
+    },
+    {
+      "path": "admin/assets/index-CHke6XLC.js",
+      "sha256": "d42203e02e17febaf62069a2cfe90e70cac34f085de72c1ce421964802b21724",
+      "bytes": 156951
+    },
+    {
+      "path": "admin/assets/knownmap-square-BpC63hi0.svg",
+      "sha256": "a1af715600631d9c6b27fd1b29de5525c41369692dcce4670786278114441725",
+      "bytes": 932
+    },
+    {
+      "path": "admin/index.html",
+      "sha256": "dc7c4f5e683ad87c39efd4cc3a65846430eda7df4bc30012c3973c5efb4f3dec",
+      "bytes": 498
+    },
+    {
+      "path": "assets/knownmap-icon.png",
+      "sha256": "8acae4dc406d44f31ed7b5a329c2d17a6e6d799197c51fdc4f8c2e806829d0b3",
+      "bytes": 3440
+    },
+    {
+      "path": "assets/student-guide/step-download-and-unzip.png",
+      "sha256": "1e2614ee545c6eaed5aa7ccee058a1dc190f6f259ef1efadbd7419554de8e4af",
+      "bytes": 43449
+    },
+    {
+      "path": "assets/student-guide/step-load-unpacked.png",
+      "sha256": "0d2cb013ab065b1c979bdeb2fb0b991042d53c870d9074961d7597aea5ccfe97",
+      "bytes": 58967
+    },
+    {
+      "path": "assets/student-guide/step-open-extensions.png",
+      "sha256": "5d36c147f8ec74bb110e31d26efd324541c9e8a562d5d3a9683bdf63099e50a9",
+      "bytes": 57623
+    },
+    {
+      "path": "assets/trial-intake-background-v1.png",
+      "sha256": "d04c930c5670e45a913a8765a869bef1e87ad9d6423d820bee63c694ecdd8a0e",
+      "bytes": 2112580
+    },
+    {
+      "path": "assets/wechat-qr-placeholder.svg",
+      "sha256": "91d0d8f078bf73d006edbfd383cb1c7fd425f8dd13025a2d5fab03c9468fe211",
+      "bytes": 1658
+    },
+    {
+      "path": "demo-captions.js",
+      "sha256": "ca9af8b13bae00638b26a1dbca72d1dd58bb9c1c688f10f8d85556979e90685d",
+      "bytes": 12149
+    },
+    {
+      "path": "downloads/student-plugin/knownmap-v1.zip",
+      "sha256": "da7d09dc849e70f4a424f793e4298ff7991667a33b8cf6d909b5600a0c167ea6",
+      "bytes": 314415
+    },
+    {
+      "path": "downloads/student-plugin/knownmapplugin.zip",
+      "sha256": "da7d09dc849e70f4a424f793e4298ff7991667a33b8cf6d909b5600a0c167ea6",
+      "bytes": 314415
+    },
+    {
+      "path": "index.html",
+      "sha256": "33c84a6b8eb58510b2852181e3836f4fedff0929081c6e338e8a4922499d5c41",
+      "bytes": 48744
+    },
+    {
+      "path": "link.html",
+      "sha256": "fd7cf2ee649f2cfd4d94a61d20740db23ca2e25dd74743c7be724c5cb2a48992",
+      "bytes": 5092
+    },
+    {
+      "path": "robots.txt",
+      "sha256": "331ea9090db0c9f6f597bd9840fd5b171830f6e0b3ba1cb24dfa91f0c95aedc1",
+      "bytes": 26
+    },
+    {
+      "path": "student-guide.html",
+      "sha256": "4aa231cb7a7f8ee7efcbfc568b3be67d3d73feb9c3936f90abce38a3cb29a00a",
+      "bytes": 11217
+    },
+    {
+      "path": "subtitle-context.js",
+      "sha256": "a8d210826727de919976a4ac8cac78f90b7a1e8acf7d5d6b3ac6d02ff4d2e1bd",
+      "bytes": 6996
+    },
+    {
+      "path": "teacher/assets/AccessCodesPage-CvLZI3MY.js",
+      "sha256": "c72cf0ceaabdc07edf39bc6f69a678a45efde335b03dea172d8bef21a8c58303",
+      "bytes": 14073
+    },
+    {
+      "path": "teacher/assets/CoursePage-C5Du7wBb.js",
+      "sha256": "7b545bf3f359027ec47b979d380fbeec9f376be28a9751f6406bf373abaa7fc9",
+      "bytes": 6322
+    },
+    {
+      "path": "teacher/assets/CoursesPage-B87kUchG.js",
+      "sha256": "244cda437bf4c77be6d652166845e565e5d2296ea39a8a0ab665de093868a425",
+      "bytes": 11467
+    },
+    {
+      "path": "teacher/assets/LessonPage-B6094ASl.js",
+      "sha256": "3b8d9f9838a9ca3339eae8e874b48d786375dcd4d4a28bd9210b18ee7d79865b",
+      "bytes": 60500
+    },
+    {
+      "path": "teacher/assets/index-DgRSBo7j.js",
+      "sha256": "068497b8c4ed8463551b754143eb0644e785c04e3973b54908c4a5308f701894",
+      "bytes": 157289
+    },
+    {
+      "path": "teacher/assets/index-DtblYlNL.css",
+      "sha256": "ad491bc0229979ea32b7e1dda582401ad47ed4acc6e5bb0da453f0ba54130eab",
+      "bytes": 105509
+    },
+    {
+      "path": "teacher/assets/knownmap-square-BpC63hi0.svg",
+      "sha256": "a1af715600631d9c6b27fd1b29de5525c41369692dcce4670786278114441725",
+      "bytes": 932
+    },
+    {
+      "path": "teacher/index.html",
+      "sha256": "dc029b20e9c043db359b1f41f6d98c1aa45183aa05f7b8f546c523401c863410",
+      "bytes": 509
+    },
+    {
+      "path": "tokens.css",
+      "sha256": "0050f0f5fabfdfce97b36a8a17f5a9ba032b0c14027fb6b8da6fd8f538fa98a8",
+      "bytes": 2375
+    },
+    {
+      "path": "trial-application.html",
+      "sha256": "519caacad25aa3ed4f8d067b23c265107a6d8b05d000b237663926520fd20221",
+      "bytes": 14720
+    },
+    {
+      "path": "trial-intake.js",
+      "sha256": "979cacdcf7d5f5c548b93eccfec5197410e603b0ac29478ec3865f8f00cd5139",
+      "bytes": 4895
+    }
+  ],
+  "verifiedAt": "2026-09-02T03:24:22Z"
+}
