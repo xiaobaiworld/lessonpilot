@@ -111,6 +111,8 @@ build_web() {
   cp "$source_dir/v1/web/shared/src/styles/tokens.css" "$output/public/tokens.css"
   cp -R "$source_dir/v1/site/assets/." "$output/public/assets/"
   printf 'User-agent: *\nDisallow: /\n' >"$output/public/robots.txt"
+  [[ -f "$source_dir/VERSION" ]] || fail "VERSION missing from release commit"
+  tr -d '\r\n' <"$source_dir/VERSION" >"$output/product-version.txt"
 
   require_command node
   require_command npm
@@ -173,8 +175,12 @@ write_release_json() {
   local commit="$2"
   local release_id="$3"
   local built_at
+  local product_version
   built_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  product_version="$(tr -d '\r\n' <"$output/product-version.txt")"
+  [[ "$product_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || fail "invalid product VERSION: $product_version"
   jq -n \
+    --arg productVersion "$product_version" \
     --arg releaseId "$release_id" \
     --arg site "$SITE_URL" \
     --arg repository "$REPOSITORY" \
@@ -190,6 +196,7 @@ write_release_json() {
     --argjson files "$(cat "$output/files.json")" \
     '{
       schemaVersion: 1,
+      productVersion: $productVersion,
       releaseId: $releaseId,
       environment: "production",
       site: $site,
@@ -211,6 +218,7 @@ write_release_json() {
   cp "$output/release.json" "$output/backend-release.json"
   jq '.component = "fastapi"' "$output/backend-release.json" >"$output/backend-release.json.next"
   mv "$output/backend-release.json.next" "$output/backend-release.json"
+  rm -f "$output/product-version.txt"
 }
 
 install_remote_backend() {

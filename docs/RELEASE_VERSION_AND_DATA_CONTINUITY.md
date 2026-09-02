@@ -35,7 +35,7 @@ KnownMap 已经从单纯的本地开发系统进入需要长期保留账号、�
 - `MINOR`：向后兼容的新能力；旧课程、旧账号和旧插件仍应按支持矩阵继续工作；
 - `PATCH`：兼容的修复、文案或小范围实现修正。
 
-正式版本真源需要在下一次正式发布前落成一个明确文件或等价的单一配置入口。不能让 README、后端 `0.1.0`、
+正式版本真源已落地为根目录 `VERSION` 和 `versioning/components.json`。不能让 README、后端 `0.1.0`、
 插件 manifest 和发布标签各自代表“正式版本”。在该真源落地前，`release-id + Git commit` 仍是当前生产发布的唯一
 不可变身份，但它不是面向用户的 SemVer 产品版本。
 
@@ -144,12 +144,12 @@ web-prod/<UTC时间>-<commit前12位>
 | --- | --- | --- |
 | GitHub/main | `3d95aca` | 工作区与 `origin/main` 一致；该提交是最新发布记录的记录提交 |
 | 最近生产代码 commit | `67e72b229828` | 最近生产发布记录 `20260831T140000Z-67e72b229828` 指向的代码 commit |
-| 插件源码版本 | `1.2.2` | 真源为 `EXTENSION_VERSION` |
+| 插件源码版本 | `1.2.3` | 真源为 `EXTENSION_VERSION` |
 | 本地数据库 migration head | `20260828_bilibili_video_reference` | 以本地 `alembic_version` 和 Alembic head 核对 |
 | 后端包/runtime 默认版本 | `0.1.0` | 当前仍是开发包/运行时版本，不应直接冒充正式产品版本 |
 | 契约版本 | API `2.2.0`、课程包 `3.2.0`、消息 `2.2.0`、插件存储 `2.3.0` | 由 `v1/contracts/versions.json` 管理；正式发布前需确认状态和支持矩阵 |
 
-当前生产发布继续使用既有的 `release-id + Git commit` 机制。产品正式版本真源、发布记录字段扩展、发布前备份门禁和
+当前生产发布继续使用既有的 `release-id + Git commit` 机制。产品正式版本真源和发布记录产品版本字段已在第一期版本治理中落地；发布前备份门禁和
 生产数据库 migration 证据，是下一次正式发布前需要冻结或补齐的工作，不应在发布时临时猜测。
 
 ## 8. 本说明本次不做的事

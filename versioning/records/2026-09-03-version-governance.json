@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "2026-09-03-version-governance",
+  "changeType": "governance",
+  "auditProfile": "production",
+  "components": ["product"],
+  "versionChanges": [
+    { "component": "product", "from": null, "to": "0.1.0", "reason": "建立产品版本真源，作为当前开发基线" }
+  ],
+  "compatibility": {
+    "businessBehaviorChanged": false,
+    "breaking": false,
+    "note": "只新增版本登记、改动分类和审计门禁，不改变业务框架或运行时行为。"
+  },
+  "requiredAudits": ["版本清单结构校验", "改动路径分类", "规则工具测试", "发布记录字段检查", "项目门禁"],
+  "evidence": ["npm test", "npm run check"],
+  "rollback": "移除版本治理入口和记录，不涉及业务数据、数据库迁移或线上运行逻辑。"
+}

@@ -56,6 +56,8 @@ test('版本化仍用 web-prod 标签和 deploy/releases JSON', () => {
   assert.match(source, /--arg gitTag "web-prod\/\$release_id"/);
   assert.match(source, /tag -a "\$tag"/);
   assert.match(source, /deploy\/releases\/\$release_id\.json/);
+  assert.match(source, /source_dir\/VERSION/);
+  assert.match(source, /productVersion/);
 });
 
 test('发布入口文档指向单一脚本', () => {

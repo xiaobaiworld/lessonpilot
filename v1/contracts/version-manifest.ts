@@ -36,7 +36,7 @@ export interface SupportMatrixEntry {
   extensionBuild: string;
 }
 
-// Current stable versions (stage 0 placeholder)
+// Typed compatibility view. The machine-readable source is versions.json.
 export const VERSIONS: VersionSupport = {
   schemaVersion: '1.0',
   timestamp: new Date().toISOString(),
@@ -73,13 +73,13 @@ export const VERSIONS: VersionSupport = {
     },
     {
       component: 'webBuild',
-      version: '0.0.0',
+      version: '1.0.0',
       status: 'development',
       notes: 'Teacher and admin web applications; stage 3'
     },
     {
       component: 'extensionBuild',
-      version: '0.0.0',
+      version: '1.0.0',
       status: 'development',
       notes: 'Student extension; stage 4'
     }
