@@ -95,6 +95,15 @@
     .guide-course-item strong { display: block; margin-top: 20px; font-size: var(--font-size-small); font-weight: var(--font-weight-strong); }
     .guide-course-item span { display: block; margin-top: 5px; color: var(--ink-2); font-size: var(--font-size-micro); line-height: 1.5; }
 
+    .guide-course-setup { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); margin-bottom: 18px; }
+    .guide-course-setup-step { min-width: 0; padding: 18px; border: 1px solid var(--line); border-radius: var(--radius-card); background: var(--surface); }
+    .guide-course-setup-step h3 { margin: 0; font-size: var(--font-size-head); font-weight: var(--font-weight-strong); letter-spacing: -.02em; }
+    .guide-course-setup-step p { margin: 7px 0 0; color: var(--ink-2); font-size: var(--font-size-small); line-height: 1.65; }
+    .guide-course-setup-step .guide-figure { margin-top: 16px; }
+    .guide-course-setup-step .guide-figure img { max-height: 330px; object-fit: contain; object-position: top center; }
+    .guide-course-setup-step.is-home .guide-figure img { max-height: 480px; }
+    .guide-course-setup-step .guide-figure figcaption { text-align: left; }
+
     .guide-faq { scroll-margin-top: 82px; margin-top: 52px; }
     .guide-faq-list { display: grid; gap: 8px; margin-top: 16px; }
     .guide-faq details { border-bottom: 1px solid var(--line); }
@@ -127,6 +136,7 @@
       .guide-lead { font-size: var(--font-size-body); }
       .guide-actions .guide-button { width: 100%; }
       .guide-prep, .guide-success-grid { grid-template-columns: 1fr; }
+      .guide-course-setup { grid-template-columns: 1fr; }
       .guide-section-header { display: block; }
       .guide-section-description { margin-top: 8px; text-align: left; }
       .guide-install-step { grid-template-columns: 1fr; gap: 12px; padding: 18px; }
@@ -253,6 +263,24 @@
           <div><p class="guide-section-label">第 04 阶段</p><h2 id="course-title">领取老师发来的课程</h2></div>
           <p class="guide-section-description">课程和学习进度保存在这台电脑上，当前不需要注册或登录。</p>
         </div>
+        <div class="guide-course-setup">
+          <article class="guide-course-setup-step">
+            <h3>先把 KnownMap 固定到工具栏</h3>
+            <p>在 Chrome 扩展程序列表中找到 KnownMap，点击右侧的图钉。固定后，浏览器工具栏会一直显示 KnownMap 图标，之后打开插件会更方便。</p>
+            <figure class="guide-figure">
+              <img src="../assets/student-guide/step-pin-knownmap.png" alt="在 Chrome 扩展程序列表中找到 KnownMap 并点击图钉固定到工具栏" width="608" height="412">
+              <figcaption>示例中名称显示为“KnownMap（本机）”，正式学生插件通常显示为“KnownMap”。</figcaption>
+            </figure>
+          </article>
+          <article class="guide-course-setup-step is-home">
+            <h3>点击图标，打开插件首页</h3>
+            <p>点击工具栏里的 KnownMap 图标，就会打开课程助手首页。这里可以领取新课程、查看已经领取的课程、打开课节和进入插件设置。</p>
+            <figure class="guide-figure">
+              <img src="../assets/student-guide/step-plugin-home.png" alt="KnownMap 学生插件首页，包含领取新课程和全部课程区域" width="736" height="1178">
+              <figcaption>示例截图为旧版本 v1.2.2；当前版本是 v1.2.3，课程名称和样式可能略有不同。</figcaption>
+            </figure>
+          </article>
+        </div>
         <div class="guide-course-flow">
           <div class="guide-course-item"><small>01 · 打开</small><strong>点击 KnownMap</strong><span>从 Chrome 工具栏打开课程助手。</span></div>
           <div class="guide-course-item"><small>02 · 输入</small><strong>填写授权码</strong><span>找到“领取新课程”，输入老师发来的授权码。</span></div>
@@ -277,7 +305,7 @@
         <h2 id="faq-title">常见问题</h2>
         <div class="guide-faq-list">
           <details><summary>我应该选择 ZIP 文件还是文件夹？</summary><p>请选择解压后得到的整个 <b>knownmapplugin</b> 文件夹，不要选择 ZIP 文件，也不要只选择里面的某个文件。</p></details>
-          <details><summary>工具栏里找不到 KnownMap 怎么办？</summary><p>点击 Chrome 工具栏右侧的扩展图标，在列表中找到 KnownMap；也可以点击图钉把它固定到工具栏。</p></details>
+          <details><summary>工具栏里找不到 KnownMap 怎么办？</summary><p>点击 Chrome 工具栏右侧的扩展图标，在列表中找到 KnownMap，再点击图钉把它固定到工具栏。固定后，KnownMap 图标会直接显示在浏览器工具栏。</p></details>
           <details><summary>B 站页面没有出现互动怎么办？</summary><p>先确认打开的是老师提供的课节链接，并确认视频分 P 没有选错。未匹配课程的视频会照常播放，不会显示互动。</p></details>
           <details><summary>收到新版插件后怎么更新？</summary><p>打开插件设置中的“插件维护”，点击“在线更新学生插件”。下载完成后替换原插件文件夹内容，再回到 Chrome 扩展程序管理页点击刷新。</p></details>
         </div>

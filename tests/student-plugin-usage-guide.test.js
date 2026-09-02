@@ -46,6 +46,8 @@ test('说明页覆盖下载、解压、领取课程和开始学习完整流程',
     '加载未打包的扩展程序',
     '确认成功',
     '领取老师发来的课程',
+    '固定到工具栏',
+    '打开插件首页',
     '打开课节，开始学习',
     'PC Chrome'
   ]) {
@@ -90,6 +92,14 @@ test('关键步骤使用匿名 PNG 截图并提供替代文本', () => {
     {
       file: 'step-load-unpacked.png',
       alt: '点击加载未打包的扩展程序并选择插件文件夹'
+    },
+    {
+      file: 'step-pin-knownmap.png',
+      alt: '在 Chrome 扩展程序列表中找到 KnownMap 并点击图钉固定到工具栏'
+    },
+    {
+      file: 'step-plugin-home.png',
+      alt: 'KnownMap 学生插件首页，包含领取新课程和全部课程区域'
     }
   ];
 
