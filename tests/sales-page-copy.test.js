@@ -47,6 +47,11 @@ test('主 CTA 是回复当前私信，且唯一', () => {
   assert.equal(primary.length, 1, '主 CTA 必须唯一，否则老师不知道该做哪个动作');
 });
 
+test('完整课程示例说明视频如何变成可互动课堂', () => {
+  assert.match(visible, /原本只是一节视频课。加上 8 个互动节点后，它就变成了一节可以互动的课堂，学生边看边练，更容易真正掌握知识。/);
+  assert.ok(!visible.includes('八个节点分布在这节课的关键讲解处'), '旧的节点列表式说明已被更清晰的价值表达取代');
+});
+
 test('底部联系方式使用明确的微信二维码占位图', () => {
   assert.equal(fs.existsSync('v1/site/assets/wechat-qr-placeholder.svg'), true);
   assert.match(page, /src="assets\/wechat-qr-placeholder\.svg"/);
