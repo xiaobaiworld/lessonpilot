@@ -58,6 +58,7 @@ test('说明页覆盖下载、解压、领取课程和开始学习完整流程',
   assert.match(page, /download="knownmapplugin\.zip"/);
   assert.match(visible, /chrome:\/\/extensions/);
   assert.match(visible, /不要移动或删除这个文件夹/);
+  assert.match(visible, /点击右下角“选择”/);
   assert.match(visible, /课程已保存，可以开始学习/);
 });
 
