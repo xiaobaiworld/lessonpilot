@@ -1,0 +1,2 @@
+/* 开发预览入口：生产发布时由 tools/release.sh 替换为生成后的共享 token 文件。 */
+@import url("../web/shared/src/styles/tokens.css");

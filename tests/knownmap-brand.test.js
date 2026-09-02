@@ -12,7 +12,7 @@ const hex = (key) => tokens.colors[key].hex;
 const pageFiles = [
   'v1/site/index.html',
   'v1/site/trial-application.html',
-  'v1/site/student-guide.html',
+  'v1/site/student/guide.html',
   'v1/site/link.html'
 ];
 
@@ -96,7 +96,7 @@ test('teacher application uses the interactive-course-tool name and colored K/M 
 test('sales and public pages color KnownMap K/M to the logo path endpoints', () => {
   const pagesWithInlineColor = [
     'v1/site/index.html',
-    'v1/site/student-guide.html',
+    'v1/site/student/guide.html',
     'v1/site/link.html'
   ];
   for (const relativePath of pagesWithInlineColor) {
@@ -106,7 +106,12 @@ test('sales and public pages color KnownMap K/M to the logo path endpoints', () 
   }
   for (const relativePath of pagesWithInlineColor) {
     const html = read(relativePath);
-    assert.match(html, new RegExp(hex('pathStart'), 'i'), `${relativePath} must use pathStart`);
-    assert.match(html, new RegExp(hex('pathEnd'), 'i'), `${relativePath} must use pathEnd`);
+    if (relativePath === 'v1/site/student/guide.html') {
+      assert.match(html, /var\(--accent\)/, `${relativePath} must use the pathStart token`);
+      assert.match(html, /var\(--end\)/, `${relativePath} must use the pathEnd token`);
+    } else {
+      assert.match(html, new RegExp(hex('pathStart'), 'i'), `${relativePath} must use pathStart`);
+      assert.match(html, new RegExp(hex('pathEnd'), 'i'), `${relativePath} must use pathEnd`);
+    }
   }
 });

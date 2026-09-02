@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="../assets/knownmap-icon.png">
+  <link rel="stylesheet" href="../tokens.css">
+  <meta name="robots" content="noindex, noarchive">
+  <meta name="description" content="KnownMap 学生插件下载安装、课程领取和开始学习说明。">
+  <title>学生插件上手指南 · KnownMap</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: var(--font-family);
+      color: var(--ink);
+      background: var(--canvas);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--canvas); }
+    a { color: inherit; }
+    a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+    button { font: inherit; }
+
+    .guide-wrap { width: min(1160px, calc(100% - 32px)); margin: 0 auto; }
+    .guide-topbar { position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--surface) 94%, transparent); backdrop-filter: blur(12px); }
+    .guide-topbar-inner { display: flex; min-height: 60px; align-items: center; justify-content: space-between; gap: var(--space-4); }
+    .guide-brand { display: flex; align-items: center; gap: 10px; font-weight: var(--font-weight-strong); text-decoration: none; }
+    .guide-brand-mark { display: grid; width: 30px; height: 30px; place-items: center; border-radius: var(--radius-card); background: var(--brand-deep); color: var(--surface); font-size: var(--font-size-micro); letter-spacing: -.08em; }
+    .guide-wordmark { letter-spacing: -.03em; }
+    .brand-letter-k { color: var(--accent); }
+    .brand-letter-m { color: var(--end); }
+    .guide-back { color: var(--brand); font-size: var(--font-size-small); font-weight: var(--font-weight-medium); text-decoration: none; }
+
+    .guide-shell { display: grid; grid-template-columns: 220px minmax(0, 1fr); max-width: 1160px; min-height: 760px; margin: 0 auto; }
+    .guide-nav { padding: var(--space-7) var(--space-4) var(--space-7) 0; border-right: 1px solid var(--line); }
+    .guide-nav-label { margin: 0 0 var(--space-5); color: var(--ink-3); font-size: var(--font-size-micro); font-weight: var(--font-weight-medium); letter-spacing: .1em; }
+    .guide-nav-list { display: grid; gap: var(--space-1); margin: 0; padding: 0; list-style: none; }
+    .guide-nav-link { display: grid; grid-template-columns: 28px 1fr; gap: 10px; width: 100%; padding: 10px; border-radius: var(--radius-control); color: var(--ink-2); text-decoration: none; transition: background var(--motion-fast), color var(--motion-fast); }
+    .guide-nav-link:hover, .guide-nav-link.is-active { background: var(--surface); color: var(--ink); }
+    .guide-nav-number { display: grid; width: 24px; height: 24px; place-items: center; border: 1px solid var(--line); border-radius: var(--radius-pill); color: var(--ink-3); font-size: var(--font-size-micro); font-variant-numeric: tabular-nums; }
+    .guide-nav-link.is-active .guide-nav-number { border-color: var(--brand); background: var(--brand); color: var(--surface); }
+    .guide-nav-name { display: block; font-size: var(--font-size-small); font-weight: var(--font-weight-medium); line-height: 1.35; }
+    .guide-nav-note { display: block; margin-top: 2px; color: var(--ink-3); font-size: var(--font-size-micro); line-height: 1.4; }
+
+    .guide-main { min-width: 0; padding: 64px clamp(24px, 6vw, 76px) 72px; }
+    .guide-eyebrow { margin: 0 0 var(--space-3); color: var(--brand); font-size: var(--font-size-micro); font-weight: var(--font-weight-medium); letter-spacing: .1em; }
+    h1 { max-width: 660px; margin: 0; font-size: clamp(38px, 5.2vw, 64px); font-weight: var(--font-weight-strong); letter-spacing: -.06em; line-height: 1.06; }
+    .guide-lead { max-width: 650px; margin: 20px 0 0; color: var(--ink-2); font-size: 18px; line-height: 1.7; }
+    .guide-meta { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: 20px; }
+    .guide-meta span { padding: 5px 10px; border: 1px solid var(--line); border-radius: var(--radius-pill); background: color-mix(in srgb, var(--surface) 72%, transparent); color: var(--ink-2); font-size: var(--font-size-micro); font-weight: var(--font-weight-medium); }
+    .guide-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+    .guide-button { display: inline-flex; min-height: 46px; align-items: center; justify-content: center; padding: 0 20px; border: 1px solid var(--brand); border-radius: var(--radius-control); background: var(--brand); color: var(--surface); font-size: var(--font-size-small); font-weight: var(--font-weight-medium); text-decoration: none; cursor: pointer; }
+    .guide-button:hover { border-color: var(--brand-deep); background: var(--brand-deep); }
+    .guide-button-secondary { border-color: var(--line); background: var(--surface); color: var(--ink); }
+    .guide-button-secondary:hover { border-color: var(--brand); background: var(--surface); color: var(--brand); }
+
+    .guide-prep { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5); margin-top: 44px; padding: 20px; border: 1px solid color-mix(in srgb, var(--brand) 34%, var(--line)); border-radius: var(--radius-card); background: color-mix(in srgb, var(--brand) 10%, var(--surface)); }
+    .guide-prep h2, .guide-section h2, .guide-faq h2 { margin: 0; font-size: var(--font-size-head); font-weight: var(--font-weight-strong); letter-spacing: -.02em; }
+    .guide-prep p { margin: 5px 0 0; color: var(--ink-2); font-size: var(--font-size-small); line-height: 1.55; }
+    .guide-checks { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+    .guide-checks li { display: flex; align-items: center; gap: var(--space-2); color: var(--brand-deep); font-size: var(--font-size-small); font-weight: var(--font-weight-medium); }
+    .guide-checks li::before { display: grid; width: 18px; height: 18px; flex: 0 0 auto; place-items: center; border-radius: var(--radius-pill); background: var(--brand); color: var(--surface); content: "✓"; font-size: var(--font-size-micro); }
+
+    .guide-section { scroll-margin-top: 82px; margin-top: 52px; }
+    .guide-section-header { display: flex; align-items: end; justify-content: space-between; gap: var(--space-4); margin-bottom: 16px; }
+    .guide-section-label { margin: 0 0 5px; color: var(--brand); font-size: var(--font-size-micro); font-weight: var(--font-weight-medium); letter-spacing: .08em; }
+    .guide-section-description { max-width: 420px; margin: 0; color: var(--ink-2); font-size: var(--font-size-small); line-height: 1.55; text-align: right; }
+    .guide-install-list { display: grid; gap: var(--space-4); }
+    .guide-install-step { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: var(--space-4); padding: 22px; border: 1px solid var(--line); border-radius: var(--radius-card); background: var(--surface); }
+    .guide-step-number { display: grid; width: 40px; height: 40px; place-items: center; border-radius: var(--radius-control); background: var(--brand-deep); color: var(--surface); font-size: var(--font-size-small); font-weight: var(--font-weight-strong); font-variant-numeric: tabular-nums; }
+    .guide-install-step h3 { margin: 0; font-size: var(--font-size-title); font-weight: var(--font-weight-strong); letter-spacing: -.03em; }
+    .guide-install-step p { margin: 7px 0 0; color: var(--ink-2); font-size: var(--font-size-body); line-height: 1.7; }
+    .guide-path { display: flex; align-items: center; justify-content: space-between; gap: 10px; max-width: 420px; margin-top: 14px; padding: 9px 11px; border: 1px solid color-mix(in srgb, var(--brand) 28%, var(--line)); border-radius: var(--radius-control); background: color-mix(in srgb, var(--brand) 7%, var(--surface)); color: var(--brand-deep); font: var(--font-weight-medium) var(--font-size-small) ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .guide-copy { padding: 4px 8px; border: 1px solid color-mix(in srgb, var(--brand) 36%, var(--line)); border-radius: 4px; background: transparent; color: var(--brand); font-size: var(--font-size-micro); font-weight: var(--font-weight-medium); cursor: pointer; }
+    .guide-figure { margin: 20px 0 0; }
+    .guide-figure img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: var(--radius-card); background: var(--surface); box-shadow: var(--shadow-popover); }
+    .guide-figure figcaption { margin-top: 8px; color: var(--ink-3); font-size: var(--font-size-micro); line-height: 1.5; text-align: center; }
+    .guide-tip { margin-top: 14px; padding: 12px 14px; border-left: 3px solid var(--accent); background: color-mix(in srgb, var(--accent) 13%, var(--surface)); color: var(--ink-2); font-size: var(--font-size-small); line-height: 1.6; }
+
+    .guide-success-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+    .guide-success-card { padding: 20px; border: 1px solid var(--line); border-radius: var(--radius-card); background: var(--surface); }
+    .guide-success-card h3 { margin: 0; font-size: var(--font-size-head); font-weight: var(--font-weight-strong); }
+    .guide-success-card p { margin: 8px 0 0; color: var(--ink-2); font-size: var(--font-size-small); line-height: 1.6; }
+    .guide-success-card.is-dark { border-color: var(--brand-deep); background: var(--brand-deep); color: var(--surface); }
+    .guide-success-card.is-dark p { color: var(--line-on-dark); }
+
+    .guide-course-flow { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); border-radius: var(--radius-card); overflow: hidden; background: var(--surface); }
+    .guide-course-item { position: relative; min-height: 142px; padding: 18px; border-right: 1px solid var(--line); }
+    .guide-course-item:last-child { border-right: 0; }
+    .guide-course-item::after { position: absolute; top: 52px; right: -9px; z-index: 1; display: grid; width: 18px; height: 18px; place-items: center; border: 1px solid var(--line); border-radius: var(--radius-pill); background: var(--canvas); color: var(--brand); content: "→"; font-size: var(--font-size-micro); }
+    .guide-course-item:last-child::after { display: none; }
+    .guide-course-item small { color: var(--brand); font-size: var(--font-size-micro); font-weight: var(--font-weight-medium); }
+    .guide-course-item strong { display: block; margin-top: 20px; font-size: var(--font-size-small); font-weight: var(--font-weight-strong); }
+    .guide-course-item span { display: block; margin-top: 5px; color: var(--ink-2); font-size: var(--font-size-micro); line-height: 1.5; }
+
+    .guide-faq { scroll-margin-top: 82px; margin-top: 52px; }
+    .guide-faq-list { display: grid; gap: 8px; margin-top: 16px; }
+    .guide-faq details { border-bottom: 1px solid var(--line); }
+    .guide-faq summary { padding: 14px 0; color: var(--ink); font-size: var(--font-size-body); font-weight: var(--font-weight-medium); cursor: pointer; }
+    .guide-faq details p { max-width: 720px; margin: -2px 0 16px; color: var(--ink-2); font-size: var(--font-size-small); line-height: 1.7; }
+
+    .guide-finish { margin-top: 52px; padding: 30px; border-radius: var(--radius-card); background: var(--brand-deep); color: var(--surface); text-align: center; }
+    .guide-finish h2 { margin: 0; font-size: clamp(24px, 3vw, 34px); font-weight: var(--font-weight-strong); letter-spacing: -.04em; }
+    .guide-finish p { max-width: 570px; margin: 10px auto 0; color: var(--line-on-dark); font-size: var(--font-size-body); line-height: 1.65; }
+    .guide-finish .guide-button { margin-top: 20px; border-color: var(--surface); background: var(--surface); color: var(--brand-deep); }
+    .guide-finish .guide-button:hover { background: var(--canvas); }
+    .guide-footer { display: flex; justify-content: space-between; gap: 16px; margin-top: 20px; color: var(--ink-3); font-size: var(--font-size-micro); }
+
+    @media (max-width: 820px) {
+      .guide-shell { display: block; }
+      .guide-nav { padding: 18px 0 0; border-right: 0; }
+      .guide-nav-label { margin-bottom: 8px; }
+      .guide-nav-list { grid-template-columns: repeat(5, minmax(86px, 1fr)); overflow-x: auto; }
+      .guide-nav-link { display: block; min-height: 60px; padding: 8px; }
+      .guide-nav-number { margin-bottom: 5px; }
+      .guide-nav-note { display: none; }
+      .guide-main { padding: 48px 0 56px; }
+    }
+
+    @media (max-width: 620px) {
+      .guide-wrap { width: min(100% - 24px, 520px); }
+      .guide-topbar-inner { min-height: 56px; }
+      .guide-back { font-size: var(--font-size-micro); }
+      h1 { font-size: clamp(36px, 12vw, 52px); }
+      .guide-lead { font-size: var(--font-size-body); }
+      .guide-actions .guide-button { width: 100%; }
+      .guide-prep, .guide-success-grid { grid-template-columns: 1fr; }
+      .guide-section-header { display: block; }
+      .guide-section-description { margin-top: 8px; text-align: left; }
+      .guide-install-step { grid-template-columns: 1fr; gap: 12px; padding: 18px; }
+      .guide-course-flow { grid-template-columns: 1fr; }
+      .guide-course-item { min-height: 0; border-right: 0; border-bottom: 1px solid var(--line); }
+      .guide-course-item:last-child { border-bottom: 0; }
+      .guide-course-item::after { top: auto; right: auto; bottom: -9px; left: 50%; transform: rotate(90deg) translateX(-50%); }
+      .guide-footer { align-items: flex-start; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <header class="guide-topbar">
+    <div class="guide-wrap guide-topbar-inner">
+      <a class="guide-brand" href="../" aria-label="返回 KnownMap 销售页">
+        <span class="guide-brand-mark" aria-hidden="true">KM</span>
+        <span class="guide-wordmark" aria-label="KnownMap"><span class="brand-letter-k" aria-hidden="true">K</span><span aria-hidden="true">nown</span><span class="brand-letter-m" aria-hidden="true">M</span><span aria-hidden="true">ap</span></span>
+      </a>
+      <a class="guide-back" href="../">← 返回销售页</a>
+    </div>
+  </header>
+
+  <div class="guide-wrap guide-shell">
+    <nav class="guide-nav" aria-label="学生上手指南">
+      <p class="guide-nav-label">学生上手指南</p>
+      <ol class="guide-nav-list">
+        <li><a class="guide-nav-link is-active" href="#prepare"><span class="guide-nav-number">01</span><span><span class="guide-nav-name">开始前</span><span class="guide-nav-note">准备电脑和授权码</span></span></a></li>
+        <li><a class="guide-nav-link" href="#install"><span class="guide-nav-number">02</span><span><span class="guide-nav-name">下载安装</span><span class="guide-nav-note">下载、解压、加载</span></span></a></li>
+        <li><a class="guide-nav-link" href="#check"><span class="guide-nav-number">03</span><span><span class="guide-nav-name">确认成功</span><span class="guide-nav-note">看到 KnownMap</span></span></a></li>
+        <li><a class="guide-nav-link" href="#course"><span class="guide-nav-number">04</span><span><span class="guide-nav-name">领取课程</span><span class="guide-nav-note">输入老师的授权码</span></span></a></li>
+        <li><a class="guide-nav-link" href="#learn"><span class="guide-nav-number">05</span><span><span class="guide-nav-name">开始学习</span><span class="guide-nav-note">打开 B 站课程</span></span></a></li>
+      </ol>
+    </nav>
+
+    <main class="guide-main">
+      <p class="guide-eyebrow">学生端 · 第一次使用</p>
+      <h1>插件装好，<br>就可以开始上课</h1>
+      <p class="guide-lead">跟着下面 5 个阶段操作，把 KnownMap 放进你的学习路径。第一次大约需要 3–5 分钟。</p>
+      <div class="guide-meta" aria-label="使用条件">
+        <span>PC Chrome</span>
+        <span>不需要登录</span>
+        <span>需要老师提供的授权码</span>
+      </div>
+      <div class="guide-actions">
+        <a class="guide-button" href="/downloads/student-plugin/knownmapplugin.zip" download="knownmapplugin.zip">下载学生插件</a>
+        <a class="guide-button guide-button-secondary" href="#course">我已经安装 →</a>
+      </div>
+
+      <section class="guide-prep" id="prepare" aria-labelledby="prepare-title">
+        <div>
+          <h2 id="prepare-title">开始前准备</h2>
+          <p>先确认这三件事，后面的安装会更顺利。</p>
+        </div>
+        <ul class="guide-checks">
+          <li>一台电脑和 Chrome 浏览器</li>
+          <li>老师发来的课程授权码</li>
+          <li>一个不会被删除的插件文件夹位置</li>
+        </ul>
+      </section>
+
+      <section class="guide-section" id="install" aria-labelledby="install-title">
+        <div class="guide-section-header">
+          <div><p class="guide-section-label">第 02 阶段</p><h2 id="install-title">下载安装插件</h2></div>
+          <p class="guide-section-description">安装过程中选择的是解压后的文件夹，不是 ZIP 文件。</p>
+        </div>
+        <div class="guide-install-list">
+          <article class="guide-install-step">
+            <span class="guide-step-number">01</span>
+            <div>
+              <h3>下载并解压</h3>
+              <p>点击页面顶部的下载按钮，得到 <b>knownmapplugin.zip</b>。双击 ZIP 解压，得到一个名为 <b>knownmapplugin</b> 的文件夹，并把它放在长期保留的位置。</p>
+              <figure class="guide-figure">
+                <img src="../assets/student-guide/step-download-and-unzip.png" alt="下载完成后解压 KnownMap 插件压缩包" width="1200" height="720">
+                <figcaption>确认得到独立的 knownmapplugin 文件夹。</figcaption>
+              </figure>
+              <div class="guide-tip"><b>重要：</b>安装完成后不要移动或删除这个文件夹，否则 Chrome 会找不到插件文件。</div>
+            </div>
+          </article>
+          <article class="guide-install-step">
+            <span class="guide-step-number">02</span>
+            <div>
+              <h3>打开 Chrome 扩展程序管理页</h3>
+              <p>新开一个 Chrome 标签页，把下面这行地址复制到地址栏并按回车。</p>
+              <div class="guide-path"><span>chrome://extensions/</span><button class="guide-copy" type="button" data-copy="chrome://extensions/">复制地址</button></div>
+            </div>
+          </article>
+          <article class="guide-install-step">
+            <span class="guide-step-number">03</span>
+            <div>
+              <h3>开启开发者模式</h3>
+              <p>在扩展程序管理页右上角打开“开发者模式”。打开后，页面左上方会出现加载按钮。</p>
+              <figure class="guide-figure">
+                <img src="../assets/student-guide/step-open-extensions.png" alt="在 Chrome 扩展程序管理页开启开发者模式" width="1200" height="520">
+                <figcaption>Chrome 版本不同，按钮位置可能略有变化。</figcaption>
+              </figure>
+            </div>
+          </article>
+          <article class="guide-install-step">
+            <span class="guide-step-number">04</span>
+            <div>
+              <h3>加载未打包的扩展程序</h3>
+              <p>点击左上角“加载未打包的扩展程序”（部分版本显示为“加载已解压的扩展程序”），选择第 01 步得到的整个 <b>knownmapplugin</b> 文件夹。</p>
+              <figure class="guide-figure">
+                <img src="../assets/student-guide/step-load-unpacked.png" alt="点击加载未打包的扩展程序并选择插件文件夹" width="1200" height="520">
+                <figcaption>不要选择 ZIP，也不要只选文件夹里面的某个文件。</figcaption>
+              </figure>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="guide-section" id="check" aria-labelledby="check-title">
+        <div class="guide-section-header">
+          <div><p class="guide-section-label">第 03 阶段</p><h2 id="check-title">看到这些，就说明安装成功</h2></div>
+        </div>
+        <div class="guide-success-grid">
+          <article class="guide-success-card"><h3>扩展程序列表出现 KnownMap</h3><p>Chrome 的扩展程序管理页中出现 KnownMap 卡片，且没有红色错误提示。</p></article>
+          <article class="guide-success-card is-dark"><h3>工具栏可以打开课程助手</h3><p>点击 Chrome 工具栏的扩展图标，找到 KnownMap 后可以打开“课程助手”。</p></article>
+        </div>
+      </section>
+
+      <section class="guide-section" id="course" aria-labelledby="course-title">
+        <div class="guide-section-header">
+          <div><p class="guide-section-label">第 04 阶段</p><h2 id="course-title">领取老师发来的课程</h2></div>
+          <p class="guide-section-description">课程和学习进度保存在这台电脑上，当前不需要注册或登录。</p>
+        </div>
+        <div class="guide-course-flow">
+          <div class="guide-course-item"><small>01 · 打开</small><strong>点击 KnownMap</strong><span>从 Chrome 工具栏打开课程助手。</span></div>
+          <div class="guide-course-item"><small>02 · 输入</small><strong>填写授权码</strong><span>找到“领取新课程”，输入老师发来的授权码。</span></div>
+          <div class="guide-course-item"><small>03 · 领取</small><strong>点击“领取”</strong><span>看到“课程已保存，可以开始学习”。</span></div>
+          <div class="guide-course-item"><small>04 · 查看</small><strong>打开课程列表</strong><span>领取成功后，课程会出现在“全部课程”中。</span></div>
+        </div>
+      </section>
+
+      <section class="guide-section" id="learn" aria-labelledby="learn-title">
+        <div class="guide-section-header">
+          <div><p class="guide-section-label">第 05 阶段</p><h2 id="learn-title">打开课节，开始学习</h2></div>
+          <p class="guide-section-description">点击课程中的课节，会打开对应的 B 站视频。</p>
+        </div>
+        <div class="guide-success-grid">
+          <article class="guide-success-card"><h3>在课程助手里点击课节</h3><p>从课程列表进入老师布置的课节，视频会在新的标签页打开。</p></article>
+          <article class="guide-success-card"><h3>在匹配的视频中完成互动</h3><p>KnownMap 只在匹配的课程视频里显示互动内容；普通视频不会被打扰。</p></article>
+        </div>
+      </section>
+
+      <section class="guide-faq" aria-labelledby="faq-title">
+        <p class="guide-section-label">遇到问题</p>
+        <h2 id="faq-title">常见问题</h2>
+        <div class="guide-faq-list">
+          <details><summary>我应该选择 ZIP 文件还是文件夹？</summary><p>请选择解压后得到的整个 <b>knownmapplugin</b> 文件夹，不要选择 ZIP 文件，也不要只选择里面的某个文件。</p></details>
+          <details><summary>工具栏里找不到 KnownMap 怎么办？</summary><p>点击 Chrome 工具栏右侧的扩展图标，在列表中找到 KnownMap；也可以点击图钉把它固定到工具栏。</p></details>
+          <details><summary>B 站页面没有出现互动怎么办？</summary><p>先确认打开的是老师提供的课节链接，并确认视频分 P 没有选错。未匹配课程的视频会照常播放，不会显示互动。</p></details>
+          <details><summary>收到新版插件后怎么更新？</summary><p>打开插件设置中的“插件维护”，点击“在线更新学生插件”。下载完成后替换原插件文件夹内容，再回到 Chrome 扩展程序管理页点击刷新。</p></details>
+        </div>
+      </section>
+
+      <section class="guide-finish" aria-labelledby="finish-title">
+        <h2 id="finish-title">准备好后，就可以领取课程</h2>
+        <p>如果某一步和你看到的画面不一样，把当前画面截图发给老师，就能更快定位问题。</p>
+        <a class="guide-button" href="/downloads/student-plugin/knownmapplugin.zip" download="knownmapplugin.zip">重新下载插件</a>
+      </section>
+      <div class="guide-footer"><span>KnownMap 学生插件 · 当前版本 v1.2.3</span><span>不需要登录 · PC Chrome</span></div>
+    </main>
+  </div>
+
+  <script>
+    const guideCopyButtons = document.querySelectorAll('[data-copy]');
+    guideCopyButtons.forEach((button) => button.addEventListener('click', async () => {
+      const value = button.dataset.copy;
+      try { await navigator.clipboard.writeText(value); } catch { /* 手动复制仍可用 */ }
+      const original = button.textContent;
+      button.textContent = '已复制';
+      window.setTimeout(() => { button.textContent = original; }, 1200);
+    }));
+
+    const guideSections = [...document.querySelectorAll('[id]')].filter((section) => ['prepare', 'install', 'check', 'course', 'learn'].includes(section.id));
+    const guideLinks = [...document.querySelectorAll('.guide-nav-link')];
+    const guideObserver = new IntersectionObserver((entries) => {
+      const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (!visible) return;
+      guideLinks.forEach((link) => link.classList.toggle('is-active', link.getAttribute('href') === `#${visible.target.id}`));
+    }, { rootMargin: '-18% 0px -65% 0px', threshold: [0, .25, .6] });
+    guideSections.forEach((section) => guideObserver.observe(section));
+  </script>
+</body>
+</html>

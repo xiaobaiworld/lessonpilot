@@ -12,7 +12,7 @@ const requiredLinks = [
   'https://knownmap.com/trial-application.html',
   'https://knownmap.com/admin/',
   'https://knownmap.com/teacher/',
-  'https://knownmap.com/student-guide.html',
+  'https://knownmap.com/student/guide.html',
   'https://knownmap.com/downloads/student-plugin/knownmap-v1.zip'
 ];
 

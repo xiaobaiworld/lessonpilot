@@ -5,7 +5,7 @@ const test = require('node:test');
 const faviconEntries = [
   ['v1/site/index.html', 'assets/knownmap-icon.png'],
   ['v1/site/trial-application.html', 'assets/knownmap-icon.png'],
-  ['v1/site/student-guide.html', 'assets/knownmap-icon.png'],
+  ['v1/site/student/guide.html', '../assets/knownmap-icon.png'],
   ['v1/site/link.html', 'assets/knownmap-icon.png'],
   ['v1/web/admin/index.html', '../../extension/assets/knownmap/knownmap-square.svg'],
   ['v1/web/teacher/index.html', '../../extension/assets/knownmap/knownmap-square.svg'],

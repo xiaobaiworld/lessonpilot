@@ -31,9 +31,10 @@ test('四端都从同一份 tokens.css 建立消费入口', () => {
   for (const file of ['v1/web/teacher/src/index.css', 'v1/web/admin/src/index.css']) {
     assert.match(readFileSync(path.join(root, file), 'utf8'), /shared\/src\/styles\/tokens\.css/);
   }
-  for (const file of ['index.html', 'link.html', 'student-guide.html', 'trial-application.html']) {
-    assert.match(readFileSync(path.join(root, 'v1/site', file), 'utf8'), /href="tokens\.css"/);
+  for (const [file, href] of [['index.html', 'tokens.css'], ['link.html', 'tokens.css'], ['student/guide.html', '../tokens.css'], ['trial-application.html', 'tokens.css']]) {
+    assert.match(readFileSync(path.join(root, 'v1/site', file), 'utf8'), new RegExp(`href="${href.replace('.', '\\.')}`));
   }
+  assert.match(readFileSync(path.join(root, 'v1/site/tokens.css'), 'utf8'), /web\/shared\/src\/styles\/tokens\.css/);
   assert.match(readFileSync(path.join(root, 'v1/extension/content/index.ts'), 'utf8'), /styles\/tokens\.css\?inline/);
   for (const file of ['v1/extension/popup/index.html', 'v1/extension/settings/index.html']) {
     assert.match(readFileSync(path.join(root, file), 'utf8'), /href="\.\.\/assets\/tokens\.css"/);
