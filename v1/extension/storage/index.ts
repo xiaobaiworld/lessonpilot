@@ -321,7 +321,6 @@ function isInstalledCourse(value: unknown): value is InstalledCourse {
       (lesson.page === undefined || (typeof lesson.page === 'number' && Number.isSafeInteger(lesson.page) && lesson.page >= 1)) &&
       (lesson.cid === undefined || lesson.cid === null || (typeof lesson.cid === 'string' && /^\d+$/.test(lesson.cid))) &&
       Array.isArray(lesson.nodes) &&
-      lesson.nodes.length > 0 &&
       lesson.nodes.every((node) => isPortableNode(node, assets))
     );
   });

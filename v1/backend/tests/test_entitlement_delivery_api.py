@@ -4,6 +4,7 @@ from sqlalchemy import select
 from app.infrastructure.database import models  # noqa: F401
 from app.infrastructure.database.base import Base
 from app.main import create_app
+from app.modules.entitlement_delivery.application_service import EntitlementApplicationService
 from app.modules.entitlement_delivery.models import AccessCode
 from app.modules.identity.application_service import IdentityApplicationService
 from tests.conftest import make_settings
@@ -24,6 +25,20 @@ NODE = {
     "presentationHints": {"windowSize": "m", "windowStyle": "document"},
     "effects": {"pause": True},
 }
+
+
+def test_lesson_scope_keeps_lesson_without_nodes() -> None:
+    package = {
+        "lessons": [{"lessonId": "lesson-1", "nodes": []}],
+        "assets": [],
+    }
+
+    cropped = EntitlementApplicationService.crop_package(
+        package,
+        {"type": "lessons", "lessonIds": ["lesson-1"], "nodeIds": set()},
+    )
+
+    assert cropped["lessons"] == package["lessons"]
 
 
 def test_empty_database_full_delivery_flow() -> None:

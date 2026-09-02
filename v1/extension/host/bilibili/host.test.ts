@@ -1,5 +1,7 @@
+/** @vitest-environment happy-dom */
+
 import { describe, it, expect, vi } from 'vitest';
-import { currentVideoId, currentVideoRef, findVideo, attachPlayer } from './index';
+import { currentVideoId, currentVideoRef, findVideo, attachPlayer, watchNavigation } from './index';
 
 describe('currentVideoRef', () => {
   it('保留 BVID 与分 P，忽略 vd_source 等来源参数', () => {
@@ -165,5 +167,40 @@ describe('attachPlayer', () => {
     v.currentTime = 300;
     v.emit('seeked');
     expect(seeks).toEqual([300]);
+  });
+});
+
+describe('watchNavigation', () => {
+  it('检测播放器元素被替换，即使地址没有变化', async () => {
+    let currentVideo: object | null = { tagName: 'VIDEO' };
+    let mutationCheck: (() => void) | null = null;
+    class FakeMutationObserver {
+      constructor(callback: () => void) {
+        mutationCheck = callback;
+      }
+      observe() {}
+      disconnect() {}
+    }
+    const fakeWindow = {
+      location: { href: 'https://www.bilibili.com/video/BV1Ac41187Lm/' },
+      history: { pushState() {}, replaceState() {} },
+      addEventListener() {},
+      removeEventListener() {},
+      MutationObserver: FakeMutationObserver,
+      document: {
+        documentElement: {},
+        querySelector: () => currentVideo,
+        querySelectorAll: () => [],
+      },
+    } as unknown as Window;
+    const seen: unknown[] = [];
+    const stop = watchNavigation((ref) => seen.push(ref), fakeWindow);
+
+    currentVideo = { tagName: 'VIDEO' };
+    (mutationCheck as unknown as (() => void))();
+
+    expect(seen).toHaveLength(1);
+    expect(seen[0]).toEqual({ platform: 'bilibili', videoId: 'BV1Ac41187Lm', page: 1, cid: null });
+    stop();
   });
 });

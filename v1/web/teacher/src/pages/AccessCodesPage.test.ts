@@ -4,7 +4,7 @@ import React from 'react';
 import { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { AccessCodesPage } from './AccessCodesPage';
+import { AccessCodesPage, beijingLocalToUtc, formatDateTime } from './AccessCodesPage';
 import type { CourseDetail, ManagedAccessCode, Teacher, TeacherAPI } from '../api';
 
 const teacher: Teacher = {
@@ -50,6 +50,11 @@ describe('AccessCodesPage', () => {
   afterEach(() => {
     document.body.innerHTML = '';
     vi.restoreAllMocks();
+  });
+
+  it('按北京时间显示并把输入转换为 UTC 传输', () => {
+    expect(formatDateTime('2026-08-27T04:00:00.000Z')).toContain('12:00');
+    expect(beijingLocalToUtc('2026-08-27T12:00')).toBe('2026-08-27T04:00:00.000Z');
   });
 
   it('lists codes, batch-generates codes, and terminates an active code', async () => {

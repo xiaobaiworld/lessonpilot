@@ -611,7 +611,41 @@ describe('PageController', () => {
     expect(controller.current()).toBeNull();
     expect(h.player.listenerCount).toBe(0);
   });
+
+  it('快速切换时，较早的异步启动不能覆盖新运行时', async () => {
+    const firstCandidates = deferred<RuntimeCandidate[]>();
+    const created: CourseRuntime[] = [];
+    const controller = new PageController(() => {
+      const h = harness({
+        messenger: {
+          candidates: async () => firstCandidates.promise,
+          lesson: async () => ({ installedAt: 'x', nodes: [node('n1', 10)], done: [], lastPositionSeconds: 0 }),
+          attempt: async () => {},
+          position: async () => {},
+        },
+      });
+      created.push(h.runtime);
+      return h.runtime;
+    });
+
+    const first = controller.navigate('BV1Ac41187Lm');
+    await Promise.resolve();
+    const second = controller.navigate(null);
+    firstCandidates.resolve([candidate()]);
+    await Promise.all([first, second]);
+
+    expect(controller.current()).toBeNull();
+    expect(created[0].snapshot()).toBeNull();
+  });
 });
+
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((next) => {
+    resolve = next;
+  });
+  return { promise, resolve };
+}
 
 describe('位置上报', () => {
   it('节流到整秒，同一秒内多次 timeupdate 只报一次', async () => {

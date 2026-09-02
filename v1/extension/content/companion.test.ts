@@ -66,6 +66,37 @@ describe('StudentCompanion 角色资源渲染', () => {
     companion.destroy();
   });
 
+  it('点击声音按钮立即切换状态，异步读取偏好不会覆盖用户操作', async () => {
+    let resolvePreference!: (value: boolean | null) => void;
+    const preference = new Promise<boolean | null>((resolve) => {
+      resolvePreference = resolve;
+    });
+    const saved: boolean[] = [];
+    const companion = new StudentCompanion({
+      styleText: '',
+      loadLibrary: async () => null,
+      redeem: async () => ({ ok: true }),
+      loadAsset: async (state) => asset(state),
+      loadSoundEnabled: async () => preference,
+      saveSoundEnabled: async (enabled) => { saved.push(enabled); },
+      onTogglePlayback: async () => 'idle',
+    });
+    companion.mount();
+    const shadow = document.querySelector('#knownmap-student-companion')?.shadowRoot;
+    const button = shadow?.querySelector<HTMLButtonElement>('.km-companion-control:nth-child(3)')!;
+
+    await button.click();
+    expect(button.textContent).toBe('声音关');
+    expect(button.getAttribute('aria-pressed')).toBe('false');
+    expect(saved).toEqual([false]);
+
+    resolvePreference(true);
+    await preference;
+    await Promise.resolve();
+    expect(button.textContent).toBe('声音关');
+    companion.destroy();
+  });
+
   it('声音关闭后保留视觉状态，资源加载失败回退 idle', async () => {
     const played: string[] = [];
     class FakeAudio {

@@ -104,6 +104,22 @@ export const SubtitlePicker: React.FC<Props> = ({
     }
   };
 
+  const chooseFile = () => fileInput.current?.click();
+
+  const fileInputElement = (
+    <input
+      ref={fileInput}
+      type="file"
+      accept=".srt,.vtt"
+      hidden
+      onChange={(e) => {
+        const f = e.target.files?.[0];
+        if (f) void load(f);
+        e.target.value = '';
+      }}
+    />
+  );
+
   if (!captions) {
     return (
       <div className="subtitle-import">
@@ -114,21 +130,11 @@ export const SubtitlePicker: React.FC<Props> = ({
             导入结果会在点击“保存草稿”时随课节草稿保存。
           </p>
         </div>
-        <input
-          ref={fileInput}
-          type="file"
-          accept=".srt,.vtt"
-          hidden
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) load(f);
-            e.target.value = '';
-          }}
-        />
+        {fileInputElement}
         <button
           className="light-button"
           type="button"
-          onClick={() => fileInput.current?.click()}
+          onClick={chooseFile}
           disabled={disabled || loading}
         >
           {loading ? '检查字幕中…' : '选择 SRT / VTT 文件'}
@@ -146,6 +152,14 @@ export const SubtitlePicker: React.FC<Props> = ({
         <button
           className="text-button"
           type="button"
+          onClick={chooseFile}
+          disabled={disabled || loading}
+        >
+          重新导入
+        </button>
+        <button
+          className="text-button"
+          type="button"
           onClick={() => {
             setCaptions(null);
             onCaptions(null);
@@ -154,11 +168,14 @@ export const SubtitlePicker: React.FC<Props> = ({
             setPicking(null);
             setRepairNotice(null);
           }}
+          disabled={disabled || loading}
         >
-          换一份
+          移除字幕
         </button>
       </div>
+      {fileInputElement}
       {repairNotice && <p className="subtitle-repair-notice">{repairNotice}</p>}
+      {error && <p className="field-error">{error}</p>}
 
       <ul className="caption-list">
         {captions.map((c) => {

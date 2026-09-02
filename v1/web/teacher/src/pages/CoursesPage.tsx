@@ -97,6 +97,20 @@ export const CoursesPage: React.FC<Props> = ({
     }
   };
 
+  const archiveCourse = async (courseId: string) => {
+    if (!window.confirm('删除草稿后会移到已归档，历史记录仍会保留。继续吗？')) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await api.archiveCourse(courseId);
+      await load();
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const createVersionDraft = async () => {
     if (!versionAction) return;
     setBusy(true);
@@ -172,6 +186,7 @@ export const CoursesPage: React.FC<Props> = ({
             onOpenCourse={onOpenCourse}
             onOpenAccessCodes={onOpenAccessCodes}
             onPublishCourse={publishCourse}
+            onArchiveCourse={archiveCourse}
             onVersionAction={(course, mode) => setVersionAction({ course, mode })}
             actionDisabled={busy}
           />
@@ -215,6 +230,7 @@ const DashboardContent: React.FC<{
   onOpenCourse: (courseId: string) => void;
   onOpenAccessCodes: (courseId: string) => void;
   onPublishCourse: (courseId: string) => void;
+  onArchiveCourse: (courseId: string) => void;
   onVersionAction: (course: CourseListItem, mode: VersionMode) => void;
   actionDisabled: boolean;
 }> = ({
@@ -222,6 +238,7 @@ const DashboardContent: React.FC<{
   onOpenCourse,
   onOpenAccessCodes,
   onPublishCourse,
+  onArchiveCourse,
   onVersionAction,
   actionDisabled,
 }) => {
@@ -259,6 +276,7 @@ const DashboardContent: React.FC<{
                 course={course}
                 onOpenCourse={onOpenCourse}
                 onPublishCourse={onPublishCourse}
+                onArchiveCourse={onArchiveCourse}
                 actionDisabled={actionDisabled}
               />
             ))}
@@ -351,8 +369,9 @@ const DraftCourseCard: React.FC<{
   course: CourseListItem;
   onOpenCourse: (courseId: string) => void;
   onPublishCourse: (courseId: string) => void;
+  onArchiveCourse: (courseId: string) => void;
   actionDisabled: boolean;
-}> = ({ course, onOpenCourse, onPublishCourse, actionDisabled }) => (
+}> = ({ course, onOpenCourse, onPublishCourse, onArchiveCourse, actionDisabled }) => (
   <article className="draft-course-card">
     <div className="course-card-topline">
       <span className="course-status is-draft"><i />草稿</span>
@@ -397,6 +416,14 @@ const DraftCourseCard: React.FC<{
       >
         发布课程
       </button>
+      <button
+        className="course-card-action is-danger"
+        type="button"
+        onClick={() => onArchiveCourse(course.id)}
+        disabled={actionDisabled}
+      >
+        删除草稿
+      </button>
     </div>
   </article>
 );
@@ -413,6 +440,7 @@ const PublishedCourseCard: React.FC<{
   actionDisabled,
 }) => {
   const { metrics } = course;
+  const versionNumber = course.version_number ?? metrics.release_number;
   const submissionCount = metrics.student_submission_count;
   const hasSubmissionCount = submissionCount != null;
   return (
@@ -421,7 +449,7 @@ const PublishedCourseCard: React.FC<{
         <div>
           <div className="course-card-topline">
             <span className="course-status is-published"><i />已发布</span>
-            <span className="release-label">第 {metrics.release_number} 版</span>
+            <span className="release-label">第 {versionNumber} 版</span>
           </div>
           <h3>{course.title}</h3>
           <p>{course.description || '暂无课程简介'}</p>
@@ -488,6 +516,7 @@ const VersionActionDialog: React.FC<{
   onConfirm: () => void;
 }> = ({ course, mode, busy, onCancel, onConfirm }) => {
   const isModify = mode === 'modify';
+  const versionNumber = course.version_number ?? course.metrics.release_number;
   return (
     <div className="modal-backdrop" role="dialog" aria-modal="true">
       <div className={`version-action-dialog is-${mode}`}>
@@ -496,7 +525,7 @@ const VersionActionDialog: React.FC<{
             <span className="eyebrow">{isModify ? '修改本版本' : '增加版本'}</span>
             <h2>{course.title}</h2>
           </div>
-          <span className="release-label">第 {course.metrics.release_number} 版</span>
+          <span className="release-label">第 {versionNumber} 版</span>
         </div>
         <p className="version-action-copy">
           {isModify
@@ -504,10 +533,10 @@ const VersionActionDialog: React.FC<{
             : '当前已发布版本继续保留，同时复制一份到草稿区，作为新版本继续修改。'}
         </p>
         <div className="version-action-flow" aria-label={isModify ? '版本退回草稿' : '增加新草稿'}>
-          <span>已发布 · 第 {course.metrics.release_number} 版</span>
+          <span>已发布 · 第 {versionNumber} 版</span>
           <b aria-hidden="true">{isModify ? '→' : '+'}</b>
           <span className="is-draft">
-            {isModify ? '草稿' : `新草稿 · 第 ${(course.metrics.release_number ?? 0) + 1} 版`}
+            {isModify ? '草稿' : `新草稿 · 第 ${(versionNumber ?? 0) + 1} 版`}
           </span>
         </div>
         <div className="modal-actions">

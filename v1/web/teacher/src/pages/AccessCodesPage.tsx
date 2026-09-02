@@ -146,13 +146,19 @@ export const AccessCodesPage: React.FC<Props> = ({
       setError('请选择至少一个课节');
       return;
     }
+    const redeemFromUtc = beijingLocalToUtc(redeemFrom);
+    const redeemUntilUtc = beijingLocalToUtc(redeemUntil);
+    if ((redeemFrom && !redeemFromUtc) || (redeemUntil && !redeemUntilUtc)) {
+      setError('领取时间格式无效，请重新选择北京时间。');
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
       const options = {
         grants,
-        redeem_from: redeemFrom || null,
-        redeem_until: redeemUntil || null,
+        redeem_from: redeemFromUtc,
+        redeem_until: redeemUntilUtc,
         recipient_label: recipientLabel.trim() || null,
         recipient_note: recipientNote.trim() || null,
       };
@@ -304,6 +310,7 @@ export const AccessCodesPage: React.FC<Props> = ({
               {course?.title ?? '正在读取课程…'}
               {course?.version_number ? ` · 第 ${course.version_number} 版` : ''}
             </p>
+            <small className="muted-note">页面时间均显示为北京时间（UTC+8）</small>
           </div>
         </div>
 
@@ -721,7 +728,7 @@ function formatGrantSummary(code: ManagedAccessCode): string {
   return `${code.grants.length} 门课程 · ${lessonCount} 个课节`;
 }
 
-function formatDateTime(value: string | null): string {
+export function formatDateTime(value: string | null): string {
   if (!value) return '—';
   const date = new Date(value);
   if (Number.isNaN(date.valueOf())) return '—';
@@ -730,5 +737,13 @@ function formatDateTime(value: string | null): string {
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: 'Asia/Shanghai',
   }).format(date);
+}
+
+export function beijingLocalToUtc(value: string): string | null {
+  if (!value) return null;
+  const local = value.length === 16 ? `${value}:00` : value;
+  const date = new Date(`${local}+08:00`);
+  return Number.isNaN(date.valueOf()) ? null : date.toISOString();
 }

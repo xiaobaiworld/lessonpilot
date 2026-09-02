@@ -341,7 +341,9 @@ class EntitlementApplicationService:
             selected = {**lesson}
             if node_ids:
                 selected["nodes"] = [node for node in lesson["nodes"] if node["id"] in node_ids]
-            if selected["nodes"]:
+            if selected["nodes"] or (
+                scope["type"] == "lessons" and lesson["lessonId"] in lesson_ids
+            ):
                 cropped["lessons"].append(selected)
         referenced: set[str] = set()
         for lesson in cropped["lessons"]:

@@ -177,7 +177,9 @@ export const LessonPage: React.FC<Props> = ({
     if (!nodes) return;
     const missing = findEmptyField(next);
     if (missing) {
-      setError(`请先填写「${missing}」。`);
+      const message = `请先填写「${missing}」。`;
+      setError(message);
+      window.alert(message);
       return;
     }
     if (dialogIsNew) update([...nodes, next]);
@@ -227,7 +229,9 @@ export const LessonPage: React.FC<Props> = ({
     for (let i = 0; i < sorted.length; i++) {
       const missing = findEmptyField(sorted[i]);
       if (missing) {
-        setError(`第 ${i + 1} 个节点（${metaOf(sorted[i].interaction).label}）还缺「${missing}」`);
+        const message = `第 ${i + 1} 个节点（${metaOf(sorted[i].interaction).label}）还缺「${missing}」`;
+        setError(message);
+        window.alert(message);
         return;
       }
     }

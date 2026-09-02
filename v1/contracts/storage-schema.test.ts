@@ -80,6 +80,12 @@ describe('extension storage contract', () => {
     expect(validator()(value)).toBe(true);
   });
 
+  it('accepts an installed lesson without interaction nodes', () => {
+    const value = structuredClone(validRoot) as any;
+    value.installedCourses['00000002-0000-4000-8000-000000000000'].lessons[0].nodes = [];
+    expect(validator()(value)).toBe(true);
+  });
+
   it('rejects unknown settings fields and values', () => {
     const value = structuredClone(validRoot) as any;
     value.settings = { ...currentSettings, remoteScript: 'https://example.com/x.js' };

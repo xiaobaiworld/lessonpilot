@@ -145,6 +145,26 @@ describe('NodeForm 课程化填写引导', () => {
     }
   });
 
+  it('填空答案输入过程中保留分隔符，并标记必填字段', async () => {
+    const node = createNode('blank', 39);
+    let latest: TestNode | null = null;
+    const container = await renderNode(node, (next) => { latest = next; });
+    const input = container.querySelector<HTMLInputElement>(
+      `input[placeholder="${nodeFormCopy('blank').answerPlaceholder}"]`
+    )!;
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
+
+    await act(async () => {
+      setter?.call(input, '结论 |');
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+
+    expect(input.value).toBe('结论 |');
+    expect((latest as any)?.interactionData?.acceptedAnswers).toEqual(['结论']);
+    expect(container.querySelectorAll('.required-mark').length).toBeGreaterThan(0);
+    expect(container.querySelectorAll('[aria-required="true"]').length).toBeGreaterThan(0);
+  });
+
   it('选择题预览展示全部四个选项，而不是只展示前三项', async () => {
     const node = createNode('choice', 39);
     node.interactionData = {

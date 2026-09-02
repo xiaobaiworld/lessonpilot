@@ -125,11 +125,16 @@ export function watchNavigation(
   win: Window = window
 ): () => void {
   let last = currentVideoRef(win.location.href);
+  let lastVideo = findVideo(win.document);
 
   const check = () => {
     const now = currentVideoRef(win.location.href);
-    if (JSON.stringify(now) !== JSON.stringify(last)) {
+    const nowVideo = findVideo(win.document);
+    const refChanged = JSON.stringify(now) !== JSON.stringify(last);
+    const playerChanged = nowVideo !== lastVideo;
+    if (refChanged || playerChanged) {
       last = now;
+      lastVideo = nowVideo;
       onChange(now);
     }
   };
@@ -147,10 +152,20 @@ export function watchNavigation(
   };
   win.addEventListener('popstate', check);
 
+  const Observer = (win as Window & { MutationObserver?: typeof MutationObserver }).MutationObserver;
+  const observer = Observer ? new Observer(check) : null;
+  observer?.observe(win.document.documentElement, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['src'],
+  });
+
   return () => {
     win.history.pushState = origPush;
     win.history.replaceState = origReplace;
     win.removeEventListener('popstate', check);
+    observer?.disconnect();
   };
 }
 

@@ -6,6 +6,7 @@ interface Props {
   label: string;
   value: string;
   disabled: boolean;
+  required?: boolean;
   onChange: (html: string) => void;
   placeholder?: string;
   hint?: string;
@@ -17,7 +18,7 @@ interface Props {
 
 const COLORS = ['#1d5c43', '#927008', '#a9654e', '#35516a'];
 
-export const RichTextEditor: React.FC<Props> = ({ label, value, disabled, onChange, placeholder, hint, onUploadAsset, onImportAsset, assetUrlForId, onAssetCreated }) => {
+export const RichTextEditor: React.FC<Props> = ({ label, value, disabled, required = false, onChange, placeholder, hint, onUploadAsset, onImportAsset, assetUrlForId, onAssetCreated }) => {
   const [tab, setTab] = useState<'visual' | 'html'>('visual');
   const [htmlDraft, setHtmlDraft] = useState(value);
   const [assetBusy, setAssetBusy] = useState(false);
@@ -64,7 +65,15 @@ export const RichTextEditor: React.FC<Props> = ({ label, value, disabled, onChan
     setHtmlDraft(clean);
     const editor = editorRef.current;
     const visual = hydrateAssetSources(clean);
-    if (tab === 'visual' && editor && editor.innerHTML !== visual) editor.innerHTML = visual;
+    const editing = editor && (
+      editor === document.activeElement || editor.contains(document.activeElement)
+    );
+    // contentEditable 是非受控输入面。父组件每次击键都会更新 value，
+    // 但编辑期间重写 innerHTML 会让 Chromium 丢失 Selection，把光标
+    // 放回正文开头。失焦后的外部更新仍然同步到 DOM。
+    if (tab === 'visual' && editor && !editing && editor.innerHTML !== visual) {
+      editor.innerHTML = visual;
+    }
   }, [value, tab]);
 
   const run = (command: string, commandValue?: string) => {
@@ -135,7 +144,7 @@ export const RichTextEditor: React.FC<Props> = ({ label, value, disabled, onChan
 
   return (
     <div className="rich-text-field">
-      <span className="field-label">{label}</span>
+      <span className="field-label">{label}{required && <RequiredMark />}</span>
       <div className="rich-text-editor" aria-disabled={disabled}>
         <div className="rich-text-tabs" role="tablist" aria-label="正文编辑方式">
           <button type="button" role="tab" aria-selected={tab === 'visual'} className={tab === 'visual' ? 'rich-text-tab is-active' : 'rich-text-tab'} disabled={disabled} onClick={showVisual}>可视化</button>
@@ -162,7 +171,7 @@ export const RichTextEditor: React.FC<Props> = ({ label, value, disabled, onChan
           </div>
         )}
         {tab === 'visual' ? (
-          <div ref={hostRef} className="rich-text-visual"><div ref={editorRef} className="rich-text-content" contentEditable={!disabled} suppressContentEditableWarning data-placeholder={placeholder ?? '在这里编辑内容'} onInput={(event) => emit(event.currentTarget.innerHTML)} role="textbox" aria-label={label} aria-multiline="true" /></div>
+          <div ref={hostRef} className="rich-text-visual"><div ref={editorRef} className="rich-text-content" contentEditable={!disabled} suppressContentEditableWarning data-placeholder={placeholder ?? '在这里编辑内容'} onInput={(event) => emit(event.currentTarget.innerHTML)} onBlur={(event) => { const clean = emit(event.currentTarget.innerHTML); event.currentTarget.innerHTML = hydrateAssetSources(clean); }} role="textbox" aria-label={label} aria-multiline="true" aria-required={required} /></div>
         ) : (
           <textarea className="rich-text-html" aria-label={`${label} HTML`} value={htmlDraft} disabled={disabled} rows={10} onChange={(event) => setHtmlDraft(event.target.value)} onBlur={() => setHtmlDraft(emit(htmlDraft))} />
         )}
@@ -174,3 +183,5 @@ export const RichTextEditor: React.FC<Props> = ({ label, value, disabled, onChan
     </div>
   );
 };
+
+const RequiredMark: React.FC = () => <span className="required-mark" aria-hidden="true">*</span>;

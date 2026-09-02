@@ -140,7 +140,13 @@ export class LearningSession {
    */
   advance(seconds: number): HostAction {
     if (seconds < this.lastTime - 1) {
-      for (const id of this.replayableNodeIds) this.triggered.delete(id);
+      // 只有回到提示点之前，提示才会重新武装。回拖到提示点之后不应
+      // 在下一次 timeupdate 立刻弹出上一条提示。
+      for (const node of this.nodes) {
+        if (this.replayableNodeIds.has(node.id) && seconds < node.timeSeconds) {
+          this.triggered.delete(node.id);
+        }
+      }
     }
     this.lastTime = seconds;
     if (this.window.kind !== 'idle') return { type: 'none' };
@@ -245,11 +251,15 @@ export class LearningSession {
    * 学生 seek。
    *
    * 往前拖不补触发已跳过的节点——那会连弹好几个窗口。
-   * 往回拖也不重置已触发标记：同一个节点在一次会话里只打断一次。
+   * 往回拖只在回到节点触发点之前时重新武装该节点，避免拖到触发点之后立刻重复弹窗。
    */
   seek(seconds: number): HostAction {
     if (seconds < this.lastTime - 1) {
-      for (const id of this.replayableNodeIds) this.triggered.delete(id);
+      for (const node of this.nodes) {
+        if (this.replayableNodeIds.has(node.id) && seconds < node.timeSeconds) {
+          this.triggered.delete(node.id);
+        }
+      }
     }
     for (const node of this.nodes) {
       if (seconds > node.timeSeconds && !this.replayableNodeIds.has(node.id)) {

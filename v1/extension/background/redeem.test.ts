@@ -556,7 +556,7 @@ describe('课程包复验', () => {
     expect(bad({ releaseNumber: 0 })).toMatchObject({ ok: false });
   });
 
-  it('拒绝空课节与空节点', () => {
+  it('拒绝空课节，但允许没有互动节点的课节', () => {
     expect(bad({ lessons: [] })).toMatchObject({ ok: false });
     expect(
       bad({
@@ -569,7 +569,7 @@ describe('课程包复验', () => {
           },
         ],
       })
-    ).toMatchObject({ ok: false });
+    ).toMatchObject({ ok: true });
   });
 
   it('拒绝非法 BVID 与非 B 站平台', () => {

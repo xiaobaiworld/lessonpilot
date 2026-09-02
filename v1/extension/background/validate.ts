@@ -158,7 +158,7 @@ function checkLesson(raw: unknown, at: string, packageAssets: Map<string, AssetR
   const cid = video.cid === undefined || video.cid === null ? null : video.cid;
   if (cid !== null && typeof cid !== 'string') return { ok: false, reason: `${at} 的 cid 无效` };
   if (cid !== null && !/^\d+$/.test(cid)) return { ok: false, reason: `${at} 的 cid 无效` };
-  if (!Array.isArray(raw.nodes) || !raw.nodes.length) return { ok: false, reason: `${at} 没有互动节点` };
+  if (!Array.isArray(raw.nodes)) return { ok: false, reason: `${at} 的互动节点字段无效` };
   const seen = new Set<string>();
   for (const [i, node] of raw.nodes.entries()) {
     if (isObject(node) && seen.has(node.id)) return { ok: false, reason: `${at} 节点 id 重复` };

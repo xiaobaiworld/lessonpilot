@@ -235,6 +235,10 @@ export class TeacherAPI {
     return this.http.get<CourseDetail>(`/api/v1/teacher/courses/${courseId}`);
   }
 
+  archiveCourse(courseId: string): Promise<CourseSummary> {
+    return this.http.post<CourseSummary>(`/api/v1/teacher/courses/${courseId}/archive`);
+  }
+
   createLesson(courseId: string, title: string, videoRef: BilibiliVideoRef): Promise<Lesson> {
     return this.http.post<Lesson>(`/api/v1/teacher/courses/${courseId}/lessons`, {
       title,

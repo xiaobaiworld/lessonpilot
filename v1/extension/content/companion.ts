@@ -54,6 +54,7 @@ export class StudentCompanion {
   private mode: VideoMode = 'course';
   private modeToggle: (() => void) | null = null;
   private soundEnabled = true;
+  private soundPreferenceTouched = false;
   private audio: HTMLAudioElement | null = null;
   private completeTimer = 0;
 
@@ -186,13 +187,16 @@ export class StudentCompanion {
   private async loadSoundPreference(): Promise<void> {
     try {
       const enabled = await this.deps.loadSoundEnabled?.();
-      if (typeof enabled === 'boolean') this.setSoundEnabled(enabled);
+      if (typeof enabled === 'boolean' && !this.soundPreferenceTouched) {
+        this.setSoundEnabled(enabled);
+      }
     } catch {
       // 偏好读取失败时保留默认开启，不影响学习。
     }
   }
 
   private async toggleSound(): Promise<void> {
+    this.soundPreferenceTouched = true;
     this.setSoundEnabled(!this.soundEnabled);
     try {
       await this.deps.saveSoundEnabled?.(this.soundEnabled);

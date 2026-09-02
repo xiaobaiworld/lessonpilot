@@ -45,6 +45,7 @@ describe('CoursesPage current course-level access flow', () => {
     const published = course({
       id: 'course-published',
       title: '已发布课程',
+      version_number: 2,
       metrics: {
         ...draft.metrics,
         release_number: 1,
@@ -106,6 +107,7 @@ describe('CoursesPage current course-level access flow', () => {
     expect(accessButton).toBeDefined();
     await act(async () => accessButton?.click());
     expect(onOpenAccessCodes).toHaveBeenCalledWith('course-published');
+    expect(container.textContent).toContain('第 2 版');
   });
 
   it('confirms published version actions with their exact state semantics', async () => {
@@ -178,5 +180,45 @@ describe('CoursesPage current course-level access flow', () => {
 
     await act(async () => button('授权码管理')?.click());
     expect(onOpenAccessCodes).toHaveBeenCalledWith('course-published');
+  });
+
+  it('archives a draft from the dashboard instead of physically deleting it', async () => {
+    const draft = course({ id: 'course-draft' });
+    const archiveCourse = vi.fn().mockResolvedValue({ ...draft, status: 'archived' });
+    const api = {
+      listCourses: vi.fn()
+        .mockResolvedValueOnce([draft])
+        .mockResolvedValueOnce([{ ...draft, status: 'archived' }]),
+      archiveCourse,
+    } as unknown as TeacherAPI;
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    vi.stubGlobal('confirm', vi.fn().mockReturnValue(true));
+
+    await act(async () => {
+      root.render(
+        React.createElement(CoursesPage, {
+          api,
+          teacher,
+          onOpenCourse: vi.fn(),
+          onSignedOut: vi.fn(),
+        })
+      );
+      await Promise.resolve();
+    });
+
+    const button = Array.from(container.querySelectorAll('button')).find(
+      (item) => item.textContent?.trim() === '删除草稿'
+    );
+    await act(async () => {
+      button?.click();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(archiveCourse).toHaveBeenCalledWith('course-draft');
+    expect(container.textContent).toContain('已归档');
+    root.unmount();
   });
 });

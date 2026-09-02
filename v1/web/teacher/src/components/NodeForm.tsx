@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   AssetRecord,
   InlineContent,
@@ -38,6 +38,15 @@ function clampPositionPercent(value: number, fallback: number): number {
 /** 各字段名由后端校验固定，见 v1/backend/app/modules/authoring_release/application_service.py */
 export const NodeForm: React.FC<Props> = ({ node, disabled, onChange, onUploadAsset, onImportAsset, assetUrlForId, onAssetCreated }) => {
   const copy = nodeFormCopy(node.interaction);
+  const [acceptedAnswersDraft, setAcceptedAnswersDraft] = useState(
+    () => (node.interactionData as Record<string, any> | null)?.acceptedAnswers?.join(' | ') ?? ''
+  );
+
+  useEffect(() => {
+    setAcceptedAnswersDraft(
+      (node.interactionData as Record<string, any> | null)?.acceptedAnswers?.join(' | ') ?? ''
+    );
+  }, [node.id]);
 
   const setHints = (patch: Partial<PresentationHints>) => {
     const resolved = resolvePresentationHints(node.presentationHints ?? {});
@@ -77,6 +86,7 @@ export const NodeForm: React.FC<Props> = ({ node, disabled, onChange, onUploadAs
           <Field
             label={copy.titleLabel}
             value={node.title}
+            required
             onChange={(title) => onChange({ ...node, title })}
             disabled={disabled}
             hint={copy.titleHint}
@@ -86,6 +96,7 @@ export const NodeForm: React.FC<Props> = ({ node, disabled, onChange, onUploadAs
             label={copy.contentLabel}
             value={richDocumentToHtml(node.content)}
             disabled={disabled}
+            required
             onChange={setPageHtml}
             placeholder={copy.contentPlaceholder}
             hint={copy.contentHint}
@@ -117,15 +128,12 @@ export const NodeForm: React.FC<Props> = ({ node, disabled, onChange, onUploadAs
             <DetailSection copy={copy}>
               <Field
                 label={copy.answerLabel}
-                value={(data.acceptedAnswers ?? []).join(' | ')}
-                onChange={(v) =>
-                  setInteractionData({
-                    acceptedAnswers: v
-                      .split('|')
-                      .map((s) => s.trim())
-                      .filter(Boolean),
-                  })
-                }
+                value={acceptedAnswersDraft}
+                required
+                onChange={(value) => {
+                  setAcceptedAnswersDraft(value);
+                  setInteractionData({ acceptedAnswers: parseAcceptedAnswers(value) });
+                }}
                 disabled={disabled}
                 hint={copy.answerHint}
                 placeholder={copy.answerPlaceholder}
@@ -133,6 +141,7 @@ export const NodeForm: React.FC<Props> = ({ node, disabled, onChange, onUploadAs
               <Area
                 label={copy.feedbackLabel}
                 value={data.explanation ?? ''}
+                required
                 onChange={(v) => setInteractionData({ explanation: v })}
                 disabled={disabled}
                 hint={copy.feedbackHint}
@@ -146,6 +155,7 @@ export const NodeForm: React.FC<Props> = ({ node, disabled, onChange, onUploadAs
               <Area
                 label={copy.feedbackLabel}
                 value={data.referenceFeedback ?? ''}
+                required
                 onChange={(v) => setInteractionData({ referenceFeedback: v })}
                 disabled={disabled}
                 hint={copy.feedbackHint}
@@ -496,16 +506,17 @@ const ChoiceFields: React.FC<{
   return (
     <>
       <div className="choice-options">
-        <span className="node-field-label">{copy.optionHint}</span>
+        <span className="node-field-label">{copy.optionHint}<RequiredMark /></span>
         {options.map((opt, i) => {
           const optionLabel = `选项 ${i + 1}`;
           return (
             <label key={opt.id} className="choice-row">
-              <span className="choice-row-number">{optionLabel}</span>
+              <span className="choice-row-number">{optionLabel}<RequiredMark /></span>
               <input
                 type="radio"
                 name={`answer-${opt.id}-${i}`}
                 checked={answer === opt.id}
+                required={i === 0}
                 onChange={() => onAnswer(opt.id)}
                 disabled={disabled}
                 aria-label={`${copy.optionHint}：${optionLabel}`}
@@ -522,6 +533,7 @@ const ChoiceFields: React.FC<{
                 }
                 placeholder={optionLabel}
                 aria-label={optionLabel}
+                required
                 disabled={disabled}
               />
               {answer === opt.id && (
@@ -561,6 +573,7 @@ const ChoiceFields: React.FC<{
       <Area
         label={copy.feedbackLabel}
         value={explanation}
+        required
         onChange={onExplanation}
         disabled={disabled}
         hint={copy.feedbackHint}
@@ -575,16 +588,19 @@ const Field: React.FC<{
   value: string;
   onChange: (v: string) => void;
   disabled: boolean;
+  required?: boolean;
   hint?: string;
   placeholder?: string;
-}> = ({ label, value, onChange, disabled, hint, placeholder }) => (
+}> = ({ label, value, onChange, disabled, required = false, hint, placeholder }) => (
   <label className="field-group">
-    <span>{label}</span>
+    <span>{label}{required && <RequiredMark />}</span>
     <input
       type="text"
       value={value}
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
+      required={required}
+      aria-required={required}
       placeholder={placeholder}
     />
     {hint && <small>{hint}</small>}
@@ -596,18 +612,27 @@ const Area: React.FC<{
   value: string;
   onChange: (v: string) => void;
   disabled: boolean;
+  required?: boolean;
   hint?: string;
   placeholder?: string;
-}> = ({ label, value, onChange, disabled, hint, placeholder }) => (
+}> = ({ label, value, onChange, disabled, required = false, hint, placeholder }) => (
   <label className="field-group">
-    <span>{label}</span>
+    <span>{label}{required && <RequiredMark />}</span>
     <textarea
       value={value}
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
+      required={required}
+      aria-required={required}
       rows={3}
       placeholder={placeholder}
     />
     {hint && <small>{hint}</small>}
   </label>
 );
+
+function parseAcceptedAnswers(value: string): string[] {
+  return value.split('|').map((item) => item.trim()).filter(Boolean);
+}
+
+const RequiredMark: React.FC = () => <span className="required-mark" aria-hidden="true">*</span>;

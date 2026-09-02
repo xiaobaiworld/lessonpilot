@@ -337,14 +337,21 @@ export class PageController {
   constructor(private makeRuntime: () => CourseRuntime) {}
 
   async navigate(videoRef: BilibiliVideoRef | string | null): Promise<void> {
+    const navigation = ++this.navigation;
     this.runtime?.stop();
     this.runtime = null;
     if (!videoRef) return;
-    this.runtime = this.makeRuntime();
-    await this.runtime.start(videoRef);
+    const runtime = this.makeRuntime();
+    this.runtime = runtime;
+    await runtime.start(videoRef);
+    // 多次快速切换时，较早的异步启动可能晚于新页面完成；不能让它
+    // 把已经过期的运行时重新留在控制器里。
+    if (navigation !== this.navigation) runtime.stop();
   }
 
   current(): CourseRuntime | null {
     return this.runtime;
   }
+
+  private navigation = 0;
 }

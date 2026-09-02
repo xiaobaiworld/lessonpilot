@@ -189,6 +189,15 @@ describe('seek', () => {
     expect(s.advance(30)).toEqual({ type: 'pause' });
     expect((s.snapshot().window as any).node.id).toBe('n1');
   });
+
+  it('回拖到提示点之后不会立即重新弹出旧提示', () => {
+    const s = session([node('n1', 30, 'notice')]);
+    s.advance(30);
+    s.close();
+    s.seek(45);
+    expect(s.advance(45)).toEqual({ type: 'none' });
+    expect(s.snapshot().window.kind).toBe('idle');
+  });
 });
 
 describe('填空判分', () => {

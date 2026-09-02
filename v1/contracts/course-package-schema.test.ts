@@ -47,6 +47,12 @@ describe('course package presentation contract', () => {
     expect(validator()(course)).toBe(true);
   });
 
+  it('accepts a lesson without interaction nodes', () => {
+    const value = structuredClone(course) as any;
+    value.lessons[0].nodes = [];
+    expect(validator()(value)).toBe(true);
+  });
+
   it('rejects continuous values outside the viewport contract', () => {
     const value = structuredClone(course) as any;
     value.lessons[0].nodes[0].presentationHints.windowSize.widthPercent = 66.1;

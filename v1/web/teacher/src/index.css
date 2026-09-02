@@ -20,6 +20,12 @@
   font-weight: 700;
 }
 
+.required-mark {
+  margin-left: 3px;
+  color: var(--danger);
+  font-weight: 800;
+}
+
 .rich-text-editor {
   overflow: hidden;
   border: 1px solid var(--line-dark);
