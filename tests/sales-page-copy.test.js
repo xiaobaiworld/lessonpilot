@@ -28,12 +28,7 @@ const visible = (() => {
 })();
 
 /** 脚本里的中文字面量：toast 这类点了才出现的文案。 */
-const runtime = (() => {
-  const script = (page.match(/<script>[\s\S]*?<\/script>/g) || []).join('\n');
-  return (script.match(/'[^']*[一-龥][^']*'/g) || []).join('\n');
-})();
-
-const allCopy = `${visible}\n${runtime}`;
+const allCopy = visible;
 
 test('身份统一为 KnownMap 开发者，不用未定义的「我们」', () => {
   // 「KnownMap 开发者」和「KnownMap 的开发者」都算：锁的是身份，不是措辞。
@@ -59,16 +54,10 @@ test('底部联系方式使用明确的微信二维码占位图', () => {
   assert.match(page, /替换为真实微信二维码/);
 });
 
-test('复制话术只是复制，不冒充已提交', () => {
-  assert.match(visible, /复制试用话术/);
-  assert.ok(!allCopy.includes('提交成功'), '复制不等于提交');
-  assert.ok(!allCopy.includes('申请已发送'));
-  // 成功和失败两条提示都要说清粘贴到哪里。
-  const toasts = runtime.match(/'[^']*复制[^']*'/g) || [];
-  assert.ok(toasts.length >= 2, '成功与失败各需一条提示');
-  for (const t of toasts) {
-    assert.match(t, /私信|微信/, `提示「${t}」没说粘贴到哪里`);
-  }
+test('销售页不再提供复制试用话术按钮', () => {
+  assert.doesNotMatch(page, /复制试用话术/);
+  assert.doesNotMatch(page, /id="copy-request"/);
+  assert.doesNotMatch(page, /requestText/);
 });
 
 test('试用承诺是可运行的真实课程，不是静态展示', () => {
