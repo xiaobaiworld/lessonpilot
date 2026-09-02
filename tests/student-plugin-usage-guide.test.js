@@ -94,6 +94,10 @@ test('关键步骤使用匿名 PNG 截图并提供替代文本', () => {
       alt: '点击加载未打包的扩展程序并选择插件文件夹'
     },
     {
+      file: 'step-select-plugin-folder.png',
+      alt: '在文件选择窗口中选中被红圈标出的 knownmapplugin 插件文件夹'
+    },
+    {
       file: 'step-pin-knownmap.png',
       alt: '在 Chrome 扩展程序列表中找到 KnownMap 并点击图钉固定到工具栏'
     },
