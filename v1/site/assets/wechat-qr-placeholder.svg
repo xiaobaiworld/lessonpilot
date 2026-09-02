@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 420" role="img" aria-labelledby="title desc">
+  <title id="title">微信二维码占位图</title>
+  <desc id="desc">这是销售页使用的微信二维码占位图，不可扫码。</desc>
+  <rect width="420" height="420" rx="22" fill="#FFFDF8"/>
+  <g fill="#16251F">
+    <path d="M42 42h112v112H42zM58 58v80h80V58zM78 78h40v40H78z"/>
+    <path d="M266 42h112v112H266zM282 58v80h80V58zM302 78h40v40h-40z"/>
+    <path d="M42 266h112v112H42zM58 282v80h80v-80zM78 302h40v40H78z"/>
+    <path d="M190 42h20v20h-20zM226 42h20v20h-20zM170 74h20v20h-20zM206 74h20v20h-20zM242 74h20v20h-20zM190 106h20v20h-20zM226 106h20v20h-20zM170 138h20v20h-20zM206 138h20v20h-20zM242 138h20v20h-20z"/>
+    <path d="M170 190h20v20h-20zM206 190h20v20h-20zM242 190h20v20h-20zM278 190h20v20h-20zM330 190h20v20h-20zM190 222h20v20h-20zM226 222h20v20h-20zM262 222h20v20h-20zM314 222h20v20h-20zM350 222h20v20h-20zM170 254h20v20h-20zM206 254h20v20h-20zM278 254h20v20h-20zM330 254h20v20h-20zM190 286h20v20h-20zM226 286h20v20h-20zM262 286h20v20h-20zM298 286h20v20h-20zM350 286h20v20h-20zM170 318h20v20h-20zM242 318h20v20h-20zM278 318h20v20h-20zM314 318h20v20h-20zM190 350h20v20h-20zM226 350h20v20h-20zM262 350h20v20h-20zM334 350h20v20h-20z"/>
+  </g>
+  <path d="M28 210h364" stroke="#D9A51E" stroke-width="12" opacity=".9"/>
+  <g transform="rotate(-9 210 210)">
+    <rect x="34" y="178" width="352" height="64" rx="12" fill="#D9A51E"/>
+    <text x="210" y="219" fill="#16251F" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="30" font-weight="700" text-anchor="middle">占位图 · 不可扫码</text>
+  </g>
+</svg>

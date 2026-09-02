@@ -52,6 +52,13 @@ test('主 CTA 是回复当前私信，且唯一', () => {
   assert.equal(primary.length, 1, '主 CTA 必须唯一，否则老师不知道该做哪个动作');
 });
 
+test('底部联系方式使用明确的微信二维码占位图', () => {
+  assert.equal(fs.existsSync('v1/site/assets/wechat-qr-placeholder.svg'), true);
+  assert.match(page, /src="assets\/wechat-qr-placeholder\.svg"/);
+  assert.match(page, /alt="微信二维码占位图（不可扫码）"/);
+  assert.match(page, /替换为真实微信二维码/);
+});
+
 test('复制话术只是复制，不冒充已提交', () => {
   assert.match(visible, /复制试用话术/);
   assert.ok(!allCopy.includes('提交成功'), '复制不等于提交');
