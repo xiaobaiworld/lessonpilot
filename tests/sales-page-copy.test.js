@@ -44,7 +44,7 @@ test('身份统一为 KnownMap 开发者，不用未定义的「我们」', () =
 });
 
 test('主 CTA 是回复当前私信，且唯一', () => {
-  assert.match(visible, /回复我，试一节真实课/);
+  assert.match(visible, /就用一节真实课，试试看/);
   // 必须写清是哪个渠道的私信，不能只说「联系我」。
   assert.match(visible, /B 站私信/);
   assert.match(visible, /微信/);
