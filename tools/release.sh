@@ -99,7 +99,7 @@ build_web() {
 
   source_dir="$(mktemp -d "${TMPDIR:-/tmp}/knownmap-source.XXXXXX")"
   mkdir -p "$output/public/assets/student-guide" "$output/public/downloads/student-plugin" "$output/public/student"
-  git -C "$ROOT_DIR" archive "$commit" -- v1 | tar -x -C "$source_dir"
+  git -C "$ROOT_DIR" archive "$commit" -- VERSION v1 | tar -x -C "$source_dir"
 
   cp "$source_dir/v1/site/index.html" "$output/public/index.html"
   cp "$source_dir/v1/site/trial-application.html" "$output/public/trial-application.html"
