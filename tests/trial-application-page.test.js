@@ -16,6 +16,7 @@ test('销售页只提供独立试用申请入口，不嵌入表单', () => {
 
 test('独立申请页包含完整字段、返回入口和本地提交模块', () => {
   assert.match(applicationPage, /<title>课程留言/);
+  assert.match(applicationPage, /<h1 id="page-title"><span class="intro-title-prefix">给 <span class="brand-letter-k">K<\/span>nown<span class="brand-letter-m">M<\/span>ap<\/span><span class="intro-title-main">留个言<\/span><\/h1>/);
   assert.match(applicationPage, /href="\/"[^>]*aria-label="返回 KnownMap 销售页"/);
   assert.match(applicationPage, /data-trial-intake-form/);
   for (const field of [

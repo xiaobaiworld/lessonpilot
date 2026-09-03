@@ -113,7 +113,7 @@
 - 多课程、多课节编辑和显式顺序；
 - 字幕导入、时间依据、节点编辑和保存冲突；
 - 真实预览握手和预览数据隔离；
-- 发布确认、课程级授权范围和授权码一次显示；授权码按 `course_id` 自动解析最新可交付版本；
+- 发布确认、课程级授权范围和所属教师可重复查看授权码；授权码按 `course_id` 自动解析最新可交付版本；
 - 教师工作台课程标题点击进入修改页；独立课程版本、“修改本版本”和“增加版本”后置；
 - 归档/终止影响说明和失败恢复。
 
@@ -148,7 +148,7 @@
 | 草稿发布 | `POST /api/v1/teacher/courses/{course_id}/releases`、发布校验、预览和幂等服务 | 只能部分复用：当前仍在同一 `course_id` 下递增 `release_number`，且 `ScriptDraft` 不被消费 | 不能只改前端；需要后端定义独立课程身份和草稿消费的原子业务操作 |
 | 已发布区域按课程版本展示 | `GET /api/v1/teacher/courses`、`GET /api/v1/teacher/courses/{course_id}/releases`、`GET /api/v1/teacher/releases/{release_id}` | 不能直接组合：课程列表只聚合每个 `course_id` 的最新发布信息，不能把每个独立课程版本作为课程卡片返回 | 需要调整列表投影/端点契约或新增版本列表业务端点，并明确 `courseId`/`releaseId` |
 | “修改本版本”与“增加版本” | `GET /api/v1/teacher/courses/{course_id}/course-file`、课程文件导入、`archive` | 不能作为正式业务组合：导出+导入会绕过版本操作事务；没有按选中版本回退草稿/保留发布版本的原子服务，也没有删除指定发布身份的端点 | 需要后端版本操作业务服务；前端不得用多个普通端点模拟这两个动作 |
-| 当前课程级生成授权码 | `POST /api/v1/teacher/access-codes`、授权码安全生成/一次显示/幂等逻辑、`latest_deliverable_release(course_id)` | 可以复用：当前 `GrantItem` 和有效资格按 `course_id` 聚合，正好满足自动解析最新可交付版本 | 不新增端点；前端只传课程级授权参数，不自行决定 `release_id` |
+| 当前课程级生成授权码 | `POST /api/v1/teacher/access-codes`、授权码安全生成/所属教师查看/幂等逻辑、`latest_deliverable_release(course_id)` | 可以复用：当前 `GrantItem` 和有效资格按 `course_id` 聚合，正好满足自动解析最新可交付版本 | 不新增端点；前端只传课程级授权参数，不自行决定 `release_id` |
 | 学生使用旧授权码升级新版本 | `POST /api/v1/student/course-updates` | 当前实现按 `course_id` 找最新可交付版本，且没有课程族/升级关系 | 本切片明确不开发；另立后续需求、端点、数据迁移和本机状态迁移设计 |
 
 #### 9.1.1 已批准并冻结的后端变更范围

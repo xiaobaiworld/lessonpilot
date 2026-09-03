@@ -85,7 +85,7 @@
       └─ 独立已发布课程版本 Course（拥有新的 course_id）
            └─ 课节 Lesson（绑一个 BVID，显式 sort_order）
                 └─ 课程包（不可变快照，学生下载的就是它）
-                     └─ 课程级授权码 AccessCode（按 course_id 绑定；只存 HMAC 摘要，明文只在创建那一次响应里）
+                     └─ 课程级授权码 AccessCode（按 course_id 绑定；只存 HMAC 摘要，明文仅向所属教师受保护地提供）
 ```
 
 **发布是原子的**：整门课的所有课节一起成为一个版本，全有或全无。半发布会让

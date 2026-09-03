@@ -285,6 +285,10 @@
 | GET | `/api/v1/teacher/courses/{course_id}/course-file` | 新建 | `FR-PORT-001`、`FR-PORT-005`；导出已保存草稿或指定发布版本 |
 | POST | `/api/v1/teacher/course-files/import/preview` | 新建 | `FR-PORT-003`、`FR-PORT-004`；只校验并返回摘要，不写入 |
 | POST | `/api/v1/teacher/course-files/import` | 新建 | `FR-PORT-003`、`FR-PORT-004`；确认后原子建立新课程草稿 |
+| GET | `/api/v1/admin/teachers/{teacher_id}/courses` | 新建 | `FR-PORT-006`；管理员选择目标教师后读取课程摘要和发布版本摘要，不返回正文 |
+| GET | `/api/v1/admin/teachers/{teacher_id}/courses/{course_id}/course-package` | 新建 | `FR-PORT-001`、`FR-PORT-005`、`FR-PORT-006`；下载 `.kmcourse` |
+| POST | `/api/v1/admin/teachers/{teacher_id}/course-packages/import/preview` | 新建 | `FR-PORT-003`、`FR-PORT-004`、`FR-PORT-006`；上传后只校验并返回摘要 |
+| POST | `/api/v1/admin/teachers/{teacher_id}/course-packages/import` | 新建 | `FR-PORT-003`、`FR-PORT-004`、`FR-PORT-006`；确认后原子建立目标教师的新课程草稿 |
 | POST | `/api/v1/teacher/lessons/{lesson_id}/preview-sessions` | 新建 | 04 第 7.3 节 `PreviewSession` |
 | POST | `/api/v1/teacher/preview-sessions/{preview_session_id}/end` | 新建 | 预览结束/过期，不产生学生数据 |
 | POST | `/api/v1/teacher/courses/{course_id}/rights-attestation` | 新建 | `D-V1-008`、04 第 10 节 |
@@ -423,17 +427,17 @@ v1 通过服务器端排障访问，不建面向页面的审计查询 API（`FR-
 `content` 只保存结构化正文，媒体块只保存 `assetId`；B 站播放视频只出现在课节 `videoRef`。教师端预览
 使用教师资源接口把 `assetId` 临时解析为媒体地址，不能把该地址回写为课程包真源。
 
-### 5.2 禁止出现在包中的字段
+### 5.2 学生交付课程包禁止出现在包中的字段
 
-课程包不得包含：密码、会话令牌、授权码原文或摘要、教师私有账号字段、完整字幕文件、学生回答、学生学习
+学生交付课程包不得包含：密码、会话令牌、授权码原文或摘要、教师私有账号字段、完整字幕文件、学生回答、学生学习
 状态、服务端数据库主键以外的内部调试字段、任意 HTML/脚本执行内容和第三方视频文件。
 
 包中允许包含教师确认纳入发布的必要教学语义和节点内容；第三方视频仍由受支持宿主页面播放，插件只保存
 精确视频引用。
 
 字幕原文经教师保存草稿动作进入服务端草稿和发布快照（`DATA-CONTENT-005`、`D-V1-014`），并可随
-`TeacherCourseFile` 在教师之间流转；这两处都不是课程包，本节"禁止完整字幕文件"的边界不受影响，
-课程包仍不携带字幕。
+`TeacherCourseFile` 在教师之间流转；教师课程文件不属于学生交付课程包，本节"禁止完整字幕文件"的边界不受影响，
+学生交付课程包仍不携带字幕；教师 `.kmcourse` 是独立的课程迁移格式，允许携带已保存字幕和节点辅助媒体。
 
 ### 5.3 插件校验最低顺序
 
@@ -507,16 +511,15 @@ SRT/VTT 是教师浏览器内的解析输入格式；服务端不提供独立字
 - 严格解析真实时间戳，保留毫秒精度和句子顺序；
 - 对无效、重叠或零时长 cue 返回可解释问题，不静默丢失；
 - 未保存时不把原始字幕文件、HTML 或脚本发送到网络；保存请求中的字幕原文仍按封闭字段和大小规则校验；
-- 保存成功后字幕原文进入草稿/发布聚合，但不进入课程包或插件。
+- 保存成功后字幕原文进入草稿/发布聚合，并可进入教师 `.kmcourse`；不进入学生课程包或插件。
 
 ### 7.2 课程导入/导出
 
-`TeacherCourseFile` 是版本化、封闭字段、自描述的 JSON 文件。导出包含课程结构、课节、视频引用、节点教学
-语义、教师已保存的字幕原文（`DATA-PORT-003`、`D-V1-014`）和来源版本提示；不包含 B 站播放视频或节点媒体文件本体、凭证、会话、
-教师页面状态或学生数据。这份文件只在教师之间流转，不发给学生或插件，携带字幕不改变第 5.2 节课程包
-禁止字段清单。
+`TeacherCourseFile` 的 v2 载体为 `.kmcourse` ZIP。导出包含课程结构、课节、B 站视频引用、节点教学语义、教师已保存的字幕原文、节点辅助媒体
+二进制及其校验清单（`DATA-PORT-003`、`D-V1-014`）和来源版本提示；不包含 B 站主视频本体、凭证、会话、教师页面状态或学生数据。
+这份文件只在教师工作区迁移和管理员受控操作之间流转，不发给学生或插件。格式细节以 [`12-course-package-format.md`](12-course-package-format.md) 为准。
 
-导入流程必须是“读取 staging → 解析 → Schema/大小/内容安全校验 → 预览 → 教师确认 → 创建新课程/草稿”，
+导入流程必须是“读取 staging → 解析 → ZIP/Schema/大小/内容/资源完整性校验 → 预览 → 有权限操作者确认 → 创建新课程/草稿”，
 不能覆盖现有对象、改变线上发布、生成授权码或执行文件中的代码。来源 ID 仅作追溯提示，不能直接成为目标主键。
 
 ## 8. 哔哩哔哩宿主适配契约

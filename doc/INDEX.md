@@ -49,6 +49,7 @@
 
 | 文档 | 职责 |
 | --- | --- |
+| [`future-feature-ideas.md`](future-feature-ideas.md) | 未来功能想法池；记录背景、范围和待设计问题，不作为当前开发真源 |
 | [`插件文件资源管理.md`](插件文件资源管理.md) | 学生插件本机资源：10MB 配额边界、瘦 ZIP、IndexedDB、弹窗与 B 站学习窗共用一份库；文内第 1 节起为内容索引，第 12 节为开发任务索引 |
 
 ### v1 设计文件
@@ -65,6 +66,7 @@
 | 08 | [`design/v1/08-security-operations-design.md`](design/v1/08-security-operations-design.md) | 权限、秘密、输入、隐私、发布、备份和恢复边界 |
 | 09 | [`design/v1/09-migration-cutover-design.md`](design/v1/09-migration-cutover-design.md) | 旧数据处理、干净初始化、切换、回滚和旧入口退役 |
 | 11 | [`design/v1/11-visual-design-system.md`](design/v1/11-visual-design-system.md) | 视觉真源：token 系统、四端 UI 收敛方案与防漂移门禁 |
+| 12 | [`design/v1/12-course-package-format.md`](design/v1/12-course-package-format.md) | `.kmcourse` 格式、节点媒体边界、管理员导入导出和教师能力策略 |
 
 ### v1 已接受决策
 

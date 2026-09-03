@@ -339,6 +339,31 @@
   font-size: 19px;
 }
 
+.access-code-rule-notes {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+}
+
+.access-code-rule-note {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 5px 12px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink-soft);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.access-code-rule-note.is-future {
+  border-color: var(--line);
+  background: var(--paper);
+  color: var(--ink-soft);
+}
+
 .muted-note {
   color: var(--ink-soft);
   font-size: 11px;
@@ -372,6 +397,98 @@
 .access-code-lesson-list {
   display: grid;
   gap: 8px;
+}
+
+.access-code-scope-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.access-code-add-course {
+  min-height: 34px;
+  padding: 0 12px;
+  border-color: var(--green);
+  color: var(--green-deep);
+  font-size: 12px;
+}
+
+.access-code-selected-courses {
+  display: grid;
+  gap: 8px;
+}
+
+.access-code-course-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  background: var(--paper-bright);
+}
+
+.access-code-course-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 3px;
+}
+
+.access-code-course-title strong {
+  font-size: 13px;
+}
+
+.access-code-course-title span,
+.access-code-scope-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 21px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--green-pale);
+  color: var(--green);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.access-code-course-card small {
+  color: var(--ink-soft);
+  font-size: 11px;
+}
+
+.access-code-course-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  white-space: nowrap;
+}
+
+.access-code-course-actions .text-button {
+  font-size: 11px;
+}
+
+.access-code-remove-course {
+  color: var(--ink-soft);
+}
+
+.access-code-empty-selection {
+  padding: 22px;
+  border: 1px dashed var(--line-dark);
+  color: var(--ink-soft);
+  text-align: center;
+  font-size: 12px;
+}
+
+.access-code-scope-note,
+.access-code-share-note {
+  margin: 10px 0 0;
+  color: var(--ink-soft);
+  font-size: 11px;
+  line-height: 1.6;
 }
 
 .access-code-lesson-list {
@@ -465,6 +582,11 @@
   flex: none;
 }
 
+.access-code-share-note {
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
 .access-code-toolbar {
   display: flex;
   align-items: center;
@@ -554,6 +676,29 @@
   white-space: nowrap;
 }
 
+.access-code-code-cell {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.access-code-copy-button {
+  padding: 4px 7px;
+  border: 1px solid var(--line-dark);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--green);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.access-code-copy-button:hover {
+  border-color: var(--green);
+  background: var(--green-pale);
+}
+
 .access-code-status {
   font-size: 11px;
   font-weight: 800;
@@ -595,8 +740,13 @@
 
 .access-code-row-actions {
   display: flex;
-  gap: 2px;
+  gap: 3px;
   white-space: nowrap;
+}
+
+.access-code-share-action {
+  color: var(--green-deep) !important;
+  font-weight: 800 !important;
 }
 
 .access-code-table tbody tr {
@@ -652,6 +802,234 @@
   min-height: 40px;
 }
 
+.access-code-detail-share {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 20px;
+}
+
+.access-code-detail-share .light-button {
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 11px;
+}
+
+.access-code-detail-share small {
+  color: var(--ink-soft);
+  font-size: 11px;
+}
+
+.access-code-course-picker,
+.access-code-share-panel {
+  width: min(640px, calc(100vw - 36px));
+  padding: 22px;
+  border: 1px solid var(--line);
+  background: var(--paper-bright);
+  box-shadow: 0 24px 70px rgba(22, 37, 31, .2);
+}
+
+.access-code-dialog-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.access-code-dialog-head h2 {
+  margin: 4px 0 0;
+  font-size: 20px;
+}
+
+.access-code-course-picker > input,
+.access-code-lesson-tools input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid var(--line-dark);
+  background: var(--paper-bright);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+}
+
+.access-code-picker-list {
+  display: grid;
+  gap: 8px;
+  max-height: 360px;
+  margin: 14px 0;
+  overflow-y: auto;
+}
+
+.access-code-picker-option {
+  display: grid;
+  grid-template-columns: 17px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  background: var(--paper-bright);
+  cursor: pointer;
+}
+
+.access-code-picker-option:has(input:checked),
+.access-code-scope-options label.is-selected {
+  border-color: var(--green);
+  background: var(--green-pale);
+}
+
+.access-code-picker-option input,
+.access-code-scope-options input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--green);
+}
+
+.access-code-picker-option strong,
+.access-code-picker-option small {
+  display: block;
+}
+
+.access-code-picker-option strong {
+  font-size: 12px;
+}
+
+.access-code-picker-option small {
+  margin-top: 2px;
+  color: var(--ink-soft);
+  font-size: 11px;
+}
+
+.access-code-scope-backdrop {
+  justify-content: end;
+  place-items: stretch;
+  padding: 0;
+}
+
+.access-code-scope-editor {
+  display: flex;
+  flex-direction: column;
+  width: min(560px, 100vw);
+  height: 100%;
+  padding: 24px;
+  background: var(--paper-bright);
+  box-shadow: -18px 0 50px rgba(22, 37, 31, .16);
+}
+
+.access-code-scope-options {
+  display: grid;
+  gap: 8px;
+  margin: 4px 0 14px;
+}
+
+.access-code-scope-options label {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  align-items: start;
+  gap: 9px;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  cursor: pointer;
+}
+
+.access-code-scope-options strong,
+.access-code-scope-options small {
+  display: block;
+}
+
+.access-code-scope-options strong {
+  font-size: 12px;
+}
+
+.access-code-scope-options small {
+  margin-top: 2px;
+  color: var(--ink-soft);
+  font-size: 11px;
+}
+
+.access-code-lesson-tools {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.access-code-lesson-tools button {
+  border: 0;
+  background: transparent;
+  color: var(--green);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.access-code-scope-lessons {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 3px;
+}
+
+.access-code-scope-lessons .check-row {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.access-code-scope-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.access-code-share-intro {
+  margin: 0 0 14px;
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.access-code-share-text {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 132px;
+  padding: 13px;
+  border: 1px solid var(--line-dark);
+  border-radius: 5px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.75;
+  resize: vertical;
+}
+
+.access-code-copy-status {
+  margin: 9px 0 0;
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.access-code-copy-status.is-copied {
+  color: var(--green);
+}
+
+.access-code-copy-status.is-error {
+  color: var(--danger);
+}
+
+.access-code-share-footnote {
+  margin: 8px 0 0;
+  color: var(--ink-soft);
+  font-size: 11px;
+}
+
 .access-code-events {
   margin-top: 22px;
   padding-top: 15px;
@@ -697,7 +1075,8 @@
   }
 
   .access-code-form-grid,
-  .access-code-recipient-editor {
+  .access-code-recipient-editor,
+  .access-code-course-card {
     grid-template-columns: 1fr;
   }
 
@@ -720,6 +1099,24 @@
 
   .access-code-detail-grid {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .access-code-scope-heading,
+  .access-code-course-actions,
+  .access-code-detail-share,
+  .access-code-scope-footer,
+  .access-code-rule-notes {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .access-code-rule-notes {
+    justify-items: start;
+  }
+
+  .access-code-add-course,
+  .access-code-detail-share .light-button {
+    width: 100%;
   }
 }
 

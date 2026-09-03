@@ -700,6 +700,81 @@ class AuthoringReleaseApplicationService:
             self.session.rollback()
             raise
 
+    def import_course_package(
+        self,
+        teacher_id: str,
+        package: bytes,
+        courses: object,
+        asset_store: AssetStorage,
+    ) -> Course:
+        """Import a verified v2 course package as a new draft aggregate."""
+        from app.modules.authoring_release.course_package import (
+            parse_course_package,
+            rewrite_asset_refs,
+        )
+
+        parsed = parse_course_package(package, max_asset_bytes=asset_store.max_bytes)
+        course_data = parsed.manifest["course"]
+        asset_map: dict[str, str] = {}
+        written_assets: list[str] = []
+        try:
+            for asset in parsed.manifest["assets"]:
+                metadata = {
+                    key: asset[key]
+                    for key in {
+                        "width",
+                        "height",
+                        "durationSeconds",
+                        "alt",
+                    }
+                    if key in asset
+                }
+                stored = asset_store.save_import(
+                    teacher_id,
+                    parsed.asset_bytes[asset["assetId"]],
+                    asset["mimeType"],
+                    asset["sourceType"],
+                    metadata,
+                )
+                asset_map[asset["assetId"]] = stored["assetId"]
+                written_assets.append(stored["assetId"])
+
+            course, lessons = courses.create_import_shell(
+                teacher_id,
+                course_data["title"],
+                course_data["description"],
+                course_data["lessons"],
+            )
+            for lesson, lesson_data in zip(
+                lessons,
+                sorted(course_data["lessons"], key=lambda item: item["sequence"]),
+                strict=True,
+            ):
+                nodes = rewrite_asset_refs(lesson_data["nodes"], asset_map)
+                assets = [
+                    {**asset, "assetId": asset_map[asset["assetId"]]}
+                    for asset in lesson_data["assets"]
+                ]
+                self.save_draft(
+                    teacher_id,
+                    lesson.id,
+                    1,
+                    {
+                        "nodes": nodes,
+                        "assets": assets,
+                        "subtitle": lesson_data["subtitle"],
+                    },
+                    None,
+                    commit=False,
+                )
+            self.session.commit()
+            return course
+        except Exception:
+            self.session.rollback()
+            for asset_id in written_assets:
+                asset_store.discard(teacher_id, asset_id)
+            raise
+
     def start_preview(
         self, teacher_id: str, course_id: str, lesson_id: str, plugin_version: str | None
     ) -> PreviewSession:

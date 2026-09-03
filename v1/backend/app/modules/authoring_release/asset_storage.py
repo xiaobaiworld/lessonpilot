@@ -88,7 +88,14 @@ class AssetStorage:
             raise AssetStorageError("ASSET_NOT_FOUND") from None
         return self.root / f"{asset_id}.bin", self.root / f"{asset_id}.json"
 
-    def _write(self, teacher_id: str, data: bytes, mime_type: str, source_type: str) -> dict:
+    def _write(
+        self,
+        teacher_id: str,
+        data: bytes,
+        mime_type: str,
+        source_type: str,
+        metadata: dict | None = None,
+    ) -> dict:
         if len(data) > self.max_bytes:
             raise AssetStorageError("ASSET_TOO_LARGE")
         kind, normalized_mime = _kind_for_mime(mime_type)
@@ -102,6 +109,8 @@ class AssetStorage:
             "sha256": hashlib.sha256(data).hexdigest(),
             "sourceType": source_type,
         }
+        if metadata:
+            record.update(metadata)
         temp_file = None
         temp_metadata = None
         try:
@@ -133,6 +142,30 @@ class AssetStorage:
         kind, normalized = _kind_for_mime(mime_type, filename)
         del kind
         return self._write(teacher_id, data, normalized, "uploaded")
+
+    def save_import(
+        self,
+        teacher_id: str,
+        data: bytes,
+        mime_type: str,
+        source_type: str,
+        metadata: dict | None = None,
+    ) -> dict:
+        """Persist a verified course-package asset under a new identity."""
+        if source_type not in {"uploaded", "licensed"}:
+            raise AssetStorageError("ASSET_FILE_TYPE_INVALID")
+        _, normalized = _kind_for_mime(mime_type)
+        return self._write(teacher_id, data, normalized, source_type, metadata)
+
+    def discard(self, teacher_id: str, asset_id: str) -> None:
+        """Best-effort cleanup for an asset written by a failed aggregate import."""
+        try:
+            self.get(teacher_id, asset_id)
+            file_path, metadata_path = self._paths(asset_id)
+            file_path.unlink(missing_ok=True)
+            metadata_path.unlink(missing_ok=True)
+        except (AssetStorageError, OSError):
+            return
 
     def import_url(self, teacher_id: str, url: str) -> dict:
         _validate_source_url(url)

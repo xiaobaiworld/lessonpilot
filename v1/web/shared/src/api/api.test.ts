@@ -54,6 +54,23 @@ describe('APIClient', () => {
     await expect(new APIClient('http://x').delete('/a')).resolves.toBeUndefined();
   });
 
+  it('支持课程包二进制下载和 multipart 二进制响应', async () => {
+    const f = vi
+      .fn()
+      .mockResolvedValueOnce(new Response('package-bytes', { status: 200 }))
+      .mockResolvedValueOnce(new Response('package-bytes', { status: 200 }));
+    vi.stubGlobal('fetch', f);
+
+    const client = new APIClient('http://x');
+    const downloaded = await client.getBlob('/package');
+    expect(await downloaded.text()).toBe('package-bytes');
+    const form = new FormData();
+    form.append('file', new Blob(['package-bytes']), 'course.kmcourse');
+    const imported = await client.postFormBlob('/package/import', form);
+    expect(await imported.text()).toBe('package-bytes');
+    expect(f.mock.calls[1][1].body).toBe(form);
+  });
+
   it('超时归为 NetworkError 且文案可读', async () => {
     vi.stubGlobal(
       'fetch',
