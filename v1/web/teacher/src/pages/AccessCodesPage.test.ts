@@ -88,6 +88,7 @@ describe('AccessCodesPage', () => {
     expect(container.querySelector('.access-code-course-list')).toBeNull();
     expect(container.textContent).toContain('整门课程');
     expect(container.textContent).toContain('指定范围');
+    expect(container.querySelector('.access-code-add-course')?.textContent).toContain('添加授权课程');
   });
 
   it('生成后可按单条授权码复制课程授权和学生指南文案', async () => {
@@ -126,6 +127,8 @@ describe('AccessCodesPage', () => {
     const shareButton = Array.from(container.querySelectorAll('button')).find((button) =>
       button.textContent?.includes('授权码 + 指南'),
     );
+    expect(shareButton?.classList.contains('access-code-copy-button')).toBe(true);
+    expect(container.textContent).toContain('复制课程名称、授权码和学生指南网址');
     await act(async () => {
       shareButton?.click();
       await Promise.resolve();

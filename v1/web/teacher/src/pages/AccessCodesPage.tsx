@@ -503,7 +503,7 @@ export const AccessCodesPage: React.FC<Props> = ({
                   disabled={busy || availableCourses.length === 0}
                   onClick={openCoursePicker}
                 >
-                  ＋ 添加课程
+                  添加授权课程
                 </button>
               </div>
               <div className="access-code-selected-courses">
@@ -763,18 +763,21 @@ export const AccessCodesPage: React.FC<Props> = ({
                     <td data-label="最近领取">{formatDateTime(code.last_redeemed_at)}</td>
                     <td data-label="操作">
                       <div className="access-code-row-actions">
-                        <button
-                          className="access-code-share-action"
-                          type="button"
-                          disabled={busy}
-                          aria-label={`复制 ${code.access_code} 的授权码和学生插件使用指南`}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            openShare(code);
-                          }}
-                        >
-                          授权码 + 指南
-                        </button>
+                        <div className="access-code-share-action-wrap">
+                          <button
+                            className="access-code-copy-button access-code-share-action"
+                            type="button"
+                            disabled={busy}
+                            aria-label={`复制 ${code.access_code} 的授权码和学生插件使用指南`}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              openShare(code);
+                            }}
+                          >
+                            授权码 + 指南
+                          </button>
+                          <small className="access-code-share-action-note">复制课程名称、授权码和学生指南网址</small>
+                        </div>
                         {code.status === 'active' && (
                           <>
                             <button
