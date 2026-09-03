@@ -151,14 +151,16 @@ export const CoursePage: React.FC<Props> = ({
               <button className="light-button" type="button" onClick={exportCourse} disabled={locked}>
                 导出课程文件
               </button>
-              <button
-                className="light-button"
-                type="button"
-                onClick={makeCode}
-                disabled={locked || lessons.length === 0}
-              >
-                生成授权码
-              </button>
+              {course.status !== 'draft' && (
+                <button
+                  className="light-button"
+                  type="button"
+                  onClick={makeCode}
+                  disabled={locked || lessons.length === 0}
+                >
+                  生成授权码
+                </button>
+              )}
               <button
                 className="dark-button"
                 type="button"
