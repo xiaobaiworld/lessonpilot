@@ -444,7 +444,7 @@ v1 通过服务器端排障访问，不建面向页面的审计查询 API（`FR-
 3. 课节顺序、课节归属、节点唯一性和节点类型校验；
 4. 视频引用格式和允许平台校验；
 5. 包摘要/完整性校验；
-6. 安装摘要生成和学生确认；
+6. 课程包校验和自动安装；
 7. 原子写入本机课程库。
 
 任一步失败都不写入当前课程，不覆盖其它课程，也不把错误响应当作空课程安装。
@@ -488,7 +488,7 @@ popup、content script 和 background 之间统一使用：
 | `course.install` | popup | background | 校验并原子安装结果 |
 | `course.list` | popup/content | background | 本机课程摘要 |
 | `course.update.check` | popup | background | 当前资格和版本差异 |
-| `course.update.apply` | popup | background | 学生确认后的原子更新 |
+| `course.update.apply` | popup | background | 学生主动发起后的原子更新 |
 | `learning.load` | content | background | 当前会话锁定的课节/节点 |
 | `learning.save` | content | background | 本机学习状态写入结果 |
 | `preview.start` | teacher preview | background | 绑定的临时预览会话 |
@@ -576,7 +576,7 @@ SRT/VTT 是教师浏览器内的解析输入格式；服务端不提供独立字
 | --- | --- | --- |
 | `POST /api/v1/public/course-download` 只收 `access_code` | 4.3 兑换 API | 保留兼容适配期；新增本机标识、幂等和正式兑换关系 |
 | 响应顶层只有 `courses` | 4.1/4.3 结果信封 | 迁移为版本化信封，课程包增加发布身份、范围和摘要 |
-| 插件收到后立即写 `studentCourseStore` | 5.3、6.2 | 增加独立校验、学生确认、临时区和原子提交 |
+| 插件收到后立即写 `studentCourseStore` | 5.3、6.2 | 增加独立校验、临时区和自动安装提交 |
 | 后端按课节 `PublishedScript` 组装 | 5.1 | 改由 `CourseRelease + ReleaseLessonSnapshot` 投影，不生成混合发布 |
 | popup/content 可能旁路旧消息 | 6.1 | 统一由 background 处理，未知/空响应安全失败 |
 | 旧预览桥字段 | `preview.start/end` | 仅在受信任握手和临时会话内兼容，禁止产生学生数据 |
@@ -605,7 +605,7 @@ SRT/VTT 是教师浏览器内的解析输入格式；服务端不提供独立字
 | `SRC-004`、`SRC-025` | 共享契约、双端校验、超时和失败不假成功经验 | 旧网页—本机桥作为生产主路径 |
 | `SRC-028`、`SRC-031` | 当前 API、release JSON 和安全禁入事实 | 当前字段直接成为 v1 外部契约 |
 | `SRC-033`、`SRC-063` | ZIP、SHA-256、固定提交和回滚证据 | 旧发布目录替代课程级发布包 |
-| `SRC-034`、`SRC-049` | 课程校验、一次显示授权码、查询脱敏和失败保护 | 单课程优先级、静默安装、旧两类授权码 |
+| `SRC-034`、`SRC-049` | 课程校验、授权码查询脱敏、所属教师可重新查看完整码和失败保护 | 单课程优先级、旧安装流程、旧两类授权码 |
 | `SRC-056`、`SRC-065`、`SRC-071` | 插件消息、课程包、多课程本机库和人工验证经验 | 未执行的公网/真实 Chrome 结论 |
 
 完整来源去向以 [`02-legacy-document-register.md`](02-legacy-document-register.md) 为准。
@@ -615,7 +615,7 @@ SRT/VTT 是教师浏览器内的解析输入格式；服务端不提供独立字
 本文件通过人工审核前，至少应确认：
 
 1. HTTP、课程包、插件消息、教师文件、宿主适配和本地公开表单分别有唯一责任方；
-2. 首次兑换、免输码更新、学生确认安装和失败恢复的字段边界可直接进入 Schema/OpenAPI；
+2. 首次兑换、免输码更新、自动安装和失败恢复的字段边界可直接进入 Schema/OpenAPI；
 3. 原始授权码、本机证明、课程正文、学生数据和教师私有数据不会通过接口或日志泄露；
 4. 版本兼容、未知字段、未知版本、幂等、超时和旧响应处理均有明确行为；
 5. 当前代码的兼容适配点与必须重写的旧行为已经区分；
@@ -624,4 +624,4 @@ SRT/VTT 是教师浏览器内的解析输入格式；服务端不提供独立字
    且 `node tools/endpoint-check.mjs` 无「清单外端点」。
 
 通过后，下一份文档为 [`07-product-interaction-state.md`](07-product-interaction-state.md)，具体冻结页面职责、
-学生兑换/安装确认、教师工作流、学习窗口和交互状态恢复。
+学生兑换/自动安装、教师工作流、学习窗口和交互状态恢复。

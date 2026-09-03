@@ -113,7 +113,7 @@ export const CoursePage: React.FC<Props> = ({
     ? [...course.lessons].sort((a, b) => a.sort_order - b.sort_order)
     : [];
 
-  // 授权码还在屏上时不再发下一个：它不可再次获取，覆盖掉就丢了
+  // 授权码弹窗打开时暂不重复提交，关闭后可以继续生成；已生成的完整码可在管理页查看
   const locked = busy || accessCode !== null;
 
   return (
