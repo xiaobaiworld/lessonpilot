@@ -40,6 +40,7 @@ test('本机构建静态产物，服务器按 lockfile 复用 venv', () => {
   assert.match(source, /npm ci/);
   assert.match(source, /npm run build/);
   assert.match(source, /KNOWNMAP_TARGET=production/);
+  assert.match(source, /archive \"\$commit\" -- VERSION v1/);
   assert.match(source, /venv\.lock\.sha256/);
   assert.match(source, /sync --frozen --no-dev/);
   assert.match(source, /ln -sfn "\$shared_venv"/);
