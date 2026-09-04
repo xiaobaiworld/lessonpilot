@@ -1,0 +1,188 @@
+{
+  "schemaVersion": 1,
+  "productVersion": "0.2.0",
+  "releaseId": "20260904T034013Z-2669e036ec97",
+  "environment": "production",
+  "site": "https://knownmap.com",
+  "repository": "xiaobaiworld/lessonpilot",
+  "gitRemote": "https://github.com/xiaobaiworld/lessonpilot.git",
+  "gitCommit": "2669e036ec972d6c3645a935e03c1e4eab0919f1",
+  "gitShortCommit": "2669e036ec97",
+  "gitRemoteBranch": "origin/codex/release-20260903",
+  "gitCommitSubject": "fix: 恢复销售页真实微信二维码",
+  "gitCommitTime": "2026-09-04T11:39:57+08:00",
+  "gitTag": "web-prod/20260904T034013Z-2669e036ec97",
+  "publishProfile": "v1-apps",
+  "status": "verified",
+  "builtAt": "2026-09-04T03:40:19Z",
+  "deployedAt": "2026-09-04T03:40:44Z",
+  "previousReleaseId": null,
+  "files": [
+    {
+      "path": "admin/assets/index-CCCkMe8x.css",
+      "sha256": "d6a3f6cc58c820fc8e5f7edf295037698c95938e6b3388ba23b9c2d0765c5242",
+      "bytes": 85322
+    },
+    {
+      "path": "admin/assets/index-CniHXHJU.js",
+      "sha256": "3fb3d49c5e3a7d5193f6020e387d75172c2e04b38420d5b609dd2a90ccfb883c",
+      "bytes": 162321
+    },
+    {
+      "path": "admin/assets/knownmap-square-BpC63hi0.svg",
+      "sha256": "a1af715600631d9c6b27fd1b29de5525c41369692dcce4670786278114441725",
+      "bytes": 932
+    },
+    {
+      "path": "admin/index.html",
+      "sha256": "b5583a5037f4796a2b137e3d33436dc6f5c64784f63c3fdea8cd5edab0238e8d",
+      "bytes": 498
+    },
+    {
+      "path": "assets/knownmap-icon.png",
+      "sha256": "8acae4dc406d44f31ed7b5a329c2d17a6e6d799197c51fdc4f8c2e806829d0b3",
+      "bytes": 3440
+    },
+    {
+      "path": "assets/student-guide/step-download-and-unzip.png",
+      "sha256": "1e2614ee545c6eaed5aa7ccee058a1dc190f6f259ef1efadbd7419554de8e4af",
+      "bytes": 43449
+    },
+    {
+      "path": "assets/student-guide/step-load-unpacked.png",
+      "sha256": "0d2cb013ab065b1c979bdeb2fb0b991042d53c870d9074961d7597aea5ccfe97",
+      "bytes": 58967
+    },
+    {
+      "path": "assets/student-guide/step-open-extensions.png",
+      "sha256": "5d36c147f8ec74bb110e31d26efd324541c9e8a562d5d3a9683bdf63099e50a9",
+      "bytes": 57623
+    },
+    {
+      "path": "assets/student-guide/step-pin-knownmap.png",
+      "sha256": "1d4dd064d9a55547fdb421ddb458649ae793a834391ae42ebb633d1cfbb902e6",
+      "bytes": 58302
+    },
+    {
+      "path": "assets/student-guide/step-plugin-home.png",
+      "sha256": "4261dbd3f72fb0866d52000ac770ba90d3f541be353451ed78530becce5e565d",
+      "bytes": 246184
+    },
+    {
+      "path": "assets/student-guide/step-select-plugin-folder.png",
+      "sha256": "fea4c8503ae96fc768511feed79891884013aa88011035603bf59f3f69130bc3",
+      "bytes": 71950
+    },
+    {
+      "path": "assets/trial-intake-background-v1.png",
+      "sha256": "d04c930c5670e45a913a8765a869bef1e87ad9d6423d820bee63c694ecdd8a0e",
+      "bytes": 2112580
+    },
+    {
+      "path": "assets/wechat-qr.jpg",
+      "sha256": "b1378cf02776da11eac9c4ad87cbf67acc2c8a0e571bd38a9aebda5a942de75e",
+      "bytes": 162640
+    },
+    {
+      "path": "demo-captions.js",
+      "sha256": "ca9af8b13bae00638b26a1dbca72d1dd58bb9c1c688f10f8d85556979e90685d",
+      "bytes": 12149
+    },
+    {
+      "path": "downloads/student-plugin/knownmap-v1.zip",
+      "sha256": "212f4bc7c38e7f77a08d908c9a436c6389ec42085b91af0d58a3198caca7687a",
+      "bytes": 314415
+    },
+    {
+      "path": "downloads/student-plugin/knownmapplugin.zip",
+      "sha256": "212f4bc7c38e7f77a08d908c9a436c6389ec42085b91af0d58a3198caca7687a",
+      "bytes": 314415
+    },
+    {
+      "path": "index.html",
+      "sha256": "fc67f380cfadb87435c07d58eb96126ae3ec3b4e81b32c9c27baf78cb1fbfb51",
+      "bytes": 48757
+    },
+    {
+      "path": "link.html",
+      "sha256": "78377d353de427b3a7ba54995e99b377b67a3e217af3e3020568996171ceff03",
+      "bytes": 5096
+    },
+    {
+      "path": "robots.txt",
+      "sha256": "331ea9090db0c9f6f597bd9840fd5b171830f6e0b3ba1cb24dfa91f0c95aedc1",
+      "bytes": 26
+    },
+    {
+      "path": "student-guide.html",
+      "sha256": "e1a7882aa653f98fa30e1cc9c86869e66c3a639033aa5ec9b80b685fce9a2546",
+      "bytes": 448
+    },
+    {
+      "path": "student/guide.html",
+      "sha256": "f86c66e91ef6f20145d43142123508f7ddb232966f60e10be9859486783eb932",
+      "bytes": 29115
+    },
+    {
+      "path": "subtitle-context.js",
+      "sha256": "a8d210826727de919976a4ac8cac78f90b7a1e8acf7d5d6b3ac6d02ff4d2e1bd",
+      "bytes": 6996
+    },
+    {
+      "path": "teacher/assets/AccessCodesPage-BAwXkk7c.js",
+      "sha256": "10cd7c27d21b356c95729d19840a223909d2813c95f04109322dbd2c0210bab1",
+      "bytes": 24197
+    },
+    {
+      "path": "teacher/assets/CoursePage-7GbUNW_F.js",
+      "sha256": "f5795b1bda067299fdd69ed5bc6922b706f41b706d1b47d62949e1eac4c9b797",
+      "bytes": 6342
+    },
+    {
+      "path": "teacher/assets/CoursesPage-CxUJVlvC.js",
+      "sha256": "d931b7482c05aee8302e422e874629a192b88ddc521260851850d623d4fa1bf0",
+      "bytes": 11467
+    },
+    {
+      "path": "teacher/assets/LessonPage-Cj_4Ns1R.js",
+      "sha256": "35e5f405bf404f1578e0eaa6ba2ac93a634d8f8a1f10fcae7383b69f69f9bca1",
+      "bytes": 60500
+    },
+    {
+      "path": "teacher/assets/index-BbBcMw8o.js",
+      "sha256": "2b9bcaf8112aefc99bb554675cf5917dbcd3769eb61f47db401c2a30144b5e3f",
+      "bytes": 158036
+    },
+    {
+      "path": "teacher/assets/index-DRVCAWaP.css",
+      "sha256": "99699ef118436c80dcc018be1d65445c4ffcf1e7e7e47e51b1a252d65e67462e",
+      "bytes": 112136
+    },
+    {
+      "path": "teacher/assets/knownmap-square-BpC63hi0.svg",
+      "sha256": "a1af715600631d9c6b27fd1b29de5525c41369692dcce4670786278114441725",
+      "bytes": 932
+    },
+    {
+      "path": "teacher/index.html",
+      "sha256": "c004305fb8592a94ff62ab529ca99d6825e99b3ebea80bd14a02c639569c6600",
+      "bytes": 509
+    },
+    {
+      "path": "tokens.css",
+      "sha256": "0050f0f5fabfdfce97b36a8a17f5a9ba032b0c14027fb6b8da6fd8f538fa98a8",
+      "bytes": 2375
+    },
+    {
+      "path": "trial-application.html",
+      "sha256": "28add875b14944240ff505dfdb422f40be4342a3873c171a32307fbb256f05d0",
+      "bytes": 15161
+    },
+    {
+      "path": "trial-intake.js",
+      "sha256": "979cacdcf7d5f5c548b93eccfec5197410e603b0ac29478ec3865f8f00cd5139",
+      "bytes": 4895
+    }
+  ],
+  "verifiedAt": "2026-09-04T03:40:44Z"
+}
