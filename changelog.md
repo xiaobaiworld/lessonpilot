@@ -4,6 +4,13 @@ Only record verified changes.
 
 ## [Unreleased]
 
+### 修复高危依赖漏洞 — 2026-09-04
+
+- 将根项目和 v1 工作区间接依赖的 `fast-uri` 从 `3.1.5`/`3.1.6` 升级至已修复的 `3.1.7`。
+- 仅更新两个锁文件，未改变业务代码或其它依赖版本。
+
+验证：根项目生产依赖审计 0 漏洞；根测试 147 项、v1 测试 360 项通过。
+
 ### 生成教师访谈手册 Word 交付版 — 2026-09-03
 
 - 基于 `teacher-customer-interview-playbook.md` 生成带真实 Word 目录字段的 `.docx` 交付版。
