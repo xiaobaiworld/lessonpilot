@@ -49,11 +49,13 @@ test('完整课程示例说明视频如何变成可互动课堂', () => {
   assert.ok(!visible.includes('八个节点分布在这节课的关键讲解处'), '旧的节点列表式说明已被更清晰的价值表达取代');
 });
 
-test('底部联系方式使用明确的微信二维码占位图', () => {
-  assert.equal(fs.existsSync('v1/site/assets/wechat-qr-placeholder.svg'), true);
-  assert.match(page, /src="assets\/wechat-qr-placeholder\.svg"/);
-  assert.match(page, /alt="微信二维码占位图（不可扫码）"/);
-  assert.match(page, /替换为真实微信二维码/);
+test('底部联系方式使用真实的微信二维码', () => {
+  assert.equal(fs.existsSync('v1/site/assets/wechat-qr.jpg'), true);
+  assert.match(page, /src="assets\/wechat-qr\.jpg"/);
+  assert.match(page, /alt="知图互动课堂微信二维码（扫码添加我为好友）"/);
+  assert.match(page, /扫码添加我为好友/);
+  assert.doesNotMatch(page, /wechat-qr-placeholder/);
+  assert.doesNotMatch(page, /占位图|不可扫码|替换为真实微信二维码/);
 });
 
 test('联系方式标题使用自然的邀请语气', () => {
