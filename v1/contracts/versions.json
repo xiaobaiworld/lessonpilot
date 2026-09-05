@@ -60,9 +60,9 @@
   },
   "builds": {
     "web_build": {
-      "version": "1.0.0",
+      "version": "1.1.0",
       "status": "built",
-      "stage": "3A",
+      "stage": "3B",
       "components": [
         "teacher-app",
         "admin-app",
@@ -100,14 +100,14 @@
   },
   "supportMatrix": [
     {
-      "release": "v1.0.0",
+      "release": "v1.1.0",
       "status": "development",
       "releaseTarget": "stage 7",
       "httpApi": "2.2.0",
       "coursePackage": "3.2.0",
       "extensionMessages": "2.2.0",
       "extensionStorage": "2.3.0",
-      "webBuild": "1.0.0",
+      "webBuild": "1.1.0",
       "extensionBuild": "1.0.0",
       "backendMigration": "20260826_rich_node_assets",
       "note": "开发阶段以自动化测试通过作为验收门槛。"

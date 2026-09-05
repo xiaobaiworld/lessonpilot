@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "2026-09-03-course-package",
+  "changeType": "feature",
+  "auditProfile": "contract",
+  "components": ["product", "backend", "adminWeb", "teacherWeb", "webBuild"],
+  "versionChanges": [
+    { "component": "product", "from": "0.1.0", "to": "0.2.0", "reason": "增加管理员课程包导入导出能力" },
+    { "component": "backend", "from": "0.1.0", "to": "0.2.0", "reason": "新增课程包 ZIP 校验、资源重映射和管理员接口" },
+    { "component": "adminWeb", "from": "0.1.0", "to": "0.2.0", "reason": "新增管理员课程包管理区" },
+    { "component": "teacherWeb", "from": "0.1.0", "to": "0.2.0", "reason": "共享 API 客户端增加二进制课程包请求能力" },
+    { "component": "webBuild", "from": "1.0.0", "to": "1.1.0", "reason": "管理端和共享 Web 构建包含课程包功能" }
+  ],
+  "compatibility": {
+    "businessBehaviorChanged": true,
+    "breaking": false,
+    "note": "新增管理员专用课程包接口；保留教师旧版 JSON 文件接口，学生交付课程包和插件行为不变。课程包导入只创建新草稿，不覆盖、发布或生成授权。"
+  },
+  "requiredAudits": [
+    "课程包 ZIP、manifest、节点资源路径和 SHA-256 完整性校验",
+    "管理员目标教师归属和未登录拒绝",
+    "导入失败无半门课程和资源",
+    "后端 pytest、Ruff、接口端点清单",
+    "共享客户端测试、管理端类型检查和生产构建",
+    "文档、追踪矩阵和项目门禁"
+  ],
+  "evidence": [
+    "cd v1/backend && uv run pytest -q",
+    "cd v1/backend && uv run ruff check app/modules/authoring_release/course_package.py app/modules/authoring_release/routes.py app/modules/authoring_release/application_service.py app/modules/authoring_release/asset_storage.py tests/test_course_package_api.py",
+    "npm test",
+    "npm run check",
+    "npm --prefix v1/web/admin run type-check",
+    "npm --prefix v1/web/admin run build"
+  ],
+  "rollback": "回退本次代码和版本记录即可；不涉及数据库 migration，已存在课程、发布版本和授权不需要回滚。已写入的导入资源只会随对应新课程由后续受控清理流程处理。"
+}

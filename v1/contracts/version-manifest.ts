@@ -73,9 +73,9 @@ export const VERSIONS: VersionSupport = {
     },
     {
       component: 'webBuild',
-      version: '1.0.0',
+      version: '1.1.0',
       status: 'development',
-      notes: 'Teacher and admin web applications; stage 3'
+      notes: 'Teacher and admin web applications; stage 3B course package management'
     },
     {
       component: 'extensionBuild',
@@ -86,12 +86,12 @@ export const VERSIONS: VersionSupport = {
   ],
   supportMatrix: [
     {
-      release: 'v1.0.0',
+      release: 'v1.1.0',
       httpApi: '2.2.0',
       coursePackage: '3.2.0',
       extensionMessages: '2.2.0',
       extensionStorage: '2.3.0',
-      webBuild: '1.0.0',
+      webBuild: '1.1.0',
       extensionBuild: '1.0.0'
     }
   ]

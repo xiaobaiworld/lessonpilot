@@ -110,6 +110,35 @@ export class APIClient {
     }
   }
 
+  private async requestBlob(method: string, path: string, body?: FormData): Promise<Blob> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+    try {
+      const res = await fetch(`${this.baseURL}${path}`, {
+        method,
+        signal: controller.signal,
+        credentials: 'include',
+        body,
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new APIError(
+          res.status >= 500 ? 'ServerError' : 'ClientError',
+          res.status,
+          data?.error?.code,
+          data?.error?.message ?? validationMessage(data?.detail)
+        );
+      }
+      return await res.blob();
+    } catch (err) {
+      if (err instanceof APIError) throw err;
+      const aborted = err instanceof Error && err.name === 'AbortError';
+      throw new APIError('NetworkError', undefined, undefined, aborted ? '请求超时' : undefined);
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
   get<T>(path: string) {
     return this.request<T>('GET', path);
   }
@@ -120,6 +149,14 @@ export class APIClient {
 
   postForm<T>(path: string, form: FormData) {
     return this.requestForm<T>('POST', path, form);
+  }
+
+  getBlob(path: string) {
+    return this.requestBlob('GET', path);
+  }
+
+  postFormBlob(path: string, form: FormData) {
+    return this.requestBlob('POST', path, form);
   }
 
   url(path: string) {

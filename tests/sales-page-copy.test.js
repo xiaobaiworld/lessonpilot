@@ -38,11 +38,8 @@ test('身份统一为 KnownMap 开发者，不用未定义的「我们」', () =
   assert.ok(!allCopy.includes('我们会联系你'), '接收人必须是开发者本人');
 });
 
-test('主 CTA 是回复当前私信，且唯一', () => {
+test('主 CTA 是低门槛试用邀请，且唯一', () => {
   assert.match(visible, /一节课，先做个小升级/);
-  // 必须写清是哪个渠道的私信，不能只说「联系我」。
-  assert.match(visible, /B 站私信/);
-  assert.match(visible, /微信/);
   const primary = page.match(/class="cta-primary"/g) || [];
   assert.equal(primary.length, 1, '主 CTA 必须唯一，否则老师不知道该做哪个动作');
 });
@@ -59,6 +56,11 @@ test('底部联系方式使用真实的微信二维码', () => {
   assert.match(page, /扫码添加我为好友/);
   assert.doesNotMatch(page, /wechat-qr-placeholder/);
   assert.doesNotMatch(page, /占位图|不可扫码|替换为真实微信二维码/);
+});
+
+test('联系方式标题使用自然的邀请语气', () => {
+  assert.match(visible, /欢迎联系我，聊聊你的课程/);
+  assert.ok(!visible.includes('微信联系我，或回复当前 B 站私信'));
 });
 
 test('销售页不再提供复制试用话术按钮', () => {

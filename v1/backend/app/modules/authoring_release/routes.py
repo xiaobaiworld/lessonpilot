@@ -1,5 +1,7 @@
-from fastapi import APIRouter, Depends, File, Query, Request, UploadFile
+from fastapi import APIRouter, Depends, File, Form, Query, Request, Response, UploadFile
 from fastapi.responses import FileResponse
+import re
+from urllib.parse import quote
 from sqlalchemy.orm import Session
 
 from app.api.errors import ApiError
@@ -12,6 +14,13 @@ from app.modules.authoring_release.application_service import (
     repair_subtitle_document,
 )
 from app.modules.authoring_release.asset_storage import AssetStorage, AssetStorageError
+from app.modules.authoring_release.course_package import (
+    COURSE_PACKAGE_MAX_BYTES,
+    CoursePackageError,
+    build_course_package,
+    parse_course_package,
+    summary as course_package_summary,
+)
 from app.modules.authoring_release.models import PreviewSession, ScriptDraft
 from app.modules.authoring_release.release_models import CourseRelease
 from app.modules.authoring_release.schemas import (
@@ -35,8 +44,9 @@ from app.modules.authoring_release.version_service import (
     CourseVersionApplicationService,
     CourseVersionError,
 )
-from app.modules.identity.dependencies import require_teacher
-from app.modules.identity.models import TeacherAccount
+from app.modules.identity.dependencies import require_admin, require_teacher
+from app.modules.identity.models import AdminAccount, TeacherAccount
+from app.modules.runtime_audit.application_service import RuntimeAuditApplicationService
 from app.modules.workspace_course.application_service import (
     WorkspaceCourseApplicationService,
     WorkspaceCourseError,
@@ -44,6 +54,7 @@ from app.modules.workspace_course.application_service import (
 from app.modules.workspace_course.routes import _course
 
 router = APIRouter(prefix="/api/v1/teacher", tags=["teacher-authoring-release"])
+admin_router = APIRouter(prefix="/api/v1/admin/teachers", tags=["admin-course-packages"])
 
 
 AUTHORING_ERROR_MESSAGES = {
@@ -72,6 +83,17 @@ AUTHORING_ERROR_MESSAGES = {
     "DRAFT_DOCUMENT_VERSION_UNSUPPORTED": "节点正文版本不受支持，请重新编辑正文",
     "DRAFT_CONTENT_BLOCK_UNSUPPORTED": "节点正文包含不受支持的内容块",
     "RELEASE_NOT_DELIVERABLE": "当前课程暂时不能发布，请检查课程状态和课节",
+}
+
+COURSE_PACKAGE_ERROR_MESSAGES = {
+    "COURSE_PACKAGE_INVALID": "课程包格式无效，请选择 KnownMap .kmcourse 文件",
+    "COURSE_PACKAGE_UNSUPPORTED": "课程包版本暂不支持",
+    "COURSE_PACKAGE_TOO_LARGE": "课程包或节点资源超过允许大小",
+    "COURSE_PACKAGE_ASSET_METADATA_MISMATCH": "课程包中的节点资源清单不一致",
+    "COURSE_PACKAGE_ASSET_INTEGRITY_FAILED": "课程包中的节点资源完整性校验失败",
+    "COURSE_PACKAGE_ASSET_NOT_FOUND": "课程中的节点资源不存在或已损坏",
+    "COURSE_PACKAGE_SOURCE_INVALID": "导出来源必须是已保存草稿或指定发布版本",
+    "PORTABLE_IMPORT_CONFIRMATION_REQUIRED": "请先确认导入影响",
 }
 
 
@@ -134,6 +156,264 @@ def _error(error: Exception) -> ApiError:
         code,
         AUTHORING_ERROR_MESSAGES.get(code, f"制作或发布校验失败（错误码：{code}）"),
     )
+
+
+def _course_package_error(error: Exception) -> ApiError:
+    if isinstance(error, AssetStorageError):
+        return _asset_error(error)
+    if isinstance(error, AuthoringReleaseError):
+        return _error(error)
+    code = getattr(error, "code", "COURSE_PACKAGE_INVALID")
+    status = 413 if code == "COURSE_PACKAGE_TOO_LARGE" else 422
+    return ApiError(status, code, COURSE_PACKAGE_ERROR_MESSAGES.get(code, "课程包校验失败"))
+
+
+def _course_package_filename(title: str) -> str:
+    safe = re.sub(r"[^\w\u4e00-\u9fff.-]+", "_", title, flags=re.UNICODE).strip("._")
+    return f"{(safe or 'course')[:80]}.kmcourse"
+
+
+def _record_package_audit(
+    db: Session,
+    request: Request,
+    admin: AdminAccount,
+    *,
+    action: str,
+    teacher_id: str,
+    target_id: str | None,
+    result: str,
+    source: str | None = None,
+    package_size: int | None = None,
+) -> None:
+    RuntimeAuditApplicationService(db).record(
+        action=action,
+        actor_type="admin",
+        actor_id=admin.id,
+        target_type="course_package",
+        target_id=target_id or teacher_id,
+        result=result,
+        metadata={
+            "teacherId": teacher_id,
+            **({"source": source} if source else {}),
+            **({"packageBytes": package_size} if package_size is not None else {}),
+        },
+        request_id=request.state.request_id,
+    )
+    db.commit()
+
+
+def _admin_teacher(db: Session, teacher_id: str) -> TeacherAccount:
+    teacher = db.get(TeacherAccount, teacher_id)
+    if not teacher:
+        raise ApiError(404, "TEACHER_NOT_FOUND", "教师不存在")
+    return teacher
+
+
+@admin_router.get("/{teacher_id}/courses")
+def list_admin_teacher_courses(
+    teacher_id: str,
+    _admin: AdminAccount = Depends(require_admin),
+    db: Session = Depends(get_db),
+) -> dict:
+    _admin_teacher(db, teacher_id)
+    courses = WorkspaceCourseApplicationService(db).list_courses(teacher_id)
+    authoring = AuthoringReleaseApplicationService(db)
+    return {
+        "items": [
+            {
+                "id": course.id,
+                "title": course.title,
+                "description": course.description,
+                "status": course.status,
+                "lesson_count": len(course.lessons),
+                "updated_at": course.updated_at,
+                "releases": [
+                    {
+                        "id": release.id,
+                        "release_number": release.release_number,
+                        "lesson_count": release.lesson_count,
+                        "status": release.status,
+                        "published_at": release.published_at,
+                    }
+                    for release in authoring.list_releases(course.id)
+                ],
+            }
+            for course in courses
+        ]
+    }
+
+
+@admin_router.get("/{teacher_id}/courses/{course_id}/course-package")
+def export_admin_course_package(
+    teacher_id: str,
+    course_id: str,
+    request: Request,
+    source: str = Query(default="draft"),
+    release_id: str | None = Query(default=None),
+    admin: AdminAccount = Depends(require_admin),
+    db: Session = Depends(get_db),
+) -> Response:
+    _admin_teacher(db, teacher_id)
+    courses, authoring = _services(db, _asset_store(request))
+    try:
+        course = courses.get_course(teacher_id, course_id)
+        if source == "draft":
+            teacher_file = authoring.export_draft_file(course, list(course.lessons))
+        elif source == "release" and release_id:
+            release = authoring.get_release(release_id)
+            if release.course_id != course.id or release.published_by_teacher_id != teacher_id:
+                raise AuthoringReleaseError("RELEASE_NOT_FOUND")
+            teacher_file = authoring.export_release_file(release)
+        else:
+            raise CoursePackageError("COURSE_PACKAGE_SOURCE_INVALID")
+        package = build_course_package(teacher_file, teacher_id, _asset_store(request))
+        _record_package_audit(
+            db,
+            request,
+            admin,
+            action="course.package.export",
+            teacher_id=teacher_id,
+            target_id=course_id,
+            result="success",
+            source=source,
+            package_size=len(package),
+        )
+        filename = _course_package_filename(course.title)
+        return Response(
+            content=package,
+            media_type="application/vnd.knownmap.course+zip",
+            headers={
+                "Content-Disposition": (
+                    f'attachment; filename="course.kmcourse"; filename*=UTF-8\'\'{quote(filename)}'
+                )
+            },
+        )
+    except (WorkspaceCourseError, AuthoringReleaseError, CoursePackageError, AssetStorageError) as error:
+        _record_package_audit(
+            db,
+            request,
+            admin,
+            action="course.package.export",
+            teacher_id=teacher_id,
+            target_id=course_id,
+            result="failure",
+            source=source,
+        )
+        if isinstance(error, WorkspaceCourseError):
+            raise _error(error) from error
+        raise _course_package_error(error) from error
+
+
+async def _read_course_package(file: UploadFile) -> bytes:
+    data = await file.read(COURSE_PACKAGE_MAX_BYTES + 1)
+    if len(data) > COURSE_PACKAGE_MAX_BYTES:
+        raise CoursePackageError("COURSE_PACKAGE_TOO_LARGE")
+    return data
+
+
+@admin_router.post("/{teacher_id}/course-packages/import/preview")
+async def preview_admin_course_package(
+    teacher_id: str,
+    request: Request,
+    file: UploadFile = File(...),
+    admin: AdminAccount = Depends(require_admin),
+    db: Session = Depends(get_db),
+) -> dict:
+    _admin_teacher(db, teacher_id)
+    store = _asset_store(request)
+    try:
+        data = await _read_course_package(file)
+        parsed = parse_course_package(data, max_asset_bytes=store.max_bytes)
+        result = {
+            "valid": True,
+            "summary": course_package_summary(parsed),
+            "target_teacher_id": teacher_id,
+            "will_create_new_course": True,
+        }
+        _record_package_audit(
+            db,
+            request,
+            admin,
+            action="course.package.import.preview",
+            teacher_id=teacher_id,
+            target_id=teacher_id,
+            result="success",
+            source=parsed.manifest["source"]["type"],
+            package_size=len(data),
+        )
+        return result
+    except (CoursePackageError, AssetStorageError, AuthoringReleaseError) as error:
+        _record_package_audit(
+            db,
+            request,
+            admin,
+            action="course.package.import.preview",
+            teacher_id=teacher_id,
+            target_id=teacher_id,
+            result="failure",
+        )
+        raise _course_package_error(error) from error
+
+
+@admin_router.post("/{teacher_id}/course-packages/import", status_code=201)
+async def import_admin_course_package(
+    teacher_id: str,
+    request: Request,
+    file: UploadFile = File(...),
+    confirm: bool = Form(default=False),
+    admin: AdminAccount = Depends(require_admin),
+    db: Session = Depends(get_db),
+) -> dict:
+    _admin_teacher(db, teacher_id)
+    if not confirm:
+        error = CoursePackageError("PORTABLE_IMPORT_CONFIRMATION_REQUIRED")
+        _record_package_audit(
+            db,
+            request,
+            admin,
+            action="course.package.import",
+            teacher_id=teacher_id,
+            target_id=teacher_id,
+            result="failure",
+        )
+        raise _course_package_error(error)
+    store = _asset_store(request)
+    courses, authoring = _services(db, store)
+    data = b""
+    try:
+        data = await _read_course_package(file)
+        parsed = parse_course_package(data, max_asset_bytes=store.max_bytes)
+        course = authoring.import_course_package(teacher_id, data, courses, store)
+        _record_package_audit(
+            db,
+            request,
+            admin,
+            action="course.package.import",
+            teacher_id=teacher_id,
+            target_id=course.id,
+            result="success",
+            source=parsed.manifest["source"]["type"],
+            package_size=len(data),
+        )
+        return {
+            "course": {"id": course.id, "title": course.title},
+            "lesson_count": len(course.lessons),
+            "asset_count": len(parsed.manifest["assets"]),
+        }
+    except (WorkspaceCourseError, AuthoringReleaseError, CoursePackageError, AssetStorageError) as error:
+        _record_package_audit(
+            db,
+            request,
+            admin,
+            action="course.package.import",
+            teacher_id=teacher_id,
+            target_id=teacher_id,
+            result="failure",
+            package_size=len(data) if data else None,
+        )
+        if isinstance(error, WorkspaceCourseError):
+            raise _error(error) from error
+        raise _course_package_error(error) from error
 
 
 def _services(

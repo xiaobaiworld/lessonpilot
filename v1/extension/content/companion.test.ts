@@ -83,7 +83,8 @@ describe('StudentCompanion 角色资源渲染', () => {
     });
     companion.mount();
     const shadow = document.querySelector('#knownmap-student-companion')?.shadowRoot;
-    const button = shadow?.querySelector<HTMLButtonElement>('.km-companion-control:nth-child(3)')!;
+    const button = shadow?.querySelector<HTMLButtonElement>('.km-companion-control:nth-child(3)');
+    if (!button) throw new Error('companion sound control was not mounted');
 
     await button.click();
     expect(button.textContent).toBe('声音关');

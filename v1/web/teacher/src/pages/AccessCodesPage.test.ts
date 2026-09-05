@@ -4,7 +4,13 @@ import React from 'react';
 import { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { AccessCodesPage, beijingLocalToUtc, formatDateTime } from './AccessCodesPage';
+import {
+  AccessCodesPage,
+  beijingLocalToUtc,
+  buildAccessCodeShareText,
+  formatDateTime,
+  STUDENT_GUIDE_URL,
+} from './AccessCodesPage';
 import type { CourseDetail, ManagedAccessCode, Teacher, TeacherAPI } from '../api';
 
 const teacher: Teacher = {
@@ -55,6 +61,83 @@ describe('AccessCodesPage', () => {
   it('按北京时间显示并把输入转换为 UTC 传输', () => {
     expect(formatDateTime('2026-08-27T04:00:00.000Z')).toContain('12:00');
     expect(beijingLocalToUtc('2026-08-27T12:00')).toBe('2026-08-27T04:00:00.000Z');
+  });
+
+  it('使用课程卡片承载授权范围，不在初始页面展开课节列表', async () => {
+    const api = {
+      getCourse: vi.fn().mockResolvedValue(course),
+      listAccessCodes: vi.fn().mockResolvedValue([]),
+    } as unknown as TeacherAPI;
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const root = createRoot(container);
+
+    await act(async () => {
+      root.render(
+        React.createElement(AccessCodesPage, {
+          api,
+          teacher,
+          courseId: 'course-1',
+          onBack: vi.fn(),
+          onSignedOut: vi.fn(),
+        }),
+      );
+      await Promise.resolve();
+    });
+
+    expect(container.querySelector('.access-code-course-list')).toBeNull();
+    expect(container.textContent).toContain('整门课程');
+    expect(container.textContent).toContain('指定范围');
+    expect(container.querySelector('.access-code-add-course')?.textContent).toContain('添加授权课程');
+  });
+
+  it('生成后可按单条授权码复制课程授权和学生指南文案', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    });
+    const api = {
+      getCourse: vi.fn().mockResolvedValue(course),
+      listAccessCodes: vi.fn().mockResolvedValue([code()]),
+    } as unknown as TeacherAPI;
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const root = createRoot(container);
+
+    await act(async () => {
+      root.render(
+        React.createElement(AccessCodesPage, {
+          api,
+          teacher,
+          courseId: 'course-1',
+          onBack: vi.fn(),
+          onSignedOut: vi.fn(),
+        }),
+      );
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      container.querySelector<HTMLButtonElement>('.access-code-copy-button')?.click();
+      await Promise.resolve();
+    });
+    expect(writeText).toHaveBeenCalledWith('KM-AAAAA-BBBBB-CCCCC');
+
+    const shareButton = Array.from(container.querySelectorAll('button')).find((button) =>
+      button.textContent?.includes('授权码 + 指南'),
+    );
+    expect(shareButton?.classList.contains('access-code-copy-button')).toBe(true);
+    expect(container.textContent).toContain('复制课程名称、授权码和学生指南网址');
+    await act(async () => {
+      shareButton?.click();
+      await Promise.resolve();
+    });
+
+    const expected = buildAccessCodeShareText(code(), ['互动课程一']);
+    expect(writeText).toHaveBeenCalledWith(expected);
+    expect(container.textContent).toContain('授权码 + 学生插件使用指南');
+    expect(container.textContent).toContain(STUDENT_GUIDE_URL);
   });
 
   it('lists codes, batch-generates codes, and terminates an active code', async () => {
@@ -117,9 +200,10 @@ describe('AccessCodesPage', () => {
       const originalRow = Array.from(container.querySelectorAll('tr')).find((row) =>
         row.textContent?.includes('KM-AAAAA-BBBBB-CCCCC')
       );
-      originalRow
-        ?.querySelector<HTMLButtonElement>('[data-label="操作"] button')
-        ?.click();
+      const terminateButton = Array.from(
+        originalRow?.querySelectorAll<HTMLButtonElement>('[data-label="操作"] button') ?? [],
+      ).find((button) => button.textContent?.trim() === '作废');
+      terminateButton?.click();
       await Promise.resolve();
     });
     expect(terminateAccessCode).toHaveBeenCalledWith('code-1');

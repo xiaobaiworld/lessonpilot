@@ -11,7 +11,10 @@ from app.modules.identity.routes import (
     admin_teacher_router,
     teacher_auth_router,
 )
-from app.modules.authoring_release.routes import router as authoring_release_router
+from app.modules.authoring_release.routes import (
+    admin_router as admin_course_package_router,
+    router as authoring_release_router,
+)
 from app.modules.authoring_release.asset_storage import AssetStorage
 from app.modules.admin_support.routes import (
     applications_router as admin_trial_applications_router,
@@ -63,6 +66,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(teacher_auth_router)
     app.include_router(workspace_course_router)
     app.include_router(authoring_release_router)
+    app.include_router(admin_course_package_router)
     app.include_router(admin_support_router)
     app.include_router(admin_trial_applications_router)
     app.include_router(public_trial_router)

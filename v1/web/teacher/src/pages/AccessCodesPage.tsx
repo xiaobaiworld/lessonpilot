@@ -18,6 +18,49 @@ interface Props {
   onSignedOut: () => void;
 }
 
+type CourseScope = 'course' | 'lessons';
+
+interface CourseScopeSelection {
+  scope: CourseScope;
+  lessonIds: string[];
+}
+
+export const STUDENT_GUIDE_URL = 'https://knownmap.com/student/guide.html';
+
+export function buildAccessCodeShareText(
+  accessCode: ManagedAccessCode,
+  courseTitles: string[],
+): string {
+  const courseLabel = courseTitles.length > 0 ? courseTitles.join('、') : '相关课程';
+  return `KnownMap 课程授权：${courseLabel}。授权码：${accessCode.access_code}。学生插件使用指南：${STUDENT_GUIDE_URL}。请先安装学生插件，再按指南中的步骤粘贴授权码领取课程。`;
+}
+
+async function copyTextToClipboard(text: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    // Fall through to the legacy copy path for browsers that reject clipboard access.
+  }
+
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.appendChild(textarea);
+  textarea.select();
+  try {
+    return document.execCommand('copy');
+  } catch {
+    return false;
+  } finally {
+    textarea.remove();
+  }
+}
+
 export const AccessCodesPage: React.FC<Props> = ({
   api,
   teacher,
@@ -30,8 +73,18 @@ export const AccessCodesPage: React.FC<Props> = ({
   const [codes, setCodes] = useState<ManagedAccessCode[] | null>(null);
   const [count, setCount] = useState(1);
   const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([courseId]);
-  const [scopeMode, setScopeMode] = useState<'course' | 'lessons'>('course');
-  const [selectedLessonIds, setSelectedLessonIds] = useState<string[]>([]);
+  const [courseScopes, setCourseScopes] = useState<Record<string, CourseScopeSelection>>({
+    [courseId]: { scope: 'course', lessonIds: [] },
+  });
+  const [coursePickerOpen, setCoursePickerOpen] = useState(false);
+  const [coursePickerQuery, setCoursePickerQuery] = useState('');
+  const [coursePickerSelection, setCoursePickerSelection] = useState<string[]>([]);
+  const [scopeCourseId, setScopeCourseId] = useState<string | null>(null);
+  const [scopeCourse, setScopeCourse] = useState<CourseDetail | null>(null);
+  const [scopeMode, setScopeMode] = useState<CourseScope>('course');
+  const [scopeLessonIds, setScopeLessonIds] = useState<string[]>([]);
+  const [scopeLessonQuery, setScopeLessonQuery] = useState('');
+  const [scopeBusy, setScopeBusy] = useState(false);
   const [recipientLabel, setRecipientLabel] = useState('');
   const [recipientNote, setRecipientNote] = useState('');
   const [redeemFrom, setRedeemFrom] = useState('');
@@ -44,6 +97,9 @@ export const AccessCodesPage: React.FC<Props> = ({
   const [detail, setDetail] = useState<ManagedAccessCode | null>(null);
   const [detailRecipientLabel, setDetailRecipientLabel] = useState('');
   const [detailRecipientNote, setDetailRecipientNote] = useState('');
+  const [shareCode, setShareCode] = useState<ManagedAccessCode | null>(null);
+  const [shareCopyStatus, setShareCopyStatus] = useState<'idle' | 'copied' | 'error'>('idle');
+  const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -67,7 +123,8 @@ export const AccessCodesPage: React.FC<Props> = ({
 
   useEffect(() => {
     setSelectedCourseIds([courseId]);
-    setSelectedLessonIds([]);
+    setCourseScopes({ [courseId]: { scope: 'course', lessonIds: [] } });
+    setScopeCourseId(null);
     void load();
   }, [load]);
 
@@ -117,8 +174,24 @@ export const AccessCodesPage: React.FC<Props> = ({
   const selectedCode = detail ?? codes?.find((item) => item.id === detailId) ?? null;
   const allVisibleSelected =
     filteredCodes.length > 0 && filteredCodes.every((code) => selectedIds.includes(code.id));
-  const canUseLessonScope =
-    selectedCourseIds.length === 1 && selectedCourseIds[0] === courseId;
+
+  const availableCourses = ownPublishedCourses.filter((item) => !selectedCourseIds.includes(item.id));
+  const filteredAvailableCourses = availableCourses.filter((item) => {
+    const normalized = coursePickerQuery.trim().toLowerCase();
+    return !normalized || item.title.toLowerCase().includes(normalized);
+  });
+
+  const courseTitle = (id: string): string => {
+    if (id === course?.id) return course.title;
+    return courses.find((item) => item.id === id)?.title ?? '相关课程';
+  };
+
+  const shareText = shareCode
+    ? buildAccessCodeShareText(
+        shareCode,
+        shareCode.grants.map((grant) => courseTitle(grant.course_id)),
+      )
+    : '';
 
   useEffect(() => {
     if (selectedCode) {
@@ -128,12 +201,15 @@ export const AccessCodesPage: React.FC<Props> = ({
   }, [selectedCode]);
 
   const buildGrants = (): AccessCodeGrantInput[] => {
-    return selectedCourseIds.map((id) => ({
-      course_id: id,
-      scope: scopeMode === 'lessons' && id === courseId ? 'lessons' : 'course',
-      lesson_ids: scopeMode === 'lessons' && id === courseId ? selectedLessonIds : [],
-      node_ids: [],
-    }));
+    return selectedCourseIds.map((id) => {
+      const selection = courseScopes[id] ?? { scope: 'course', lessonIds: [] };
+      return {
+        course_id: id,
+        scope: selection.scope,
+        lesson_ids: selection.scope === 'lessons' ? selection.lessonIds : [],
+        node_ids: [],
+      };
+    });
   };
 
   const generate = async () => {
@@ -142,8 +218,8 @@ export const AccessCodesPage: React.FC<Props> = ({
       setError('至少选择一门已发布课程');
       return;
     }
-    if (scopeMode === 'lessons' && selectedLessonIds.length === 0) {
-      setError('请选择至少一个课节');
+    if (grants.some((grant) => grant.scope === 'lessons' && grant.lesson_ids?.length === 0)) {
+      setError('指定课节的课程至少要选择一个课节');
       return;
     }
     const redeemFromUtc = beijingLocalToUtc(redeemFrom);
@@ -165,7 +241,7 @@ export const AccessCodesPage: React.FC<Props> = ({
       const advanced =
         selectedCourseIds.length !== 1 ||
         selectedCourseIds[0] !== courseId ||
-        scopeMode !== 'course' ||
+        grants.some((grant) => grant.scope !== 'course') ||
         Boolean(redeemFrom || redeemUntil || recipientLabel.trim() || recipientNote.trim());
       const created = advanced
         ? await api.createAccessCodeBatch(courseId, count, options)
@@ -264,15 +340,106 @@ export const AccessCodesPage: React.FC<Props> = ({
 
   const toggleCourse = (id: string) => {
     setSelectedCourseIds((current) => {
-      const next = current.includes(id)
-        ? current.filter((item) => item !== id)
-        : [...current, id];
-      if (next.length !== 1 || next[0] !== courseId) {
-        setScopeMode('course');
-        setSelectedLessonIds([]);
+      if (current.includes(id)) {
+        setCourseScopes((scopes) => {
+          const next = { ...scopes };
+          delete next[id];
+          return next;
+        });
+        return current.filter((item) => item !== id);
       }
+      setCourseScopes((scopes) => ({
+        ...scopes,
+        [id]: { scope: 'course', lessonIds: [] },
+      }));
+      return [...current, id];
+    });
+  };
+
+  const openCoursePicker = () => {
+    setCoursePickerQuery('');
+    setCoursePickerSelection([]);
+    setCoursePickerOpen(true);
+  };
+
+  const confirmCoursePicker = () => {
+    if (coursePickerSelection.length === 0) return;
+    setSelectedCourseIds((current) => [...current, ...coursePickerSelection]);
+    setCourseScopes((current) => {
+      const next = { ...current };
+      coursePickerSelection.forEach((id) => {
+        next[id] = { scope: 'course', lessonIds: [] };
+      });
       return next;
     });
+    setCoursePickerOpen(false);
+  };
+
+  const openScopeEditor = async (id: string) => {
+    const existing = courseScopes[id] ?? { scope: 'course', lessonIds: [] };
+    setScopeCourseId(id);
+    setScopeCourse(null);
+    setScopeMode(existing.scope);
+    setScopeLessonIds(existing.lessonIds);
+    setScopeLessonQuery('');
+    setScopeBusy(true);
+    setError(null);
+    try {
+      setScopeCourse(id === courseId && course ? course : await api.getCourse(id));
+    } catch (err) {
+      setError(errorMessage(err));
+      setScopeCourseId(null);
+    } finally {
+      setScopeBusy(false);
+    }
+  };
+
+  const closeScopeEditor = () => {
+    if (scopeBusy) return;
+    setScopeCourseId(null);
+    setScopeCourse(null);
+  };
+
+  const saveScopeEditor = () => {
+    if (!scopeCourseId) return;
+    if (scopeMode === 'lessons' && scopeLessonIds.length === 0) {
+      setError('请选择至少一个课节');
+      return;
+    }
+    setCourseScopes((current) => ({
+      ...current,
+      [scopeCourseId]: {
+        scope: scopeMode,
+        lessonIds: scopeMode === 'lessons' ? scopeLessonIds : [],
+      },
+    }));
+    closeScopeEditor();
+  };
+
+  const openShare = (code: ManagedAccessCode) => {
+    setShareCode(code);
+    setShareCopyStatus('idle');
+    void copyShareText(code);
+  };
+
+  const copyShareText = async (code: ManagedAccessCode) => {
+    const copied = await copyTextToClipboard(
+      buildAccessCodeShareText(
+        code,
+        code.grants.map((grant) => courseTitle(grant.course_id)),
+      ),
+    );
+    setShareCopyStatus(copied ? 'copied' : 'error');
+  };
+
+  const copyAccessCode = async (code: ManagedAccessCode) => {
+    const copied = await copyTextToClipboard(code.access_code);
+    if (copied) {
+      setCopiedCodeId(code.id);
+      window.setTimeout(() => {
+        setCopiedCodeId((current) => (current === code.id ? null : current));
+      }, 1800);
+    }
   };
 
   const toggleSelected = (id: string) => {
@@ -320,59 +487,75 @@ export const AccessCodesPage: React.FC<Props> = ({
               <p className="eyebrow">新建</p>
               <h2 id="access-code-create-title">生成授权码</h2>
             </div>
-            <span className="muted-note">当前规则：保证授权码唯一</span>
+            <div className="access-code-rule-notes">
+              <span className="access-code-rule-note">当前规则：保证授权码唯一</span>
+              <span className="access-code-rule-note is-future">后续版本：支持为一个班级的多个学生统一开通授权码</span>
+            </div>
           </div>
           <div className="access-code-form-grid">
             <fieldset>
               <legend>授权范围</legend>
-              <div className="access-code-course-list">
-                {ownPublishedCourses.map((item) => (
-                  <label key={item.id} className="check-row">
-                    <input
-                      type="checkbox"
-                      checked={selectedCourseIds.includes(item.id)}
-                      disabled={busy}
-                      onChange={() => toggleCourse(item.id)}
-                    />
-                    <span>{item.title}</span>
-                    {item.id === courseId && <small>当前课程</small>}
-                  </label>
-                ))}
+              <div className="access-code-scope-heading">
+                <span className="muted-note">默认授权整门课程；需要精细范围时再单独指定。</span>
+                <button
+                  className="light-button access-code-add-course"
+                  type="button"
+                  disabled={busy || availableCourses.length === 0}
+                  onClick={openCoursePicker}
+                >
+                  添加授权课程
+                </button>
               </div>
-              <select
-                aria-label="课节范围"
-                value={scopeMode}
-                disabled={busy || !canUseLessonScope}
-                onChange={(event) => {
-                  const next = event.target.value as 'course' | 'lessons';
-                  setScopeMode(next);
-                  if (next === 'course') setSelectedLessonIds([]);
-                }}
-              >
-                <option value="course">整门课程</option>
-                <option value="lessons">指定课节</option>
-              </select>
-              {scopeMode === 'lessons' && canUseLessonScope && (
-                <div className="access-code-lesson-list">
-                  {course?.lessons.map((lesson) => (
-                    <label key={lesson.id} className="check-row">
-                      <input
-                        type="checkbox"
-                        checked={selectedLessonIds.includes(lesson.id)}
-                        disabled={busy}
-                        onChange={() =>
-                          setSelectedLessonIds((current) =>
-                            current.includes(lesson.id)
-                              ? current.filter((id) => id !== lesson.id)
-                              : [...current, lesson.id]
-                          )
-                        }
-                      />
-                      <span>{lesson.title}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
+              <div className="access-code-selected-courses">
+                {selectedCourseIds.length === 0 && (
+                  <div className="access-code-empty-selection">还没有选择课程，请先添加课程。</div>
+                )}
+                {selectedCourseIds.map((id) => {
+                  const item = ownPublishedCourses.find((candidate) => candidate.id === id);
+                  if (!item) return null;
+                  const selection = courseScopes[id] ?? { scope: 'course', lessonIds: [] };
+                  const version = item.version_number ?? item.metrics.release_number;
+                  const scopeLabel =
+                    selection.scope === 'course'
+                      ? '整门课程'
+                      : `指定课节 · ${selection.lessonIds.length} 个课节`;
+                  return (
+                    <article key={id} className="access-code-course-card">
+                      <div>
+                        <div className="access-code-course-title">
+                          <strong>{item.title}</strong>
+                          {id === courseId && <span>当前课程</span>}
+                        </div>
+                        <small>
+                          第 {version ?? '—'} 版 · {item.metrics.lesson_count} 个课节
+                        </small>
+                      </div>
+                      <div className="access-code-course-actions">
+                        <span className="access-code-scope-badge">{scopeLabel}</span>
+                        <button
+                          className="text-button"
+                          type="button"
+                          disabled={busy}
+                          onClick={() => void openScopeEditor(id)}
+                        >
+                          {selection.scope === 'course' ? '指定范围' : '修改范围'}
+                        </button>
+                        <button
+                          className="text-button access-code-remove-course"
+                          type="button"
+                          disabled={busy || selectedCourseIds.length === 1}
+                          onClick={() => toggleCourse(id)}
+                        >
+                          移除
+                        </button>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+              <p className="access-code-scope-note">
+                页面只展示已选择的课程；点击“指定范围”后，才会打开该课程自己的课节列表。
+              </p>
             </fieldset>
 
             <div className="access-code-form-fields">
@@ -435,15 +618,17 @@ export const AccessCodesPage: React.FC<Props> = ({
           <div className="access-code-create-footer">
             <span className="muted-note">
               {selectedCourseIds.length} 门课程
-              {scopeMode === 'lessons'
-                ? ` · ${selectedLessonIds.length} 个课节`
-                : ' · 全部课节'}
+              {` · ${Object.values(courseScopes).filter((item) => item.scope === 'course').length} 整门课程`}
+              {` · ${Object.values(courseScopes).reduce((total, item) => total + item.lessonIds.length, 0)} 个课节`}
               {` · ${count} 个授权码`}
             </span>
             <button className="dark-button" type="button" onClick={generate} disabled={busy}>
               {busy ? '处理中…' : count === 1 ? '生成授权码' : '批量生成授权码'}
             </button>
           </div>
+          <p className="access-code-share-note">
+            授权码生成成功后，可在每条记录的“操作”中复制“授权码 + 学生插件使用指南”，直接发送给学生。
+          </p>
         </section>
 
         {error && <p className="field-error">{error}</p>}
@@ -543,13 +728,26 @@ export const AccessCodesPage: React.FC<Props> = ({
                       />
                     </td>
                     <td data-label="完整授权码">
-                      <button
-                        className="access-code-detail-trigger"
-                        type="button"
-                        onClick={() => void openDetail(code)}
-                      >
-                        <code className="access-code-value">{code.access_code}</code>
-                      </button>
+                      <div className="access-code-code-cell">
+                        <button
+                          className="access-code-detail-trigger"
+                          type="button"
+                          onClick={() => void openDetail(code)}
+                        >
+                          <code className="access-code-value">{code.access_code}</code>
+                        </button>
+                        <button
+                          className="access-code-copy-button"
+                          type="button"
+                          aria-label={`复制授权码 ${code.access_code}`}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            void copyAccessCode(code);
+                          }}
+                        >
+                          {copiedCodeId === code.id ? '已复制' : '复制'}
+                        </button>
+                      </div>
                     </td>
                     <td data-label="接收人记录">
                       <strong>{code.recipient_label || '未记录'}</strong>
@@ -565,6 +763,21 @@ export const AccessCodesPage: React.FC<Props> = ({
                     <td data-label="最近领取">{formatDateTime(code.last_redeemed_at)}</td>
                     <td data-label="操作">
                       <div className="access-code-row-actions">
+                        <div className="access-code-share-action-wrap">
+                          <button
+                            className="access-code-copy-button access-code-share-action"
+                            type="button"
+                            disabled={busy}
+                            aria-label={`复制 ${code.access_code} 的授权码和学生插件使用指南`}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              openShare(code);
+                            }}
+                          >
+                            授权码 + 指南
+                          </button>
+                          <small className="access-code-share-action-note">复制课程名称、授权码和学生指南网址</small>
+                        </div>
                         {code.status === 'active' && (
                           <>
                             <button
@@ -653,6 +866,16 @@ export const AccessCodesPage: React.FC<Props> = ({
                 <strong>{formatDateTime(selectedCode.created_at)}</strong>
               </div>
             </div>
+            <div className="access-code-detail-share">
+              <button
+                className="light-button"
+                type="button"
+                onClick={() => openShare(selectedCode)}
+              >
+                复制授权码 + 学生插件使用指南
+              </button>
+              <small>整理课程名称、完整授权码和学生指南网址，并复制到剪贴板。</small>
+            </div>
             <div className="access-code-recipient-editor">
               <label>
                 <span>接收人记录</span>
@@ -692,6 +915,200 @@ export const AccessCodesPage: React.FC<Props> = ({
               </div>
             )}
           </aside>
+        )}
+
+        {coursePickerOpen && (
+          <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="course-picker-title">
+            <div className="access-code-course-picker">
+              <div className="access-code-dialog-head">
+                <div>
+                  <span className="eyebrow">添加到授权内容</span>
+                  <h2 id="course-picker-title">选择课程</h2>
+                </div>
+                <button className="text-button" type="button" onClick={() => setCoursePickerOpen(false)}>
+                  关闭
+                </button>
+              </div>
+              <input
+                aria-label="搜索课程"
+                value={coursePickerQuery}
+                placeholder="搜索课程名称"
+                onChange={(event) => setCoursePickerQuery(event.target.value)}
+              />
+              <div className="access-code-picker-list">
+                {filteredAvailableCourses.length === 0 && <p className="table-state">没有可添加的课程。</p>}
+                {filteredAvailableCourses.map((item) => (
+                  <label key={item.id} className="access-code-picker-option">
+                    <input
+                      type="checkbox"
+                      checked={coursePickerSelection.includes(item.id)}
+                      onChange={() =>
+                        setCoursePickerSelection((current) =>
+                          current.includes(item.id)
+                            ? current.filter((id) => id !== item.id)
+                            : [...current, item.id]
+                        )
+                      }
+                    />
+                    <span>
+                      <strong>{item.title}</strong>
+                      <small>
+                        第 {item.version_number ?? item.metrics.release_number ?? '—'} 版 ·{' '}
+                        {item.metrics.lesson_count} 个课节
+                      </small>
+                    </span>
+                  </label>
+                ))}
+              </div>
+              <div className="modal-actions">
+                <button className="light-button" type="button" onClick={() => setCoursePickerOpen(false)}>
+                  取消
+                </button>
+                <button
+                  className="dark-button"
+                  type="button"
+                  disabled={coursePickerSelection.length === 0}
+                  onClick={confirmCoursePicker}
+                >
+                  添加所选课程
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {scopeCourseId && scopeCourse && (
+          <div className="modal-backdrop access-code-scope-backdrop" role="dialog" aria-modal="true" aria-labelledby="scope-editor-title">
+            <aside className="access-code-scope-editor">
+              <div className="access-code-dialog-head">
+                <div>
+                  <span className="eyebrow">授权范围</span>
+                  <h2 id="scope-editor-title">{scopeCourse.title}</h2>
+                  <small className="muted-note">
+                    第 {scopeCourse.version_number ?? '—'} 版 · {scopeCourse.lessons.length} 个课节
+                  </small>
+                </div>
+                <button className="text-button" type="button" disabled={scopeBusy} onClick={closeScopeEditor}>
+                  关闭
+                </button>
+              </div>
+              <div className="access-code-scope-options">
+                <label className={scopeMode === 'course' ? 'is-selected' : ''}>
+                  <input
+                    type="radio"
+                    name="access-code-scope"
+                    value="course"
+                    checked={scopeMode === 'course'}
+                    onChange={() => setScopeMode('course')}
+                  />
+                  <span><strong>整门课程</strong><small>包含这门课程当前可交付的全部课节</small></span>
+                </label>
+                <label className={scopeMode === 'lessons' ? 'is-selected' : ''}>
+                  <input
+                    type="radio"
+                    name="access-code-scope"
+                    value="lessons"
+                    checked={scopeMode === 'lessons'}
+                    onChange={() => setScopeMode('lessons')}
+                  />
+                  <span><strong>指定课节</strong><small>只授予下方勾选的课节</small></span>
+                </label>
+              </div>
+              {scopeMode === 'lessons' && (
+                <>
+                  <div className="access-code-lesson-tools">
+                    <input
+                      aria-label="搜索课节"
+                      value={scopeLessonQuery}
+                      placeholder="搜索课节"
+                      onChange={(event) => setScopeLessonQuery(event.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setScopeLessonIds((current) => [
+                          ...new Set([
+                            ...current,
+                            ...scopeCourse.lessons
+                              .filter((lesson) =>
+                                lesson.title.toLowerCase().includes(scopeLessonQuery.trim().toLowerCase()),
+                              )
+                              .map((lesson) => lesson.id),
+                          ]),
+                        ])
+                      }
+                    >
+                      全选当前结果
+                    </button>
+                  </div>
+                  <div className="access-code-scope-lessons">
+                    {scopeCourse.lessons
+                      .filter((lesson) =>
+                        lesson.title.toLowerCase().includes(scopeLessonQuery.trim().toLowerCase()),
+                      )
+                      .map((lesson) => (
+                        <label key={lesson.id} className="check-row">
+                          <input
+                            type="checkbox"
+                            checked={scopeLessonIds.includes(lesson.id)}
+                            onChange={() =>
+                              setScopeLessonIds((current) =>
+                                current.includes(lesson.id)
+                                  ? current.filter((id) => id !== lesson.id)
+                                  : [...current, lesson.id],
+                              )
+                            }
+                          />
+                          <span>{lesson.title}</span>
+                          <small>第 {lesson.sort_order + 1} 节</small>
+                        </label>
+                      ))}
+                  </div>
+                </>
+              )}
+              <div className="access-code-scope-footer">
+                <span className="muted-note">
+                  {scopeMode === 'course' ? `整门课程 · ${scopeCourse.lessons.length} 个课节` : `已选 ${scopeLessonIds.length} / ${scopeCourse.lessons.length} 个课节`}
+                </span>
+                <div className="modal-actions">
+                  <button className="light-button" type="button" disabled={scopeBusy} onClick={closeScopeEditor}>取消</button>
+                  <button className="dark-button" type="button" disabled={scopeBusy} onClick={saveScopeEditor}>保存范围</button>
+                </div>
+              </div>
+            </aside>
+          </div>
+        )}
+
+        {shareCode && (
+          <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="share-code-title">
+            <div className="access-code-share-panel">
+              <div className="access-code-dialog-head">
+                <div>
+                  <span className="eyebrow">发送给学生</span>
+                  <h2 id="share-code-title">授权码 + 学生插件使用指南</h2>
+                </div>
+                <button className="text-button" type="button" onClick={() => setShareCode(null)}>关闭</button>
+              </div>
+              <p className="access-code-share-intro">这是一段可以直接粘贴到微信、邮件或群聊里的文字，打开时会自动复制。</p>
+              <textarea
+                className="access-code-share-text"
+                value={shareText}
+                readOnly
+                aria-label="可复制的学生文案"
+                onFocus={(event) => event.currentTarget.select()}
+              />
+              <p className={`access-code-copy-status is-${shareCopyStatus}`}>
+                {shareCopyStatus === 'copied' ? '已复制到剪贴板，可直接发送' : shareCopyStatus === 'error' ? '未能自动复制，请选中文案后手动复制' : '正在复制…'}
+              </p>
+              <p className="access-code-share-footnote">内容包括课程名称、完整授权码和学生插件使用指南网址。</p>
+              <div className="modal-actions">
+                <button className="light-button" type="button" onClick={() => setShareCode(null)}>关闭</button>
+                <button className="dark-button" type="button" onClick={() => void copyShareText(shareCode)}>
+                  重新复制
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </main>
     </div>

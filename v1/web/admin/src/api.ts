@@ -46,6 +46,41 @@ export interface TrialApplication {
   status: TrialFollowupStatus;
 }
 
+export interface AdminCourseRelease {
+  id: string;
+  release_number: number;
+  lesson_count: number;
+  status: string;
+  published_at: string;
+}
+
+export interface AdminCourse {
+  id: string;
+  title: string;
+  description: string | null;
+  status: string;
+  lesson_count: number;
+  updated_at: string;
+  releases: AdminCourseRelease[];
+}
+
+export interface CoursePackagePreview {
+  valid: true;
+  target_teacher_id: string;
+  will_create_new_course: true;
+  summary: {
+    package_schema_version: number;
+    title: string;
+    lesson_count: number;
+    node_count: number;
+    asset_count: number;
+    asset_bytes: number;
+    source_type: string;
+    source_release_number: number | null;
+    has_subtitles: boolean;
+  };
+}
+
 const BASE = '/api/v1/admin';
 
 /**
@@ -112,5 +147,42 @@ export class AdminAPI {
     status: TrialFollowupStatus
   ): Promise<{ id: string; trial_application_id: string; status: TrialFollowupStatus }> {
     return this.http.patch(`${BASE}/trial-followups/${followupId}`, { status });
+  }
+
+  listTeacherCourses(teacherId: string): Promise<{ items: AdminCourse[] }> {
+    return this.http.get(`${BASE}/teachers/${teacherId}/courses`);
+  }
+
+  exportCoursePackage(
+    teacherId: string,
+    courseId: string,
+    source: 'draft' | 'release',
+    releaseId?: string
+  ): Promise<Blob> {
+    const query = new URLSearchParams({ source });
+    if (releaseId) query.set('release_id', releaseId);
+    return this.http.getBlob(
+      `${BASE}/teachers/${teacherId}/courses/${courseId}/course-package?${query.toString()}`
+    );
+  }
+
+  previewCoursePackage(teacherId: string, file: File): Promise<CoursePackagePreview> {
+    const form = new FormData();
+    form.append('file', file, file.name);
+    return this.http.postForm(
+      `${BASE}/teachers/${teacherId}/course-packages/import/preview`,
+      form
+    );
+  }
+
+  importCoursePackage(teacherId: string, file: File): Promise<{
+    course: { id: string; title: string };
+    lesson_count: number;
+    asset_count: number;
+  }> {
+    const form = new FormData();
+    form.append('file', file, file.name);
+    form.append('confirm', 'true');
+    return this.http.postForm(`${BASE}/teachers/${teacherId}/course-packages/import`, form);
   }
 }
