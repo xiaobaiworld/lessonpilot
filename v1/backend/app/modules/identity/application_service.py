@@ -128,6 +128,28 @@ class IdentityApplicationService:
             row.revoked_at = datetime.now(timezone.utc)
             self.session.commit()
 
+    def change_admin_password(
+        self,
+        admin: AdminAccount,
+        current_password: str,
+        new_password: str,
+        confirm_password: str,
+    ) -> bool:
+        if new_password != confirm_password:
+            raise ValueError("ADMIN_PASSWORD_CONFIRMATION_MISMATCH")
+        if not self.passwords.verify_password(current_password, admin.password_hash):
+            return False
+
+        now = datetime.now(timezone.utc)
+        admin.password_hash = self.passwords.hash_password(new_password)
+        admin.credential_version += 1
+        admin.updated_at = now
+        for session in admin.sessions:
+            if session.revoked_at is None:
+                session.revoked_at = now
+        self.session.commit()
+        return True
+
     def revoke_teacher_session(self, raw_token: str | None) -> None:
         row = self._teacher_session(raw_token)
         if row:

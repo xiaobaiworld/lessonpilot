@@ -12,6 +12,7 @@ interface Props {
   api: AdminAPI;
   admin: Admin;
   onSignedOut: () => void;
+  onOpenPasswordChange: () => void;
 }
 
 /** 待展示的一次性密码，附带它属于谁 */
@@ -20,7 +21,12 @@ interface Credential {
   password: string;
 }
 
-export const TeacherListPage: React.FC<Props> = ({ api, admin, onSignedOut }) => {
+export const TeacherListPage: React.FC<Props> = ({
+  api,
+  admin,
+  onSignedOut,
+  onOpenPasswordChange,
+}) => {
   const [teachers, setTeachers] = useState<Teacher[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [credential, setCredential] = useState<Credential | null>(null);
@@ -130,6 +136,11 @@ export const TeacherListPage: React.FC<Props> = ({ api, admin, onSignedOut }) =>
   return (
     <div className="app-shell">
       <Topbar subtitle="管理后台" account={admin.display_name} onLogout={signOut} />
+      <div className="admin-account-actions">
+        <button className="text-button" type="button" onClick={onOpenPasswordChange}>
+          修改管理员密码
+        </button>
+      </div>
 
       <main className="view workspace-home">
         <SectionHead

@@ -6,7 +6,7 @@ test('版本治理清单能解析所有组件来源', async () => {
   const manifest = loadManifest();
   assert.deepEqual(validateManifest(manifest), []);
   const versions = resolveVersions();
-  assert.equal(versions.product, '0.1.0');
+  assert.equal(versions.product, '0.2.0');
   assert.equal(versions.studentExtension, '1.2.3');
   assert.equal(versions.httpApi, '2.2.0');
   assert.equal(versions.database, '20260901_local_trial_application');

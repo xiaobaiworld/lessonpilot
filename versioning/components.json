@@ -98,6 +98,6 @@
     { "id": "teacher-application", "category": "application", "auditProfile": "page", "versionRequired": true, "components": ["teacherWeb"], "paths": ["v1/web/teacher/**"] },
     { "id": "admin-application", "category": "application", "auditProfile": "page", "versionRequired": true, "components": ["adminWeb"], "paths": ["v1/web/admin/**"] },
     { "id": "site-application", "category": "application", "auditProfile": "page", "versionRequired": true, "components": ["product"], "paths": ["v1/site/**"] },
-    { "id": "tests", "category": "test", "auditProfile": "governance", "versionRequired": false, "paths": ["tests/**", "v1/**/test/**", "v1/**/*.test.*"] }
+    { "id": "tests", "category": "test", "auditProfile": "governance", "versionRequired": false, "paths": ["tests/**", "v1/**/test/**", "v1/**/tests/**", "v1/**/*.test.*"] }
   ]
 }

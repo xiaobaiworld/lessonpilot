@@ -24,6 +24,10 @@ export interface TeacherMutation {
   temporary_password: string;
 }
 
+export interface ChangePasswordResponse {
+  changed: boolean;
+}
+
 export type TrialFollowupStatus = 'pending' | 'contacted' | 'closed';
 
 export interface TrialApplication {
@@ -67,6 +71,18 @@ export class AdminAPI {
 
   logout(): Promise<{ logged_out: boolean }> {
     return this.http.post(`${BASE}/auth/logout`);
+  }
+
+  changePassword(
+    currentPassword: string,
+    newPassword: string,
+    confirmPassword: string
+  ): Promise<ChangePasswordResponse> {
+    return this.http.post<ChangePasswordResponse>(`${BASE}/auth/change-password`, {
+      current_password: currentPassword,
+      new_password: newPassword,
+      confirm_password: confirmPassword,
+    });
   }
 
   /** 后端返回裸数组，不是 { teachers: [] } */

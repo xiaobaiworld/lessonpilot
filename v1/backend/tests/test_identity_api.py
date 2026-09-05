@@ -119,3 +119,82 @@ def test_deactivate_and_password_reset_invalidate_existing_teacher_sessions() ->
         ).status_code
         == 200
     )
+
+
+def test_admin_password_change_requires_an_authenticated_admin() -> None:
+    client, _app = make_identity_client()
+
+    response = client.post(
+        "/api/v1/admin/auth/change-password",
+        json={
+            "current_password": "admin-password",
+            "new_password": "new-admin-password",
+            "confirm_password": "new-admin-password",
+        },
+    )
+
+    assert response.status_code == 401
+    assert response.json()["error"]["code"] == "ADMIN_AUTH_REQUIRED"
+
+
+def test_admin_password_change_rejects_wrong_current_password_and_mismatch() -> None:
+    client, _app = make_identity_client()
+    admin_login(client)
+
+    wrong_current = client.post(
+        "/api/v1/admin/auth/change-password",
+        json={
+            "current_password": "wrong-current-password",
+            "new_password": "new-admin-password",
+            "confirm_password": "new-admin-password",
+        },
+    )
+    assert wrong_current.status_code == 401
+    assert wrong_current.json()["error"]["code"] == "ADMIN_PASSWORD_INVALID"
+
+    mismatch = client.post(
+        "/api/v1/admin/auth/change-password",
+        json={
+            "current_password": "admin-password",
+            "new_password": "new-admin-password",
+            "confirm_password": "different-password",
+        },
+    )
+    assert mismatch.status_code == 422
+    assert mismatch.json()["error"]["code"] == "ADMIN_PASSWORD_CONFIRMATION_MISMATCH"
+
+
+def test_admin_password_change_invalidates_all_sessions_and_allows_new_login() -> None:
+    client, _app = make_identity_client()
+    admin_login(client)
+
+    second_client = TestClient(client.app)
+    admin_login(second_client)
+
+    response = client.post(
+        "/api/v1/admin/auth/change-password",
+        json={
+            "current_password": "admin-password",
+            "new_password": "new-admin-password",
+            "confirm_password": "new-admin-password",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {"changed": True}
+    assert client.get("/api/v1/admin/auth/me").status_code == 401
+    assert second_client.get("/api/v1/admin/auth/me").status_code == 401
+    assert (
+        client.post(
+            "/api/v1/admin/auth/login",
+            json={"login_name": "admin", "password": "admin-password"},
+        ).status_code
+        == 401
+    )
+    assert (
+        client.post(
+            "/api/v1/admin/auth/login",
+            json={"login_name": "admin", "password": "new-admin-password"},
+        ).status_code
+        == 200
+    )

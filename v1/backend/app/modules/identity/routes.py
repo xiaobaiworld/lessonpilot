@@ -10,6 +10,8 @@ from app.modules.identity.models import AdminAccount, TeacherAccount, TeacherSta
 from app.modules.identity.schemas import (
     AdminAuthResponse,
     AdminPublic,
+    ChangePasswordRequest,
+    ChangePasswordResponse,
     CreateTeacherRequest,
     LoginRequest,
     LogoutResponse,
@@ -54,6 +56,26 @@ def admin_login(
 @admin_auth_router.get("/me", response_model=AdminAuthResponse)
 def admin_me(admin: AdminAccount = Depends(require_admin)) -> AdminAuthResponse:
     return AdminAuthResponse(admin=AdminPublic.model_validate(admin))
+
+
+@admin_auth_router.post("/change-password", response_model=ChangePasswordResponse)
+def admin_change_password(
+    payload: ChangePasswordRequest,
+    admin: AdminAccount = Depends(require_admin),
+    service: IdentityApplicationService = Depends(get_identity_service),
+) -> ChangePasswordResponse:
+    try:
+        changed = service.change_admin_password(
+            admin,
+            payload.current_password,
+            payload.new_password,
+            payload.confirm_password,
+        )
+    except ValueError as error:
+        raise ApiError(422, str(error), "两次输入的新密码不一致") from error
+    if not changed:
+        raise ApiError(401, "ADMIN_PASSWORD_INVALID", "当前密码错误")
+    return ChangePasswordResponse(changed=True)
 
 
 @admin_auth_router.post("/logout", response_model=LogoutResponse)

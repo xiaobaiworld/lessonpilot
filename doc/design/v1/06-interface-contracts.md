@@ -221,6 +221,7 @@
 | POST | `/api/v1/admin/auth/login` | 已有 | `FR-AUTH-001` |
 | POST | `/api/v1/admin/auth/logout` | 已有 | `FR-AUTH-001` |
 | GET | `/api/v1/admin/auth/me` | 已有 | `FR-AUTH-001` 会话恢复 |
+| POST | `/api/v1/admin/auth/change-password` | 新建 | 管理员自助修改密码；成功后递增凭据版本并使该管理员全部会话失效 |
 | POST | `/api/v1/teacher/auth/login` | 改名 | `FR-AUTH-004`；旧路径：`POST /api/v1/auth/login` |
 | POST | `/api/v1/teacher/auth/logout` | 改名 | `FR-AUTH-004`；旧路径：`POST /api/v1/auth/logout` |
 | GET | `/api/v1/teacher/auth/me` | 改名 | 会话恢复；旧路径：`GET /api/v1/auth/me` |

@@ -30,6 +30,16 @@ class AdminAuthResponse(BaseModel):
     admin: AdminPublic
 
 
+class ChangePasswordRequest(BaseModel):
+    current_password: str = Field(min_length=1, max_length=256)
+    new_password: str = Field(min_length=1, max_length=256)
+    confirm_password: str = Field(min_length=1, max_length=256)
+
+
+class ChangePasswordResponse(BaseModel):
+    changed: bool
+
+
 class TeacherAuthResponse(BaseModel):
     teacher: TeacherPublic
 

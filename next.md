@@ -2,6 +2,20 @@
 
 更新时间：2026-09-02
 
+## 已完成执行切片：管理员自助修改密码 — 2026-09-05
+
+管理员登录后的管理界面已增加“修改管理员密码”入口和独立页面，并提供
+`POST /api/v1/admin/auth/change-password`。管理员提交当前密码、新密码和确认密码后，
+服务端更新 Argon2 哈希、递增 `credential_version` 并使该管理员的全部会话失效，
+页面提示使用新密码重新登录。忘记密码时仍由服务器级紧急重置兜底，本切片不混用两种流程。
+
+验证：后端全量 pytest 67 项、管理员端 type-check/build、后端身份模块 Ruff、根目录 npm test
+147 + v1 355 项、`npm run check` 的业务门禁（endpoint/module/contract/style/doc）通过；
+版本治理在显式包含未跟踪变更记录的文件清单下通过。未部署线上，未执行浏览器人工验收。
+
+不变量：不读取或记录明文密码；不改变教师重置密码流程；未触碰当前工作树已有的
+`bilibili-potential-customers-2026-09-03.md`。
+
 ## 已完成执行切片：学生插件上手页与 student 页面命名空间 — 2026-09-02
 
 依据：`FR-LIB-014`、`D-V1-033`、`doc/design/v1/11-visual-design-system.md`。
