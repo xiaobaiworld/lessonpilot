@@ -81,11 +81,14 @@ npm run build:local
 
 ## 发布到网站
 
+默认发布约定：以后说“发布到 GitHub”或“发版”，只要本机测试已经通过，就同时继续发布到阿里云并完成线上健康检查，
+不需要再单独提醒“发布到阿里云”。只有明确说“只推 GitHub”时，才不执行云端发布。
+
 当前是初期开发与运行阶段。流程是：本机测完 → 提交并 push 到 GitHub → 用
 `web-prod/<时间-commit>` 标签和 `deploy/releases/` 做版本记录 → 把本机编好的产物
 拷到阿里云切换。完整约定见
 [`doc/decisions/2026-08-26-early-stage-release-process.md`](doc/decisions/2026-08-26-early-stage-release-process.md)
-（`D-V1-013`）。发布不阻塞在 GitHub CI。
+（`D-V1-013`）。发布不阻塞在 GitHub CI，但必须先通过本机发布前测试。
 
 正式版本、Git commit、插件版本、Alembic 数据库版本、契约版本和生产数据保留规则见
 [`正式发布版本与数据连续性说明`](docs/RELEASE_VERSION_AND_DATA_CONTINUITY.md)。
