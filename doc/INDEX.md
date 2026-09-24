@@ -147,6 +147,7 @@
 | [`bili-mascot-spike.md`](bili-mascot-spike.md) | B 站页面挂载探针结论 |
 | [`../tests/manual/bilibili-iframe-current-time/README.md`](../tests/manual/bilibili-iframe-current-time/README.md) | 跨源 iframe 无法可靠读取播放时刻 |
 | [`promo-video.md`](promo-video.md) | 宣传视频素材说明 |
+| [`ai-video-workflow-prototype.md`](ai-video-workflow-prototype.md) | 独立 AI 视频工作流单页原型的需求、边界与设计 |
 
 ### 研究资料
 
